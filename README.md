@@ -159,9 +159,51 @@ high-tier reasoning metrics:
 | **RTL** | Reaction-Time Latency (seconds; lower is better) |
 | **OCC / APR / DRM / RHC / AGI** | occlusion-robust / authority-priority / directive-recall / rule-hierarchy / ambiguous-gesture-intent |
 
-These roll up into per-requirement subscores (R1–R9) and a weighted
-**MARSHAL Score** in [0, 100]. The headline comparison is the **reasoning-tier
-pass-rate** (low vs high) — the direct measure of the E2E-vs-LLM gap.
+### How a run is scored
+
+The pipeline goes **per-tick → per-episode → per-model**:
+
+1. **Per tick** — your controller's `VehicleControl` drives the ego closed-loop.
+   Two criteria observe the episode:
+   - *Authority compliance* — did the ego execute the scenario's **expected
+     authority-aware action** (STOP / PROCEED / DETOUR / YIELD / HOLD), collision-
+     free, and *not* obey an unauthorized gesture?
+   - *Reaction latency* — seconds from the gesture onset to the first valid
+     response.
+
+2. **Per episode** — those verdicts + the privileged ground-truth E-tuple are
+   turned into the metric suite above. Each metric is **0/1** (RTL is in seconds)
+   and is only scored for the scenarios where it applies (e.g. FOA only where an
+   *unauthorized* gesture is present). An episode "passes" when its authority-
+   compliance verdict is satisfied.
+
+3. **Per model (aggregate)** — every metric is averaged over the episodes where
+   it is defined. `CRI` is an infraction **rate** (lower is better); `RTL` is a
+   latency in seconds (reported, not folded into the score). Each metric maps to
+   a requirement **R1–R9** (e.g. AOC/FOA/APR/DRM/RHC → R3 rule-compliance,
+   TAA/AGI → R2 relational understanding, OCC → R1 perception, SBO → R7 safety).
+   The R-subscores are combined into the weighted
+
+   > **MARSHAL Score = 100 × Σ(wᵣ · Rᵣ) / Σ wᵣ** &nbsp; over the measured R's,
+   > with weights R1 .20, R2 .10, R3 .15, R4 .10, R5 .10, R6 .10, R7 .10,
+   > R8 .10, R9 .05.
+
+   It is reported as a **partial** score: R's that aren't yet instrumented are
+   listed under `r_unmeasured` and excluded from the denominator, so the number
+   stays in [0, 100].
+
+4. **The headline — reasoning-tier pass-rate.** Every scenario is tagged
+   **low / mid / high** tier, and we report the pass-rate per tier. Low-tier
+   (signal classification) is solvable by perception + a rule engine; high-tier
+   (authority conflict, occlusion, memory, ambiguity) needs reasoning. The gap
+   between an agent's **low-tier and high-tier pass-rate is the headline result**
+   — the direct, quantified measure of why an LLM/VLM reasoner is needed beyond
+   an E2E stack. (In our reference sweep the officer-blind baseline scores ~0% on
+   the high tier while the privileged oracle scores ~100%.)
+
+Every run writes a `scoreboard.json` with `suite`, `r_scores`,
+`marshal_score_partial`, `tier_pass_rate`, and `per_episode` so the numbers are
+fully auditable.
 
 ---
 
