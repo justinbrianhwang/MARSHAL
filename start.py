@@ -155,8 +155,7 @@ def main(argv=None) -> int:
     p.add_argument("--scenarios", nargs="*", default=None,
                    help="Subset of scenarios to run (default: all 14).")
     p.add_argument("--town", default="Town03",
-                   help="Benchmark map. Use 'Town03_MARSHAL' once the logo-baked "
-                        "map is packaged.")
+                   help="Benchmark map (stock Town03 by default).")
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=2000)
     p.add_argument("--fps", type=float, default=20.0)
