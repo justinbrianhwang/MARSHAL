@@ -25,24 +25,19 @@ it. Built and verified on **CARLA 0.9.16**.
 ## The benchmark map
 
 The benchmark is built on **CARLA's Town03** — a mid-size urban map whose
-signature feature is the central **roundabout with a fountain**. MARSHAL places
-three lab-logo signposts (SJB / RAISE / MPS-LAB) on that fountain, so the
-landmark is visible from the surrounding ring road in every episode.
+signature feature is the central **roundabout with a fountain**. The 14 scenarios
+live at 14 fixed, curated locations across the map (see
+[`marshal_bench/configs/stations.json`](marshal_bench/configs/stations.json)),
+each a drivable lane a short run-up before a real traffic light, where an
+officer / flagger / ambulance can take over from the signal.
 
 ![Town03 — the MARSHAL benchmark map](docs/figures/town03_aerial.png)
 
-The 14 scenarios live at 14 **fixed, curated locations** spread across Town03 —
-each a drivable lane a short run-up before a real traffic light, chosen so the
-ego approaches an intersection where an officer/flagger/ambulance can take over
-from the signal. The schematic below plots all 14 on the full road network,
-numbered and coloured by reasoning tier (the aerial above frames only the central
-block; several stations sit further east/south on the map).
+MARSHAL places three lab-logo signposts (**SJB / RAISE / MPS-LAB**) on the
+fountain, so the landmark is in view from the surrounding ring road in every
+episode:
 
-![MARSHAL scenario stations on Town03](docs/figures/station_map.png)
-
-> Both figures regenerate offline (no CARLA server needed):
-> `python tools/render_station_map.py` (schematic). The aerial is a top-down
-> render of the actual Town03 map.
+![Lab-logo landmarks on the Town03 fountain](docs/figures/fountain_logos.png)
 
 ### The 14 scenarios
 
