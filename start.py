@@ -5,8 +5,7 @@ This is the script a **third party** runs to measure their model on MARSHAL.
 You only need to provide one thing: a *controller* — a small class that turns each
 tick's observation into a ``carla.VehicleControl``. Everything else (the Town03
 stations, the gesturing officer, the construction flagger, the following
-ambulance, the fountain lab-logo landmarks, the metrics, the MARSHAL Score) is
-spawned and computed for you.
+ambulance, the metrics, the MARSHAL Score) is spawned and computed for you.
 
 Quick start
 -----------
