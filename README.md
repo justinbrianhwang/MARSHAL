@@ -24,14 +24,25 @@ it. Built and verified on **CARLA 0.9.16**.
 
 ## The benchmark map
 
-14 scenarios live at 14 fixed, curated Town03 locations (each a drivable lane a
-short run-up before a real traffic light). The figure below shows where each one
-is, coloured by reasoning tier.
+The benchmark is built on **CARLA's Town03** — a mid-size urban map whose
+signature feature is the central **roundabout with a fountain**. MARSHAL places
+three lab-logo signposts (SJB / RAISE / MPS-LAB) on that fountain, so the
+landmark is visible from the surrounding ring road in every episode.
+
+![Town03 — the MARSHAL benchmark map](docs/figures/town03_aerial.png)
+
+The 14 scenarios live at 14 **fixed, curated locations** spread across Town03 —
+each a drivable lane a short run-up before a real traffic light, chosen so the
+ego approaches an intersection where an officer/flagger/ambulance can take over
+from the signal. The schematic below plots all 14 on the full road network,
+numbered and coloured by reasoning tier (the aerial above frames only the central
+block; several stations sit further east/south on the map).
 
 ![MARSHAL scenario stations on Town03](docs/figures/station_map.png)
 
-> Regenerate this figure offline (no CARLA server needed) with
-> `python tools/render_station_map.py`.
+> Both figures regenerate offline (no CARLA server needed):
+> `python tools/render_station_map.py` (schematic). The aerial is a top-down
+> render of the actual Town03 map.
 
 ### The 14 scenarios
 
