@@ -33,11 +33,16 @@ officer / flagger / ambulance can take over from the signal.
 
 ![Town03 — the MARSHAL benchmark map](docs/figures/town03_aerial.png)
 
-MARSHAL places three lab-logo signposts (**SJB / RAISE / MPS-LAB**) on the
+MARSHAL places three lab-logo signposts (**SJJB / RAISE / MPS-LAB**) on the
 fountain, so the landmark is in view from the surrounding ring road in every
 episode:
 
 ![Lab-logo landmarks on the Town03 fountain](docs/figures/fountain_logos.png)
+
+Where each scenario plays out, overlaid on the real map (the aerial frames the
+central block; the four scenarios further east/north are edge-marked with `→`):
+
+![MARSHAL scenarios annotated on the Town03 aerial](docs/figures/scenario_map_annotated.png)
 
 ### The 14 scenarios
 

@@ -1,6 +1,6 @@
 """Persistent benchmark landmarks for the MARSHAL Town03 world.
 
-The three lab-logo signposts (SJB / RAISE / MPS-LAB) on the Town03 fountain
+The three lab-logo signposts (SJJB / RAISE / MPS-LAB) on the Town03 fountain
 inner green ring are a *custom prop* (``static.prop.town03landmarks``), not a
 baked part of the stock map — so every fresh ``load_world("Town03")`` drops
 them. The benchmark wants them present in every episode (they are part of the

@@ -55,7 +55,7 @@ PANEL_Z0, PANEL_Z1 = POLE_TOP, POLE_TOP + PANEL_H
 
 LOGOS = [
     ("Logo1", os.path.join(_REPO, "assets", "lab_logos", "remove_background.png"),
-     "logo1.png"),  # SJB
+     "logo1.png"),  # SJJB
     ("Logo2", os.path.join(_REPO, "assets", "lab_logos", "RAISE.png"),
      "logo2.png"),
     ("Logo3", os.path.join(_REPO, "assets", "lab_logos", "mps_logo_nobg.png"),
