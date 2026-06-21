@@ -39,10 +39,11 @@ episode:
 
 ![Lab-logo landmarks on the Town03 fountain](docs/figures/fountain_logos.png)
 
-Where each scenario plays out, overlaid on the real map (the aerial frames the
-central block; the four scenarios further east/north are edge-marked with `→`):
+Where each scenario plays out, overlaid on the real map. Markers are **numbered
+to match the scenario table below** (the aerial frames the central block; the
+four scenarios further east/north are clamped to the frame edge):
 
-![MARSHAL scenarios annotated on the Town03 aerial](docs/figures/scenario_map_annotated.png)
+![MARSHAL scenarios numbered on the Town03 aerial](docs/figures/scenario_map_annotated.png)
 
 ### The 14 scenarios
 
