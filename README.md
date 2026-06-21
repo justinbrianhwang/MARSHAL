@@ -24,26 +24,20 @@ it. Built and verified on **CARLA 0.9.16**.
 
 ## The benchmark map
 
-The benchmark is built on **CARLA's Town03** — a mid-size urban map whose
-signature feature is the central **roundabout with a fountain**. The 14 scenarios
-live at 14 fixed, curated locations across the map (see
+The benchmark runs on **stock CARLA Town03** — no custom map, no download. The
+14 scenarios live at 14 fixed, curated locations across the map (see
 [`marshal_bench/configs/stations.json`](marshal_bench/configs/stations.json)),
 each a drivable lane a short run-up before a real traffic light, where an
-officer / flagger / ambulance can take over from the signal.
+officer / flagger / ambulance takes over from the signal. The scenarios are
+**defined in code and spawned at runtime** (the officer + gesture + scene actors
+for each episode) — exactly like the CARLA Leaderboard / Bench2Drive, so the
+whole benchmark ships as a Python package that drives a stock CARLA server.
 
-![Town03 — the MARSHAL benchmark map](docs/figures/town03_aerial.png)
+Markers below are **numbered to match the scenario table** (the aerial frames
+the central block; the four scenarios further east/north are clamped to the
+frame edge):
 
-MARSHAL places three lab-logo signposts (**SJJB / RAISE / MPS-LAB**) on the
-fountain, so the landmark is in view from the surrounding ring road in every
-episode:
-
-![Lab-logo landmarks on the Town03 fountain](docs/figures/fountain_logos.png)
-
-Where each scenario plays out, overlaid on the real map. Markers are **numbered
-to match the scenario table below** (the aerial frames the central block; the
-four scenarios further east/north are clamped to the frame edge):
-
-![MARSHAL scenarios numbered on the Town03 aerial](docs/figures/scenario_map_annotated.png)
+![MARSHAL scenario locations on Town03](docs/figures/scenario_map_annotated.png)
 
 ### The 14 scenarios
 
@@ -88,8 +82,6 @@ agent passes the low tier and fails the high tier. See *Results* below.
    The CARLA Python API (`carla`) must match your server version (0.9.16).
    Install the wheel that ships with your CARLA, e.g.
    `pip install carla==0.9.16`.
-
-3. **(Optional) the logo-baked map** — see *The Town03_MARSHAL map* below.
 
 ---
 
@@ -207,29 +199,6 @@ fully auditable.
 
 ---
 
-## The Town03_MARSHAL map
-
-The benchmark runs on **stock Town03** out of the box — everything (officer,
-gestures, flagger, ambulance, fountain lab-logo landmarks) is spawned at runtime,
-so no custom map is required.
-
-A **logo-baked variant, `Town03_MARSHAL`**, bakes the three lab-logo signposts
-permanently into the map so the branding is present even without the runtime
-spawn. Because a packaged CARLA map is large, it is distributed via Google Drive
-rather than committed here:
-
-```bash
-python tools/download_map.py        # downloads + installs Town03_MARSHAL
-# then:
-python start.py --controller baseline --town Town03_MARSHAL
-```
-
-> **Status:** the bake/packaging step is in progress; the download link is added
-> to `tools/download_map.py` when the packaged map is published. Until then, use
-> the default `--town Town03`.
-
----
-
 ## Results
 
 > Scoreboards are committed under [`results/`](results/) and summarized here after
@@ -260,10 +229,9 @@ marshal_bench/
   configs/                   # per-scenario YAML + stations.json (fixed locations)
   utils/                     # CARLA-API compat, landmarks, logging, weather
 scripts/                     # run_marshal_officer_demo.py, run_marshal_sweep.py
-tools/                       # map figure, landmark prop build, station verify, map download
+tools/                       # scenario-location map figure, station verify
 docs/                        # grounding, oracle spec, officer import, your-model guide
 results/                     # committed scoreboards
-assets/                      # lab logos + fountain landmark prop source
 ```
 
 ---
