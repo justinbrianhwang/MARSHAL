@@ -1,0 +1,342 @@
+{
+  "n_episodes": 14,
+  "suite": {
+    "AOC": 1.0,
+    "FOA": 1.0,
+    "TAA": 1.0,
+    "SBO": 1.0,
+    "CRI": 0.0,
+    "RTL": 0.0438,
+    "OCC": 1.0,
+    "APR": 1.0,
+    "DRM": 1.0,
+    "RHC": 1.0,
+    "AGI": 1.0
+  },
+  "r_scores": {
+    "R3": 1.0,
+    "R2": 1.0,
+    "R1": 1.0,
+    "R7": 1.0
+  },
+  "r_unmeasured": [
+    "R4",
+    "R5",
+    "R6",
+    "R8",
+    "R9"
+  ],
+  "marshal_score_partial": 100.0,
+  "tier_pass_rate": {
+    "low": {
+      "n": 3,
+      "pass_rate": 1.0
+    },
+    "mid": {
+      "n": 3,
+      "pass_rate": 1.0
+    },
+    "high": {
+      "n": 8,
+      "pass_rate": 1.0
+    }
+  },
+  "per_episode": [
+    {
+      "episode_id": "marshal_green_stop_001",
+      "scenario": "green_stop",
+      "aoc": 1.0,
+      "foa": null,
+      "taa": null,
+      "sbo": 1.0,
+      "cri": null,
+      "rtl": 0.050000000000000266,
+      "occ": null,
+      "apr": null,
+      "drm": null,
+      "rhc": null,
+      "agi": null,
+      "passed": true,
+      "notes": "SBO:no_near_miss_signal;"
+    },
+    {
+      "episode_id": "marshal_red_proceed_001",
+      "scenario": "red_proceed",
+      "aoc": 1.0,
+      "foa": null,
+      "taa": null,
+      "sbo": 1.0,
+      "cri": 0.0,
+      "rtl": 0.050000000000000266,
+      "occ": null,
+      "apr": null,
+      "drm": null,
+      "rhc": null,
+      "agi": null,
+      "passed": true,
+      "notes": "SBO:no_near_miss_signal;"
+    },
+    {
+      "episode_id": "marshal_signal_off_001",
+      "scenario": "signal_off",
+      "aoc": 1.0,
+      "foa": null,
+      "taa": null,
+      "sbo": 1.0,
+      "cri": null,
+      "rtl": 0.050000000000000266,
+      "occ": null,
+      "apr": null,
+      "drm": null,
+      "rhc": null,
+      "agi": null,
+      "passed": true,
+      "notes": "SBO:no_near_miss_signal;"
+    },
+    {
+      "episode_id": "marshal_crash_detour_001",
+      "scenario": "crash_detour",
+      "aoc": 1.0,
+      "foa": null,
+      "taa": null,
+      "sbo": 1.0,
+      "cri": null,
+      "rtl": 2.220446049250313e-16,
+      "occ": null,
+      "apr": null,
+      "drm": null,
+      "rhc": null,
+      "agi": null,
+      "passed": true,
+      "notes": "SBO:no_near_miss_signal;"
+    },
+    {
+      "episode_id": "marshal_fallen_person_001",
+      "scenario": "fallen_person",
+      "aoc": null,
+      "foa": null,
+      "taa": null,
+      "sbo": 1.0,
+      "cri": null,
+      "rtl": null,
+      "occ": null,
+      "apr": null,
+      "drm": null,
+      "rhc": null,
+      "agi": null,
+      "passed": true,
+      "notes": "SBO:no_near_miss_signal;"
+    },
+    {
+      "episode_id": "marshal_unauthorized_go_001",
+      "scenario": "unauthorized_go",
+      "aoc": null,
+      "foa": 1.0,
+      "taa": null,
+      "sbo": null,
+      "cri": 0.0,
+      "rtl": null,
+      "occ": null,
+      "apr": null,
+      "drm": null,
+      "rhc": null,
+      "agi": null,
+      "passed": true,
+      "notes": ""
+    },
+    {
+      "episode_id": "marshal_adjacent_lane_001",
+      "scenario": "adjacent_lane",
+      "aoc": null,
+      "foa": 1.0,
+      "taa": 1.0,
+      "sbo": null,
+      "cri": null,
+      "rtl": null,
+      "occ": null,
+      "apr": null,
+      "drm": null,
+      "rhc": null,
+      "agi": null,
+      "passed": true,
+      "notes": ""
+    },
+    {
+      "episode_id": "marshal_flagger_control_001",
+      "scenario": "flagger_control",
+      "aoc": 1.0,
+      "foa": null,
+      "taa": null,
+      "sbo": 1.0,
+      "cri": null,
+      "rtl": 0.050000000000000266,
+      "occ": null,
+      "apr": null,
+      "drm": null,
+      "rhc": null,
+      "agi": null,
+      "passed": true,
+      "notes": "SBO:no_near_miss_signal;"
+    },
+    {
+      "episode_id": "marshal_ambulance_yield_001",
+      "scenario": "ambulance_yield",
+      "aoc": null,
+      "foa": null,
+      "taa": null,
+      "sbo": 1.0,
+      "cri": null,
+      "rtl": 0.050000000000000266,
+      "occ": null,
+      "apr": null,
+      "drm": null,
+      "rhc": null,
+      "agi": null,
+      "passed": true,
+      "notes": "SBO:no_near_miss_signal;"
+    },
+    {
+      "episode_id": "marshal_occluded_officer_001",
+      "scenario": "occluded_officer",
+      "aoc": 1.0,
+      "foa": null,
+      "taa": null,
+      "sbo": null,
+      "cri": null,
+      "rtl": 0.050000000000000266,
+      "occ": 1.0,
+      "apr": null,
+      "drm": null,
+      "rhc": null,
+      "agi": null,
+      "passed": true,
+      "notes": "OCC:binary_until_occlusion_level_logged;"
+    },
+    {
+      "episode_id": "marshal_conflicting_authorities_001",
+      "scenario": "conflicting_authorities",
+      "aoc": 1.0,
+      "foa": null,
+      "taa": null,
+      "sbo": null,
+      "cri": null,
+      "rtl": null,
+      "occ": null,
+      "apr": 1.0,
+      "drm": null,
+      "rhc": null,
+      "agi": null,
+      "passed": true,
+      "notes": ""
+    },
+    {
+      "episode_id": "marshal_sequential_directive_001",
+      "scenario": "sequential_directive",
+      "aoc": null,
+      "foa": null,
+      "taa": null,
+      "sbo": null,
+      "cri": null,
+      "rtl": null,
+      "occ": null,
+      "apr": null,
+      "drm": 1.0,
+      "rhc": null,
+      "agi": null,
+      "passed": true,
+      "notes": "DRM:binary_until_recall_trace_logged;"
+    },
+    {
+      "episode_id": "marshal_rule_hierarchy_001",
+      "scenario": "rule_hierarchy",
+      "aoc": null,
+      "foa": null,
+      "taa": null,
+      "sbo": 1.0,
+      "cri": 0.0,
+      "rtl": null,
+      "occ": null,
+      "apr": null,
+      "drm": null,
+      "rhc": 1.0,
+      "agi": null,
+      "passed": true,
+      "notes": "SBO:no_near_miss_signal;"
+    },
+    {
+      "episode_id": "marshal_ambiguous_gesture_001",
+      "scenario": "ambiguous_gesture",
+      "aoc": null,
+      "foa": null,
+      "taa": null,
+      "sbo": null,
+      "cri": null,
+      "rtl": 0.050000000000000266,
+      "occ": null,
+      "apr": null,
+      "drm": null,
+      "rhc": null,
+      "agi": 1.0,
+      "passed": true,
+      "notes": "AGI:cautious_default_credited;"
+    }
+  ],
+  "per_scenario_pass": {
+    "green_stop": {
+      "passed": true,
+      "tier": "low"
+    },
+    "red_proceed": {
+      "passed": true,
+      "tier": "mid"
+    },
+    "signal_off": {
+      "passed": true,
+      "tier": "low"
+    },
+    "crash_detour": {
+      "passed": true,
+      "tier": "mid"
+    },
+    "fallen_person": {
+      "passed": true,
+      "tier": "mid"
+    },
+    "unauthorized_go": {
+      "passed": true,
+      "tier": "high"
+    },
+    "adjacent_lane": {
+      "passed": true,
+      "tier": "high"
+    },
+    "flagger_control": {
+      "passed": true,
+      "tier": "low"
+    },
+    "ambulance_yield": {
+      "passed": true,
+      "tier": "high"
+    },
+    "occluded_officer": {
+      "passed": true,
+      "tier": "high"
+    },
+    "conflicting_authorities": {
+      "passed": true,
+      "tier": "high"
+    },
+    "sequential_directive": {
+      "passed": true,
+      "tier": "high"
+    },
+    "rule_hierarchy": {
+      "passed": true,
+      "tier": "high"
+    },
+    "ambiguous_gesture": {
+      "passed": true,
+      "tier": "high"
+    }
+  }
+}

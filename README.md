@@ -201,16 +201,24 @@ fully auditable.
 
 ## Results
 
-> Scoreboards are committed under [`results/`](results/) and summarized here after
-> each experiment run.
+Reference sweep on stock Town03 (14 scenarios, raw JSON in
+[`results/`](results/)):
 
-| model | track | MARSHAL Score | low-tier pass | high-tier pass |
-|-------|-------|--------------:|--------------:|---------------:|
-| baseline (TM, officer-blind) | — | _TBD_ | _TBD_ | _TBD_ |
-| oracle (privileged) | A | _TBD_ | _TBD_ | _TBD_ |
-| _your model_ | B/C | _TBD_ | _TBD_ | _TBD_ |
+| model | track | MARSHAL Score | low-tier pass | mid-tier pass | high-tier pass |
+|-------|-------|--------------:|--------------:|--------------:|---------------:|
+| baseline (TM, officer-blind) | — | **19.5** | 0% | 100% | **12.5%** |
+| oracle (privileged authority) | A | **100.0** | 100% | 100% | **100%** |
+| _your model_ | B/C | _run `start.py`_ | — | — | — |
 
-_(Filled in after running `start.py` on each model; raw JSON in `results/`.)_
+**The headline:** the officer-blind baseline (perception + traffic-light only)
+collapses on the high tier — **12.5% (1/8)** — and even fails the low tier (0%)
+because it ignores the officer entirely. The oracle, which reasons over authority,
+solves **all 14 (100%)**. That gap on the high tier is the room an LLM/VLM
+reasoner has to make up over an E2E perception stack — and the quantitative case
+for authority-aware reasoning in autonomous driving.
+
+_(Reproduce: `python scripts/run_marshal_sweep.py`; score your own model with
+`python start.py --controller <module:Class> --tag <name>`.)_
 
 ---
 
