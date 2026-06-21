@@ -66,7 +66,7 @@ Useful flags:
 | flag | default | meaning |
 |------|---------|---------|
 | `--scenarios a b c` | all 14 | run a subset |
-| `--town` | `Town03` | benchmark map (`Town03_MARSHAL` once baked) |
+| `--town` | `Town03` | benchmark map (stock Town03) |
 | `--host` / `--port` | `127.0.0.1` / `2000` | CARLA server |
 | `--fps` | `20` | fixed-delta sim rate |
 | `--episode-timeout` | `300` | wall-clock seconds before abandoning an episode |

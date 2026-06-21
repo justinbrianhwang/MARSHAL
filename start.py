@@ -9,7 +9,7 @@ ambulance, the metrics, the MARSHAL Score) is spawned and computed for you.
 
 Quick start
 -----------
-1. Start CARLA on the benchmark map (Town03, or Town03_MARSHAL once baked)::
+1. Start CARLA on the benchmark map (stock Town03)::
 
        CarlaUE4.exe          # or ./CarlaUE4.sh  -quality-level=Epic
 
