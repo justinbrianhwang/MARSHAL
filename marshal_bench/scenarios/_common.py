@@ -41,7 +41,6 @@ from marshal_bench.actors.traffic_officer import TrafficOfficer
 from marshal_bench.criteria.authority_compliance import AuthorityComplianceCriterion
 from marshal_bench.criteria.reaction_latency import ReactionLatencyCriterion
 from marshal_bench.utils.carla_api_compat import SyncModeContext, import_carla
-from marshal_bench.utils.landmarks import ensure_town03_landmarks
 from marshal_bench.utils.logging_utils import EpisodeLogger
 from marshal_bench.utils.traffic_light_utils import (
     find_relevant_traffic_light,
@@ -1024,14 +1023,6 @@ def run_scenario(
         world = ensure_town(client, config.get("town"))
         ctx.world = world
         apply_weather(world, (config.get("environment") or {}).get("weather"))
-
-        # Persistent benchmark landmarks (fountain lab-logo signposts). A fresh
-        # Town03 load drops the custom prop, so re-spawn it every episode
-        # (idempotent; Town03-only). They are part of the scene the agent sees.
-        try:
-            ensure_town03_landmarks(world)
-        except Exception as e:
-            log.debug("ensure_town03_landmarks failed: %s", e)
 
         # Seed RNG before any sampling.
         seed = config.get("seed")

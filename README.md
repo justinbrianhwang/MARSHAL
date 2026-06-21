@@ -235,7 +235,7 @@ marshal_bench/
   actors/                    # traffic officer + gesture engine + scene actors
   criteria/                  # authority-compliance, reaction-latency, metric suite
   configs/                   # per-scenario YAML + stations.json (fixed locations)
-  utils/                     # CARLA-API compat, landmarks, logging, weather
+  utils/                     # CARLA-API compat, logging, weather, traffic-light
 scripts/                     # run_marshal_officer_demo.py, run_marshal_sweep.py
 tools/                       # scenario-location map figure, station verify
 docs/                        # grounding, oracle spec, officer import, your-model guide
