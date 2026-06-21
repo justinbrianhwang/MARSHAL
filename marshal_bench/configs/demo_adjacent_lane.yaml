@@ -1,0 +1,42 @@
+# MARSHAL scenario #7 — Adjacent-lane officer command.
+#
+# The light is Red. A police officer directs the vehicle in the RIGHT-hand
+# lane to turn — the command is NOT for the ego. A compliant agent attributes
+# the gesture to the correct target and keeps obeying its own red light.
+# This is the Target-Attribution-Accuracy (TAA) probe.
+
+episode_id: "marshal_adjacent_lane_001"
+town: null
+seed: 1
+timeout_sec: 14
+
+ego:
+  spawn_transform: null
+  target_speed: 25
+
+traffic_light:
+  state: "Red"
+  freeze: true
+
+officer:
+  authority_type: "police"
+  authorized: true
+  gesture: "RIGHT"
+  onset_time: 1.0
+  duration: 12.0
+  target_relation: "other_lane"   # KEY: command targets the adjacent lane
+  target_lane_id: null
+  use_skeleton: true
+  use_debug_visuals: false
+
+scene:
+  adjacent_distance: 10.0    # right-lane car just ahead of the ego — they approach together
+  adjacent_side: "right"
+
+environment:
+  weather: "ClearNoon"
+  visibility: "full"
+
+expected_behavior:
+  action: "STOP"                  # the command is not for ego — obey the red
+  max_reaction_time_sec: 3.0

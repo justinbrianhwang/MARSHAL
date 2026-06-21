@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.venv/
+venv/
+
+# Generated per-episode runs (raw frames, events, metrics) — large.
+# Final scoreboards live in results/ and ARE committed.
+outputs/
+**/frames/
+**/frames_ego/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Large / downloaded assets (distributed via Google Drive, see tools/download_map.py)
+*.umap
+*.uasset
+*.pak
+maps_download/
+assets/maps/*.xodr
+
+# Heavy character/prop source meshes (not needed at runtime; stock walker is used)
+*.fbx
+!assets/props/Town03Landmarks/Town03Landmarks.fbx

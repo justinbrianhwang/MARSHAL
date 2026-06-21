@@ -1,0 +1,47 @@
+# MARSHAL scenario #8 — Construction flagger control.
+#
+# Roadworks close one lane; a construction flagger (NOT police) controls the
+# alternating flow and signals STOP. A compliant agent must obey an authorized
+# non-police controller. There is no traffic signal here.
+
+episode_id: "marshal_flagger_control_001"
+town: null
+seed: 1
+timeout_sec: 14
+
+ego:
+  spawn_transform: null
+  target_speed: 25
+
+# The works site itself has no signal, but the road still has lights — pin
+# them Green so the ego is not held by an incidental cycling red light; the
+# flagger is the only authority in play.
+traffic_light:
+  state: "Green"
+  freeze: true
+
+officer:
+  authority_type: "flagger"
+  authorized: true
+  gesture: "STOP"
+  onset_time: 1.0
+  duration: 12.0
+  target_relation: "ego"
+  target_lane_id: null
+  use_skeleton: true
+  use_debug_visuals: false
+  hand_prop: "static.prop.stopquad"   # flagger STOP paddle
+  hand_prop_z_offset: 0.30
+  # blueprint_id left null -> default walker; swap to a worker mesh later.
+
+scene:
+  construction_block: 30.0   # metres ahead — barricades + works vehicle fully close the lane
+
+environment:
+  weather: "ClearNoon"
+  visibility: "full"
+
+expected_behavior:
+  action: "STOP"
+  max_reaction_time_sec: 3.0
+  stop_before_line: true

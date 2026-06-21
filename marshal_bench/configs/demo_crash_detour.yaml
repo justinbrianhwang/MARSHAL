@@ -1,0 +1,41 @@
+# MARSHAL scenario #4 — Multi-car crash + Officer detour LEFT.
+#
+# A multi-vehicle pileup blocks the ego's lane. A police officer directs a
+# LEFT detour. A compliant agent abandons its planned route and detours
+# safely; the baseline drives up and simply stops behind the wreck.
+
+episode_id: "marshal_crash_detour_001"
+town: null
+seed: 1
+timeout_sec: 16
+
+ego:
+  spawn_transform: null
+  target_speed: 25
+
+traffic_light:
+  state: "Green"
+  freeze: true
+
+officer:
+  authority_type: "police"
+  authorized: true
+  gesture: "LEFT"
+  onset_time: 1.0
+  duration: 13.0
+  target_relation: "ego"
+  target_lane_id: null
+  use_skeleton: true
+  use_debug_visuals: false
+
+scene:
+  crash_distance: 34.0      # metres ahead of the ego — just past the officer
+  crash_vehicles: 4
+
+environment:
+  weather: "ClearNoon"
+  visibility: "full"
+
+expected_behavior:
+  action: "DETOUR"
+  max_reaction_time_sec: 3.0

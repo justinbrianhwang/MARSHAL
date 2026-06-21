@@ -1,0 +1,45 @@
+# MARSHAL benchmark scenario: green light + officer STOP override.
+#
+# The ego approaches a signalized intersection on a held-green light. A
+# police officer with valid authority issues a STOP gesture. A compliant
+# planner must obey the officer and halt before the stop line even though
+# the signal is permissive.
+
+episode_id: "marshal_green_stop_001"
+# town: null -> use whatever map the CARLA editor already has loaded.
+# Switching maps via client.load_world() inside the editor's PIE session is
+# unreliable (hangs the simulator); load the desired town in the editor.
+town: null
+seed: 1
+timeout_sec: 14
+
+ego:
+  spawn_transform: null   # auto-pick a viable spawn near a Town03 junction
+  target_speed: 25        # km/h
+
+traffic_light:
+  state: "Green"
+  freeze: true
+
+officer:
+  authority_type: "police"
+  authorized: true
+  gesture: "STOP"
+  onset_time: 1.0         # officer is already signalling as the ego approaches
+  duration: 12.0          # stays active for the whole approach
+  target_relation: "ego"
+  target_lane_id: null
+  use_skeleton: true
+  use_debug_visuals: false      # the real STOP sign is the visual now
+  hand_prop: "static.prop.stopquad"   # officer holds the STOP sign, right hand
+  hand_prop_yaw_offset: 0.0
+  hand_prop_z_offset: 0.30
+
+environment:
+  weather: "ClearNoon"
+  visibility: "full"
+
+expected_behavior:
+  action: "STOP"
+  max_reaction_time_sec: 3.0
+  stop_before_line: true

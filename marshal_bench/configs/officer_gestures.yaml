@@ -1,0 +1,95 @@
+# Shared gesture definitions for marshal_bench.actors.gesture_engine.GestureEngine.
+#
+# Each gesture entry is consumed by GestureEngine.build_pose_sequence and the
+# debug-fallback renderer. Pose angles are interpreted as relative bone
+# rotations (degrees) on CARLA's unified walker skeleton (crl_*__{C,L,R}).
+# Values are tunable defaults; runtime configs (demo_*.yaml) may override
+# duration / target_relation at the scenario level.
+#
+# Convention:
+#   * arm:                "left" | "right" | null  (null => no arm action)
+#   * motion:             a label consumed by GestureEngine to pick a procedural
+#                         animator (static_raise, sweep, point_sweep,
+#                         palm_down_oscillate, none).
+#   * default_duration_sec:
+#                         baseline gesture hold time in seconds (null => infinite).
+#   * cycle_hz:           oscillation frequency for cyclic motions.
+#   * fallback_label_color:
+#                         RGB triplet (0..255) used for the debug label and
+#                         arrow when skeleton control is unavailable.
+#   * pose:               keyframe deltas relative to the rest pose. Range
+#                         variants (`_range_deg`) are oscillated between min
+#                         and max at the gesture's cycle_hz.
+
+gestures:
+  STOP:
+    description: "Authoritative command to stop before the conflict zone."
+    arm: "right"
+    motion: "static_raise"
+    default_duration_sec: 8.0
+    cycle_hz: 0.0
+    fallback_label_color: [255, 0, 0]
+    pose:
+      upper_arm_pitch_deg: -90.0
+      forearm_pitch_deg: -10.0
+      forearm_yaw_deg: 0.0
+      hand_roll_deg: 0.0
+
+  PROCEED:
+    description: "Wave the targeted lane forward."
+    arm: "right"
+    motion: "sweep"
+    default_duration_sec: 6.0
+    cycle_hz: 0.5
+    fallback_label_color: [0, 200, 0]
+    pose:
+      upper_arm_pitch_deg: -60.0
+      upper_arm_yaw_range_deg: [-30.0, 30.0]
+      forearm_pitch_deg: -20.0
+
+  LEFT:
+    description: "Point or sweep traffic to the officer's left."
+    arm: "left"
+    motion: "point_sweep"
+    default_duration_sec: 6.0
+    cycle_hz: 0.4
+    fallback_label_color: [0, 200, 255]
+    pose:
+      upper_arm_yaw_deg: 70.0
+      upper_arm_pitch_deg: -45.0
+      upper_arm_pitch_range_deg: [-55.0, -35.0]
+      forearm_pitch_deg: -5.0
+
+  RIGHT:
+    description: "Point or sweep traffic to the officer's right."
+    arm: "right"
+    motion: "point_sweep"
+    default_duration_sec: 6.0
+    cycle_hz: 0.4
+    fallback_label_color: [255, 0, 255]
+    pose:
+      upper_arm_yaw_deg: -70.0
+      upper_arm_pitch_deg: -45.0
+      upper_arm_pitch_range_deg: [-55.0, -35.0]
+      forearm_pitch_deg: -5.0
+
+  SLOW:
+    description: "Palm-down repeated downward beat, reduce speed."
+    arm: "right"
+    motion: "palm_down_oscillate"
+    default_duration_sec: 8.0
+    cycle_hz: 1.0
+    fallback_label_color: [255, 220, 0]
+    pose:
+      upper_arm_pitch_range_deg: [-60.0, -30.0]
+      forearm_pitch_deg: 45.0
+      hand_roll_deg: 90.0
+
+  IDLE:
+    description: "Neutral standing pose, no command."
+    arm: null
+    motion: "none"
+    default_duration_sec: null
+    cycle_hz: 0.0
+    fallback_label_color: [200, 200, 200]
+    pose: {}

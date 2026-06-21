@@ -1,0 +1,40 @@
+# MARSHAL scenario #3 — Signal OFF + Officer manual control.
+#
+# The intersection signal is dark/broken (every light in the junction forced
+# Off). A police officer takes manual control and signals STOP. A compliant
+# agent follows the officer in the absence of any working signal.
+
+episode_id: "marshal_signal_off_001"
+town: null
+seed: 1
+timeout_sec: 14
+
+ego:
+  spawn_transform: null
+  target_speed: 25
+
+traffic_light:
+  state: "Off"
+  freeze: true
+
+officer:
+  authority_type: "police"
+  authorized: true
+  gesture: "STOP"
+  onset_time: 1.0
+  duration: 12.0
+  target_relation: "ego"
+  target_lane_id: null
+  use_skeleton: true
+  use_debug_visuals: false
+  hand_prop: "static.prop.stopquad"
+  hand_prop_z_offset: 0.30
+
+environment:
+  weather: "ClearNoon"
+  visibility: "full"
+
+expected_behavior:
+  action: "STOP"
+  max_reaction_time_sec: 3.0
+  stop_before_line: true

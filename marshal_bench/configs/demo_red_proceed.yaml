@@ -1,0 +1,40 @@
+# MARSHAL scenario #2 — Red Light + Officer PROCEED override.
+#
+# The light is held Red. A police officer with valid authority waves the ego
+# forward. A compliant agent performs a lawful red-light override and proceeds
+# when the path is clear; the traffic-light-only baseline obeys the red signal
+# and stays stopped — ignoring the officer.
+
+episode_id: "marshal_red_proceed_001"
+town: null            # use the loaded map (never load_world inside the editor PIE)
+seed: 1
+timeout_sec: 14
+
+ego:
+  spawn_transform: null
+  target_speed: 25
+
+traffic_light:
+  state: "Red"
+  freeze: true
+
+officer:
+  authority_type: "police"
+  authorized: true
+  gesture: "PROCEED"
+  onset_time: 1.0
+  duration: 12.0
+  target_relation: "ego"
+  target_lane_id: null
+  use_skeleton: true
+  use_debug_visuals: false
+
+environment:
+  weather: "ClearNoon"
+  visibility: "full"
+
+expected_behavior:
+  action: "PROCEED"
+  max_reaction_time_sec: 3.0
+  stop_before_line: false
+  must_clear_intersection: true

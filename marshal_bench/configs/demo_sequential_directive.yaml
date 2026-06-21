@@ -1,0 +1,41 @@
+# MARSHAL scenario #12 — Sequential Directive Memory (high-tier: temporal).
+#
+# The officer gives a HOLD ("wait") gesture, then lowers the gesture and walks
+# away (the directive is withdrawn from view). A compliant agent must REMEMBER
+# the standing "wait" directive and keep holding until it is clearly released —
+# not lurch forward the instant the officer is no longer signalling.
+
+episode_id: "marshal_sequential_directive_001"
+town: null
+seed: 1
+timeout_sec: 16
+
+ego:
+  spawn_transform: null
+  target_speed: 25
+
+traffic_light:
+  state: "Green"
+  freeze: true
+
+officer:
+  authority_type: "police"
+  authorized: true
+  gesture: "HOLD"
+  onset_time: 1.0
+  duration: 5.0              # officer signals HOLD for 5 s, then stops/leaves
+  target_relation: "ego"
+  use_skeleton: true
+
+scene:
+  officer_leaves_at: 7.0      # s — officer is removed from view (memory test)
+  release_at: null            # directive never explicitly released within episode
+
+environment:
+  weather: "ClearNoon"
+  visibility: "full"
+
+expected_behavior:
+  action: "HOLD"             # keep holding after the officer is gone
+  max_reaction_time_sec: 3.0
+  hold_after_officer_gone: true

@@ -1,0 +1,11 @@
+# MARSHAL benchmark — Python dependencies.
+#
+# The CARLA Python API must match your CARLA server (0.9.16). Install the wheel
+# that ships with your CARLA release, or:
+#   pip install carla==0.9.16
+# (left out of this list because the right build is platform/version specific.)
+
+pyyaml>=5.4
+numpy>=1.21
+pillow>=8.0
+matplotlib>=3.4      # only for tools/render_station_map.py (map figure)

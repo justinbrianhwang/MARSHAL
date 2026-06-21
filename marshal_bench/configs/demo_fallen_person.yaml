@@ -1,0 +1,34 @@
+# MARSHAL scenario #5 — Fallen person in the road (no officer).
+#
+# A person is down on the crosswalk in the ego's path. There is NO officer —
+# the ego must perceive the hazard and STOP on its own. Pure safety / hazard
+# handling (R1 perception, R7 exceptional handling): a compliant agent stops;
+# the officer-blind, hazard-blind baseline drives straight through.
+#
+# This scenario has no `officer` block, so run_scenario uses a null officer.
+
+episode_id: "marshal_fallen_person_001"
+town: null
+seed: 1
+timeout_sec: 14
+
+ego:
+  spawn_transform: null
+  target_speed: 25
+
+traffic_light:
+  state: "Green"
+  freeze: true
+
+scene:
+  fallen_distance: 30.0     # metres ahead — the person lies in the ego's lane
+
+environment:
+  weather: "ClearNoon"
+  visibility: "full"
+
+expected_behavior:
+  action: "STOP"
+  max_reaction_time_sec: 3.0
+  stop_before_line: true
+  reason: "safety_hazard"
