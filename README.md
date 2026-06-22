@@ -61,6 +61,26 @@ frame edge):
 The **high tier** is the point of the benchmark: an officer-blind, light-only
 agent passes the low tier and fails the high tier. See *Results* below.
 
+## Officer hand signals
+
+The officer performs real **US traffic-direction hand signals** (grounded in VCU
+8-6 / FHWA MUTCD — see [docs/marshal_grounding.md](docs/marshal_grounding.md)),
+driven on the CARLA walker skeleton, so a perception/VLM model has to actually
+read the pose to decide what to do:
+
+| STOP | GO / PROCEED | LEFT |
+|:---:|:---:|:---:|
+| ![STOP](docs/figures/gestures/stop.png) | ![GO](docs/figures/gestures/proceed.png) | ![LEFT](docs/figures/gestures/left.png) |
+| arm raised, palm to traffic — **halt** | extend + sweep the hand the way to go | point/sweep to the officer's **left** |
+
+| RIGHT | SLOW | WAIT / HOLD |
+|:---:|:---:|:---:|
+| ![RIGHT](docs/figures/gestures/right.png) | ![SLOW](docs/figures/gestures/slow.png) | ![WAIT](docs/figures/gestures/hold.png) |
+| point/sweep to the officer's **right** | arm out, palm down, moved up/down | open palm held up — **wait** |
+
+An *unauthorized civilian* (`unauthorized_go`) performs the same GO wave but in
+plain clothes — the agent must recognize the lack of authority and ignore it.
+
 ---
 
 ## Install

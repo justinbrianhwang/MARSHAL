@@ -242,41 +242,46 @@ class GestureEngine:
         if gesture_id is GestureID.STOP:
             return [
                 PoseKeyframe(t=0.0, bones={
-                    "r_upper_arm": (-90.0, 0.0, 0.0),   # raise right arm forward
-                    "r_forearm":   (-10.0, 0.0, 0.0),   # slight up at elbow -> palm faces ego
-                    "r_hand":      (0.0, 0.0, 0.0),
+                    "r_upper_arm": (-85.0, 15.0, 0.0),   # high halt, elbow bent
+                    "r_forearm":   (0.0, 100.0, 0.0),
+                    "r_hand":      (0.0, 0.0, -40.0),
                 }),
             ]
 
         if gesture_id is GestureID.PROCEED:
             return [
                 PoseKeyframe(t=0.0, bones={
-                    "r_upper_arm": (-70.0, -30.0, 0.0),
-                    "r_forearm":   (-15.0, 0.0, 0.0),
+                    "r_upper_arm": (-25.0, 75.0, 0.0),
+                    "r_forearm":   (0.0, 30.0, 0.0),
+                    "r_hand":      (0.0, 0.0, -30.0),
                 }),
                 PoseKeyframe(t=0.5, bones={
-                    "r_upper_arm": (-70.0, 30.0, 0.0),
-                    "r_forearm":   (-15.0, 0.0, 0.0),
+                    "r_upper_arm": (-70.0, 10.0, 0.0),
+                    "r_forearm":   (0.0, 85.0, 0.0),
+                    "r_hand":      (0.0, 0.0, -30.0),
                 }),
                 PoseKeyframe(t=1.0, bones={
-                    "r_upper_arm": (-70.0, -30.0, 0.0),
-                    "r_forearm":   (-15.0, 0.0, 0.0),
+                    "r_upper_arm": (-25.0, 75.0, 0.0),
+                    "r_forearm":   (0.0, 30.0, 0.0),
+                    "r_hand":      (0.0, 0.0, -30.0),
                 }),
             ]
 
         if gesture_id is GestureID.LEFT:
             return [
                 PoseKeyframe(t=0.0, bones={
-                    "l_upper_arm": (-30.0, 70.0, 0.0),
-                    "l_forearm":   (-10.0, 0.0, 0.0),
+                    "l_upper_arm": (0.0, -95.0, 0.0),
+                    "l_forearm":   (0.0, 0.0, 0.0),
+                    "l_hand":      (0.0, 0.0, 0.0),
                 }),
             ]
 
         if gesture_id is GestureID.RIGHT:
             return [
                 PoseKeyframe(t=0.0, bones={
-                    "r_upper_arm": (-30.0, -70.0, 0.0),
-                    "r_forearm":   (-10.0, 0.0, 0.0),
+                    "r_upper_arm": (0.0, 95.0, 0.0),
+                    "r_forearm":   (0.0, 0.0, 0.0),
+                    "r_hand":      (0.0, 0.0, 0.0),
                 }),
             ]
 
@@ -286,24 +291,27 @@ class GestureEngine:
             return [
                 PoseKeyframe(t=0.0, bones={
                     "r_upper_arm": (-35.0, 0.0, 0.0),
-                    "r_forearm":   (-95.0, 0.0, 0.0),   # bend elbow up, palm up
-                    "r_hand":      (0.0, 0.0, 0.0),
+                    "r_forearm":   (0.0, 105.0, 0.0),
+                    "r_hand":      (0.0, 0.0, -45.0),
                 }),
             ]
 
         if gesture_id is GestureID.SLOW:
             return [
                 PoseKeyframe(t=0.0, bones={
-                    "r_upper_arm": (-30.0, 0.0, 0.0),
-                    "r_forearm":   (-10.0, 0.0, -90.0),  # palm-down via roll
+                    "r_upper_arm": (-12.0, 82.0, 0.0),
+                    "r_forearm":   (0.0, 0.0, -90.0),
+                    "r_hand":      (0.0, 0.0, 0.0),
                 }),
                 PoseKeyframe(t=0.5, bones={
-                    "r_upper_arm": (-60.0, 0.0, 0.0),
-                    "r_forearm":   (-10.0, 0.0, -90.0),
+                    "r_upper_arm": (32.0, 82.0, 0.0),
+                    "r_forearm":   (0.0, 0.0, -90.0),
+                    "r_hand":      (0.0, 0.0, 0.0),
                 }),
                 PoseKeyframe(t=1.0, bones={
-                    "r_upper_arm": (-30.0, 0.0, 0.0),
-                    "r_forearm":   (-10.0, 0.0, -90.0),
+                    "r_upper_arm": (-12.0, 82.0, 0.0),
+                    "r_forearm":   (0.0, 0.0, -90.0),
+                    "r_hand":      (0.0, 0.0, 0.0),
                 }),
             ]
 
