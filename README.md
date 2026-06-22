@@ -33,12 +33,6 @@ officer / flagger / ambulance takes over from the signal. The scenarios are
 for each episode) — exactly like the CARLA Leaderboard / Bench2Drive, so the
 whole benchmark ships as a Python package that drives a stock CARLA server.
 
-Markers below are **numbered to match the scenario table** (the aerial frames
-the central block; the four scenarios further east/north are clamped to the
-frame edge):
-
-![MARSHAL scenario locations on Town03](docs/figures/scenario_map_annotated.png)
-
 ### The 14 scenarios
 
 | # | scenario | what happens | expected | tier |
@@ -60,6 +54,49 @@ frame edge):
 
 The **high tier** is the point of the benchmark: an officer-blind, light-only
 agent passes the low tier and fails the high tier. See *Results* below.
+
+### Watch the oracle handle each scenario
+
+The clips below are the privileged **oracle** (Track A — the expected-behaviour
+reference) driving each of the 14 scenarios end to end on stock Town03. Every
+clip shows the officer / flagger / hazard in front of the ego and the correct
+authority-aware response. (Numbers match the table above; full-resolution MP4s
+are in [`Oracle_demo/`](Oracle_demo/).)
+
+| 1 · `green_stop` | 2 · `red_proceed` |
+|:---:|:---:|
+| ![green_stop](Oracle_demo/green_stop.gif) | ![red_proceed](Oracle_demo/red_proceed.gif) |
+| 🟢 green light, officer STOP → **stop** | 🔴 red light, officer GO → **proceed** |
+
+| 3 · `signal_off` | 4 · `crash_detour` |
+|:---:|:---:|
+| ![signal_off](Oracle_demo/signal_off.gif) | ![crash_detour](Oracle_demo/crash_detour.gif) |
+| dead signal, officer directs → **obey** | pile-up, officer points LEFT → **detour** |
+
+| 5 · `fallen_person` | 6 · `unauthorized_go` |
+|:---:|:---:|
+| ![fallen_person](Oracle_demo/fallen_person.gif) | ![unauthorized_go](Oracle_demo/unauthorized_go.gif) |
+| person down in lane (no officer) → **stop** | civilian waves GO (no authority) → **ignore** |
+
+| 7 · `adjacent_lane` | 8 · `flagger_control` |
+|:---:|:---:|
+| ![adjacent_lane](Oracle_demo/adjacent_lane.gif) | ![flagger_control](Oracle_demo/flagger_control.gif) |
+| gesture targets the *next* lane → **hold** | construction flagger STOP → **obey** |
+
+| 9 · `ambulance_yield` | 10 · `occluded_officer` |
+|:---:|:---:|
+| ![ambulance_yield](Oracle_demo/ambulance_yield.gif) | ![occluded_officer](Oracle_demo/occluded_officer.gif) |
+| ambulance closing behind → **yield** | officer partly hidden → **stop** |
+
+| 11 · `conflicting_authorities` | 12 · `sequential_directive` |
+|:---:|:---:|
+| ![conflicting_authorities](Oracle_demo/conflicting_authorities.gif) | ![sequential_directive](Oracle_demo/sequential_directive.gif) |
+| police STOP vs flagger GO → **obey police** | "wait", officer leaves → **keep holding** |
+
+| 13 · `rule_hierarchy` | 14 · `ambiguous_gesture` |
+|:---:|:---:|
+| ![rule_hierarchy](Oracle_demo/rule_hierarchy.gif) | ![ambiguous_gesture](Oracle_demo/ambiguous_gesture.gif) |
+| authorized GO, pedestrian crossing → **yield** | unclear gesture → **cautious stop** |
 
 ## Officer hand signals
 
