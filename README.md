@@ -78,8 +78,13 @@ read the pose to decide what to do:
 | ![RIGHT](docs/figures/gestures/right.png) | ![SLOW](docs/figures/gestures/slow.png) | ![WAIT](docs/figures/gestures/hold.png) |
 | point/sweep to the officer's **right** | arm out, palm down, moved up/down | open palm held up — **wait** |
 
-An *unauthorized civilian* (`unauthorized_go`) performs the same GO wave but in
-plain clothes — the agent must recognize the lack of authority and ignore it.
+**Authority matters, not just the gesture.** In `unauthorized_go` a *plain-clothes
+civilian* performs the **same GO wave** — a correct agent must recognize the lack
+of authority and ignore it (this is the False-Obedience-Avoidance probe):
+
+| authorized officer → **obey** | unauthorized civilian → **ignore** |
+|:---:|:---:|
+| ![officer GO](docs/figures/gestures/proceed.png) | ![civilian GO](docs/figures/gestures/civilian_go.png) |
 
 ---
 

@@ -251,19 +251,19 @@ class GestureEngine:
         if gesture_id is GestureID.PROCEED:
             return [
                 PoseKeyframe(t=0.0, bones={
-                    "r_upper_arm": (-25.0, 75.0, 0.0),
-                    "r_forearm":   (0.0, 30.0, 0.0),
-                    "r_hand":      (0.0, 0.0, -30.0),
+                    "r_upper_arm": (-55.0, 5.0, 0.0),
+                    "r_forearm":   (0.0, 0.0, 0.0),
+                    "r_hand":      (0.0, 0.0, -25.0),
                 }),
                 PoseKeyframe(t=0.5, bones={
-                    "r_upper_arm": (-70.0, 10.0, 0.0),
-                    "r_forearm":   (0.0, 85.0, 0.0),
-                    "r_hand":      (0.0, 0.0, -30.0),
+                    "r_upper_arm": (-55.0, 5.0, 0.0),
+                    "r_forearm":   (-85.0, 0.0, 0.0),
+                    "r_hand":      (0.0, 0.0, -25.0),
                 }),
                 PoseKeyframe(t=1.0, bones={
-                    "r_upper_arm": (-25.0, 75.0, 0.0),
-                    "r_forearm":   (0.0, 30.0, 0.0),
-                    "r_hand":      (0.0, 0.0, -30.0),
+                    "r_upper_arm": (-55.0, 5.0, 0.0),
+                    "r_forearm":   (0.0, 0.0, 0.0),
+                    "r_hand":      (0.0, 0.0, -25.0),
                 }),
             ]
 
