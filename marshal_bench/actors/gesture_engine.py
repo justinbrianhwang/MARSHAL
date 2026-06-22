@@ -435,15 +435,23 @@ class GestureEngine:
             baseline = self._ensure_baseline(actor)
             bone_map = self._bone_map(actor)
             interp = self._interpolate_keyframes(keyframes, phase, cyclic)
-            payload: list[tuple[str, Any]] = []
-            for canonical_key, (dp, dy, dr) in interp.items():
+
+            # Resolve canonical gesture keys -> actual bone-name deltas.
+            deltas: dict[str, tuple[float, float, float]] = {}
+            for canonical_key, dpyr in interp.items():
                 bone_name = bone_map.get(canonical_key)
-                if not bone_name:
-                    continue
-                base_tf = baseline.get(bone_name)
-                if base_tf is None:
-                    # bone exists but we never snapshotted; fall back to identity
-                    base_tf = _make_rotation(carla)
+                if bone_name:
+                    deltas[bone_name] = dpyr
+
+            # IMPORTANT: send EVERY snapshotted bone (at its baseline rotation),
+            # overlaying the gesture deltas only on the signalling limb. If we
+            # send only the gesturing bones, blend_pose(1.0) snaps every other
+            # bone to the skeleton's bind/T-pose (arms splayed out) — which looks
+            # like a shrug. Posing the whole skeleton at baseline keeps the body
+            # in its natural standing pose while one arm performs the signal.
+            payload: list[tuple[str, Any]] = []
+            for bone_name, base_tf in baseline.items():
+                dp, dy, dr = deltas.get(bone_name, (0.0, 0.0, 0.0))
                 new_tf = _clone_transform(base_tf, carla)
                 new_tf.rotation.pitch = base_tf.rotation.pitch + dp
                 new_tf.rotation.yaw = base_tf.rotation.yaw + dy
