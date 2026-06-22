@@ -22,6 +22,57 @@ it. Built and verified on **CARLA 0.9.16**.
 
 ---
 
+## Implementation status — what works today
+
+MARSHAL is a **working, runnable benchmark**: the simulation harness, all 14
+scenarios, the officer/gestures, the scoring, and two reference controllers
+(baseline + oracle) are implemented and verified. What is *not* yet shipped is a
+set of learned reference models (E2E / VLM) — you bring those.
+
+| component | status |
+|-----------|:------:|
+| Closed-loop episode engine (sync-mode, per-tick control + logging) | ✅ done |
+| 14 scenarios — officer / flagger / ambulance / hazard spawned at runtime | ✅ done |
+| Officer hand-signal engine (US signals on the CARLA walker skeleton) | ✅ done |
+| Authority recognition (authorized officer vs unauthorized civilian) | ✅ done |
+| `baseline` controller (TrafficManager, officer-blind) — lower bound | ✅ done |
+| `oracle` controller (privileged, reads ground truth) — upper bound | ✅ done |
+| Plug-in API for **your** controller (`--controller module:Class`) | ✅ done |
+| Metric suite + MARSHAL Score + tier pass-rate → `scoreboard.json` | ✅ done* |
+| Per-scenario oracle demo clips (the gallery below) | ✅ done |
+| Reference **Track-B (E2E, e.g. TransFuser)** controller | ⏳ planned |
+| Reference **Track-C (VLM)** controller | ⏳ planned |
+| Results table filled with real learned models | ⏳ planned |
+
+<sub>*Partial by design: requirements/metrics that aren't yet instrumented are
+listed in `scoreboard.json → r_unmeasured` and excluded from the score
+denominator, so the number stays in [0, 100]. See *Metrics & the MARSHAL Score*.</sub>
+
+**What you can do right now**
+
+- **Run the two reference bounds** and reproduce the headline gap:
+  `python start.py --controller baseline` and `--controller oracle`.
+- **Score your own driving model** — write one `EpisodeController` subclass and
+  pass `--controller my_pkg:MyController`; MARSHAL spawns every scene, runs all
+  14 episodes closed-loop, and writes a full `scoreboard.json`. See
+  *Benchmark your model* below.
+- **Run / inspect a single scenario** with
+  `python scripts/run_marshal_officer_demo.py --scenario <name>` (dumps chase-cam
+  + ego-dashcam frames + per-tick metrics).
+- **Read the oracle's behaviour** from the demo gallery / `Oracle_demo/` as the
+  ground-truth "correct answer" for each scenario.
+
+**Known limitations (honest MVP notes)**
+
+- The shipped reference agents are a rule/TM **baseline** and a privileged
+  **oracle**; there is no trained perception/VLM agent in the repo yet (that's
+  the point of the benchmark — you add it).
+- A few maneuver verdicts (DETOUR / YIELD) are scored with simplified
+  longitudinal logic, and some scene actors are stock CARLA meshes; the metric
+  suite reports a **partial** MARSHAL Score until every R is instrumented.
+
+---
+
 ## The benchmark map
 
 The benchmark runs on **stock CARLA Town03** — no custom map, no download. The
