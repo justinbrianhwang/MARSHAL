@@ -13,10 +13,11 @@ by :func:`marshal_bench.scenarios._common.run_scenario`:
 
 * **Track A — Oracle**: reads ``ground_truth`` directly and executes the
   correct authority-aware behaviour. Upper-bound reference.
-* **Track B — Sensor-only (E2E)**: ignores ``ground_truth``; consumes RGB/state
-  from ``observation`` only. (TransFuser / InterFuser / TCP wrappers.)
-* **Track C — VLM**: turns ``observation`` images+state into a prompt and maps
-  the answer to a control. (Optional.)
+* **Track B — Sensor-only (E2E)**: ignores ``ground_truth``; consumes
+  ``observation["image"]`` (latest ego RGB HWC uint8 frame, or ``None`` before
+  the first camera tick) plus state. (TransFuser / InterFuser / TCP wrappers.)
+* **Track C — VLM**: turns ``observation["image"]`` + state into a prompt and
+  maps the answer to a control. (Optional.)
 
 The TrafficManager autopilot baseline (B0, traffic-light-only) is represented
 by passing ``controller=None`` to ``run_scenario`` — it is NOT a controller

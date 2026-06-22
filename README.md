@@ -235,7 +235,7 @@ class MyController(EpisodeController):
 
     def step(self, observation, dt):
         # observation: ego_x/y/z, ego_yaw, ego_speed_kmh, tl_state,
-        #              in_junction, sim_time  (+ camera frames on disk)
+        #              in_junction, sim_time, image, image_hwc, frames_ego_dir
         return carla.VehicleControl(throttle=0.4, brake=0.0, steer=0.0)
 ```
 
@@ -245,7 +245,7 @@ class MyController(EpisodeController):
 > **Fair-evaluation rule:** `observation["ground_truth"]` holds the answer (the
 > officer's true gesture, authority validity, expected action). Only the oracle
 > may read it. A model under test must decide from ego state + traffic-light
-> state + camera frames.
+> state + `observation["image"]` (or recorded frames in `frames_ego_dir`).
 
 ---
 

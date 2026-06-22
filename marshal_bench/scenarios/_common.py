@@ -36,11 +36,18 @@ import random
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
+import numpy as np
+
 from marshal_bench.actors.gesture_engine import GestureID
 from marshal_bench.actors.traffic_officer import TrafficOfficer
 from marshal_bench.criteria.authority_compliance import AuthorityComplianceCriterion
 from marshal_bench.criteria.reaction_latency import ReactionLatencyCriterion
 from marshal_bench.utils.carla_api_compat import SyncModeContext, import_carla
+try:  # logos/landmarks are dropped in the distributed repo — optional import
+    from marshal_bench.utils.landmarks import ensure_town03_landmarks
+except Exception:  # noqa: BLE001
+    def ensure_town03_landmarks(world):  # type: ignore[misc]
+        return None
 from marshal_bench.utils.logging_utils import EpisodeLogger
 from marshal_bench.utils.traffic_light_utils import (
     find_relevant_traffic_light,
@@ -78,6 +85,8 @@ class ScenarioContext:
     collision_sensor: Any = None
     camera: Any = None          # 3rd-person scene/director camera
     ego_camera: Any = None      # ego dashcam — the VLM benchmark input view
+    latest_ego_frame: Any = None  # latest dashcam RGB ndarray, HWC uint8
+    frames_ego_dir: Optional[str] = None
     traffic_manager: Any = None
     original_settings: Any = None
     extra_actors: list = field(default_factory=list)  # per-scenario scene actors
@@ -606,15 +615,20 @@ def attach_chase_camera(
     return cam
 
 
-def attach_ego_camera(world: Any, ego: Any, frames_dir: str) -> Any:
-    """Mount a forward 'dashcam' on the ego and stream frames to disk.
+def attach_ego_camera(
+    world: Any, ego: Any, frames_dir: str, ctx: Optional[ScenarioContext] = None,
+) -> Any:
+    """Mount a forward 'dashcam' on the ego and stream frames to disk + memory.
 
     This is the view a Vision-Language Model is scored on: the officer and the
     STOP sign must be legible here. Camera rides at windshield height, looking
     straight ahead, with a 90 deg FOV typical of an automotive front camera.
     """
     carla = import_carla()
+    frames_dir = os.path.abspath(frames_dir)
     os.makedirs(frames_dir, exist_ok=True)
+    if ctx is not None:
+        ctx.frames_ego_dir = frames_dir
     bp = world.get_blueprint_library().find("sensor.camera.rgb")
     bp.set_attribute("image_size_x", "1280")
     bp.set_attribute("image_size_y", "720")
@@ -623,11 +637,22 @@ def attach_ego_camera(world: Any, ego: Any, frames_dir: str) -> Any:
         carla.Location(x=1.4, y=0.0, z=1.4), carla.Rotation()
     )
     cam = world.spawn_actor(bp, cam_tf, attach_to=ego)
-    cam.listen(
-        lambda img: img.save_to_disk(
-            os.path.join(frames_dir, f"{img.frame:08d}.png")
-        )
-    )
+
+    def _on_image(img: Any) -> None:
+        try:
+            bgra = np.frombuffer(img.raw_data, dtype=np.uint8)
+            bgra = bgra.reshape((img.height, img.width, 4))
+            rgb = bgra[:, :, :3][:, :, ::-1].copy()
+            if ctx is not None:
+                ctx.latest_ego_frame = rgb
+        except Exception as e:
+            log.debug("ego camera frame conversion failed: %s", e)
+        try:
+            img.save_to_disk(os.path.join(frames_dir, f"{img.frame:08d}.png"))
+        except Exception as e:
+            log.debug("ego camera save_to_disk failed: %s", e)
+
+    cam.listen(_on_image)
     return cam
 
 
@@ -934,14 +959,14 @@ def _build_observation(
 ) -> dict:
     """Per-tick observation dict passed to ``controller.step``.
 
-    Contains ego state + signal context + sim time + the privileged
-    ground-truth handle. Sensor frames (RGB) are written to disk by the
-    attached cameras; a controller that needs pixels can read the latest frame
-    from ``logger.path('frames_ego')`` (Track B/C) — wired in a later step.
+    Contains ego state + signal context + sim time + the latest ego dashcam
+    RGB frame + the privileged ground-truth handle. ``ground_truth`` is still
+    oracle-only; ``image`` is the fair Track B/C sensor input.
     """
     tf = ctx.ego.get_transform()
     v = ctx.ego.get_velocity()
     speed = math.hypot(v.x, v.y)
+    image = ctx.latest_ego_frame
     return {
         "sim_time": sim_time,
         "ego_x": tf.location.x, "ego_y": tf.location.y, "ego_z": tf.location.z,
@@ -949,6 +974,9 @@ def _build_observation(
         "ego_speed": speed, "ego_speed_kmh": speed * 3.6,
         "tl_state": get_traffic_light_state(ctx.traffic_light),
         "in_junction": ego_in_intersection(ctx.ego, world),
+        "image": image,
+        "image_hwc": tuple(image.shape) if image is not None else None,
+        "frames_ego_dir": ctx.frames_ego_dir,
         "ground_truth": ground_truth,
     }
 
@@ -1023,6 +1051,14 @@ def run_scenario(
         world = ensure_town(client, config.get("town"))
         ctx.world = world
         apply_weather(world, (config.get("environment") or {}).get("weather"))
+
+        # Persistent benchmark landmarks (fountain lab-logo signposts). A fresh
+        # Town03 load drops the custom prop, so re-spawn it every episode
+        # (idempotent; Town03-only). They are part of the scene the agent sees.
+        try:
+            ensure_town03_landmarks(world)
+        except Exception as e:
+            log.debug("ensure_town03_landmarks failed: %s", e)
 
         # Seed RNG before any sampling.
         seed = config.get("seed")
@@ -1149,8 +1185,9 @@ def run_scenario(
         except Exception as e:
             log.warning("Could not attach chase camera: %s", e)
         try:
+            ctx.frames_ego_dir = os.path.abspath(logger.path("frames_ego"))
             ctx.ego_camera = attach_ego_camera(
-                world, ctx.ego, logger.path("frames_ego")
+                world, ctx.ego, ctx.frames_ego_dir, ctx
             )
         except Exception as e:
             log.warning("Could not attach ego camera: %s", e)

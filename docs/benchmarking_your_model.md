@@ -42,18 +42,23 @@ Start from the template:
 | `ego_speed`, `ego_speed_kmh` | ego speed (m/s, km/h) |
 | `tl_state` | nearest traffic-light state (`"Red"`/`"Green"`/`"Yellow"`/…) |
 | `in_junction` | bool — ego inside the intersection box |
+| `image` | latest ego front-camera RGB frame as an `(H, W, 3)` `np.uint8` array, or `None` before the first camera tick |
+| `image_hwc` | `(H, W, 3)` tuple for `image`, or `None` |
+| `frames_ego_dir` | absolute path to the recorded ego camera PNG frames |
 | `ground_truth` | privileged E-tuple — **oracle only** (see fairness rule) |
 
-**Camera frames.** Each episode writes RGB to a `frames_ego/` folder under the
-run's output directory. A sensor model (Track B) or VLM (Track C) reads the
-latest frame from there inside `step`.
+**Camera frames.** `observation["image"]` is the latest ego dashcam RGB frame
+for Track B/C models and can be `None` on the first ticks. The same stream is
+also written to `observation["frames_ego_dir"]` for models that prefer reading
+PNG files.
 
 ### Fairness rule
 
 `observation["ground_truth"]` contains the answer (the officer's true gesture,
 authority validity, the expected action). **Only the oracle (Track A) may read
 it.** A model under test must decide from `ego_*` state, `tl_state`, and the
-camera frames. The template ignores `ground_truth` on purpose.
+camera frame in `observation["image"]`. The template ignores `ground_truth` on
+purpose.
 
 ## 3. Run
 
@@ -87,8 +92,8 @@ Copy the final `scoreboard.json` into [`../results/`](../results/) to commit it.
 | track | what it sees | examples |
 |-------|--------------|----------|
 | **A — oracle** | privileged `ground_truth` | reference upper bound (shipped) |
-| **B — sensor/E2E** | camera frames + ego state | TransFuser, InterFuser, TCP |
-| **C — VLM** | frames → prompt → action | OpenEMMA, OpenDriveVLA, … |
+| **B — sensor/E2E** | `observation["image"]` + ego state | TransFuser, InterFuser, TCP |
+| **C — VLM** | `observation["image"]` → prompt → action | OpenEMMA, OpenDriveVLA, … |
 
 Set `track = "B"` (or `"C"`) on your controller class so the scoreboard records
 which family it belongs to.

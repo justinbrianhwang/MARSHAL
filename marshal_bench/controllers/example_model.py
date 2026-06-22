@@ -31,11 +31,16 @@ ego_yaw        ego heading (deg)
 ego_speed      ego speed (m/s);  ego_speed_kmh in km/h
 tl_state       nearest traffic-light state: "Red"/"Green"/"Yellow"/...
 in_junction    bool — is the ego inside the intersection box
+image          latest ego front-camera RGB frame (H,W,3 uint8), or None
+image_hwc      image shape tuple (H, W, 3), or None before first frame
+frames_ego_dir absolute path to the recorded ego camera PNG frames
 ground_truth   the privileged episode E-tuple (see note below)
 ============== =========================================================
 
-Camera frames: each episode writes RGB to ``frames_ego/`` next to the run's
-output; a sensor model (Track B) / VLM (Track C) reads the latest frame there.
+Camera frames: ``observation["image"]`` is the latest ego dashcam RGB frame
+as a NumPy array, and can be ``None`` during the first ticks before CARLA has
+delivered a camera sample. The same stream is also recorded under
+``observation["frames_ego_dir"]`` for models that prefer reading PNG files.
 
 IMPORTANT — fair evaluation
 ---------------------------
@@ -43,7 +48,7 @@ IMPORTANT — fair evaluation
 gesture, authority validity, expected action). Only the **oracle** (Track A,
 the upper-bound reference) is allowed to read it. A real model under test
 (Track B sensor-E2E, Track C VLM) must derive its decision from ``ego_*`` state
-+ ``tl_state`` + the camera frames — NOT from ``ground_truth``. The template
++ ``tl_state`` + ``observation["image"]`` — NOT from ``ground_truth``. The template
 below ignores ``ground_truth`` on purpose.
 """
 from __future__ import annotations
@@ -88,6 +93,9 @@ class ExampleController(EpisodeController):
         carla = self._carla
         light = str(observation.get("tl_state", "Unknown")).lower()
         speed_kmh = float(observation.get("ego_speed_kmh", 0.0))
+        frame = observation.get("image")
+        # if frame is not None:
+        #     pred = self.model(frame)
 
         # --- trivial light-only policy (REPLACE ME) ------------------------
         stop = light.startswith("red") or light.startswith("yellow")
