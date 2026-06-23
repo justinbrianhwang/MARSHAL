@@ -36,20 +36,21 @@ def _setup_extra_actors(
 
 
 def _after_autopilot(ctx: Any, traffic_manager: Any, config: dict) -> None:
-    """Drive the adjacent-lane car so it visibly obeys the officer's RIGHT
-    command — it turns right and leaves — while the ego correctly holds at its
-    own red light. The contrast makes the target-attribution point readable."""
+    """Keep the adjacent-lane target car staged in view.
+
+    Handing this spawned vehicle to CARLA's TrafficManager with
+    ``set_autopilot(True, tm.get_port())`` reproducibly aborts the Windows
+    client process with 0xC0000409 in this Town03 setup. The attribution probe
+    only needs the other-lane target to be visible, so leave it stationary.
+    """
     if not ctx.extra_actors:
         return
     car = ctx.extra_actors[0]
-    tm = traffic_manager
     try:
-        car.set_autopilot(True, tm.get_port())
-        # it acts on the officer's command, not the signal
-        tm.ignore_lights_percentage(car, 100.0)
-        tm.set_route(car, ["Right"] + ["Straight"] * 10)
+        car.set_simulate_physics(False)
     except Exception as e:  # noqa: BLE001
-        log.warning("adjacent car autopilot setup failed: %s", e)
+        log.debug("adjacent car physics freeze failed: %s", e)
+    log.info("adjacent car left stationary; TrafficManager handoff disabled")
 
 
 def run(client: Any, config: dict, logger: EpisodeLogger) -> dict:

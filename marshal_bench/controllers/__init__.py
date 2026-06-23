@@ -70,6 +70,9 @@ def make_controller(name: Optional[str], config: Optional[dict] = None) -> Any:
     if key == "oracle":
         from marshal_bench.controllers.oracle import OracleController
         return OracleController(config=config)
+    if key == "vlm":
+        from marshal_bench.controllers.vlm_model import VLMController
+        return VLMController(config=config)
     # A dotted/colon path -> a third-party (or built-in) controller class.
     if ":" in name or "." in name:
         return _resolve_dotted(name, config)

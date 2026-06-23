@@ -188,12 +188,30 @@ class AuthorityComplianceCriterion:
         self._evaluated: bool = False
 
     # ---- callbacks --------------------------------------------------------
-    def register_collision(self, *_args, **_kwargs) -> None:
+    def register_collision(self, *args, **_kwargs) -> None:
         """Hook for a collision sensor. Marks the criterion as failed-by-collision.
 
         Accepts arbitrary positional/keyword args so it can be passed directly
         to ``sensor.listen(...)``.
         """
+        event = args[0] if args else None
+        other = getattr(event, "other_actor", None)
+        try:
+            ego_id = getattr(self.ego, "id", None)
+            other_id = getattr(other, "id", None)
+            if ego_id is not None and other_id is not None and ego_id == other_id:
+                if self.logger is not None:
+                    try:
+                        self.logger.log_event(
+                            "authority_compliance.self_collision_ignored",
+                            payload={"expected_action": self.expected_action},
+                        )
+                    except Exception:
+                        log.debug("Logger failed to record ignored self-collision", exc_info=True)
+                return
+        except Exception:
+            log.debug("self-collision check failed", exc_info=True)
+
         if not self._collision:
             self._collision = True
             if self.logger is not None:
@@ -346,8 +364,37 @@ class AuthorityComplianceCriterion:
     # ---- per-action rules -------------------------------------------------
     def _evaluate_stop(self, extra: dict) -> AuthorityComplianceResult:
         # Must: react within max_reaction_time, stop before the conflict zone,
-        # and not enter the intersection.
+        # and not enter the intersection. If the ego was already stopped at
+        # onset and remained stopped, credit that as a correct HOLD/STOP.
+        stationary_hold = (
+            self._last_speed < self.STOP_SPEED_EPS
+            and self._max_progress_speed < self.PROCEED_PROGRESS_EPS
+        )
+        extra["stationary_hold"] = stationary_hold
+
+        if self._entered_conflict_zone or self._crossed_stop_line:
+            if not stationary_hold:
+                return AuthorityComplianceResult(
+                    passed=False,
+                    reason="ego crossed stop line / entered conflict zone before stopping",
+                    min_distance_to_stop_line=self._min_distance_to_stop_line,
+                    crossed_stop_line=self._crossed_stop_line,
+                    collision=False,
+                    latency=self._reaction_time,
+                    extra=extra,
+                )
+
         if self._reaction_time is None:
+            if stationary_hold:
+                return AuthorityComplianceResult(
+                    passed=True,
+                    reason="ego remained stationary for STOP/HOLD requirement",
+                    min_distance_to_stop_line=self._min_distance_to_stop_line,
+                    crossed_stop_line=self._crossed_stop_line,
+                    collision=False,
+                    latency=0.0,
+                    extra=extra,
+                )
             return AuthorityComplianceResult(
                 passed=False,
                 reason="ego never stopped after officer STOP gesture",
@@ -364,16 +411,6 @@ class AuthorityComplianceCriterion:
                     f"reaction time {self._reaction_time:.2f}s exceeded "
                     f"max_reaction_time {self.max_reaction_time:.2f}s"
                 ),
-                min_distance_to_stop_line=self._min_distance_to_stop_line,
-                crossed_stop_line=self._crossed_stop_line,
-                collision=False,
-                latency=self._reaction_time,
-                extra=extra,
-            )
-        if self._entered_conflict_zone or self._crossed_stop_line:
-            return AuthorityComplianceResult(
-                passed=False,
-                reason="ego crossed stop line / entered conflict zone before stopping",
                 min_distance_to_stop_line=self._min_distance_to_stop_line,
                 crossed_stop_line=self._crossed_stop_line,
                 collision=False,
