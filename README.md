@@ -40,9 +40,10 @@ set of learned reference models (E2E / VLM) — you bring those.
 | Plug-in API for **your** controller (`--controller module:Class`) | ✅ done |
 | Metric suite + MARSHAL Score + tier pass-rate → `scoreboard.json` | ✅ done* |
 | Per-scenario oracle demo clips (the gallery below) | ✅ done |
+| Reference **Track-C (VLM)** controller (`vlm` — camera-only, HF router) | ✅ done |
+| Track-C VLM results on all 14 (GLM-4.5V, Qwen2.5/3-VL) | ✅ done |
 | Reference **Track-B (E2E, e.g. TransFuser)** controller | ⏳ planned |
-| Reference **Track-C (VLM)** controller | ⏳ planned |
-| Results table filled with real learned models | ⏳ planned |
+| Track-B E2E results | ⏳ planned |
 
 <sub>*Partial by design: requirements/metrics that aren't yet instrumented are
 listed in `scoreboard.json → r_unmeasured` and excluded from the score
@@ -64,9 +65,15 @@ denominator, so the number stays in [0, 100]. See *Metrics & the MARSHAL Score*.
 
 **Known limitations (honest MVP notes)**
 
-- The shipped reference agents are a rule/TM **baseline** and a privileged
-  **oracle**; there is no trained perception/VLM agent in the repo yet (that's
-  the point of the benchmark — you add it).
+- The shipped reference agents are a rule/TM **baseline**, a privileged
+  **oracle**, and a camera-only **`vlm`** controller (Track-C). There is no
+  trained **E2E / Track-B** perception agent in the repo yet (that's the point
+  of the benchmark — you add it).
+- The Track-C `vlm` controller drives off a **single forward ego camera**. The
+  measured VLM results below stage each officer / hazard / emergency vehicle at a
+  distance that forward camera can actually perceive (the stock stations place
+  the officer ~30 m at the lane edge so the *officer-blind* baseline can't see
+  it); a rear/surround-aware setup is future work (e.g. `ambulance_yield`).
 - A few maneuver verdicts (DETOUR / YIELD) are scored with simplified
   longitudinal logic, and some scene actors are stock CARLA meshes; the metric
   suite reports a **partial** MARSHAL Score until every R is instrumented.
@@ -332,6 +339,46 @@ for authority-aware reasoning in autonomous driving.
 
 _(Reproduce: `python scripts/run_marshal_sweep.py`; score your own model with
 `python start.py --controller <module:Class> --tag <name>`.)_
+
+### Track-C: VLM-in-the-loop (first real learned-model results)
+
+Three off-the-shelf vision-language models drive every scenario closed-loop
+through the `vlm` controller — each tick sends the **front ego camera** to the
+model over the Hugging Face Inference router and maps its STOP / GO / SLOW / HOLD
+reply to vehicle control. No ground truth, no fine-tuning, no MARSHAL-specific
+prompt engineering. *Scenarios passed* = per-episode authority-compliance
+(did the model take the expected action), across 3 tiers (low 3 / mid 3 / high 8):
+
+| model | track | scenarios passed | low (3) | mid (3) | high (8) |
+|-------|-------|-----------------:|--------:|--------:|---------:|
+| Qwen3-VL-235B-A22B | C | **8 / 14** | 100% | 0% | 63% |
+| Qwen2.5-VL-72B     | C | **8 / 14** | 67%  | 33% | 63% |
+| GLM-4.5V           | C | **4 / 14** | 33%  | 33% | 25% |
+| _baseline (TM, officer-blind)_ | — | _ref_ | 0% | 100% | 12.5% |
+| _oracle (privileged)_          | A | _14 / 14_ | 100% | 100% | 100% |
+
+**What this shows:**
+
+- **VLM reasoning closes part of the authority gap.** Both Qwen models reach
+  **63% on the high tier** vs the officer-blind baseline's **12.5%** — when a VLM
+  can *see* the officer it reasons about authority far better than a light-only
+  agent. Strongest scenarios: `signal_off` and `ambiguous_gesture` (**3/3**).
+- **But traffic signals still override human authority.** Every model fails
+  `red_proceed` (0/3) and `rule_hierarchy` (0/3), and only 1/3 pass `green_stop`:
+  the models obey the light even when an authorized officer commands otherwise —
+  exactly the failure mode MARSHAL is built to expose.
+- **No emergency-vehicle yield and no hazard *detour*.** `ambulance_yield` is
+  0/3 even with the ambulance in clear view, and `crash_detour` is 0/3 — the VLMs
+  stop for a blockage but don't plan the lateral maneuver around it.
+- **Bigger isn't strictly better.** Qwen3-235B and Qwen2.5-72B tie at 8/14 with
+  different profiles (Qwen3 perfect on low tier, worse on mid); GLM-4.5V trails
+  and tends to drift to GO.
+
+<sub>Camera-only via a single forward ego camera; officer / hazard / emergency
+vehicle staged at camera-visible distances (see *Known limitations*). "Scenarios
+passed" is the per-episode compliance verdict, not the weighted MARSHAL Score,
+so it isn't directly comparable to the baseline/oracle Score above — the tier
+percentages are.</sub>
 
 ---
 
