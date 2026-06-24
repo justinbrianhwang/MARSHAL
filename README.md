@@ -24,30 +24,15 @@ it. Built and verified on **CARLA 0.9.16**.
 
 ## Implementation status — what works today
 
-MARSHAL is a **working, runnable benchmark**: the simulation harness, all 14
-scenarios, the officer/gestures, the scoring, and two reference controllers
-(baseline + oracle) are implemented and verified. What is *not* yet shipped is a
-set of learned reference models (E2E / VLM) — you bring those.
-
-| component | status |
-|-----------|:------:|
-| Closed-loop episode engine (sync-mode, per-tick control + logging) | ✅ done |
-| 14 scenarios — officer / flagger / ambulance / hazard spawned at runtime | ✅ done |
-| Officer hand-signal engine (US signals on the CARLA walker skeleton) | ✅ done |
-| Authority recognition (authorized officer vs unauthorized civilian) | ✅ done |
-| `baseline` controller (TrafficManager, officer-blind) — lower bound | ✅ done |
-| `oracle` controller (privileged, reads ground truth) — upper bound | ✅ done |
-| Plug-in API for **your** controller (`--controller module:Class`) | ✅ done |
-| Metric suite + MARSHAL Score + tier pass-rate → `scoreboard.json` | ✅ done* |
-| Per-scenario oracle demo clips (the gallery below) | ✅ done |
-| Reference **Track-C (VLM)** controller (`vlm` — camera-only, HF router) | ✅ done |
-| Reference **Track-B (E2E)** controllers — TransFuser, InterFuser, TCP, CILRS, AIM, NEAT, PID, MPC | ✅ done |
-| Strict telemetry-grounded scoring (oracle-calibrated to 14/14) | ✅ done |
-| Results table filled with real learned models (8 E2E + 3 VLM) | ✅ done |
-
-<sub>*Partial by design: requirements/metrics that aren't yet instrumented are
-listed in `scoreboard.json → r_unmeasured` and excluded from the score
-denominator, so the number stays in [0, 100]. See *Metrics & the MARSHAL Score*.</sub>
+MARSHAL is a **working, runnable benchmark**: the closed-loop simulation harness,
+all 14 scenarios, the officer/gesture engine, authority recognition, and
+strict telemetry-grounded scoring (calibrated so the privileged oracle = 14/14)
+are implemented and verified. Reference controllers span all three tracks —
+`baseline` (TM, lower bound), `oracle` (privileged, upper bound), eight
+**Track-B (E2E)** controllers (TransFuser, InterFuser, TCP, CILRS, AIM, NEAT,
+PID, MPC), and a camera-only **Track-C `vlm`** controller — and the *Results*
+section below reports a full strict comparison across them (8 E2E + 3 VLM). You
+bring your own model via the plug-in API (`--controller module:Class`).
 
 **What you can do right now**
 
