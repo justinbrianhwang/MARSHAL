@@ -5,6 +5,7 @@
 * ``baseline`` / ``tm`` / ``autopilot`` / ``none`` -> ``None`` — ``run_scenario``
   drives with the TrafficManager autopilot (officer-blind, light-only baseline B0).
 * ``oracle`` -> the privileged Track-A reference controller.
+* ``pid`` / ``mpc`` -> non-learned Track-B lane-follow lower bounds.
 * **Any dotted/colon path** ``your_pkg.your_module:YourController`` (or
   ``your_pkg.your_module.YourController``) -> imported and instantiated. This is
   how a **third party plugs in their own model**: write a subclass of
@@ -73,11 +74,36 @@ def make_controller(name: Optional[str], config: Optional[dict] = None) -> Any:
     if key == "vlm":
         from marshal_bench.controllers.vlm_model import VLMController
         return VLMController(config=config)
+    if key == "transfuser":
+        from marshal_bench.controllers.transfuser_model import TransFuserController
+        return TransFuserController(config=config)
+    if key == "tcp":
+        from marshal_bench.controllers.tcp_model import TCPController
+        return TCPController(config=config)
+    if key == "interfuser":
+        from marshal_bench.controllers.interfuser_model import InterFuserController
+        return InterFuserController(config=config)
+    if key == "cilrs":
+        from marshal_bench.controllers.cilrs_model import CILRSController
+        return CILRSController(config=config)
+    if key == "aim":
+        from marshal_bench.controllers.aim_model import AIMController
+        return AIMController(config=config)
+    if key == "neat":
+        from marshal_bench.controllers.neat_model import NEATController
+        return NEATController(config=config)
+    if key == "pid":
+        from marshal_bench.controllers.classical import PIDController
+        return PIDController(config=config)
+    if key == "mpc":
+        from marshal_bench.controllers.classical import MPCController
+        return MPCController(config=config)
     # A dotted/colon path -> a third-party (or built-in) controller class.
     if ":" in name or "." in name:
         return _resolve_dotted(name, config)
     raise ValueError(
-        f"Unknown controller '{name}'. Use 'baseline', 'oracle', or a "
+        f"Unknown controller '{name}'. Use 'baseline', 'oracle', 'transfuser', "
+        "'tcp', 'interfuser', 'cilrs', 'aim', 'neat', 'pid', 'mpc', or a "
         "'module:ClassName' path to your own EpisodeController subclass."
     )
 

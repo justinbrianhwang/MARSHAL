@@ -88,15 +88,40 @@ def spawn_crash_pileup(
     layout = [(0.0, 0.0, 12.0), (6.0, 0.4, -16.0), (12.0, -0.5, 18.0),
               (18.0, 0.3, -12.0), (24.0, -0.3, 14.0)]
     for df, dl, dyaw in layout[:max(1, min(n, len(layout)))]:
-        loc = carla.Location(
-            x=twf.location.x + fwd.x * df + right.x * dl,
-            y=twf.location.y + fwd.y * df + right.y * dl,
-            z=twf.location.z + 0.30,
-        )
         rot = carla.Rotation(yaw=twf.rotation.yaw + dyaw)
-        a = world.try_spawn_actor(rng.choice(cars), carla.Transform(loc, rot))
-        if a is not None:
-            out.append(a)
+        spawn_candidates = (
+            (df, dl, 0.30),
+            (df, dl, 0.60),
+            (df, dl, 1.00),
+            (df - 1.0, dl, 0.60),
+            (df + 1.0, dl, 0.60),
+            (df, dl - 0.35, 0.60),
+            (df, dl + 0.35, 0.60),
+            (df - 1.0, dl - 0.35, 1.00),
+            (df + 1.0, dl + 0.35, 1.00),
+        )
+        car_order = list(cars)
+        rng.shuffle(car_order)
+        actor = None
+        for cdf, cdl, dz in spawn_candidates:
+            loc = carla.Location(
+                x=twf.location.x + fwd.x * cdf + right.x * cdl,
+                y=twf.location.y + fwd.y * cdf + right.y * cdl,
+                z=twf.location.z + dz,
+            )
+            spawn_tf = carla.Transform(loc, rot)
+            for bp in car_order[: min(12, len(car_order))]:
+                try:
+                    actor = world.try_spawn_actor(bp, spawn_tf)
+                except Exception:
+                    actor = None
+                if actor is not None:
+                    _freeze(actor)
+                    break
+            if actor is not None:
+                break
+        if actor is not None:
+            out.append(actor)
     log.info("crash pileup: spawned %d/%d vehicles at %.0f m", len(out), n, distance)
     return out
 
@@ -346,17 +371,48 @@ def spawn_occluder(
         return []
     twf = wp.transform
     right = twf.get_right_vector()
-    loc = carla.Location(
-        x=twf.location.x + right.x * lateral,
-        y=twf.location.y + right.y * lateral,
-        z=twf.location.z + 0.30,
-    )
-    actor = world.try_spawn_actor(big[0], carla.Transform(loc, twf.rotation))
+    candidates = []
+    for d_offset in (0.0, -3.0, 3.0, -6.0, 6.0):
+        test_wp = route_waypoint(world, ego_transform, max(4.0, distance + d_offset))
+        if test_wp is None:
+            continue
+        test_tf = test_wp.transform
+        test_right = test_tf.get_right_vector()
+        for lat in (lateral, max(2.0, lateral - 0.8), lateral + 0.8, -lateral):
+            for dz in (0.30, 0.60, 1.00):
+                candidates.append((test_tf, test_right, lat, dz))
+
+    actor = None
+    used_lat = lateral
+    used_dist = distance
+    for cand_tf, cand_right, lat, dz in candidates:
+        loc = carla.Location(
+            x=cand_tf.location.x + cand_right.x * lat,
+            y=cand_tf.location.y + cand_right.y * lat,
+            z=cand_tf.location.z + dz,
+        )
+        spawn_tf = carla.Transform(loc, cand_tf.rotation)
+        for bp in big[: min(len(big), 10)]:
+            actor = world.try_spawn_actor(bp, spawn_tf)
+            if actor is not None:
+                used_lat = lat
+                try:
+                    base_wp = route_waypoint(world, ego_transform, 0.0)
+                    if base_wp is not None:
+                        dx = cand_tf.location.x - base_wp.transform.location.x
+                        dy = cand_tf.location.y - base_wp.transform.location.y
+                        fwd = base_wp.transform.get_forward_vector()
+                        used_dist = dx * fwd.x + dy * fwd.y
+                except Exception:
+                    used_dist = distance
+                break
+        if actor is not None:
+            break
     if actor is None:
-        log.warning("occluder: spawn returned None")
+        log.warning("occluder: spawn returned None after retries")
         return []
     _freeze(actor)
-    log.info("occluder: parked %.0f m ahead, %.1f m to the side", distance, lateral)
+    log.info("occluder: parked %.0f m ahead, %.1f m to the side", used_dist, used_lat)
     return [actor]
 
 
