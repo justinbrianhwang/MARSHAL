@@ -34,6 +34,8 @@ class OracleController(EpisodeController):
         self._route_offset = 0.0
         self._last_steer = 0.0
         self._detour_committed = False
+        self._yield_resume_time = 0.0
+        self._proceed_wait_until = 0.0
 
     def setup(self, world: Any, ego: Any, ground_truth: Dict[str, Any],
               carla: Any) -> None:
@@ -46,6 +48,17 @@ class OracleController(EpisodeController):
         self._target_speed_kmh = float(self.gt.get("target_speed_kmh") or 25.0)
         self._action = self._resolve_action()
         self._onset_time = self._resolve_onset_time()
+        scene = self.gt.get("S_safety_context") or {}
+        if self._action == "YIELD":
+            self._yield_resume_time = self._onset_time + float(
+                scene.get("yield_stop_sec") or 3.5
+            )
+        if self._action == "PROCEED" and scene.get("pedestrian_distance") is not None:
+            # The pedestrian starts crossing at scenario start; hold long
+            # enough for the staged Town03 walker to clear the ego lane.
+            self._proceed_wait_until = self._onset_time + float(
+                scene.get("pedestrian_clear_sec") or 5.8
+            )
 
         self._agent = self._make_basic_agent()
         self._set_straight_plan()
@@ -236,6 +249,10 @@ class OracleController(EpisodeController):
             ctrl.throttle = 0.0
             ctrl.brake = 0.35
             return ctrl
+        if self._proceed_wait_until and sim_time < self._proceed_wait_until:
+            ctrl.throttle = 0.0
+            ctrl.brake = 1.0 if speed > 0.25 else 0.75
+            return ctrl
         if speed < self._target_speed_kmh / 3.6:
             ctrl.throttle = max(float(getattr(base, "throttle", 0.0)), 0.55)
             ctrl.brake = 0.0
@@ -248,20 +265,13 @@ class OracleController(EpisodeController):
             self._prepare_detour_plan()
         ctrl = self._copy_control(base)
         if sim_time >= self._onset_time:
-            # The bundled Town03 pileup spans the practical adjacent-lane
-            # clearance. Show immediate detour progress, then stop safely short
-            # instead of clipping the staged vehicles.
-            if self._progress_from_spawn(obs) > 18.0:
+            if speed > 7.0:
                 ctrl.throttle = 0.0
-                ctrl.brake = 1.0 if speed > 0.25 else 0.85
-                return ctrl
-            if speed > 5.0:
-                ctrl.throttle = 0.0
-                ctrl.brake = 0.15
+                ctrl.brake = 0.10
             else:
                 ctrl.throttle = min(
-                    max(float(getattr(base, "throttle", 0.0)), 0.25),
-                    0.35,
+                    max(float(getattr(base, "throttle", 0.0)), 0.35),
+                    0.50,
                 )
                 ctrl.brake = 0.0
         else:
@@ -275,10 +285,15 @@ class OracleController(EpisodeController):
             self._set_agent_offset(self._route_offset)
         if sim_time < self._onset_time:
             ctrl = self._copy_control(base)
-            ctrl.throttle = min(max(float(getattr(base, "throttle", 0.0)), 0.25), 0.38)
+            ctrl.throttle = min(max(float(getattr(base, "throttle", 0.0)), 0.55), 0.70)
             ctrl.brake = 0.0
             return ctrl
         ctrl = self._copy_control(base)
+        if sim_time >= self._yield_resume_time:
+            if speed < self._target_speed_kmh / 3.6:
+                ctrl.throttle = max(float(getattr(base, "throttle", 0.0)), 0.45)
+            ctrl.brake = 0.0
+            return ctrl
         ctrl.throttle = 0.0
         ctrl.brake = 0.85 if speed > 0.4 else 0.55
         return ctrl
@@ -302,13 +317,10 @@ class OracleController(EpisodeController):
             out.throttle = float(getattr(control, "throttle", 0.0) or 0.0)
             out.brake = float(getattr(control, "brake", 0.0) or 0.0)
             out.steer = float(getattr(control, "steer", 0.0) or 0.0)
-            out.hand_brake = bool(getattr(control, "hand_brake", False))
-            out.reverse = bool(getattr(control, "reverse", False))
-            out.manual_gear_shift = bool(getattr(control, "manual_gear_shift", False))
-            try:
-                out.gear = int(getattr(control, "gear", 0) or 0)
-            except Exception:
-                pass
+            out.hand_brake = False
+            out.reverse = False
+            out.manual_gear_shift = False
+            out.gear = 0
         return out
 
     def _set_agent_offset(self, offset: float) -> None:

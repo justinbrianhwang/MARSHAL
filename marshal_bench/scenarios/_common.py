@@ -42,6 +42,10 @@ from marshal_bench.actors.gesture_engine import GestureID
 from marshal_bench.actors.traffic_officer import TrafficOfficer
 from marshal_bench.criteria.authority_compliance import AuthorityComplianceCriterion
 from marshal_bench.criteria.reaction_latency import ReactionLatencyCriterion
+from marshal_bench.criteria.strict_episode_scoring import (
+    score_episode_from_telemetry,
+    write_strict_artifacts,
+)
 from marshal_bench.utils.carla_api_compat import SyncModeContext, import_carla
 try:  # logos/landmarks are dropped in the distributed repo — optional import
     from marshal_bench.utils.landmarks import ensure_town03_landmarks
@@ -663,6 +667,7 @@ def enable_autopilot(
     client: Any,
     ego: Any,
     target_speed_kmh: Optional[float] = None,
+    setup_errors: Optional[list] = None,
 ) -> Any:
     """Hand ego over to the TrafficManager autopilot.
 
@@ -674,6 +679,8 @@ def enable_autopilot(
         tm = client.get_trafficmanager()
         tm_port = tm.get_port()
     except Exception as e:
+        if setup_errors is not None:
+            setup_errors.append(f"could not acquire TrafficManager for baseline autopilot: {e}")
         log.warning("Could not acquire TrafficManager: %s", e)
         return None
 
@@ -685,6 +692,8 @@ def enable_autopilot(
     try:
         ego.set_autopilot(True, tm_port)
     except Exception as e:
+        if setup_errors is not None:
+            setup_errors.append(f"baseline autopilot setup failed: {e}")
         log.warning("ego.set_autopilot failed: %s — ego will not move", e)
         return tm
 
@@ -735,7 +744,7 @@ def enable_autopilot(
 def ego_speed_kmh(ego: Any) -> float:
     try:
         v = ego.get_velocity()
-        return 3.6 * math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z)
+        return 3.6 * math.sqrt(v.x * v.x + v.y * v.y)
     except Exception:
         return 0.0
 
@@ -906,6 +915,84 @@ def _loc_xyz(tf: Any) -> Optional[dict]:
         return None
 
 
+def _location_from_transform_or_actor(obj: Any) -> Optional[Any]:
+    if obj is None:
+        return None
+    try:
+        if hasattr(obj, "get_transform"):
+            return obj.get_transform().location
+    except Exception:
+        pass
+    try:
+        if hasattr(obj, "get_location"):
+            return obj.get_location()
+    except Exception:
+        pass
+    try:
+        if hasattr(obj, "location"):
+            return obj.location
+    except Exception:
+        pass
+    if all(hasattr(obj, c) for c in ("x", "y", "z")):
+        return obj
+    return None
+
+
+def _distance_between_locations(a: Any, b: Any) -> float:
+    if a is None or b is None:
+        return float("nan")
+    try:
+        dx = float(a.x) - float(b.x)
+        dy = float(a.y) - float(b.y)
+        dz = float(a.z) - float(b.z)
+    except Exception:
+        return float("nan")
+    return math.sqrt(dx * dx + dy * dy + dz * dz)
+
+
+def _project_from_origin(loc: Any, origin: Any, fwd: Any, right: Any) -> tuple[float, float]:
+    try:
+        dx = float(loc.x) - float(origin.x)
+        dy = float(loc.y) - float(origin.y)
+        forward_m = dx * float(fwd.x) + dy * float(fwd.y)
+        lateral_m = dx * float(right.x) + dy * float(right.y)
+        return forward_m, lateral_m
+    except Exception:
+        return float("nan"), float("nan")
+
+
+def _finite_vehicle_control(control: Any) -> bool:
+    if control is None:
+        return False
+    try:
+        vals = [
+            float(getattr(control, "throttle")),
+            float(getattr(control, "brake")),
+            float(getattr(control, "steer")),
+        ]
+    except Exception:
+        return False
+    return all(math.isfinite(v) for v in vals)
+
+
+def _controller_uses_privileged_ground_truth(controller: Any) -> bool:
+    if controller is None:
+        return False
+    return (
+        str(getattr(controller, "track", "")).upper() == "A"
+        or str(getattr(controller, "name", "")).lower() == "oracle"
+    )
+
+
+def _non_privileged_setup_context(ground_truth: dict) -> dict:
+    """Return setup context without expected/gesture/authority/target labels."""
+    return {
+        "target_speed_kmh": (ground_truth or {}).get("target_speed_kmh", 25.0),
+        "M_map": (ground_truth or {}).get("M_map"),
+        "L_light_state": (ground_truth or {}).get("L_light_state"),
+    }
+
+
 def _build_ground_truth(
     config: dict, ctx: "ScenarioContext", ego_transform: Any,
     expected_action: str, expected_gesture: "GestureID",
@@ -955,13 +1042,13 @@ def _build_ground_truth(
 
 
 def _build_observation(
-    ctx: "ScenarioContext", world: Any, sim_time: float, ground_truth: dict,
+    ctx: "ScenarioContext", world: Any, sim_time: float,
 ) -> dict:
     """Per-tick observation dict passed to ``controller.step``.
 
     Contains ego state + signal context + sim time + the latest ego dashcam
-    RGB frame + the privileged ground-truth handle. ``ground_truth`` is still
-    oracle-only; ``image`` is the fair Track B/C sensor input.
+    RGB frame. Privileged expected-action, gesture, authority, and target labels
+    are intentionally not present in this observation.
     """
     tf = ctx.ego.get_transform()
     v = ctx.ego.get_velocity()
@@ -977,7 +1064,6 @@ def _build_observation(
         "image": image,
         "image_hwc": tuple(image.shape) if image is not None else None,
         "frames_ego_dir": ctx.frames_ego_dir,
-        "ground_truth": ground_truth,
     }
 
 
@@ -1046,6 +1132,7 @@ def run_scenario(
         "traffic_light_state": "Unknown",
         "terminated_reason": "not_started",
     }
+    scene_setup_errors = []
 
     try:
         world = ensure_town(client, config.get("town"))
@@ -1086,11 +1173,17 @@ def run_scenario(
                 log.info("Signalised episode: ego spawned 28 m back from a stop line.")
         ctx.ego, ego_transform = spawn_ego(world, ego_cfg, seed=seed)
 
-        # Let the world settle so ego.get_transform() reflects the spawn pose.
+        # Let lifted fixed-station spawns settle before scenario timing,
+        # sensors, and strict telemetry begin.
         try:
-            world.tick() if world.get_settings().synchronous_mode else world.wait_for_tick()
+            settle_ticks = int(config.get("spawn_settle_ticks", 20))
         except Exception:
-            pass
+            settle_ticks = 20
+        for _ in range(max(1, settle_ticks)):
+            try:
+                world.tick() if world.get_settings().synchronous_mode else world.wait_for_tick()
+            except Exception:
+                break
 
         # Refresh ego_transform after the tick.
         try:
@@ -1122,9 +1215,20 @@ def run_scenario(
             log.info("No officer configured — running with a null officer.")
         result["officer_metadata"] = ctx.officer.get_metadata()
         logger.log_event("officer_spawned", **result["officer_metadata"])
+        if officer_raw and result["officer_metadata"].get("actor_id") is None:
+            message = f"required officer actor missing for {name}"
+            scene_setup_errors.append(message)
+            log.warning(message)
 
         # Per-scenario extra scene actors (crash vehicles, fallen person,
-        # construction zone, ambulance, ...).
+        # construction zone, ambulance, ...). If a scenario requested extra
+        # actors and none spawned, the episode is not the intended scenario.
+        result["scene_setup"] = {
+            "extra_actor_required": setup_extra_actors is not None,
+            "extra_actor_count": 0,
+            "valid": setup_extra_actors is None,
+            "errors": [],
+        }
         if setup_extra_actors is not None:
             try:
                 extra = setup_extra_actors(
@@ -1132,41 +1236,77 @@ def run_scenario(
                 )
                 ctx.extra_actors = [a for a in (extra or []) if a is not None]
                 log.info("Spawned %d extra scene actor(s)", len(ctx.extra_actors))
+                if not ctx.extra_actors:
+                    message = f"required extra scene actors missing for {name}"
+                    scene_setup_errors.append(message)
+                    log.warning(message)
                 logger.log_event(
                     "extra_actors_spawned", count=len(ctx.extra_actors)
                 )
             except Exception as e:
+                message = f"setup_extra_actors failed: {e}"
+                scene_setup_errors.append(message)
                 log.warning("setup_extra_actors failed: %s", e)
+        result["scene_setup"] = {
+            "extra_actor_required": setup_extra_actors is not None,
+            "extra_actor_count": len(ctx.extra_actors),
+            "valid": not scene_setup_errors,
+            "errors": list(scene_setup_errors),
+        }
+        logger.log_event("scene_setup", **result["scene_setup"])
 
         # Criteria.
         expected = config.get("expected_behavior") or {}
+        expected_action_effective = str(expected.get("action", expected_action)).upper()
+        max_reaction_time = float(expected.get("max_reaction_time_sec", 3.0))
+        stop_line_location = _resolve_stop_line(ctx.traffic_light)
         compliance = AuthorityComplianceCriterion(
             ego_vehicle=ctx.ego,
             officer=ctx.officer,
-            expected_action=expected.get("action", expected_action),
-            max_reaction_time=float(expected.get("max_reaction_time_sec", 3.0)),
-            stop_line_location=_resolve_stop_line(ctx.traffic_light),
+            expected_action=expected_action_effective,
+            max_reaction_time=max_reaction_time,
+            stop_line_location=stop_line_location,
             metadata={"episode_id": result["episode_id"], "scenario": name},
         )
         latency = ReactionLatencyCriterion(
             ego_vehicle=ctx.ego,
             officer=ctx.officer,
-            expected_action=expected.get("action", expected_action),
+            expected_action=expected_action_effective,
         )
 
         # Collision hookup.
+        collision_count = 0
+
         def _on_collision(event: Any) -> None:
+            nonlocal collision_count
+            count_event = True
+            other = getattr(event, "other_actor", None)
             try:
-                compliance.register_collision(event)
-            except Exception as e:
-                log.debug("compliance.register_collision failed: %s", e)
+                ego_id = getattr(ctx.ego, "id", None)
+                other_id = getattr(other, "id", None)
+                count_event = not (ego_id is not None and other_id is not None and ego_id == other_id)
+            except Exception:
+                count_event = True
             try:
-                logger.log_event(
-                    "collision",
-                    other_actor=getattr(getattr(event, "other_actor", None), "type_id", "?"),
-                )
+                other_type = str(getattr(other, "type_id", "") or "")
+                other_role = str((getattr(other, "attributes", {}) or {}).get("role_name", "") or "")
+                if other_type == "static.road" or other_role == "marshal_ego":
+                    count_event = False
             except Exception:
                 pass
+            if count_event:
+                collision_count += 1
+                try:
+                    compliance.register_collision(event)
+                except Exception as e:
+                    log.debug("compliance.register_collision failed: %s", e)
+                try:
+                    logger.log_event(
+                        "collision",
+                        other_actor=getattr(other, "type_id", "?"),
+                    )
+                except Exception:
+                    pass
 
         ctx.collision_sensor = attach_collision_sensor(world, ctx.ego, _on_collision)
 
@@ -1204,6 +1344,8 @@ def run_scenario(
         sim_time = 0.0
         delta = 1.0 / fps
         terminated = "timeout"
+        telemetry_rows: list[dict] = []
+        controller_errors: list[str] = []
         # Desired signal state to hold for the whole run (Green for green_stop).
         tl_state_desired = (config.get("traffic_light") or {}).get("state")
         # Privileged ground truth handed to the controller (Track A oracle uses
@@ -1214,13 +1356,29 @@ def run_scenario(
         result["ground_truth"] = ground_truth
 
         carla = import_carla()
+        setup_ground_truth = (
+            ground_truth
+            if _controller_uses_privileged_ground_truth(controller)
+            else _non_privileged_setup_context(ground_truth)
+        )
+        try:
+            route_origin = ctx.ego.get_transform().location
+            route_fwd = ctx.ego.get_transform().get_forward_vector()
+            route_right = ctx.ego.get_transform().get_right_vector()
+        except Exception:
+            route_origin = ego_transform.location
+            route_fwd = ego_transform.get_forward_vector()
+            route_right = ego_transform.get_right_vector()
         with SyncModeContext(world, fps=fps) as sync:
             if controller is None:
                 # Enable autopilot only AFTER the world is in synchronous mode.
                 # Handing a vehicle to the TrafficManager while the world is
                 # still async leaves it unregistered, so it never gets throttle.
                 ctx.traffic_manager = enable_autopilot(
-                    client, ctx.ego, target_speed_kmh=ego_cfg.get("target_speed"),
+                    client,
+                    ctx.ego,
+                    target_speed_kmh=ego_cfg.get("target_speed"),
+                    setup_errors=scene_setup_errors,
                 )
             else:
                 # The world is synchronous; the TrafficManager MUST be made
@@ -1234,11 +1392,12 @@ def run_scenario(
                 except Exception as e:
                     log.debug("TrafficManager sync setup failed: %s", e)
                 try:
-                    controller.setup(world, ctx.ego, ground_truth, carla)
+                    controller.setup(world, ctx.ego, setup_ground_truth, carla)
                     log.info("Controller '%s' set up (track=%s)",
                              getattr(controller, "name", "?"),
                              getattr(controller, "track", "?"))
                 except Exception as e:
+                    controller_errors.append(f"setup: {repr(e)}")
                     log.error("controller.setup failed: %s", e)
             sync.tick(timeout=2.0)  # let the TM register the ego / settle
 
@@ -1248,6 +1407,7 @@ def run_scenario(
                 try:
                     setup_after_autopilot(ctx, ctx.traffic_manager, config)
                 except Exception as e:
+                    scene_setup_errors.append(f"setup_after_autopilot failed: {e}")
                     log.warning("setup_after_autopilot failed: %s", e)
             steps = int(math.ceil(timeout * fps)) + 1
             for _ in range(steps):
@@ -1278,14 +1438,24 @@ def run_scenario(
                         log.debug("tick_extra_actors failed: %s", e)
 
                 # Controller (agent under test) drives the ego when present.
+                control_finite_this_tick = True
                 if controller is not None:
+                    control_finite_this_tick = False
                     try:
-                        obs = _build_observation(
-                            ctx, world, sim_time, ground_truth)
+                        obs = _build_observation(ctx, world, sim_time)
                         control = controller.step(obs, delta)
-                        if control is not None:
+                        if _finite_vehicle_control(control):
                             ctx.ego.apply_control(control)
+                            control_finite_this_tick = True
+                        else:
+                            msg = f"step@{sim_time:.2f}: non-finite or missing control"
+                            if len(controller_errors) < 20:
+                                controller_errors.append(msg)
+                            logger.log_event("controller_invalid_control", sim_time=sim_time)
                     except Exception as e:
+                        if len(controller_errors) < 20:
+                            controller_errors.append(f"step@{sim_time:.2f}: {repr(e)}")
+                        logger.log_event("controller_step_error", sim_time=sim_time, error=repr(e))
                         log.debug("controller.step failed: %s", e)
 
                 try:
@@ -1304,28 +1474,103 @@ def run_scenario(
                     _autopilot = bool(getattr(ctx.ego, "is_autopilot_enabled", lambda: True)())
                 except Exception:
                     _thr, _brk, _autopilot = -1.0, -1.0, False
+                ego_loc = _location_from_transform_or_actor(ctx.ego)
+                officer_loc = None
+                try:
+                    officer_loc = _location_from_transform_or_actor(ctx.officer.get_transform() if ctx.officer else None)
+                except Exception:
+                    officer_loc = None
+                stop_ref = stop_line_location or officer_loc or ego_loc
+                distance_to_officer = _distance_between_locations(ego_loc, officer_loc)
+                distance_to_stopline = _distance_between_locations(ego_loc, stop_ref)
+                ego_forward_m, ego_lateral_m = _project_from_origin(
+                    ego_loc, route_origin, route_fwd, route_right
+                )
+                hazard_distance = None
+                hazard_forward = None
+                for actor in list(ctx.extra_actors):
+                    hloc = _location_from_transform_or_actor(actor)
+                    if hloc is None or ego_loc is None:
+                        continue
+                    dist = _distance_between_locations(ego_loc, hloc)
+                    h_forward, _h_lat = _project_from_origin(
+                        hloc, route_origin, route_fwd, route_right
+                    )
+                    if math.isfinite(dist) and (hazard_distance is None or dist < hazard_distance):
+                        hazard_distance = dist
+                        hazard_forward = h_forward
+                officer_meta_now = {}
+                try:
+                    officer_meta_now = ctx.officer.get_metadata() if ctx.officer else {}
+                except Exception:
+                    officer_meta_now = {}
+                onset_now = float(officer_meta_now.get("onset_time", 0.0) or 0.0)
+                duration_raw = officer_meta_now.get("duration")
+                try:
+                    duration_now = float(duration_raw) if duration_raw is not None else None
+                except Exception:
+                    duration_now = None
+                officer_active = sim_time >= onset_now and (
+                    duration_now is None or sim_time <= onset_now + duration_now
+                )
+                speed_now = ego_speed_kmh(ctx.ego)
+                in_junction_now = ego_in_intersection(ctx.ego, world)
+                telemetry_row = {
+                    "sim_time": round(sim_time, 4),
+                    "ego_speed_kmh": speed_now,
+                    "ego_x": getattr(ego_loc, "x", float("nan")),
+                    "ego_y": getattr(ego_loc, "y", float("nan")),
+                    "in_junction": in_junction_now,
+                    "distance_to_officer_m": distance_to_officer,
+                    "distance_to_stopline_m": distance_to_stopline,
+                    "distance_to_hazard_m": hazard_distance,
+                    "ego_forward_m": ego_forward_m,
+                    "ego_lateral_m": ego_lateral_m,
+                    "hazard_forward_m": hazard_forward,
+                    "collision_count": collision_count,
+                    "officer_gesture_id": str(officer_meta_now.get("gesture_id", "UNKNOWN")),
+                    "officer_onset_time": onset_now,
+                    "officer_duration_sec": duration_now,
+                    "officer_active": officer_active,
+                    "control_finite": control_finite_this_tick,
+                }
+                telemetry_rows.append(telemetry_row)
                 logger.log_metric_row(
                     t=sim_time,
-                    speed_kmh=ego_speed_kmh(ctx.ego),
+                    speed_kmh=speed_now,
                     throttle=_thr,
                     brake=_brk,
-                    in_junction=ego_in_intersection(ctx.ego, world),
+                    in_junction=in_junction_now,
                     tl_state=get_traffic_light_state(ctx.traffic_light),
+                    ego_x=telemetry_row["ego_x"],
+                    ego_y=telemetry_row["ego_y"],
+                    distance_to_officer_m=distance_to_officer,
+                    distance_to_stopline_m=distance_to_stopline,
+                    distance_to_hazard_m=hazard_distance,
+                    ego_forward_m=ego_forward_m,
+                    ego_lateral_m=ego_lateral_m,
+                    hazard_forward_m=hazard_forward,
+                    collision_count=collision_count,
+                    officer_gesture_id=telemetry_row["officer_gesture_id"],
+                    officer_onset_time=onset_now,
+                    officer_duration_sec=duration_now,
+                    officer_active=officer_active,
+                    control_finite=control_finite_this_tick,
                 )
 
                 # Termination: ego stopped within intersection / conflict zone
                 # *after* gesture onset, for STOP scenarios.
                 onset = float(officer_cfg.get("onset_time", 0.0))
-                if expected_action.upper() == "STOP":
+                if expected_action_effective == "STOP":
                     if (
                         sim_time > onset + 2.0
-                        and ego_speed_kmh(ctx.ego) < 0.5
-                        and ego_in_intersection(ctx.ego, world)
+                        and speed_now < 0.5
+                        and in_junction_now
                     ):
                         terminated = "ego_stopped_in_conflict_zone"
                         break
-                elif expected_action.upper() == "PROCEED":
-                    if ego_in_intersection(ctx.ego, world) and sim_time > onset + 1.0:
+                elif expected_action_effective == "PROCEED":
+                    if in_junction_now and sim_time > onset + 1.0:
                         terminated = "ego_entered_intersection"
                         # Keep running briefly to record post-entry state.
                         if sim_time > onset + 4.0:
@@ -1333,6 +1578,16 @@ def run_scenario(
 
         result["terminated_reason"] = terminated
         logger.log_event("scenario_finished", reason=terminated, sim_time=sim_time)
+        result["setup_errors"] = list(scene_setup_errors)
+        if scene_setup_errors:
+            result.setdefault("scene_setup", {})
+            result["scene_setup"]["valid"] = False
+            result["scene_setup"]["errors"] = list(scene_setup_errors)
+            logger.log_event(
+                "scene_setup_final",
+                valid=False,
+                errors=list(scene_setup_errors),
+            )
 
         # Finalise criteria.
         try:
@@ -1345,6 +1600,33 @@ def run_scenario(
         except Exception as e:
             log.warning("latency.to_json failed: %s", e)
             result["latency"] = {"error": str(e)}
+
+        try:
+            strict_score = score_episode_from_telemetry(
+                result,
+                telemetry_rows,
+                scenario=name,
+                expected_action=expected_action_effective,
+                max_reaction_time=max_reaction_time,
+                controller_errors=controller_errors,
+                setup_errors=scene_setup_errors,
+            )
+            artifact_paths = write_strict_artifacts(
+                logger.episode_dir,
+                telemetry_rows,
+                strict_score,
+            )
+            strict_score["artifacts"] = artifact_paths
+            result["strict_scoring"] = strict_score
+            logger.log_event("strict_scoring", **strict_score)
+        except Exception as e:
+            log.warning("strict telemetry scoring failed: %s", e)
+            result["strict_scoring"] = {
+                "passed": False,
+                "invalid": True,
+                "verdict": "INVALID",
+                "reason": f"strict scorer raised {repr(e)}",
+            }
 
         # MARSHAL contextual metric suite (AOC/FOA/TAA/SBO/CRI/RTL).
         try:

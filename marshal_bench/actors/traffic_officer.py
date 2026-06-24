@@ -323,27 +323,61 @@ class TrafficOfficer:
 
     def _try_spawn_with_z_lift(self, bp: Any, transform: Any) -> Optional[Any]:
         carla = import_carla()
-        for z_lift in self._SPAWN_Z_RETRIES_M:
-            try:
-                tf = carla.Transform(
-                    carla.Location(
-                        x=transform.location.x,
-                        y=transform.location.y,
-                        z=transform.location.z + z_lift,
-                    ),
-                    carla.Rotation(
-                        pitch=transform.rotation.pitch,
-                        yaw=transform.rotation.yaw,
-                        roll=transform.rotation.roll,
-                    ),
-                )
-                actor = self.world.try_spawn_actor(bp, tf)
-                if actor is not None:
-                    if z_lift > 0:
-                        log.info("Spawned officer with z-lift=%.2fm", z_lift)
-                    return actor
-            except Exception as e:
-                log.debug("try_spawn_actor z_lift=%s raised: %s", z_lift, e)
+        try:
+            fwd = transform.get_forward_vector()
+            right = transform.get_right_vector()
+        except Exception:
+            fwd = type("F", (), {"x": 1.0, "y": 0.0})()
+            right = type("R", (), {"x": 0.0, "y": 1.0})()
+        offsets = (
+            (0.0, 0.0),
+            (0.0, -0.6),
+            (0.0, 0.6),
+            (-1.0, 0.0),
+            (1.0, 0.0),
+            (-1.0, -0.6),
+            (1.0, 0.6),
+            (0.0, -1.2),
+            (0.0, 1.2),
+        )
+        z_lifts = tuple(dict.fromkeys((*self._SPAWN_Z_RETRIES_M, 1.5, 2.0)))
+        for forward_offset, lateral_offset in offsets:
+            base_x = (
+                transform.location.x
+                + fwd.x * forward_offset
+                + right.x * lateral_offset
+            )
+            base_y = (
+                transform.location.y
+                + fwd.y * forward_offset
+                + right.y * lateral_offset
+            )
+            for z_lift in z_lifts:
+                try:
+                    tf = carla.Transform(
+                        carla.Location(
+                            x=base_x,
+                            y=base_y,
+                            z=transform.location.z + z_lift,
+                        ),
+                        carla.Rotation(
+                            pitch=transform.rotation.pitch,
+                            yaw=transform.rotation.yaw,
+                            roll=transform.rotation.roll,
+                        ),
+                    )
+                    actor = self.world.try_spawn_actor(bp, tf)
+                    if actor is not None:
+                        if z_lift > 0 or forward_offset or lateral_offset:
+                            log.info(
+                                "Spawned officer with z-lift=%.2fm, forward=%.1fm, lateral=%.1fm",
+                                z_lift,
+                                forward_offset,
+                                lateral_offset,
+                            )
+                        return actor
+                except Exception as e:
+                    log.debug("try_spawn_actor z_lift=%s raised: %s", z_lift, e)
         return None
 
     def _safe_destroy(self, actor: Any) -> None:

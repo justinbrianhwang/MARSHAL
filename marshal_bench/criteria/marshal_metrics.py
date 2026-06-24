@@ -137,10 +137,19 @@ def compute_episode_metrics(
     applicable: Set[str] = set(spec.get("metrics", set()))
 
     comp = _verdict(result, "compliance")
+    strict = result.get("strict_scoring") or {}
     meta = result.get("officer_metadata") or {}
 
-    passed = bool(comp.get("passed", comp.get("extra", {}).get("passed", False)))
+    if isinstance(strict, dict) and "passed" in strict:
+        passed = bool(strict.get("passed"))
+    else:
+        passed = bool(comp.get("passed", comp.get("extra", {}).get("passed", False)))
     collision = bool(comp.get("collision", False))
+    if isinstance(strict, dict) and strict.get("collision_count") is not None:
+        try:
+            collision = int(strict.get("collision_count") or 0) > 0
+        except Exception:
+            collision = True
     crossed = bool(comp.get("crossed_stop_line", False))
     authority_valid = bool(meta.get("authority_valid", spec.get("expected") is not None))
     target_relation = meta.get("target_relation", "ego")
@@ -151,6 +160,15 @@ def compute_episode_metrics(
         scenario=base,
         passed=passed,
     )
+    if isinstance(strict, dict):
+        verdict = strict.get("verdict")
+        reason = strict.get("reason")
+        if verdict:
+            em.notes += f"strict:{verdict};"
+        if strict.get("invalid"):
+            em.notes += "INVALID;"
+        if reason:
+            em.notes += f"strict_reason:{str(reason)[:160]};"
 
     if "AOC" in applicable:
         em.aoc = 1.0 if passed else 0.0

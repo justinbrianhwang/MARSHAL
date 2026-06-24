@@ -41,9 +41,9 @@ set of learned reference models (E2E / VLM) — you bring those.
 | Metric suite + MARSHAL Score + tier pass-rate → `scoreboard.json` | ✅ done* |
 | Per-scenario oracle demo clips (the gallery below) | ✅ done |
 | Reference **Track-C (VLM)** controller (`vlm` — camera-only, HF router) | ✅ done |
-| Track-C VLM results on all 14 (GLM-4.5V, Qwen2.5/3-VL) | ✅ done |
-| Reference **Track-B (E2E, e.g. TransFuser)** controller | ⏳ planned |
-| Track-B E2E results | ⏳ planned |
+| Reference **Track-B (E2E)** controllers — TransFuser, InterFuser, TCP, CILRS, AIM, NEAT, PID, MPC | ✅ done |
+| Strict telemetry-grounded scoring (oracle-calibrated to 14/14) | ✅ done |
+| Results table filled with real learned models (8 E2E + 3 VLM) | ✅ done |
 
 <sub>*Partial by design: requirements/metrics that aren't yet instrumented are
 listed in `scoreboard.json → r_unmeasured` and excluded from the score
@@ -65,10 +65,12 @@ denominator, so the number stays in [0, 100]. See *Metrics & the MARSHAL Score*.
 
 **Known limitations (honest MVP notes)**
 
-- The shipped reference agents are a rule/TM **baseline**, a privileged
-  **oracle**, and a camera-only **`vlm`** controller (Track-C). There is no
-  trained **E2E / Track-B** perception agent in the repo yet (that's the point
-  of the benchmark — you add it).
+- Shipped reference agents now span all three tracks: a rule/TM **baseline**, a
+  privileged **oracle** (Track-A), eight **Track-B (E2E)** controllers
+  (TransFuser, InterFuser, TCP, CILRS, AIM, NEAT, plus non-learned PID / MPC
+  bounds), and a camera-only **`vlm`** controller (Track-C). You still bring your
+  own weights for the learned ones — the adapters load original public checkpoints
+  unchanged (no quantization/shrink).
 - The Track-C `vlm` controller drives off a **single forward ego camera**. The
   measured VLM results below stage each officer / hazard / emergency vehicle at a
   distance that forward camera can actually perceive (the stock stations place
@@ -340,45 +342,61 @@ for authority-aware reasoning in autonomous driving.
 _(Reproduce: `python scripts/run_marshal_sweep.py`; score your own model with
 `python start.py --controller <module:Class> --tag <name>`.)_
 
-### Track-C: VLM-in-the-loop (first real learned-model results)
+### Learned models: Track-B (E2E) vs Track-C (VLM) — strict, oracle-calibrated
 
-Three off-the-shelf vision-language models drive every scenario closed-loop
-through the `vlm` controller — each tick sends the **front ego camera** to the
-model over the Hugging Face Inference router and maps its STOP / GO / SLOW / HOLD
-reply to vehicle control. No ground truth, no fine-tuning, no MARSHAL-specific
-prompt engineering. *Scenarios passed* = per-episode authority-compliance
-(did the model take the expected action), across 3 tiers (low 3 / mid 3 / high 8):
+Eleven learned/reference controllers drive every scenario closed-loop on stock
+Town03. **Track-B (E2E)** models get their native sensor rig (multi-camera +
+LiDAR + ego state + a non-privileged lane-follow route); **Track-C (VLM)** models
+get a single forward camera and answer STOP / GO / SLOW / HOLD over the Hugging
+Face router. All learned checkpoints are loaded **original and unchanged** (no
+quantization, no fp16, no layer removal) — and none of them ever sees the
+privileged ground truth.
 
-| model | track | scenarios passed | low (3) | mid (3) | high (8) |
-|-------|-------|-----------------:|--------:|--------:|---------:|
-| Qwen3-VL-235B-A22B | C | **8 / 14** | 100% | 0% | 63% |
-| Qwen2.5-VL-72B     | C | **8 / 14** | 67%  | 33% | 63% |
-| GLM-4.5V           | C | **4 / 14** | 33%  | 33% | 25% |
-| _baseline (TM, officer-blind)_ | — | _ref_ | 0% | 100% | 12.5% |
-| _oracle (privileged)_          | A | _14 / 14_ | 100% | 100% | 100% |
+**Scoring is strict and telemetry-grounded.** An episode passes only when the
+recorded ego trajectory (speed, position, junction entry, lateral offset,
+collisions) physically proves the expected action; missing/ambiguous evidence is
+a FAIL, malformed telemetry is INVALID. The criteria are **calibrated against the
+privileged oracle**, which scores a full **14/14** — so a pass means "did what the
+oracle would," not "happened to stop." *Scenarios passed* across 3 tiers
+(low 3 / mid 3 / high 8):
+
+| model | track | scenarios passed | low (3) | mid (3) | high (8) | authority-STOP (7) |
+|-------|-------|-----------------:|--------:|--------:|---------:|-------------------:|
+| **oracle** (privileged) | A | **14 / 14** | 3/3 | 3/3 | 8/8 | — |
+| **Qwen2.5-VL-72B**      | C | **9 / 14** | 2/3 | 1/3 | 6/8 | **5 / 7** |
+| **TransFuser**          | B | **6 / 14** | 1/3 | 1/3 | 4/8 | 3 / 7 |
+| InterFuser              | B | 5 / 14 | 1/3 | 1/3 | 3/8 | 3 / 7 |
+| Qwen3-VL-235B-A22B      | C | 5 / 14 | 2/3 | 0/3 | 3/8 | 4 / 7 |
+| GLM-4.5V                | C | 4 / 14 | 1/3 | 0/3 | 3/8 | 3 / 7 |
+| NEAT                    | B | 4 / 14 | 0/3 | 1/3 | 3/8 | 0 / 7 |
+| _baseline (TM, blind)_  | — | 3 / 14 | 0/3 | 1/3 | 2/8 | — |
+| TCP                     | B | 2 / 14 | 1/3 | 1/3 | 0/8 | 1 / 7 |
+| CILRS                   | B | 1 / 14 | 0/3 | 1/3 | 0/8 | 0 / 7 |
+| AIM                     | B | 1 / 14 | 1/3 | 0/3 | 0/8 | 1 / 7 |
+| PID / MPC (control)     | B | 1 / 14 | 0/3 | 1/3 | 0/8 | 0 / 7 |
 
 **What this shows:**
 
-- **VLM reasoning closes part of the authority gap.** Both Qwen models reach
-  **63% on the high tier** vs the officer-blind baseline's **12.5%** — when a VLM
-  can *see* the officer it reasons about authority far better than a light-only
-  agent. Strongest scenarios: `signal_off` and `ambiguous_gesture` (**3/3**).
-- **But traffic signals still override human authority.** Every model fails
-  `red_proceed` (0/3) and `rule_hierarchy` (0/3), and only 1/3 pass `green_stop`:
-  the models obey the light even when an authorized officer commands otherwise —
-  exactly the failure mode MARSHAL is built to expose.
-- **No emergency-vehicle yield and no hazard *detour*.** `ambulance_yield` is
-  0/3 even with the ambulance in clear view, and `crash_detour` is 0/3 — the VLMs
-  stop for a blockage but don't plan the lateral maneuver around it.
-- **Bigger isn't strictly better.** Qwen3-235B and Qwen2.5-72B tie at 8/14 with
-  different profiles (Qwen3 perfect on low tier, worse on mid); GLM-4.5V trails
-  and tends to drift to GO.
+- **The authority gap is real and consistent.** On *authority-STOP* cases (an
+  authorized off-path human directive that contradicts the signal/road), the best
+  VLM reads the human **5/7** while the strongest E2E stacks manage **3/7** and
+  most E2E controllers score **0–1/7**. End-to-end driving stacks can move and
+  occasionally handle a physical hazard, but they do **not** reliably treat a
+  human traffic authority as higher priority than the light/road.
+- **No learned model touches the oracle.** Even the best non-privileged model
+  (Qwen2.5, 9/14) leaves a wide gap to the oracle's 14/14 — `crash_detour`,
+  `occluded_officer`, and `rule_hierarchy` are passed only by the oracle.
+- **Off-path staging removes the easy way out.** Authority figures stand off the
+  ego's driving path (visible, but not a physical obstacle), so a model can't
+  "pass" a STOP case by braking for a body in the road — it has to read the
+  gesture. Hazard scenarios (`fallen_person`, `crash_detour`, `ambulance_yield`)
+  keep the obstacle in-path by design.
 
-<sub>Camera-only via a single forward ego camera; officer / hazard / emergency
-vehicle staged at camera-visible distances (see *Known limitations*). "Scenarios
-passed" is the per-episode compliance verdict, not the weighted MARSHAL Score,
-so it isn't directly comparable to the baseline/oracle Score above — the tier
-percentages are.</sub>
+<sub>Strict scorer calibrated so the oracle = 14/14; thresholds documented in
+`marshal_bench/criteria/strict_episode_scoring.py`. Track-B uses each model's
+native sensor rig; Track-C is single-front-camera. Results are single-seed
+(n = 1) — multi-seed runs are future work. A few new-controller episodes
+(CILRS/AIM/NEAT) are still flagged INVALID and counted as non-passes.</sub>
 
 ---
 
