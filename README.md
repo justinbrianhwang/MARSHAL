@@ -304,6 +304,17 @@ Every run writes a `scoreboard.json` with `suite`, `r_scores`,
 `marshal_score_partial`, `tier_pass_rate`, and `per_episode` so the numbers are
 fully auditable.
 
+> **In development — a continuous `MARSHAL-Graded` score.** The headline above is
+> deliberately a **strict, binary pass/fail** (un-gameable, telemetry-grounded). We
+> are adding a *secondary*, real-valued score in `[0, 100]` that awards **partial
+> credit** per episode from the same telemetry margins (stop-distance, residual
+> speed, reaction latency, lateral clearance, decel) and **weights authority-override
+> scenarios more heavily** (police priority), calibrated so the oracle ≈ 100. It will
+> be reported *alongside* — never replacing — the binary headline. The current draft
+> over-credits over-cautious "creep-and-stop" controllers (a slow model banks STOP
+> partial-credit without ever reading the officer), so we are refining the curves with
+> an approach/engagement gate before publishing the numbers here.
+
 ---
 
 ## Results
@@ -359,35 +370,37 @@ oracle would," not "happened to stop." *Scenarios passed* across 3 tiers
 | model | track | scenarios passed | low (3) | mid (3) | high (8) | authority-STOP (7) |
 |-------|-------|-----------------:|--------:|--------:|---------:|-------------------:|
 | **oracle** (privileged) | A | **14 / 14** | 3/3 | 3/3 | 8/8 | — |
-| **Qwen2.5-VL-72B**      | C | **9 / 14** | 2/3 | 1/3 | 6/8 | **5 / 7** |
-| **TransFuser**          | B | **6 / 14** | 1/3 | 1/3 | 4/8 | 3 / 7 |
-| **OpenEMMA** — VLM planning&dagger; | B/C | **6 / 14** | 2/3 | 2/3 | 2/8 | 3 / 7 |
-| InterFuser              | B | 5 / 14 | 1/3 | 1/3 | 3/8 | 3 / 7 |
-| Qwen3-VL-235B-A22B      | C | 5 / 14 | 2/3 | 0/3 | 3/8 | 4 / 7 |
-| GLM-4.5V                | C | 4 / 14 | 1/3 | 0/3 | 3/8 | 3 / 7 |
-| NEAT                    | B | 4 / 14 | 0/3 | 1/3 | 3/8 | 0 / 7 |
-| _baseline (TM, blind)_  | — | 3 / 14 | 0/3 | 1/3 | 2/8 | — |
-| TCP                     | B | 2 / 14 | 1/3 | 1/3 | 0/8 | 1 / 7 |
-| CILRS                   | B | 1 / 14 | 0/3 | 1/3 | 0/8 | 0 / 7 |
-| AIM                     | B | 1 / 14 | 1/3 | 0/3 | 0/8 | 1 / 7 |
+| **Qwen2.5-VL-72B**      | C | **7 / 14** | 2/3 | 1/3 | 4/8 | **5 / 7** |
+| **Qwen3-VL-235B-A22B**  | C | **7 / 14** | 2/3 | 1/3 | 4/8 | **5 / 7** |
+| **OpenEMMA** — VLM planning&dagger; | B/C | **7 / 14** | 2/3 | 2/3 | 3/8 | 3 / 7 |
+| **TransFuser**          | B | 6 / 14 | 1/3 | 1/3 | 4/8 | 3 / 7 |
+| InterFuser              | B | 6 / 14 | 1/3 | 2/3 | 3/8 | 2 / 7 |
+| CILRS                   | B | 5 / 14 | 1/3 | 2/3 | 2/8 | 2 / 7 |
+| NEAT                    | B | 5 / 14 | 1/3 | 2/3 | 2/8 | 2 / 7 |
+| GLM-4.5V                | C | 4 / 14 | 2/3 | 1/3 | 1/8 | 3 / 7 |
+| _baseline (TM, blind)_  | — | 2 / 14 | 0/3 | 1/3 | 1/8 | — |
+| AIM                     | B | 2 / 14 | 1/3 | 0/3 | 1/8 | 2 / 7 |
+| TCP                     | B | 1 / 14 | 0/3 | 1/3 | 0/8 | 0 / 7 |
 | PID / MPC (control)     | B | 1 / 14 | 0/3 | 1/3 | 0/8 | 0 / 7 |
 
 **What this shows:**
 
 - **The authority gap is real and consistent.** On *authority-STOP* cases (an
   authorized off-path human directive that contradicts the signal/road), the best
-  VLM reads the human **5/7** while the strongest E2E stacks manage **3/7** and
-  most E2E controllers score **0–1/7**. End-to-end driving stacks can move and
+  VLMs read the human **5/7** while the strongest E2E stack / full-planner manage
+  **3/7** and the rest cluster at **0–2/7**. End-to-end driving stacks can move and
   occasionally handle a physical hazard, but they do **not** reliably treat a
   human traffic authority as higher priority than the light/road.
-- **No learned model touches the oracle.** Even the best non-privileged model
-  (Qwen2.5, 9/14) leaves a wide gap to the oracle's 14/14 — `crash_detour`,
-  `occluded_officer`, and `rule_hierarchy` are passed only by the oracle.
+- **No learned model touches the oracle.** Even the best non-privileged models
+  (Qwen2.5 / Qwen3, 7/14) leave a wide gap to the oracle's 14/14 — `crash_detour`
+  and `ambulance_yield` are solved only by the oracle, and `green_stop` (officer
+  STOP at a green light) is missed by every non-oracle model that reads the gesture.
 - **How you wire the VLM matters.** OpenEMMA — a VLM that regresses a *trajectory*
-  from a normal-driving prior — matches the best geometry E2E stack (6/14, 3/7) but
-  trails the per-tick `vlm` reasoner (Qwen2.5, 9/14, 5/7): asked every tick "should
-  I stop for this person?", a VLM reads the human far more often than one that
-  smooths a path from a green-light-means-go prior. OpenEMMA's misses split cleanly
+  from a normal-driving prior — matches the VLMs on raw pass-count (7/14) but
+  trails them where it counts, on *authority-STOP* (**3/7** vs the per-tick `vlm`
+  reasoner's **5/7**): asked every tick "should I stop for this person?", a VLM
+  reads the human far more often than one that smooths a path from a
+  green-light-means-go prior. OpenEMMA's misses split cleanly
   into **authority blindness** (it logs the officer as "a pedestrian on the
   sidewalk" and follows the green light) and a **maneuver gap** (its motion head
   only knows "drive straight" or "full stop", so DETOUR/YIELD collapse to braking).
@@ -407,9 +420,10 @@ per-tick STOP/GO/SLOW/HOLD), OpenEMMA *plans a trajectory*: a single forward
 camera feeds a Qwen2-VL chain-of-thought (*scene → objects → intent →
 speed/curvature*) that outputs future waypoints, tracked by pure-pursuit. It is
 the planning-based middle point between Track-B geometry E2E and the Track-C
-per-tick VLM. Results are single-seed (n = 1) — multi-seed runs are future work. A few
-new-controller episodes (CILRS/AIM/NEAT) are still flagged INVALID and counted as
-non-passes.</sub>
+per-tick VLM. These numbers were re-measured after the officer hand-signals were
+corrected to authentic US traffic-direction poses (see *Officer hand signals*), so
+they supersede the earlier sweep; every model has **INVALID = 0** (no telemetry
+gaps). Results are single-seed (n = 1) — multi-seed runs are future work.</sub>
 
 ---
 
