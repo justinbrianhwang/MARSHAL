@@ -92,6 +92,18 @@ def make_controller(name: Optional[str], config: Optional[dict] = None) -> Any:
     if key == "neat":
         from marshal_bench.controllers.neat_model import NEATController
         return NEATController(config=config)
+    if key == "openemma":
+        from marshal_bench.controllers.openemma_model import OpenEMMAController
+        return OpenEMMAController(config=config)
+    if key in {"opendrivevla", "drivevla"}:
+        from marshal_bench.controllers.opendrivevla_model import OpenDriveVLAController
+        return OpenDriveVLAController(config=config)
+    if key == "lmdrive":
+        from marshal_bench.controllers.lmdrive_model import LMDriveController
+        return LMDriveController(config=config)
+    if key == "drivelm":
+        from marshal_bench.controllers.drivelm_model import DriveLMController
+        return DriveLMController(config=config)
     if key == "pid":
         from marshal_bench.controllers.classical import PIDController
         return PIDController(config=config)
@@ -103,7 +115,8 @@ def make_controller(name: Optional[str], config: Optional[dict] = None) -> Any:
         return _resolve_dotted(name, config)
     raise ValueError(
         f"Unknown controller '{name}'. Use 'baseline', 'oracle', 'transfuser', "
-        "'tcp', 'interfuser', 'cilrs', 'aim', 'neat', 'pid', 'mpc', or a "
+        "'tcp', 'interfuser', 'cilrs', 'aim', 'neat', 'openemma', "
+        "'opendrivevla', 'lmdrive', 'drivelm', 'pid', 'mpc', or a "
         "'module:ClassName' path to your own EpisodeController subclass."
     )
 

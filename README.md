@@ -329,11 +329,22 @@ _(Reproduce: `python scripts/run_marshal_sweep.py`; score your own model with
 
 ### Learned models: Track-B (E2E) vs Track-C (VLM) — strict, oracle-calibrated
 
-Eleven learned/reference controllers drive every scenario closed-loop on stock
+Twelve learned/reference controllers drive every scenario closed-loop on stock
 Town03. **Track-B (E2E)** models get their native sensor rig (multi-camera +
-LiDAR + ego state + a non-privileged lane-follow route); **Track-C (VLM)** models
-get a single forward camera and answer STOP / GO / SLOW / HOLD over the Hugging
-Face router. All learned checkpoints are loaded **original and unchanged** (no
+LiDAR + ego state + a non-privileged lane-follow route).
+
+**Track-C (VLM) is not a vendor benchmark — it is a controller we built to *test
+whether an off-the-shelf VLM can read traffic authority*.** A single forward camera
+feeds the model, which answers STOP / GO / SLOW / HOLD every tick over the Hugging
+Face router. We ran three backbones through that test harness — **Qwen2.5-VL-72B,
+Qwen3-VL-235B-A22B, GLM-4.5V** — so the Track-C numbers below report how each did
+*on our per-tick controller*, i.e. whether the approach works, not a claim about
+the models' native driving.
+
+**OpenEMMA** sits between the two — instead of a per-tick decision it *plans a
+trajectory*: a single forward camera feeds a Qwen2-VL chain-of-thought
+(*scene → critical objects → intent → speed/curvature*) that emits future waypoints
+(a "full-planning VLM-E2E"). All learned checkpoints are loaded **original and unchanged** (no
 quantization, no fp16, no layer removal) — and none of them ever sees the
 privileged ground truth.
 
@@ -350,6 +361,7 @@ oracle would," not "happened to stop." *Scenarios passed* across 3 tiers
 | **oracle** (privileged) | A | **14 / 14** | 3/3 | 3/3 | 8/8 | — |
 | **Qwen2.5-VL-72B**      | C | **9 / 14** | 2/3 | 1/3 | 6/8 | **5 / 7** |
 | **TransFuser**          | B | **6 / 14** | 1/3 | 1/3 | 4/8 | 3 / 7 |
+| **OpenEMMA** — VLM planning&dagger; | B/C | **6 / 14** | 2/3 | 2/3 | 2/8 | 3 / 7 |
 | InterFuser              | B | 5 / 14 | 1/3 | 1/3 | 3/8 | 3 / 7 |
 | Qwen3-VL-235B-A22B      | C | 5 / 14 | 2/3 | 0/3 | 3/8 | 4 / 7 |
 | GLM-4.5V                | C | 4 / 14 | 1/3 | 0/3 | 3/8 | 3 / 7 |
@@ -371,6 +383,16 @@ oracle would," not "happened to stop." *Scenarios passed* across 3 tiers
 - **No learned model touches the oracle.** Even the best non-privileged model
   (Qwen2.5, 9/14) leaves a wide gap to the oracle's 14/14 — `crash_detour`,
   `occluded_officer`, and `rule_hierarchy` are passed only by the oracle.
+- **How you wire the VLM matters.** OpenEMMA — a VLM that regresses a *trajectory*
+  from a normal-driving prior — matches the best geometry E2E stack (6/14, 3/7) but
+  trails the per-tick `vlm` reasoner (Qwen2.5, 9/14, 5/7): asked every tick "should
+  I stop for this person?", a VLM reads the human far more often than one that
+  smooths a path from a green-light-means-go prior. OpenEMMA's misses split cleanly
+  into **authority blindness** (it logs the officer as "a pedestrian on the
+  sidewalk" and follows the green light) and a **maneuver gap** (its motion head
+  only knows "drive straight" or "full stop", so DETOUR/YIELD collapse to braking).
+  Full per-scenario breakdown with the model's own chain-of-thought:
+  [`docs/openemma_failure_analysis.md`](docs/openemma_failure_analysis.md).
 - **Off-path staging removes the easy way out.** Authority figures stand off the
   ego's driving path (visible, but not a physical obstacle), so a model can't
   "pass" a STOP case by braking for a body in the road — it has to read the
@@ -379,9 +401,15 @@ oracle would," not "happened to stop." *Scenarios passed* across 3 tiers
 
 <sub>Strict scorer calibrated so the oracle = 14/14; thresholds documented in
 `marshal_bench/criteria/strict_episode_scoring.py`. Track-B uses each model's
-native sensor rig; Track-C is single-front-camera. Results are single-seed
-(n = 1) — multi-seed runs are future work. A few new-controller episodes
-(CILRS/AIM/NEAT) are still flagged INVALID and counted as non-passes.</sub>
+native sensor rig; Track-C is single-front-camera. **&dagger;OpenEMMA** is a
+full-planning VLM-E2E — unlike the Track-C `vlm` controller (which answers a
+per-tick STOP/GO/SLOW/HOLD), OpenEMMA *plans a trajectory*: a single forward
+camera feeds a Qwen2-VL chain-of-thought (*scene → objects → intent →
+speed/curvature*) that outputs future waypoints, tracked by pure-pursuit. It is
+the planning-based middle point between Track-B geometry E2E and the Track-C
+per-tick VLM. Results are single-seed (n = 1) — multi-seed runs are future work. A few
+new-controller episodes (CILRS/AIM/NEAT) are still flagged INVALID and counted as
+non-passes.</sub>
 
 ---
 
