@@ -100,6 +100,15 @@ whole benchmark ships as a Python package that drives a stock CARLA server.
 The **high tier** is the point of the benchmark: an officer-blind, light-only
 agent passes the low tier and fails the high tier. See *Results* below.
 
+> **Planned scenario — construction-barricade self-detour.** Today the *go-around*
+> maneuver is exercised by `crash_detour` (a crash pile-up, with an officer signalling
+> the detour), while the construction zone in `flagger_control` **fully closes the lane
+> and is flagger-controlled, so the expected action there is STOP/wait — not a detour**.
+> A dedicated scenario where the ego must **autonomously detour around a construction
+> barricade** (partial lane closure, no flagger directing the go-around) is **planned
+> and not yet implemented**; it will be added so barricade-avoidance is measured
+> directly rather than only via the crash case.
+
 ### Watch the oracle handle each scenario
 
 The clips below are the privileged **oracle** (Track A — the expected-behaviour
