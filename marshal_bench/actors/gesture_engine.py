@@ -242,28 +242,32 @@ class GestureEngine:
         if gesture_id is GestureID.STOP:
             return [
                 PoseKeyframe(t=0.0, bones={
-                    "r_upper_arm": (-85.0, 15.0, 0.0),   # high halt, elbow bent
-                    "r_forearm":   (0.0, 100.0, 0.0),
-                    "r_hand":      (0.0, 0.0, -40.0),
+                    # MUTCD/DMV halt: face driver, arm high, palm flat to driver.
+                    "r_upper_arm": (-84.0, 10.0, -4.0),
+                    "r_forearm":   (-4.0, 78.0, 0.0),
+                    "r_hand":      (0.0, 0.0, -88.0),
                 }),
             ]
 
         if gesture_id is GestureID.PROCEED:
             return [
                 PoseKeyframe(t=0.0, bones={
-                    "r_upper_arm": (-55.0, 5.0, 0.0),
-                    "r_forearm":   (0.0, 0.0, 0.0),
-                    "r_hand":      (0.0, 0.0, -25.0),
+                    # Real proceed is a beckon. Body yaw is handled by
+                    # TrafficOfficer; these frames are the arm sweep.
+                    "r_upper_arm": (-50.0, -18.0, 0.0),
+                    "r_forearm":   (-8.0, 20.0, 0.0),
+                    "r_hand":      (0.0, 0.0, 58.0),
                 }),
                 PoseKeyframe(t=0.5, bones={
-                    "r_upper_arm": (-55.0, 5.0, 0.0),
-                    "r_forearm":   (-85.0, 0.0, 0.0),
-                    "r_hand":      (0.0, 0.0, -25.0),
+                    # Captured primary phase: hand drawn inward, palm to self.
+                    "r_upper_arm": (-48.0, 12.0, 0.0),
+                    "r_forearm":   (-82.0, -8.0, 0.0),
+                    "r_hand":      (0.0, 0.0, 58.0),
                 }),
                 PoseKeyframe(t=1.0, bones={
-                    "r_upper_arm": (-55.0, 5.0, 0.0),
-                    "r_forearm":   (0.0, 0.0, 0.0),
-                    "r_hand":      (0.0, 0.0, -25.0),
+                    "r_upper_arm": (-50.0, -18.0, 0.0),
+                    "r_forearm":   (-8.0, 20.0, 0.0),
+                    "r_hand":      (0.0, 0.0, 58.0),
                 }),
             ]
 
@@ -290,28 +294,30 @@ class GestureEngine:
             # full forward-extended STOP. A static hold.
             return [
                 PoseKeyframe(t=0.0, bones={
-                    "r_upper_arm": (-35.0, 0.0, 0.0),
-                    "r_forearm":   (0.0, 105.0, 0.0),
-                    "r_hand":      (0.0, 0.0, -45.0),
+                    "r_upper_arm": (-62.0, 8.0, -4.0),
+                    "r_forearm":   (-4.0, 72.0, 0.0),
+                    "r_hand":      (0.0, 0.0, -88.0),
                 }),
             ]
 
         if gesture_id is GestureID.SLOW:
             return [
                 PoseKeyframe(t=0.0, bones={
-                    "r_upper_arm": (-12.0, 82.0, 0.0),
-                    "r_forearm":   (0.0, 0.0, -90.0),
-                    "r_hand":      (0.0, 0.0, 0.0),
+                    # Palm-down patting motion toward the traffic.
+                    "r_upper_arm": (-60.0, 0.0, 0.0),
+                    "r_forearm":   (45.0, 0.0, 0.0),
+                    "r_hand":      (0.0, 0.0, 90.0),
                 }),
                 PoseKeyframe(t=0.5, bones={
-                    "r_upper_arm": (32.0, 82.0, 0.0),
-                    "r_forearm":   (0.0, 0.0, -90.0),
-                    "r_hand":      (0.0, 0.0, 0.0),
+                    # Captured primary phase: downward pat, palm down.
+                    "r_upper_arm": (-30.0, 0.0, 0.0),
+                    "r_forearm":   (45.0, 0.0, 0.0),
+                    "r_hand":      (0.0, 0.0, 90.0),
                 }),
                 PoseKeyframe(t=1.0, bones={
-                    "r_upper_arm": (-12.0, 82.0, 0.0),
-                    "r_forearm":   (0.0, 0.0, -90.0),
-                    "r_hand":      (0.0, 0.0, 0.0),
+                    "r_upper_arm": (-60.0, 0.0, 0.0),
+                    "r_forearm":   (45.0, 0.0, 0.0),
+                    "r_hand":      (0.0, 0.0, 90.0),
                 }),
             ]
 
