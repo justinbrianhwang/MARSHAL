@@ -8,8 +8,24 @@ autonomous driving.
 > whether autonomous driving agents and VLM decision systems can recognize,
 > prioritize, and act on human or contextual traffic authority when it conflicts
 > with ordinary road signals.**
->
 
+> **Legal basis (US traffic law).** MARSHAL's premise — that a human traffic
+> authority's directions take precedence over ordinary signals — reflects
+> long-standing US traffic law. A driver must obey traffic-control devices
+> *"unless otherwise directed by a traffic or police officer"*
+> ([NY VTL §1110(a)](https://www.nysenate.gov/legislation/laws/VAT/1110)) and must
+> comply with *"any lawful order or direction of any police officer or flagperson"*
+> ([NY VTL §1102](https://www.nysenate.gov/legislation/laws/VAT/1102)); the model
+> [Uniform Vehicle Code §11-103](https://bikeleague.org/sites/default/files/UVC%20Rules%20of%20the%20Road%20ch.%2011.pdf)
+> extends this to a *"police officer, firefighter, flagger at [a] highway
+> construction or maintenance site, or uniformed adult school crossing guard,"* and
+> drivers must yield to authorized emergency vehicles
+> ([NY VTL §1144](https://www.nysenate.gov/legislation/laws/VAT/1144)). The signals
+> and signs themselves are standardized by the FHWA
+> [MUTCD, 11th ed. (2023)](https://mutcd.fhwa.dot.gov/). MARSHAL encodes the
+> resulting precedence — **safety > authorized human command > traffic device** —
+> as a modeling assumption, not a jurisdiction-exact legal claim (see
+> [docs/legal_grounding.md](docs/legal_grounding.md)).
 
 Existing autonomous-driving benchmarks mainly evaluate driving performance,
 perception, navigation, and collision avoidance. MARSHAL focuses on a different
