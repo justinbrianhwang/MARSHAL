@@ -117,6 +117,41 @@ SCENARIOS: Dict[str, Dict[str, str]] = {
         "config": "marshal_bench/configs/demo_ambiguous_gesture.yaml",
         "expect": "STOP",
     },
+    "civilian_warning_accident": {
+        "module": "marshal_civilian_warning_accident_demo",
+        "config": "marshal_bench/configs/demo_civilian_warning_accident.yaml",
+        "expect": "DETOUR",
+    },
+    "emergency_scene_blocking": {
+        "module": "marshal_emergency_scene_blocking_demo",
+        "config": "marshal_bench/configs/demo_emergency_scene_blocking.yaml",
+        "expect": "DETOUR",
+    },
+    "two_civilians_disagree": {
+        "module": "marshal_two_civilians_disagree_demo",
+        "config": "marshal_bench/configs/demo_two_civilians_disagree.yaml",
+        "expect": "STOP",
+    },
+    "flagger_slow_then_stop": {
+        "module": "marshal_flagger_slow_then_stop_demo",
+        "config": "marshal_bench/configs/demo_flagger_slow_then_stop.yaml",
+        "expect": "STOP",
+    },
+    "school_crossing_guard": {
+        "module": "marshal_school_crossing_guard_demo",
+        "config": "marshal_bench/configs/demo_school_crossing_guard.yaml",
+        "expect": "STOP",
+    },
+    "fake_vest_director": {
+        "module": "marshal_fake_vest_director_demo",
+        "config": "marshal_bench/configs/demo_fake_vest_director.yaml",
+        "expect": "STOP",
+    },
+    "barricade_self_detour": {
+        "module": "marshal_barricade_self_detour_demo",
+        "config": "marshal_bench/configs/demo_barricade_self_detour.yaml",
+        "expect": "DETOUR",
+    },
 }
 
 SCENARIO_ORDER = [
@@ -134,6 +169,13 @@ SCENARIO_ORDER = [
     "sequential_directive",
     "rule_hierarchy",
     "ambiguous_gesture",
+    "civilian_warning_accident",
+    "emergency_scene_blocking",
+    "two_civilians_disagree",
+    "flagger_slow_then_stop",
+    "school_crossing_guard",
+    "fake_vest_director",
+    "barricade_self_detour",
 ]
 SMOKE_SCENARIOS = ["signal_off", "red_proceed", "unauthorized_go", "green_stop"]
 DEFAULT_SCENARIOS = SCENARIO_ORDER

@@ -49,6 +49,8 @@ SMOKE_REPORT_MD = ROOT / "tmp" / "_codex_phase3_smoke_report.md"
 COMBINED_JSON = ROOT / "tmp" / "_codex_combined_results.json"
 COMBINED_REPORT_MD = ROOT / "tmp" / "_codex_combined_report.md"
 FRAME_CHECKS_JSON = ROOT / "tmp" / "_codex_more_e2e_frame_checks.json"
+OPENEMMA_JSON = ROOT / "tmp" / "_codex_openemma_results.json"
+LMDRIVE_JSON = ROOT / "tmp" / "_codex_lmdrive_results.json"
 PHASE2_TRANSFUSER_JSON = ROOT / "tmp" / "_codex_phase2_transfuser_results.json"
 PHASE2_EXISTING_JSON = ROOT / "tmp" / "_codex_phase2_existing_results.json"
 PHASE2_VLM_JSON = ROOT / "tmp" / "_codex_phase2_vlm_results.json"
@@ -101,6 +103,7 @@ COMBINED_MODEL_ORDER = (
     "baseline",
     "oracle",
 )
+OPTIONAL_FULLPLANNER_MODEL_ORDER = ("OpenEMMA", "LMDrive")
 TIERS = ("low", "mid", "high")
 REPRESENTATIVE_VISIBILITY = ("green_stop", "red_proceed", "unauthorized_go")
 MIRROR_FILES = (
@@ -110,18 +113,21 @@ MIRROR_FILES = (
     "marshal_bench/controllers/__init__.py",
     "marshal_bench/controllers/oracle.py",
     "marshal_bench/controllers/_legacy_vision_common.py",
+    "marshal_bench/controllers/_trajectory_planner_common.py",
     "marshal_bench/controllers/aim_model.py",
     "marshal_bench/controllers/cilrs_model.py",
     "marshal_bench/controllers/classical.py",
     "marshal_bench/controllers/interfuser_model.py",
     "marshal_bench/controllers/lane_route.py",
     "marshal_bench/controllers/neat_model.py",
+    "marshal_bench/controllers/openemma_model.py",
     "marshal_bench/controllers/tcp_model.py",
     "marshal_bench/controllers/transfuser_model.py",
     "marshal_bench/criteria/marshal_metrics.py",
     "marshal_bench/criteria/strict_episode_scoring.py",
     "marshal_bench/scenarios/_common.py",
     "scripts/_run_more_e2e_sweep.py",
+    "scripts/_run_fullplanner_sweep.py",
     "scripts/_run_reference_staging_sweep.py",
     "scripts/_run_transfuser_sweep.py",
     "scripts/_run_vlm_test.py",
@@ -277,6 +283,7 @@ def _read_setup_integrity(episode_dir: Path, controller: str) -> Dict[str, Any]:
             "model_count": payload.get("model_count"),
             "sensor_count": payload.get("sensor_count"),
             "route_waypoints": payload.get("route_waypoints"),
+            "query_period_s": payload.get("query_period_s"),
         }
     return {"events_path": str(path), "events_exists": True, "setup_event": None}
 
@@ -770,6 +777,17 @@ def _load_rows_with_replacements(
     return rows
 
 
+def _strict_passed_value(row: Dict[str, Any]) -> Any:
+    strict = row.get("strict_scoring")
+    if isinstance(strict, dict):
+        verdict = strict.get("verdict")
+        if verdict in {"PASS", "FAIL", "INVALID"}:
+            return verdict == "PASS"
+        if isinstance(strict.get("passed"), bool):
+            return strict.get("passed")
+    return row.get("passed")
+
+
 def _sort_rows(rows: Iterable[Dict[str, Any]]) -> List[Dict[str, Any]]:
     scenario_index = {name: idx for idx, name in enumerate(vlm.SCENARIO_ORDER)}
     model_index = {name: idx for idx, name in enumerate(MORE_MODEL_ORDER)}
@@ -1109,13 +1127,56 @@ def _load_more_combined_rows(more_rows: List[Dict[str, Any]]) -> List[Dict[str, 
                 "scenario": row.get("scenario"),
                 "expected": row.get("expected"),
                 "status": row.get("status", "ok"),
-                "passed": row.get("passed"),
+                "passed": _strict_passed_value(row),
                 "terminated_reason": row.get("terminated_reason"),
                 "exception": row.get("exception"),
                 "visibility_frame": (row.get("visibility_sample") or {}).get("front"),
                 "raw": row,
             }
         )
+    return out
+
+
+def _load_phase3_combined_rows(more_rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    rows = _load_rows(RESULTS_JSON)
+    keyed = {
+        (str(row.get("model") or ""), str(row.get("scenario") or "")): row
+        for row in rows
+        if isinstance(row, dict)
+    }
+    for row in more_rows:
+        if not isinstance(row, dict):
+            continue
+        key = (str(row.get("model") or ""), str(row.get("scenario") or ""))
+        if key[0] and key[1]:
+            keyed[key] = row
+    return _load_more_combined_rows(list(keyed.values()) if keyed else more_rows)
+
+
+def _load_fullplanner_combined_rows() -> List[Dict[str, Any]]:
+    out = []
+    for path in (OPENEMMA_JSON, LMDRIVE_JSON):
+        for row in _load_rows(path):
+            if not isinstance(row, dict):
+                continue
+            model = row.get("model")
+            if model not in OPTIONAL_FULLPLANNER_MODEL_ORDER:
+                continue
+            out.append(
+                {
+                    "model": model,
+                    "source_model": row.get("controller") or row.get("model"),
+                    "track": row.get("track", "B"),
+                    "scenario": row.get("scenario"),
+                    "expected": row.get("expected"),
+                    "status": row.get("status", "ok"),
+                    "passed": _strict_passed_value(row),
+                    "terminated_reason": row.get("terminated_reason"),
+                    "exception": row.get("exception"),
+                    "visibility_frame": (row.get("visibility_sample") or {}).get("front"),
+                    "raw": row,
+                }
+            )
     return out
 
 
@@ -1136,7 +1197,7 @@ def _load_e2e_combined_rows(
                 "scenario": row.get("scenario"),
                 "expected": row.get("expected"),
                 "status": row.get("status", "ok"),
-                "passed": row.get("passed"),
+                "passed": _strict_passed_value(row),
                 "terminated_reason": row.get("terminated_reason"),
                 "exception": row.get("exception"),
                 "visibility_frame": (row.get("visibility_sample") or {}).get("front"),
@@ -1165,7 +1226,7 @@ def _load_vlm_combined_rows(
                 "scenario": row.get("scenario"),
                 "expected": row.get("expected"),
                 "status": row.get("status", "ok"),
-                "passed": row.get("passed"),
+                "passed": _strict_passed_value(row),
                 "terminated_reason": row.get("terminated_reason"),
                 "exception": row.get("exception"),
                 "visibility_frame": row.get("visibility_frame"),
@@ -1188,7 +1249,7 @@ def _load_reference_combined_rows() -> Tuple[List[Dict[str, Any]], str]:
                     "scenario": row.get("scenario"),
                     "expected": row.get("expected"),
                     "status": row.get("status", "ok"),
-                    "passed": row.get("passed"),
+                    "passed": _strict_passed_value(row),
                     "tier": row.get("tier") or REASONING_TIER.get(str(row.get("scenario"))),
                     "terminated_reason": row.get("terminated_reason"),
                     "exception": row.get("exception"),
@@ -1225,15 +1286,16 @@ def _load_reference_combined_rows() -> Tuple[List[Dict[str, Any]], str]:
 
 
 def _dedupe_combined_rows(rows: Iterable[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    input_rows = [r for r in rows if isinstance(r, dict)]
     deduped: Dict[tuple[str, str], Dict[str, Any]] = {}
-    for row in rows:
+    for row in input_rows:
         model = str(row.get("model") or "")
         scenario = str(row.get("scenario") or "")
         if not model or not scenario:
             continue
         deduped[(model, scenario)] = row
     scenario_index = {name: idx for idx, name in enumerate(vlm.SCENARIO_ORDER)}
-    model_index = {name: idx for idx, name in enumerate(COMBINED_MODEL_ORDER)}
+    model_index = {name: idx for idx, name in enumerate(_combined_model_order(deduped.values()))}
     return sorted(
         deduped.values(),
         key=lambda r: (
@@ -1243,11 +1305,21 @@ def _dedupe_combined_rows(rows: Iterable[Dict[str, Any]]) -> List[Dict[str, Any]
     )
 
 
-def _combined_per_scenario(rows: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+def _combined_model_order(rows: Iterable[Dict[str, Any]]) -> Tuple[str, ...]:
+    present = {str(r.get("model")) for r in rows if isinstance(r, dict)}
+    out = list(COMBINED_MODEL_ORDER)
+    insert_at = out.index("Qwen2.5") if "Qwen2.5" in out else len(out)
+    for model in reversed(OPTIONAL_FULLPLANNER_MODEL_ORDER):
+        if model in present and model not in out:
+            out.insert(insert_at, model)
+    return tuple(out)
+
+
+def _combined_per_scenario(rows: List[Dict[str, Any]], model_order: Iterable[str]) -> Dict[str, Dict[str, Any]]:
     out: Dict[str, Dict[str, Any]] = {}
     for scenario in vlm.SCENARIO_ORDER:
         entry = {"tier": REASONING_TIER.get(scenario), "models": {}}
-        for model in COMBINED_MODEL_ORDER:
+        for model in model_order:
             subset = [
                 r for r in rows
                 if r.get("scenario") == scenario and r.get("model") == model
@@ -1257,8 +1329,8 @@ def _combined_per_scenario(rows: List[Dict[str, Any]]) -> Dict[str, Dict[str, An
     return out
 
 
-def _combined_per_tier(rows: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
-    return _per_tier_counts(rows, COMBINED_MODEL_ORDER)
+def _combined_per_tier(rows: List[Dict[str, Any]], model_order: Iterable[str]) -> Dict[str, Dict[str, Any]]:
+    return _per_tier_counts(rows, model_order)
 
 
 def _raw_for_integrity(row: Dict[str, Any]) -> Dict[str, Any]:
@@ -1304,7 +1376,18 @@ def _setup_integrity_for_raw(raw: Dict[str, Any], model: str) -> Dict[str, Any]:
 
 
 def _load_counts_text(load_info: Any, setup: Dict[str, Any], model: str) -> str:
+    def count_value(value: Any) -> Any:
+        if isinstance(value, (list, tuple, set, dict)):
+            return len(value)
+        return value
+
     if isinstance(load_info, dict):
+        if "missing_keys" in load_info or "unexpected_keys" in load_info:
+            return "{missing} missing, {unexpected} unexpected, {mismatched} mismatched".format(
+                missing=count_value(load_info.get("missing_keys", "?")),
+                unexpected=count_value(load_info.get("unexpected_keys", "?")),
+                mismatched=count_value(load_info.get("mismatched_keys", "?")),
+            )
         if "checkpoints" in load_info:
             checkpoints = [
                 item for item in (load_info.get("checkpoints") or [])
@@ -1354,9 +1437,9 @@ def _load_counts_text(load_info: Any, setup: Dict[str, Any], model: str) -> str:
     return "checkpoint counts unavailable"
 
 
-def _combined_integrity(rows: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+def _combined_integrity(rows: List[Dict[str, Any]], model_order: Iterable[str]) -> Dict[str, Dict[str, Any]]:
     out: Dict[str, Dict[str, Any]] = {}
-    for model in COMBINED_MODEL_ORDER:
+    for model in model_order:
         model_rows = [r for r in rows if r.get("model") == model]
         max_speeds = [_row_max_speed_kmh(r) for r in model_rows]
         max_speeds = [v for v in max_speeds if v is not None]
@@ -1377,6 +1460,23 @@ def _combined_integrity(rows: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]
                 precision = "n/a"
             else:
                 precision = "provider/default"
+        query_period = setup.get("query_period_s") if isinstance(setup, dict) else None
+        if query_period is None:
+            for row in model_rows:
+                raw = _raw_for_integrity(row)
+                if raw.get("query_period_s") is not None:
+                    query_period = raw.get("query_period_s")
+                    break
+        raw_outputs: List[str] = []
+        for row in model_rows:
+            raw = _raw_for_integrity(row)
+            for query in raw.get("planner_queries") or []:
+                if not isinstance(query, dict):
+                    continue
+                text = query.get("motion_text") or query.get("text") or query.get("raw")
+                text = str(text or "").strip()
+                if text:
+                    raw_outputs.append(text)
         out[model] = {
             "episodes": len(model_rows),
             "checkpoint_load": _load_counts_text(load_info, setup, model),
@@ -1384,6 +1484,9 @@ def _combined_integrity(rows: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]
             "moved": moved if model_rows else None,
             "max_speed_kmh": round(max(max_speeds), 4) if max_speeds else None,
             "invalid_episodes": invalid,
+            "query_period_s": query_period,
+            "raw_output_queries": len(raw_outputs),
+            "distinct_raw_outputs": len(set(raw_outputs)),
             "setup": setup,
         }
     return out
@@ -1406,6 +1509,10 @@ def _combined_takeaway(rows: List[Dict[str, Any]]) -> str:
 
     e2e_models = ("TransFuser", "TCP", "InterFuser", "CILRS", "AIM", "NEAT", "PID", "MPC")
     vlm_models = ("Qwen2.5", "Qwen3", "GLM")
+    full_planner_models = tuple(
+        model for model in OPTIONAL_FULLPLANNER_MODEL_ORDER
+        if any(r.get("model") == model for r in rows)
+    )
     e2e_bits = []
     for model in e2e_models:
         c = model_count(model, authority_stop)
@@ -1416,6 +1523,11 @@ def _combined_takeaway(rows: List[Dict[str, Any]]) -> str:
         c = model_count(model, authority_stop)
         if c["total"] or c["not_applicable"]:
             vlm_bits.append(f"{model} {_fmt_count(c)}")
+    full_bits = []
+    for model in full_planner_models:
+        c = model_count(model, authority_stop)
+        if c["total"] or c["not_applicable"]:
+            full_bits.append(f"{model} {_fmt_count(c)}")
     hazard_bits = []
     for model in e2e_models:
         c = model_count(model, hazard)
@@ -1427,9 +1539,11 @@ def _combined_takeaway(rows: List[Dict[str, Any]]) -> str:
         + (", ".join(e2e_bits) if e2e_bits else "none")
         + ". VLM authority-STOP counts: "
         + (", ".join(vlm_bits) if vlm_bits else "none")
+        + ". Full-planner authority-STOP counts: "
+        + (", ".join(full_bits) if full_bits else "none")
         + ". Hazard counts for Track-B/E2E controllers: "
         + ", ".join(hazard_bits)
-        + ". The authority gap is the consistent pattern: E2E stacks can move and sometimes handle physical hazards, but they do not reliably treat an off-path human directive as a higher-priority traffic authority."
+        + ". The authority gap is the consistent pattern: E2E stacks can move and sometimes handle physical hazards, VLM-only controllers can reason about visible directives without continuous low-level authority, and full planners test whether perception-plus-control closes that gap under the same off-path authority staging."
     )
 
 
@@ -1457,13 +1571,15 @@ def _write_combined_outputs(payload: Dict[str, Any]) -> None:
     rows: List[Dict[str, Any]] = []
     rows.extend(_load_e2e_combined_rows(PHASE2_TRANSFUSER_JSON, PHASE2_TRANSFUSER_REPLACEMENTS))
     rows.extend(_load_e2e_combined_rows(PHASE2_EXISTING_JSON, PHASE2_EXISTING_REPLACEMENTS))
-    rows.extend(_load_more_combined_rows(more_rows))
+    rows.extend(_load_phase3_combined_rows(more_rows))
+    rows.extend(_load_fullplanner_combined_rows())
     rows.extend(_load_vlm_combined_rows(PHASE2_VLM_JSON, PHASE2_VLM_REPLACEMENTS))
     rows.extend(ref_rows)
     rows = _dedupe_combined_rows(rows)
-    per_scenario = _combined_per_scenario(rows)
-    per_tier = _combined_per_tier(rows)
-    integrity = _combined_integrity(rows)
+    model_order = _combined_model_order(rows)
+    per_scenario = _combined_per_scenario(rows, model_order)
+    per_tier = _combined_per_tier(rows, model_order)
+    integrity = _combined_integrity(rows, model_order)
     mirror = _mirror_identity()
     calibration_note = _combined_calibration_note(rows)
     sources = {
@@ -1476,12 +1592,18 @@ def _write_combined_outputs(payload: Dict[str, Any]) -> None:
         "phase3_new_e2e": str(RESULTS_JSON),
         "reference": ref_source,
     }
+    present_models = {str(row.get("model")) for row in rows}
+    if "OpenEMMA" in present_models:
+        sources["openemma"] = str(OPENEMMA_JSON)
+    if "LMDrive" in present_models:
+        sources["lmdrive"] = str(LMDRIVE_JSON)
     combined = {
         "run": {
             "staging_source": staging.STAGING_SOURCE,
             "fps": 20,
             "timeout_sec": 14,
             "sources": sources,
+            "model_order": list(model_order),
         },
         "rows": rows,
         "per_scenario_counts": per_scenario,
@@ -1511,14 +1633,14 @@ def _write_combined_outputs(payload: Dict[str, Any]) -> None:
         "",
         "## Per-Scenario Counts",
         "",
-        "| Scenario | Tier | " + " | ".join(COMBINED_MODEL_ORDER) + " |",
-        "| --- | --- | " + " | ".join("---:" for _ in COMBINED_MODEL_ORDER) + " |",
+        "| Scenario | Tier | " + " | ".join(model_order) + " |",
+        "| --- | --- | " + " | ".join("---:" for _ in model_order) + " |",
     ]
     for scenario in vlm.SCENARIO_ORDER:
         entry = per_scenario[scenario]
         cells = [
             _fmt_count((entry.get("models") or {}).get(model) or {})
-            for model in COMBINED_MODEL_ORDER
+            for model in model_order
         ]
         lines.append(
             "| {scenario} | {tier} | {cells} |".format(
@@ -1528,22 +1650,30 @@ def _write_combined_outputs(payload: Dict[str, Any]) -> None:
             )
         )
     lines.extend(["", "## Integrity", ""])
-    for model in COMBINED_MODEL_ORDER:
+    for model in model_order:
         info = integrity.get(model) or {}
         moved = info.get("moved")
         moved_text = "yes" if moved is True else ("no" if moved is False else "n/a")
         max_speed = info.get("max_speed_kmh")
         max_speed_text = f"{float(max_speed):.2f} km/h" if isinstance(max_speed, (int, float)) else "n/a"
+        query_period = info.get("query_period_s")
+        query_period_text = f"{float(query_period):.2f}s" if isinstance(query_period, (int, float)) else "n/a"
         lines.append(
-            "- {model}: checkpoint load={load}; precision={precision}; moved={moved}, max_speed={max_speed}; INVALID={invalid}.".format(
+            "- {model}: checkpoint load={load}; precision={precision}; moved={moved}, max_speed={max_speed}; INVALID={invalid}; query_period={query_period}.".format(
                 model=model,
                 load=_md(info.get("checkpoint_load")),
                 precision=_md(info.get("precision")),
                 moved=moved_text,
                 max_speed=max_speed_text,
                 invalid=int(info.get("invalid_episodes") or 0),
+                query_period=query_period_text,
             )
         )
+        if int(info.get("raw_output_queries") or 0) > 0:
+            lines[-1] = lines[-1][:-1] + "; raw_outputs={distinct}/{total} distinct.".format(
+                distinct=int(info.get("distinct_raw_outputs") or 0),
+                total=int(info.get("raw_output_queries") or 0),
+            )
     lines.extend(
         [
             "",
@@ -1553,7 +1683,7 @@ def _write_combined_outputs(payload: Dict[str, Any]) -> None:
             "| --- | ---: | ---: | ---: | ---: |",
         ]
     )
-    for model in COMBINED_MODEL_ORDER:
+    for model in model_order:
         counts = per_tier.get(model) or {}
         lines.append(
             "| {model} | {low} | {mid} | {high} | {overall} |".format(

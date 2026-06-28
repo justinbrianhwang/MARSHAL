@@ -5,11 +5,12 @@ This is the script a **third party** runs to measure their model on MARSHAL.
 You only need to provide one thing: a *controller* — a small class that turns each
 tick's observation into a ``carla.VehicleControl``. Everything else (the Town03
 stations, the gesturing officer, the construction flagger, the following
-ambulance, the metrics, the MARSHAL Score) is spawned and computed for you.
+ambulance, the fountain lab-logo landmarks, the metrics, the MARSHAL Score) is
+spawned and computed for you.
 
 Quick start
 -----------
-1. Start CARLA on the benchmark map (stock Town03)::
+1. Start CARLA on the benchmark map (Town03, or Town03_MARSHAL once baked)::
 
        CarlaUE4.exe          # or ./CarlaUE4.sh  -quality-level=Epic
 
@@ -59,12 +60,16 @@ from marshal_bench.criteria.marshal_metrics import (  # noqa: E402
 PY = sys.executable
 RUNNER = os.path.join(_THIS, "scripts", "run_marshal_officer_demo.py")
 
-# The 14 MARSHAL scenarios, in benchmark order (9 core + 5 high-tier reasoning).
+# The 21 MARSHAL scenarios: 14 core + 7 expansion (authority-axis coverage).
 ALL_SCENARIOS = [
     "green_stop", "red_proceed", "signal_off", "crash_detour", "fallen_person",
     "unauthorized_go", "adjacent_lane", "flagger_control", "ambulance_yield",
     "occluded_officer", "conflicting_authorities", "sequential_directive",
     "rule_hierarchy", "ambiguous_gesture",
+    # Expansion scenarios (broaden the contextual/verification/temporal axes).
+    "civilian_warning_accident", "emergency_scene_blocking",
+    "two_civilians_disagree", "flagger_slow_then_stop", "school_crossing_guard",
+    "fake_vest_director", "barricade_self_detour",
 ]
 
 
@@ -155,7 +160,8 @@ def main(argv=None) -> int:
     p.add_argument("--scenarios", nargs="*", default=None,
                    help="Subset of scenarios to run (default: all 14).")
     p.add_argument("--town", default="Town03",
-                   help="Benchmark map (stock Town03 by default).")
+                   help="Benchmark map. Use 'Town03_MARSHAL' once the logo-baked "
+                        "map is packaged.")
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=2000)
     p.add_argument("--fps", type=float, default=20.0)
