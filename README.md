@@ -9,9 +9,7 @@ autonomous driving.
 > prioritize, and act on human or contextual traffic authority when it conflicts
 > with ordinary road signals.**
 >
-> **MARSHAL은 교통 신호와 인간/상황 권위가 충돌하는 로컬 주행 장면에서, 자율주행
-> 에이전트와 VLM 의사결정기가 '누구의 지시를 우선해야 하는지'를 인식·추론·행동할
-> 수 있는지 평가하는 CARLA 기반 Authority-aware Reasoning 벤치마크입니다.**
+
 
 Existing autonomous-driving benchmarks mainly evaluate driving performance,
 perception, navigation, and collision avoidance. MARSHAL focuses on a different
