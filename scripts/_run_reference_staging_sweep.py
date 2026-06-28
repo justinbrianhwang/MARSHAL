@@ -201,6 +201,17 @@ def _write_outputs(rows: List[Dict[str, Any]]) -> None:
 
 
 def main() -> int:
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("scenarios", nargs="*",
+                        help="Scenario keys. Defaults to all (SCENARIO_ORDER).")
+    parser.add_argument("--controller", action="append", dest="controllers",
+                        choices=list(CONTROLLERS),
+                        help="Restrict to these controllers (default: both).")
+    args = parser.parse_args()
+    controllers = args.controllers or list(CONTROLLERS)
+    scenarios = args.scenarios or list(vlm.SCENARIO_ORDER)
+
     setup_root_logger()
     carla = import_carla()
     client = carla.Client("127.0.0.1", 2000)
@@ -211,8 +222,8 @@ def main() -> int:
         raise SystemExit(f"CARLA is on {map_name!r}, expected Town03. Not loading maps.")
     os.makedirs(OUT_ROOT, exist_ok=True)
     rows: List[Dict[str, Any]] = []
-    for controller in CONTROLLERS:
-        for scenario in vlm.SCENARIO_ORDER:
+    for controller in controllers:
+        for scenario in scenarios:
             rows.append(_run_one(client, controller, scenario))
             _write_outputs(rows)
     _write_outputs(rows)

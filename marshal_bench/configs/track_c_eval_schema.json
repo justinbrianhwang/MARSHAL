@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/justinbrianhwang/MARSHAL/marshal_bench/configs/track_c_eval_schema.json",
+  "title": "MARSHAL Track-C Visual Decision QA record",
+  "description": "One record per Track-C (Traffic Authority Decision QA) decision. Captures the input protocol alongside the answer so Track-C results report frame budget and sampling protocol and are not unfairly compared with closed-loop Track-B agents.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "scenario",
+    "model",
+    "num_frames",
+    "frame_interval_sec",
+    "camera",
+    "resolution",
+    "prompt_template",
+    "answer",
+    "ground_truth_action",
+    "correct"
+  ],
+  "properties": {
+    "scenario": {
+      "type": "string",
+      "description": "Scenario id, e.g. green_stop (must exist in scenario_taxonomy.yaml)."
+    },
+    "model": {
+      "type": "string",
+      "description": "Exact model name + version/checkpoint, e.g. Qwen2.5-VL-72B."
+    },
+    "num_frames": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Number of frames provided to the model for this decision."
+    },
+    "frame_interval_sec": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Seconds between sampled frames (query period for per-tick setups)."
+    },
+    "camera": {
+      "type": "string",
+      "description": "Camera view, e.g. 'single forward ego RGB'."
+    },
+    "resolution": {
+      "type": "string",
+      "description": "Frame resolution, e.g. '1280x720' (optionally with FOV)."
+    },
+    "prompt_template": {
+      "type": "string",
+      "description": "Prompt template id or full text used to elicit the answer."
+    },
+    "answer": {
+      "type": "string",
+      "enum": ["STOP", "PROCEED", "SLOW", "HOLD", "YIELD", "DETOUR"],
+      "description": "The action returned by the model."
+    },
+    "ground_truth_action": {
+      "type": "string",
+      "enum": ["STOP", "PROCEED", "SLOW", "HOLD", "YIELD", "DETOUR"],
+      "description": "The expected action for the scenario."
+    },
+    "correct": {
+      "type": "boolean",
+      "description": "Whether answer == ground_truth_action."
+    },
+    "frame_timing_vs_gesture_onset": {
+      "type": "string",
+      "enum": ["before", "during", "after", "live_mixed"],
+      "description": "When the provided frame(s) fall relative to gesture onset."
+    },
+    "traffic_light_state_source": {
+      "type": "string",
+      "enum": ["text", "image_only", "text_and_image"],
+      "description": "Whether the traffic-light state was given as text, visible only in the image, or both."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Free-form notes (e.g. raw model reasoning, caveats)."
+    }
+  }
+}

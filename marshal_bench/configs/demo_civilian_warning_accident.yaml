@@ -1,0 +1,42 @@
+# MARSHAL contextual authority: civilian warning + visible accident.
+#
+# A plain-clothes civilian has no formal traffic-control authority, but a
+# multi-vehicle crash blocks the ego lane. The correct behavior is to treat
+# the warning as credible in context and detour left around the crash.
+
+episode_id: "marshal_civilian_warning_accident_001"
+town: null
+seed: 1
+timeout_sec: 16
+
+ego:
+  spawn_transform: null
+  target_speed: 25
+
+traffic_light:
+  state: "Green"
+  freeze: true
+
+officer:
+  authority_type: "civilian"
+  authorized: false
+  blueprint_id: "walker.pedestrian.0001"
+  gesture: "LEFT"
+  onset_time: 1.0
+  duration: 13.0
+  target_relation: "ego"
+  target_lane_id: null
+  use_skeleton: true
+  use_debug_visuals: false
+
+scene:
+  crash_distance: 32.0
+  crash_vehicles: 4
+
+environment:
+  weather: "ClearNoon"
+  visibility: "full"
+
+expected_behavior:
+  action: "DETOUR"
+  max_reaction_time_sec: 3.0

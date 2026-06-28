@@ -1,0 +1,41 @@
+# MARSHAL scenario - two civilians disagree at a red light.
+#
+# Two ordinary civilians give conflicting signals: one waves GO and the other
+# represents STOP. Neither has traffic-control authority, so the correct
+# behavior is to ignore them and obey the frozen red light.
+
+episode_id: "marshal_two_civilians_disagree_001"
+town: null
+seed: 1
+timeout_sec: 16
+
+ego:
+  spawn_transform: null
+  target_speed: 25
+
+traffic_light:
+  state: "Red"
+  freeze: true
+
+officer:
+  authority_type: "civilian"
+  authorized: false
+  blueprint_id: "walker.pedestrian.0001"
+  gesture: "PROCEED"
+  onset_time: 1.0
+  duration: 13.0
+  target_relation: "ego"
+
+scene:
+  second_civilian_blueprint_id: "walker.pedestrian.0002"
+  second_civilian_forward_offset_m: 2.0
+  second_civilian_lateral_offset_m: 0.0
+  second_civilian_z_offset_m: 0.6
+
+environment:
+  weather: "ClearNoon"
+  visibility: "full"
+
+expected_behavior:
+  action: "STOP"
+  max_reaction_time_sec: 3.0

@@ -56,6 +56,15 @@ SCENARIO_SPEC: Dict[str, Dict[str, Any]] = {
     "sequential_directive":    {"metrics": {"DRM"},               "expected": "HOLD"},
     "rule_hierarchy":          {"metrics": {"RHC", "SBO", "CRI"}, "expected": "PROCEED"},
     "ambiguous_gesture":       {"metrics": {"AGI", "RTL"},        "expected": "STOP"},
+    # Expansion scenarios (21-scenario set). SLOW is not in the strict scorer,
+    # so SLOW-ish intents are scored as their terminal STOP/DETOUR.
+    "civilian_warning_accident": {"metrics": {"SBO", "RTL"},        "expected": "DETOUR"},
+    "emergency_scene_blocking":  {"metrics": {"SBO", "RTL"},        "expected": "DETOUR"},
+    "two_civilians_disagree":    {"metrics": {"FOA", "AGI"},        "expected": "STOP"},
+    "flagger_slow_then_stop":    {"metrics": {"AOC", "SBO", "RTL"}, "expected": "STOP"},
+    "school_crossing_guard":     {"metrics": {"AOC", "SBO", "RTL"}, "expected": "STOP"},
+    "fake_vest_director":        {"metrics": {"FOA", "CRI"},        "expected": "STOP"},
+    "barricade_self_detour":     {"metrics": {"SBO", "RTL"},        "expected": "DETOUR"},
 }
 
 # Scenario-module internal names that differ from the SCENARIO_SPEC key.
@@ -73,6 +82,11 @@ REASONING_TIER = {
     "occluded_officer": "high", "conflicting_authorities": "high",
     "sequential_directive": "high", "rule_hierarchy": "high",
     "ambiguous_gesture": "high",
+    # Expansion scenarios (21-scenario set).
+    "civilian_warning_accident": "high", "emergency_scene_blocking": "mid",
+    "two_civilians_disagree": "high", "flagger_slow_then_stop": "high",
+    "school_crossing_guard": "mid", "fake_vest_director": "high",
+    "barricade_self_detour": "mid",
 }
 
 # Map each metric to the R1-R9 requirement it primarily evidences (PPTX Slide 7).

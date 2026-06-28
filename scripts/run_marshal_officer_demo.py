@@ -104,6 +104,36 @@ _SCENARIO_MAP: dict[str, tuple[str, str]] = {
         "marshal_bench.scenarios.marshal_ambiguous_gesture_demo",
         "marshal_bench/configs/demo_ambiguous_gesture.yaml",
     ),
+    # Expansion scenarios (21-scenario set) — broaden contextual authority,
+    # authority verification, and temporal axes.
+    "civilian_warning_accident": (
+        "marshal_bench.scenarios.marshal_civilian_warning_accident_demo",
+        "marshal_bench/configs/demo_civilian_warning_accident.yaml",
+    ),
+    "emergency_scene_blocking": (
+        "marshal_bench.scenarios.marshal_emergency_scene_blocking_demo",
+        "marshal_bench/configs/demo_emergency_scene_blocking.yaml",
+    ),
+    "two_civilians_disagree": (
+        "marshal_bench.scenarios.marshal_two_civilians_disagree_demo",
+        "marshal_bench/configs/demo_two_civilians_disagree.yaml",
+    ),
+    "flagger_slow_then_stop": (
+        "marshal_bench.scenarios.marshal_flagger_slow_then_stop_demo",
+        "marshal_bench/configs/demo_flagger_slow_then_stop.yaml",
+    ),
+    "school_crossing_guard": (
+        "marshal_bench.scenarios.marshal_school_crossing_guard_demo",
+        "marshal_bench/configs/demo_school_crossing_guard.yaml",
+    ),
+    "fake_vest_director": (
+        "marshal_bench.scenarios.marshal_fake_vest_director_demo",
+        "marshal_bench/configs/demo_fake_vest_director.yaml",
+    ),
+    "barricade_self_detour": (
+        "marshal_bench.scenarios.marshal_barricade_self_detour_demo",
+        "marshal_bench/configs/demo_barricade_self_detour.yaml",
+    ),
 }
 
 

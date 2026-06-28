@@ -1,0 +1,48 @@
+# MARSHAL scenario: school crossing guard.
+#
+# A school crossing guard holds STOP while pedestrians cross the ego lane.
+# The traffic signal is green, but guard authority plus vulnerable road users
+# require the ego to stop.
+
+episode_id: "marshal_school_crossing_guard_001"
+town: null
+seed: 1
+timeout_sec: 16
+
+ego:
+  spawn_transform: null
+  target_speed: 25
+
+traffic_light:
+  state: "Green"
+  freeze: true
+
+officer:
+  authority_type: "crossing_guard"
+  authorized: true
+  gesture: "STOP"
+  onset_time: 1.0
+  duration: 13.0
+  target_relation: "ego"
+  target_lane_id: null
+  use_skeleton: true
+  use_debug_visuals: false
+  blueprint_id: "walker.pedestrian.0001"
+  role_name: "school_crossing_guard"
+  hand_prop: "static.prop.stopquad"
+  hand_prop_z_offset: 0.30
+
+scene:
+  pedestrian_count: 2
+  pedestrian_distance: 18.0
+  pedestrian_spacing: 2.0
+  pedestrian_from_side: "right"
+  cross_speed: 1.2
+
+environment:
+  weather: "ClearNoon"
+  visibility: "full"
+
+expected_behavior:
+  action: "STOP"
+  max_reaction_time_sec: 3.0

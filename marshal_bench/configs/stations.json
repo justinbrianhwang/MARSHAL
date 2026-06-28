@@ -2,19 +2,173 @@
   "_comment": "Curated FIXED Town03 locations for each MARSHAL scenario (the benchmark 'location' dimension). Coords = a drivable lane waypoint ~28 m before a real Town03 traffic-light stop line, facing it (from scripts survey of the 38 TLs). run_scenario loads ego.spawn_transform from here when a scenario config leaves spawn_transform null. Multi-lane intersections (lanes>=2) are assigned to scenarios needing an adjacent/detour lane. VERIFY each with a live run; adjust if a spawn is blocked or lacks the needed lane.",
   "map": "Town03",
   "stations": {
-    "green_stop":              {"x": -74.3, "y": 29.6,  "z": 0.5, "yaw": 269.8, "tl_id": 66, "lanes": 2},
-    "red_proceed":             {"x": -99.5, "y": 0.4,   "z": 0.5, "yaw": 0.3,   "tl_id": 77, "lanes": 1},
-    "signal_off":              {"x": 22.3,  "y": 130.8, "z": 0.5, "yaw": 179.2, "tl_id": 71, "lanes": 1},
-    "crash_detour":            {"x": 243.31,"y": 93.9,  "z": 0.5, "yaw": 271.4, "tl_id": 75, "lanes": 2},
-    "fallen_person":           {"x": -107.2,"y": 136.4, "z": 0.5, "yaw": -1.3,  "tl_id": 67, "lanes": 1},
-    "unauthorized_go":         {"x": -28.8, "y": 134.6, "z": 0.5, "yaw": -1.3,  "tl_id": 74, "lanes": 1},
-    "adjacent_lane":           {"x": 243.2, "y": 101.3, "z": 0.5, "yaw": 271.4, "tl_id": 76, "lanes": 2},
-    "flagger_control":         {"x": -56.5, "y": 131.7, "z": 0.5, "yaw": 178.7, "tl_id": 68, "lanes": 1},
-    "ambulance_yield":         {"x": -9.6,  "y": 110.6, "z": 0.5, "yaw": 89.6,  "tl_id": 72, "lanes": 2},
-    "occluded_officer":        {"x": 5.6,   "y": 154.0, "z": 0.5, "yaw": 269.6, "tl_id": 73, "lanes": 2},
-    "conflicting_authorities": {"x": -88.1, "y": 112.8, "z": 0.5, "yaw": 89.8,  "tl_id": 70, "lanes": 2},
-    "sequential_directive":    {"x": -74.6, "y": 157.3, "z": 0.5, "yaw": -90.2, "tl_id": 69, "lanes": 2},
-    "rule_hierarchy":          {"x": -45.0, "y": -135.7,"z": 0.5, "yaw": 1.2,   "tl_id": 167, "lanes": 1},
-    "ambiguous_gesture":       {"x": 40.1,  "y": -196.5,"z": 0.5, "yaw": 1.4,   "tl_id": 159, "lanes": 2}
+    "green_stop": {
+      "x": -74.3,
+      "y": 29.6,
+      "z": 0.5,
+      "yaw": 269.8,
+      "tl_id": 66,
+      "lanes": 2
+    },
+    "red_proceed": {
+      "x": -99.5,
+      "y": 0.4,
+      "z": 0.5,
+      "yaw": 0.3,
+      "tl_id": 77,
+      "lanes": 1
+    },
+    "signal_off": {
+      "x": 22.3,
+      "y": 130.8,
+      "z": 0.5,
+      "yaw": 179.2,
+      "tl_id": 71,
+      "lanes": 1
+    },
+    "crash_detour": {
+      "x": 243.31,
+      "y": 93.9,
+      "z": 0.5,
+      "yaw": 271.4,
+      "tl_id": 75,
+      "lanes": 2
+    },
+    "fallen_person": {
+      "x": -107.2,
+      "y": 136.4,
+      "z": 0.5,
+      "yaw": -1.3,
+      "tl_id": 67,
+      "lanes": 1
+    },
+    "unauthorized_go": {
+      "x": -28.8,
+      "y": 134.6,
+      "z": 0.5,
+      "yaw": -1.3,
+      "tl_id": 74,
+      "lanes": 1
+    },
+    "adjacent_lane": {
+      "x": 243.2,
+      "y": 101.3,
+      "z": 0.5,
+      "yaw": 271.4,
+      "tl_id": 76,
+      "lanes": 2
+    },
+    "flagger_control": {
+      "x": -56.5,
+      "y": 131.7,
+      "z": 0.5,
+      "yaw": 178.7,
+      "tl_id": 68,
+      "lanes": 1
+    },
+    "ambulance_yield": {
+      "x": -9.6,
+      "y": 110.6,
+      "z": 0.5,
+      "yaw": 89.6,
+      "tl_id": 72,
+      "lanes": 2
+    },
+    "occluded_officer": {
+      "x": 5.6,
+      "y": 154.0,
+      "z": 0.5,
+      "yaw": 269.6,
+      "tl_id": 73,
+      "lanes": 2
+    },
+    "conflicting_authorities": {
+      "x": -88.1,
+      "y": 112.8,
+      "z": 0.5,
+      "yaw": 89.8,
+      "tl_id": 70,
+      "lanes": 2
+    },
+    "sequential_directive": {
+      "x": -74.6,
+      "y": 157.3,
+      "z": 0.5,
+      "yaw": -90.2,
+      "tl_id": 69,
+      "lanes": 2
+    },
+    "rule_hierarchy": {
+      "x": -45.0,
+      "y": -135.7,
+      "z": 0.5,
+      "yaw": 1.2,
+      "tl_id": 167,
+      "lanes": 1
+    },
+    "ambiguous_gesture": {
+      "x": 40.1,
+      "y": -196.5,
+      "z": 0.5,
+      "yaw": 1.4,
+      "tl_id": 159,
+      "lanes": 2
+    },
+    "civilian_warning_accident": {
+      "x": -6.3,
+      "y": 88.5,
+      "z": 0.3,
+      "yaw": 89.6,
+      "tl_id": 1445,
+      "lanes": 2
+    },
+    "emergency_scene_blocking": {
+      "x": -74.2,
+      "y": 47.8,
+      "z": 0.82,
+      "yaw": 269.8,
+      "tl_id": 1437,
+      "lanes": 2
+    },
+    "two_civilians_disagree": {
+      "x": -85.0,
+      "y": -42.6,
+      "z": -0.17,
+      "yaw": 89.8,
+      "tl_id": 1448,
+      "lanes": 2
+    },
+    "flagger_slow_then_stop": {
+      "x": -84.6,
+      "y": 88.5,
+      "z": 0.87,
+      "yaw": 89.8,
+      "tl_id": 1438,
+      "lanes": 2
+    },
+    "school_crossing_guard": {
+      "x": -130.1,
+      "y": 135.6,
+      "z": 0.3,
+      "yaw": 17.7,
+      "tl_id": 1440,
+      "lanes": 1
+    },
+    "fake_vest_director": {
+      "x": -129.7,
+      "y": 0.2,
+      "z": 0.3,
+      "yaw": 0.3,
+      "tl_id": 1475,
+      "lanes": 1
+    },
+    "barricade_self_detour": {
+      "x": 5.3,
+      "y": -91.9,
+      "z": 0.3,
+      "yaw": -88.6,
+      "tl_id": 1465,
+      "lanes": 2
+    }
   }
 }

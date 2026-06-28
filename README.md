@@ -4,16 +4,29 @@
 **A**utonomous **L**ocomotion — a CARLA benchmark for **authority-aware**
 autonomous driving.
 
-MARSHAL measures whether a driving model can do what every human driver does
-without thinking: **obey a traffic officer's hand signal even when it contradicts
-the traffic light** — and, just as importantly, *not* obey a gesture that carries
-no authority. It is built to make one argument concrete and measurable:
+> **MARSHAL is a CARLA-based authority-aware reasoning benchmark that evaluates
+> whether autonomous driving agents and VLM decision systems can recognize,
+> prioritize, and act on human or contextual traffic authority when it conflicts
+> with ordinary road signals.**
+>
+> **MARSHAL은 교통 신호와 인간/상황 권위가 충돌하는 로컬 주행 장면에서, 자율주행
+> 에이전트와 VLM 의사결정기가 '누구의 지시를 우선해야 하는지'를 인식·추론·행동할
+> 수 있는지 평가하는 CARLA 기반 Authority-aware Reasoning 벤치마크입니다.**
 
-> Low-level signal classification (STOP / GO / LEFT / RIGHT) is solvable by
-> perception + a rule engine. **The hard cases — conflicting authorities,
-> occluded officers, remembered directives, ambiguous gestures, rule
-> hierarchy — require reasoning that an end-to-end (E2E) perception stack does
-> not have.** That gap is where an LLM/VLM-based driver earns its place.
+Existing autonomous-driving benchmarks mainly evaluate driving performance,
+perception, navigation, and collision avoidance. MARSHAL focuses on a different
+question: **"Who should the vehicle obey?"**
+
+Simple STOP / GO gesture classification can be solved by vision, or by perception
++ a rule engine. The hard cases — **conflicting authorities, occluded officers,
+remembered directives, ambiguous gestures, civilian warnings, and rule
+hierarchy** — require *authority-aware reasoning*. MARSHAL is therefore **not
+merely a police-gesture-recognition benchmark; it is an authority-aware reasoning
+benchmark for local driving decisions.**
+
+> See [docs/design_principles.md](docs/design_principles.md) for the design
+> philosophy (authority types, scenario-selection principles, tier definitions)
+> and [docs/tracks.md](docs/tracks.md) for the Track A / B / C taxonomy.
 
 Every scenario is a self-contained closed-loop episode on **Town03**. You plug in
 your model as a *controller*, and MARSHAL spawns the officer, the gestures, the
@@ -22,11 +35,40 @@ it. Built and verified on **CARLA 0.9.16**.
 
 ---
 
+## Why MARSHAL — prior benchmarks vs MARSHAL
+
+Existing autonomous-driving benchmarks largely evaluate *driving competence* —
+perception, prediction, navigation, comfort, and collision avoidance. None of
+them isolate the question MARSHAL is built around: **when a human or the scene
+context contradicts the ordinary traffic signal, who should the vehicle obey?**
+
+| Benchmark (representative) | Primary role — what it evaluates | Limitation for *authority* reasoning |
+|---|---|---|
+| **CARLA Leaderboard** (1.0/2.0) | Closed-loop route driving + infraction scoring in CARLA | Obeys traffic-control devices and avoids collisions; no human traffic-authority that *overrides* the signal |
+| **Bench2Drive** | Closed-loop multi-ability E2E driving (diverse short skills) in CARLA | Tests driving *skills* (merge, overtake, give-way, emergency brake), not "who has authority" when a human contradicts the light |
+| **nuPlan** | Large-scale closed-loop motion *planning* on real logs | Planning quality / comfort / safety vs logged driving; no authority conflict, no gesture semantics |
+| **nuScenes / Waymo Open / Argoverse** | Perception + motion forecasting on real logs | Upstream perception / prediction; decision authority is out of scope |
+| **DriveLM / LingoQA / DriveVLM / Reason2Drive** | Language / VQA reasoning over driving scenes | QA about objects, intent, planning — not authority-*priority* under conflicting cues, nor closed-loop authority compliance |
+| **Accident / corner-case sets** (DeepAccident, CommonRoad, …) | Physical hazard & accident avoidance | Reacts to hazards as obstacles; no human-authority override |
+
+**MARSHAL's role.** MARSHAL is the piece these leave out: it **isolates
+authority-aware reasoning**. A model must *recognize* a traffic authority (police,
+flagger, emergency vehicle, hazard-backed civilian warning), *prioritize* it
+correctly against the signal/road (**safety > authorized human command >
+device**), and *act* on it — while **not** obeying a gesture that carries no
+authority (false-obedience avoidance) and attributing a directive to the correct
+target. It measures this both **closed-loop in CARLA (Track-B)** and as **visual
+decision QA (Track-C)**, with strict, telemetry-grounded, oracle-calibrated
+scoring. Fuller treatment + references:
+[docs/related_work.md](docs/related_work.md).
+
+---
+
 ## Implementation status — what works today
 
 MARSHAL is a **working, runnable benchmark**: the closed-loop simulation harness,
-all 14 scenarios, the officer/gesture engine, authority recognition, and
-strict telemetry-grounded scoring (calibrated so the privileged oracle = 14/14)
+all 21 scenarios (14 core + 7 expansion), the officer/gesture engine, authority recognition, and
+strict telemetry-grounded scoring (calibrated so the privileged oracle = 21/21)
 are implemented and verified. Reference controllers span all three tracks —
 `baseline` (TM, lower bound), `oracle` (privileged, upper bound), eight
 **Track-B (E2E)** controllers (TransFuser, InterFuser, TCP, CILRS, AIM, NEAT,
@@ -40,7 +82,7 @@ bring your own model via the plug-in API (`--controller module:Class`).
   `python start.py --controller baseline` and `--controller oracle`.
 - **Score your own driving model** — write one `EpisodeController` subclass and
   pass `--controller my_pkg:MyController`; MARSHAL spawns every scene, runs all
-  14 episodes closed-loop, and writes a full `scoreboard.json`. See
+  21 episodes closed-loop, and writes a full `scoreboard.json`. See
   *Benchmark your model* below.
 - **Run / inspect a single scenario** with
   `python scripts/run_marshal_officer_demo.py --scenario <name>` (dumps chase-cam
@@ -70,7 +112,7 @@ bring your own model via the plug-in API (`--controller module:Class`).
 ## The benchmark map
 
 The benchmark runs on **stock CARLA Town03** — no custom map, no download. The
-14 scenarios live at 14 fixed, curated locations across the map (see
+21 scenarios live at 21 fixed, curated locations across the map (see
 [`marshal_bench/configs/stations.json`](marshal_bench/configs/stations.json)),
 each a drivable lane a short run-up before a real traffic light, where an
 officer / flagger / ambulance takes over from the signal. The scenarios are
@@ -78,7 +120,16 @@ officer / flagger / ambulance takes over from the signal. The scenarios are
 for each episode) — exactly like the CARLA Leaderboard / Bench2Drive, so the
 whole benchmark ships as a Python package that drives a stock CARLA server.
 
-### The 14 scenarios
+### The scenarios (14 core + 7 expansion)
+
+**Scenario design principle.** The 14 *core* scenarios are selected to cover seven
+authority-aware reasoning principles: **signal override, authority verification,
+target attribution, contextual hazard reasoning, temporal directive memory, rule
+hierarchy, and ambiguity handling.** The set is not arbitrary — each scenario
+maps to at least one principle. See
+[docs/design_principles.md](docs/design_principles.md) and
+[docs/scenario_taxonomy.md](docs/scenario_taxonomy.md) for the per-scenario
+rationale and the machine-readable taxonomy.
 
 | # | scenario | what happens | expected | tier |
 |---|----------|--------------|----------|------|
@@ -96,23 +147,37 @@ whole benchmark ships as a Python package that drives a stock CARLA server.
 | 12 | `sequential_directive` | "wait… now go" — a directive given over time | **HOLD** then act | high |
 | 13 | `rule_hierarchy` | authorized GO, but a pedestrian is crossing | **PROCEED** safely | high |
 | 14 | `ambiguous_gesture` | a gesture that is genuinely ambiguous | **STOP** (cautious) | high |
+| 15 | `civilian_warning_accident` | bystander at a *visible crash* waves you to slow/detour | **DETOUR** (contextual authority) | high |
+| 16 | `emergency_scene_blocking` | parked firetruck + cones block the lane, no officer | **DETOUR** | mid |
+| 17 | `two_civilians_disagree` | two civilians give *conflicting* directions | **STOP** (resolve) | high |
+| 18 | `flagger_slow_then_stop` | flagger signals SLOW, then escalates to STOP | **STOP** (temporal) | high |
+| 19 | `school_crossing_guard` | crossing guard halts traffic for children | **STOP/obey** | mid |
+| 20 | `fake_vest_director` | hi-vis person directs traffic with *no real authority* | **STOP** (cautious) | high |
+| 21 | `barricade_self_detour` | construction barricade closes the lane, no flagger | **DETOUR** (self) | mid |
 
-The **high tier** is the point of the benchmark: an officer-blind, light-only
-agent passes the low tier and fails the high tier. See *Results* below.
+Rows 1–14 are the **core** suite; 15–21 are the **2026-06 expansion** (more
+contextual-hazard, conflicting-authority, temporal, and self-detour cases). The
+three new **DETOUR** scenarios (15, 16, 21) are solved **only by the privileged
+oracle** in the current sweep — the hardest discriminators in the set.
 
-> **Planned scenario — construction-barricade self-detour.** Today the *go-around*
-> maneuver is exercised by `crash_detour` (a crash pile-up, with an officer signalling
-> the detour), while the construction zone in `flagger_control` **fully closes the lane
-> and is flagger-controlled, so the expected action there is STOP/wait — not a detour**.
-> A dedicated scenario where the ego must **autonomously detour around a construction
-> barricade** (partial lane closure, no flagger directing the go-around) is **planned
-> and not yet implemented**; it will be added so barricade-avoidance is measured
-> directly rather than only via the crash case.
+The **high tier** is the reasoning core of the benchmark — it is **more
+reasoning-intensive**, not "more important": an officer-blind, light-only agent
+passes the low tier and fails the high tier. See *Results* below.
+
+> **Now implemented (2026-06 expansion).** Two scenarios previously listed as
+> *planned* are now in the suite (rows 15 & 21): **`barricade_self_detour`** — the ego
+> must **autonomously detour around a construction barricade** (partial lane closure,
+> no flagger) — and **`civilian_warning_accident`** — a bystander **near a visible
+> crash** waves the ego to slow/detour, so the civilian carries *contextual* authority
+> and should be heeded (expected **DETOUR**). The latter is the deliberate counterpart
+> to `unauthorized_go`: same actor class, **opposite** correct action *because* of the
+> scene hazard context. See [docs/scenario_taxonomy.md](docs/scenario_taxonomy.md).
 
 ### Watch the oracle handle each scenario
 
 The clips below are the privileged **oracle** (Track A — the expected-behaviour
-reference) driving each of the 14 scenarios end to end on stock Town03. Every
+reference) driving each of the **21** scenarios (14 core + 7 expansion) end to end
+on stock Town03. Every
 clip shows the officer / flagger / hazard in front of the ego and the correct
 authority-aware response. (Numbers match the table above; full-resolution MP4s
 are in [`Oracle_demo/`](Oracle_demo/).)
@@ -152,6 +217,28 @@ are in [`Oracle_demo/`](Oracle_demo/).)
 | ![rule_hierarchy](Oracle_demo/rule_hierarchy.gif) | ![ambiguous_gesture](Oracle_demo/ambiguous_gesture.gif) |
 | authorized GO, pedestrian crossing → **yield** | unclear gesture → **cautious stop** |
 
+**2026-06 expansion (rows 15–21):**
+
+| 15 · `civilian_warning_accident` | 16 · `emergency_scene_blocking` |
+|:---:|:---:|
+| ![civilian_warning_accident](Oracle_demo/civilian_warning_accident.gif) | ![emergency_scene_blocking](Oracle_demo/emergency_scene_blocking.gif) |
+| bystander at a crash waves you off → **detour** | firetruck + cones block the lane → **detour** |
+
+| 17 · `two_civilians_disagree` | 18 · `flagger_slow_then_stop` |
+|:---:|:---:|
+| ![two_civilians_disagree](Oracle_demo/two_civilians_disagree.gif) | ![flagger_slow_then_stop](Oracle_demo/flagger_slow_then_stop.gif) |
+| two civilians give conflicting signs → **stop** | flagger SLOW then escalates to STOP → **stop** |
+
+| 19 · `school_crossing_guard` | 20 · `fake_vest_director` |
+|:---:|:---:|
+| ![school_crossing_guard](Oracle_demo/school_crossing_guard.gif) | ![fake_vest_director](Oracle_demo/fake_vest_director.gif) |
+| crossing guard halts traffic → **stop** | hi-vis person, no real authority → **cautious stop** |
+
+| 21 · `barricade_self_detour` | |
+|:---:|:---:|
+| ![barricade_self_detour](Oracle_demo/barricade_self_detour.gif) | |
+| construction barricade closes lane → **self-detour** | |
+
 ## Officer hand signals
 
 The officer performs real **US traffic-direction hand signals** (grounded in VCU
@@ -170,8 +257,11 @@ read the pose to decide what to do:
 | point/sweep to the officer's **right** | arm out, palm down, moved up/down | open palm held up — **wait** |
 
 **Authority matters, not just the gesture.** In `unauthorized_go` a *plain-clothes
-civilian* performs the **same GO wave** — a correct agent must recognize the lack
-of authority and ignore it (this is the False-Obedience-Avoidance probe):
+civilian* waves the **same GO wave at a red light, with no visible supporting
+hazard or authority context** — a correct agent must recognize the lack of
+authority and **ignore it** (expected action: STOP). This is the
+False-Obedience-Avoidance probe; its planned counterpart `civilian_warning_accident`
+flips the answer by adding a real hazard the civilian is reacting to:
 
 | authorized officer → **obey** | unauthorized civilian → **ignore** |
 |:---:|:---:|
@@ -313,44 +403,72 @@ Every run writes a `scoreboard.json` with `suite`, `r_scores`,
 `marshal_score_partial`, `tier_pass_rate`, and `per_episode` so the numbers are
 fully auditable.
 
-> **In development — a continuous `MARSHAL-Graded` score.** The headline above is
-> deliberately a **strict, binary pass/fail** (un-gameable, telemetry-grounded). We
-> are adding a *secondary*, real-valued score in `[0, 100]` that awards **partial
-> credit** per episode from the same telemetry margins (stop-distance, residual
-> speed, reaction latency, lateral clearance, decel) and **weights authority-override
-> scenarios more heavily** (police priority), calibrated so the oracle ≈ 100. It will
-> be reported *alongside* — never replacing — the binary headline. The current draft
-> over-credits over-cautious "creep-and-stop" controllers (a slow model banks STOP
-> partial-credit without ever reading the officer), so we are refining the curves with
-> an approach/engagement gate before publishing the numbers here.
+> **`MARSHAL-Graded` — the continuous primary score.** Alongside the strict binary
+> pass/fail, every episode also receives a real-valued grade in `[0, 100]` from the
+> same telemetry margins (stop-distance, residual speed, reaction latency, lateral
+> clearance, decel), **authority-weighted** (authority-override scenarios count more),
+> calibrated so the privileged oracle = **100**. An **approach/engagement gate**
+> denies STOP credit to controllers that merely creep to a halt without ever engaging
+> the scene — so an over-cautious "always-brake" model cannot bank partial credit it
+> didn't earn. On the 21-scenario suite the leaderboard is: **oracle 100.0**, then the
+> best non-privileged model **Qwen2.5-VL 65.7**, **TransFuser 59.7**, InterFuser 51.2,
+> NEAT 45.0, Qwen3-VL 44.9, OpenEMMA 40.1, CILRS 36.7, baseline 28.0, AIM 23.8,
+> TCP 22.1, MPC 14.5, PID 5.9 (per-model rows in the Results tables below).
+>
+> **Why graded is the headline.** The strict binary count and the narrow
+> *authority-STOP (7)* subset both reward stopping, and the strongest controllers all
+> share a **conservative stop-bias** (e.g. our per-tick Qwen2.5-VL passes 12/21 but
+> *0/6* of the PROCEED/DETOUR scenarios; the conservative E2E NEAT ties it at 5/7 on
+> authority-STOP). The engagement-gated graded score is what separates "read the scene
+> and acted" from "braked and got lucky" — which is why we lead with it.
 
 ---
 
 ## Results
 
-Reference sweep on stock Town03 (14 scenarios, raw JSON in
-[`results/`](results/)):
+Reference sweep on stock Town03 (**21 scenarios** = 14 core + 7 expansion; full
+14-model results in the two tables below):
 
-| model | track | MARSHAL Score | low-tier pass | mid-tier pass | high-tier pass |
-|-------|-------|--------------:|--------------:|--------------:|---------------:|
-| baseline (TM, officer-blind) | — | **19.5** | 0% | 100% | **12.5%** |
-| oracle (privileged authority) | A | **100.0** | 100% | 100% | **100%** |
-| _your model_ | B/C | _run `start.py`_ | — | — | — |
+| model | track | MARSHAL-Graded | scenarios passed | low (3) | mid (6) | high (12) |
+|-------|-------|---------------:|-----------------:|--------:|--------:|----------:|
+| baseline (TM, officer-blind) | — | **28.0** | 3 / 21 | 0/3 | 1/6 | **2/12** |
+| oracle (privileged authority) | A | **100.0** | 21 / 21 | 3/3 | 6/6 | **12/12** |
+| _your model_ | B _or_ C | _run `start.py`_ | — | — | — | — |
 
 **The headline:** the officer-blind baseline (perception + traffic-light only)
-collapses on the high tier — **12.5% (1/8)** — and even fails the low tier (0%)
-because it ignores the officer entirely. The oracle, which reasons over authority,
-solves **all 14 (100%)**. That gap on the high tier is the room an LLM/VLM
-reasoner has to make up over an E2E perception stack — and the quantitative case
-for authority-aware reasoning in autonomous driving.
+collapses on the high tier — **2/12** — and fails the low tier (0/3) because it
+ignores the officer entirely. The oracle, which reasons over authority, solves
+**all 21 (100.0)**. That gap is the room an LLM/VLM reasoner has to make up over an
+E2E perception stack — and the quantitative case for authority-aware reasoning in
+autonomous driving. The best non-privileged models close only part of it
+(Qwen2.5-VL graded **65.7**, TransFuser **59.7**).
 
 _(Reproduce: `python scripts/run_marshal_sweep.py`; score your own model with
 `python start.py --controller <module:Class> --tag <name>`.)_
 
-### Learned models: Track-B (E2E) vs Track-C (VLM) — strict, oracle-calibrated
+### Results by track — strict, oracle-calibrated
+
+MARSHAL evaluates three kinds of system, reported as **separate tracks** because
+they receive different inputs and are scored under different protocols (full
+definitions: [docs/tracks.md](docs/tracks.md)):
+
+- **Track A — Privileged oracle.** Reads ground truth; the upper bound the scorer
+  is calibrated against (21/21). Not a deployable model.
+- **Track B — Closed-loop driving agent.** Produces `VehicleControl` every tick in
+  CARLA, scored from telemetry, on its native sensor rig. *TransFuser, InterFuser,
+  TCP, CILRS, AIM, NEAT, PID, MPC, and OpenEMMA* (as a CARLA controller).
+- **Track C — Visual Decision QA.** Answers a driving decision from front-camera
+  frame(s); a measure of whether a VLM reads authority from images, **not** a
+  closed-loop driving score. *Qwen2.5-VL, Qwen3-VL, GLM-4.5V.*
+
+> **Reporting rule.** A model is labeled by *how it is evaluated*, not its
+> architecture — never "B/C" in one cell. A model evaluated in both modes gets two
+> rows (e.g. `OpenEMMA-B` closed-loop vs `OpenEMMA-C` QA). OpenEMMA is currently run
+> only as a closed-loop controller, so only `OpenEMMA-B` has results; `OpenEMMA-C`
+> is planned.
 
 Twelve learned/reference controllers drive every scenario closed-loop on stock
-Town03. **Track-B (E2E)** models get their native sensor rig (multi-camera +
+Town03. **Track-B** models get their native sensor rig (multi-camera +
 LiDAR + ego state + a non-privileged lane-follow route).
 
 **Track-C (VLM) is not a vendor benchmark — it is a controller we built to *test
@@ -372,42 +490,82 @@ privileged ground truth.
 recorded ego trajectory (speed, position, junction entry, lateral offset,
 collisions) physically proves the expected action; missing/ambiguous evidence is
 a FAIL, malformed telemetry is INVALID. The criteria are **calibrated against the
-privileged oracle**, which scores a full **14/14** — so a pass means "did what the
+privileged oracle**, which scores a full **21/21** — so a pass means "did what the
 oracle would," not "happened to stop." *Scenarios passed* across 3 tiers
-(low 3 / mid 3 / high 8):
+(low 3 / mid 6 / high 12):
 
-| model | track | scenarios passed | low (3) | mid (3) | high (8) | authority-STOP (7) |
-|-------|-------|-----------------:|--------:|--------:|---------:|-------------------:|
-| **oracle** (privileged) | A | **14 / 14** | 3/3 | 3/3 | 8/8 | — |
-| **Qwen2.5-VL-72B**      | C | **7 / 14** | 2/3 | 1/3 | 4/8 | **5 / 7** |
-| **Qwen3-VL-235B-A22B**  | C | **7 / 14** | 2/3 | 1/3 | 4/8 | **5 / 7** |
-| **OpenEMMA** — VLM planning&dagger; | B/C | **7 / 14** | 2/3 | 2/3 | 3/8 | 3 / 7 |
-| **TransFuser**          | B | 6 / 14 | 1/3 | 1/3 | 4/8 | 3 / 7 |
-| InterFuser              | B | 6 / 14 | 1/3 | 2/3 | 3/8 | 2 / 7 |
-| CILRS                   | B | 5 / 14 | 1/3 | 2/3 | 2/8 | 2 / 7 |
-| NEAT                    | B | 5 / 14 | 1/3 | 2/3 | 2/8 | 2 / 7 |
-| GLM-4.5V                | C | 4 / 14 | 2/3 | 1/3 | 1/8 | 3 / 7 |
-| _baseline (TM, blind)_  | — | 2 / 14 | 0/3 | 1/3 | 1/8 | — |
-| AIM                     | B | 2 / 14 | 1/3 | 0/3 | 1/8 | 2 / 7 |
-| TCP                     | B | 1 / 14 | 0/3 | 1/3 | 0/8 | 0 / 7 |
-| PID / MPC (control)     | B | 1 / 14 | 0/3 | 1/3 | 0/8 | 0 / 7 |
+**Table 1 — Track-A / B: closed-loop CARLA driving.** Scored from telemetry; each
+model on its native sensor rig. **MARSHAL-Graded** is the continuous, oracle-calibrated,
+stop-bias-corrected score (0–100, primary metric); *scenarios passed* is the strict
+binary count across 3 tiers (low 3 / mid 6 / high 12). Sorted by MARSHAL-Graded.
+
+| model | track | MARSHAL-Graded | scenarios passed | low (3) | mid (6) | high (12) | authority-STOP (7) | link |
+|-------|-------|---------------:|-----------------:|--------:|--------:|----------:|-------------------:|------|
+| **oracle** (privileged) | A | **100.0**&Dagger; | **21 / 21** | 3/3 | 6/6 | 12/12 | 7 / 7&Dagger; | — (ours) |
+| **TransFuser**          | B | **59.7** | 11 / 21 | 2/3 | 2/6 | 7/12 | **4 / 7** | [github](https://github.com/autonomousvision/transfuser) |
+| InterFuser              | B | 51.2 | 8 / 21 | 1/3 | 1/6 | 6/12 | 3 / 7 | [github](https://github.com/opendilab/InterFuser) |
+| NEAT                    | B | 45.0 | 7 / 21 | 2/3 | 1/6 | 4/12 | **5 / 7** | [github](https://github.com/autonomousvision/neat) |
+| **OpenEMMA-B** — VLM planning&dagger; | B | 40.1 | 7 / 21 | 1/3 | 2/6 | 4/12 | 3 / 7 | [github](https://github.com/taco-group/OpenEMMA) |
+| CILRS                   | B | 36.7 | 5 / 21 | 0/3 | 2/6 | 3/12 | 1 / 7 | [github](https://github.com/felipecode/coiltraine) |
+| _baseline (TM, blind)_  | — | 28.0 | 3 / 21 | 0/3 | 1/6 | 2/12 | 1 / 7 | [CARLA TM](https://github.com/carla-simulator/carla) |
+| AIM                     | B | 23.8 | 3 / 21 | 1/3 | 0/6 | 2/12 | 2 / 7 | [github](https://github.com/autonomousvision/transfuser)&sect; |
+| TCP                     | B | 22.1 | 2 / 21 | 1/3 | 1/6 | 0/12 | 1 / 7 | [github](https://github.com/OpenDriveLab/TCP) |
+| MPC (control)           | B | 14.5 | 1 / 21 | 0/3 | 1/6 | 0/12 | 0 / 7 | — (classical) |
+| PID (control)           | B | 5.9 | 1 / 21 | 0/3 | 1/6 | 0/12 | 0 / 7 | — (classical) |
+
+<sub>&Dagger;oracle is privileged (reads ground truth) — calibration reference,
+not a competitor. &sect;AIM is a baseline released *within* the TransFuser repo
+(no standalone repo). `oracle`, `PID`/`MPC` are our own reference controllers.
+21 scenarios = the 14 core + 7 expansion scenarios; single seed on stock Town03.</sub>
+
+**Table 2 — Track-C: Visual Decision QA.** A VLM answers the ego action from
+front-camera frame(s) — *not* a closed-loop driving score (see
+[docs/track_c_visual_decision_qa.md](docs/track_c_visual_decision_qa.md)).
+
+| model | track | input frames | prompt type | MARSHAL-Graded | scenarios passed | low (3) | mid (6) | high (12) | authority-STOP (7) | link |
+|-------|-------|--------------|-------------|---------------:|-----------------:|--------:|--------:|----------:|-------------------:|------|
+| **Qwen2.5-VL-72B**     | C | 1 / tick (~1.5 s) | per-tick STOP/GO/SLOW/HOLD | **65.7** | **12 / 21** | 2/3 | 2/6 | 8/12 | **5 / 7** | [github](https://github.com/QwenLM/Qwen2.5-VL) |
+| **Qwen3-VL-235B-A22B** | C | 1 / tick (~1.5 s) | per-tick STOP/GO/SLOW/HOLD | 44.9 | 8 / 21 | 2/3 | 1/6 | 5/12 | 4 / 7 | [github](https://github.com/QwenLM/Qwen3-VL) |
+| GLM-4.5V               | C | 1 / tick (~1.5 s) | per-tick STOP/GO/SLOW/HOLD | 35.6 | 5 / 21 | 2/3 | 1/6 | 2/12 | 2 / 7 | [github](https://github.com/zai-org/GLM-V) |
+| _OpenEMMA-C_           | C | — | — | — | _planned (not yet run)_ | — | — | — | — | [github](https://github.com/taco-group/OpenEMMA) |
+
+> **Why two tables.** Track-B and Track-C results are reported separately because
+> Track-B evaluates closed-loop control in CARLA, while Track-C evaluates visual
+> decision QA from camera observations. Direct comparison should be made only when
+> input frames, sampling rate, and evaluation protocol are controlled.
+>
+> **TODO.** Track-C results should report frame budget and sampling protocol (see
+> the input-protocol fields in
+> [docs/track_c_visual_decision_qa.md](docs/track_c_visual_decision_qa.md)) to
+> avoid unfair comparison with closed-loop agents.
+
+> **Model comparisons are version-sensitive;** all VLM results should report exact
+> model / checkpoint and evaluation date — see
+> [docs/model_selection.md](docs/model_selection.md).
 
 **What this shows:**
 
-- **The authority gap is real and consistent.** On *authority-STOP* cases (an
-  authorized off-path human directive that contradicts the signal/road), the best
-  VLMs read the human **5/7** while the strongest E2E stack / full-planner manage
-  **3/7** and the rest cluster at **0–2/7**. End-to-end driving stacks can move and
-  occasionally handle a physical hazard, but they do **not** reliably treat a
-  human traffic authority as higher priority than the light/road.
-- **No learned model touches the oracle.** Even the best non-privileged models
-  (Qwen2.5 / Qwen3, 7/14) leave a wide gap to the oracle's 14/14 — `crash_detour`
-  and `ambulance_yield` are solved only by the oracle, and `green_stop` (officer
-  STOP at a green light) is missed by every non-oracle model that reads the gesture.
-- **How you wire the VLM matters.** OpenEMMA — a VLM that regresses a *trajectory*
-  from a normal-driving prior — matches the VLMs on raw pass-count (7/14) but
-  trails them where it counts, on *authority-STOP* (**3/7** vs the per-tick `vlm`
-  reasoner's **5/7**): asked every tick "should I stop for this person?", a VLM
+- **On the engagement-gated graded score, the per-tick VLM leads — but the margin
+  is narrow and the metric matters.** Qwen2.5-VL tops all non-privileged models
+  (graded **65.7**), just ahead of the LiDAR-equipped closed-loop **TransFuser
+  (59.7)**. On the *narrow* authority-STOP (7) subset the picture is muddier: the best
+  VLM reads the human **5/7**, but the conservative E2E **NEAT also scores 5/7** and
+  TransFuser 4/7 — because that subset rewards stopping, and **every strong controller
+  here shares a stop-bias** (Qwen2.5-VL passes 12/21 yet **0/6** of the PROCEED/DETOUR
+  cases). The graded score, which denies credit for un-engaged creeping and weights
+  authority overrides, is what still separates the VLM reasoner from a model that
+  merely brakes a lot. *(Cross-track comparison: single-front-camera, per-tick
+  protocol — read with the Track-B vs Track-C caveat above.)*
+- **No learned model touches the oracle.** The best non-privileged models
+  (Qwen2.5-VL 12/21, TransFuser 11/21) leave a wide gap to the oracle's 21/21 — the
+  three contextual-DETOUR scenarios (`crash_detour`, `civilian_warning_accident`,
+  `emergency_scene_blocking`, `barricade_self_detour`) and `ambulance_yield` are
+  solved **only by the oracle**, and `green_stop` (officer STOP at a green light) is
+  missed by almost every non-oracle model that reads the gesture.
+- **How you wire the VLM matters.** OpenEMMA-B — a VLM that regresses a *trajectory*
+  from a normal-driving prior — lands mid-pack (graded 40.1, 7/21)
+  but trails the per-tick Track-C reasoner on *authority-STOP* (**3/7** vs **5/7**):
+  asked every tick "should I stop for this person?", a VLM
   reads the human far more often than one that smooths a path from a
   green-light-means-go prior. OpenEMMA's misses split cleanly
   into **authority blindness** (it logs the officer as "a pedestrian on the
@@ -421,7 +579,7 @@ oracle would," not "happened to stop." *Scenarios passed* across 3 tiers
   gesture. Hazard scenarios (`fallen_person`, `crash_detour`, `ambulance_yield`)
   keep the obstacle in-path by design.
 
-<sub>Strict scorer calibrated so the oracle = 14/14; thresholds documented in
+<sub>Strict scorer calibrated so the oracle = 21/21; thresholds documented in
 `marshal_bench/criteria/strict_episode_scoring.py`. Track-B uses each model's
 native sensor rig; Track-C is single-front-camera. **&dagger;OpenEMMA** is a
 full-planning VLM-E2E — unlike the Track-C `vlm` controller (which answers a
@@ -439,20 +597,21 @@ gaps). Results are single-seed (n = 1) — multi-seed runs are future work.</sub
 ## Repository layout
 
 ```
-start.py                     # one entry point: score a model on all 14 scenarios
+start.py                     # one entry point: score a model on all 21 scenarios
 marshal_bench/
   controllers/               # the agents under test
     base.py                  #   EpisodeController interface (setup/step/teardown)
     example_model.py         #   copy-paste template for your model
     oracle.py                #   Track-A privileged reference
-  scenarios/                 # the 14 episode definitions (+ _common.py harness)
+  scenarios/                 # the 21 episode definitions (+ _common.py harness)
   actors/                    # traffic officer + gesture engine + scene actors
   criteria/                  # authority-compliance, reaction-latency, metric suite
   configs/                   # per-scenario YAML + stations.json (fixed locations)
   utils/                     # CARLA-API compat, logging, weather, traffic-light
 scripts/                     # run_marshal_officer_demo.py, run_marshal_sweep.py
 tools/                       # scenario-location map figure, station verify
-docs/                        # grounding, oracle spec, officer import, your-model guide
+docs/                        # design principles, scenario taxonomy, tracks, Track-C QA,
+                             #   grounding, graded score, model selection, oracle spec
 results/                     # committed scoreboards
 ```
 
