@@ -64,10 +64,12 @@ def _jsonable(obj: Any) -> Any:
     return str(obj)
 
 
-def _run_one(client: Any, controller: str, scenario: str) -> Dict[str, Any]:
+def _run_one(client: Any, controller: str, scenario: str, seed: Any = None) -> Dict[str, Any]:
     spec = vlm.SCENARIOS[scenario]
     cfg = staging.load_staged_config(ROOT, scenario, spec, controller)
-    cfg["episode_id"] = _episode_id(controller, scenario)
+    if seed is not None:
+        cfg["seed"] = int(seed)
+    cfg["episode_id"] = _episode_id(controller, scenario) + (f"_s{seed}" if seed is not None else "")
     episode_dir = os.path.join(OUT_ROOT, cfg["episode_id"])
     if os.path.isdir(episode_dir):
         _safe_rmtree(episode_dir, OUT_ROOT)
@@ -208,6 +210,9 @@ def main() -> int:
     parser.add_argument("--controller", action="append", dest="controllers",
                         choices=list(CONTROLLERS),
                         help="Restrict to these controllers (default: both).")
+    parser.add_argument("--seed", type=int, default=None,
+                        help="Scenario RNG seed; also namespaces the episode id "
+                             "as <id>_s<seed> so seeds do not overwrite each other.")
     args = parser.parse_args()
     controllers = args.controllers or list(CONTROLLERS)
     scenarios = args.scenarios or list(vlm.SCENARIO_ORDER)
@@ -224,7 +229,7 @@ def main() -> int:
     rows: List[Dict[str, Any]] = []
     for controller in controllers:
         for scenario in scenarios:
-            rows.append(_run_one(client, controller, scenario))
+            rows.append(_run_one(client, controller, scenario, seed=args.seed))
             _write_outputs(rows)
     _write_outputs(rows)
     print(f"Wrote {RESULTS_JSON}")
