@@ -9,6 +9,20 @@ autonomous driving.
 > prioritize, and act on human or contextual traffic authority when it conflicts
 > with ordinary road signals.**
 
+**MARSHAL is not a driving model, planner, or LLM** — it is the **evaluation
+harness**. You plug in any of those as a *controller*; MARSHAL generates the scene,
+runs the closed-loop episode, and returns authority-aware reliability metrics.
+**New here? Start with [docs/what_is_marshal.md](docs/what_is_marshal.md).**
+
+```mermaid
+flowchart LR
+    A["Scenario Spec<br/>21 authority-conflict episodes"] --> B["Scenario Generator<br/>CARLA Town03 + officer / flagger /<br/>ambulance / hazard + gestures"]
+    B --> C["Driving Agent under test<br/>oracle · E2E · VLM (plug-in)"]
+    C --> D["Evaluation Engine<br/>strict telemetry + metric suite"]
+    D --> E["Reliability Metrics<br/>AOC · FOA · TAA · SBO · CRI · RTL → R1–R9"]
+    E --> F["MARSHAL Score<br/>strict pass-rate + MARSHAL-Graded (0–100)"]
+```
+
 > **Legal basis (US traffic law).** MARSHAL's premise — that a human traffic
 > authority's directions take precedence over ordinary signals — reflects
 > long-standing US traffic law. A driver must obey traffic-control devices
@@ -30,22 +44,30 @@ autonomous driving.
 Existing autonomous-driving benchmarks mainly evaluate driving performance,
 perception, navigation, and collision avoidance. MARSHAL focuses on a different
 question: **"Who should the vehicle obey?"**
+([why this is a distinct evaluation dimension →](docs/problem_statement.md))
 
 Simple STOP / GO gesture classification can be solved by vision, or by perception
 + a rule engine. The hard cases — **conflicting authorities, occluded officers,
 remembered directives, ambiguous gestures, civilian warnings, and rule
 hierarchy** — require *authority-aware reasoning*. MARSHAL is therefore **not
 merely a police-gesture-recognition benchmark; it is an authority-aware reasoning
-benchmark for local driving decisions.**
+benchmark for local driving decisions.** These conflicts are a **semantic
+long-tail** — rare, high-consequence *decisions* under otherwise-ordinary percepts
+([long-tail vs corner case →](docs/long_tail_definition.md)).
 
-> See [docs/design_principles.md](docs/design_principles.md) for the design
-> philosophy (authority types, scenario-selection principles, tier definitions)
-> and [docs/tracks.md](docs/tracks.md) for the Track A / B / C taxonomy.
+> **Start here:** [what_is_marshal.md](docs/what_is_marshal.md) (definition +
+> pipeline + how a run works) · [problem_statement.md](docs/problem_statement.md)
+> (vs prior benchmarks) · [scenarios.md](docs/scenarios.md) (all 21 scenarios) ·
+> [long_tail_definition.md](docs/long_tail_definition.md). Design detail:
+> [design_principles.md](docs/design_principles.md) ·
+> [tracks.md](docs/tracks.md) (Track A / B / C taxonomy).
 
 Every scenario is a self-contained closed-loop episode on **Town03**. You plug in
 your model as a *controller*, and MARSHAL spawns the officer, the gestures, the
 construction flagger, the ambulance, and the scene, runs the episode, and scores
-it. Built and verified on **CARLA 0.9.16**.
+it. Built and verified on **CARLA 0.9.16**. It is an **initial implementation** with
+caveats kept visible (single-seed; a partial weighted MARSHAL Score; requirements
+R4–R6 / R8–R9 not yet instrumented).
 
 ---
 
@@ -199,7 +221,7 @@ are in [`Oracle_demo/`](Oracle_demo/).)
 | 1 · `green_stop` | 2 · `red_proceed` |
 |:---:|:---:|
 | ![green_stop](Oracle_demo/green_stop.gif) | ![red_proceed](Oracle_demo/red_proceed.gif) |
-| 🟢 green light, officer STOP → **stop** | 🔴 red light, officer GO → **proceed** |
+| green light, officer STOP → **stop** | red light, officer GO → **proceed** |
 
 | 3 · `signal_off` | 4 · `crash_detour` |
 |:---:|:---:|
