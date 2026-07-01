@@ -107,11 +107,15 @@ MARSHAL is an **early but working implementation**, not a finished, fully-valida
 benchmark. What exists today: the 21-scenario closed-loop harness on stock Town03,
 the officer/gesture engine, oracle-calibrated strict scoring, the continuous
 MARSHAL-Graded score, and a reference sweep across 14 controllers. **Known
-limitations we keep visible:** results are currently **single-seed**; the weighted
-**MARSHAL Score is partial** (several requirements, **R4–R6 and R8–R9**, are declared
-but **not yet instrumented**); and the strongest agents share a **conservative
-stop-bias** that the graded score is designed to account for. These are documented
-rather than hidden, and are the work items for subsequent cycles.
+limitations we keep visible:** results come from a **single primary run per
+(model, scenario)** on a **single map** — though the benchmark is **effectively
+deterministic** (a seed-variance probe found identical spawns, stable verdicts, and
+< 0.01 graded jitter — see [reproducibility.md](reproducibility.md)), so this is a
+coverage bound, not measurement noise; the weighted **MARSHAL Score is partial**
+(the requirements **R4–R6 and R8–R9** are reserved by weight but **not yet defined or
+instrumented**); and the strongest agents share a **conservative stop-bias** that the
+graded score is designed to account for. These are documented rather than hidden, and
+are the work items for subsequent cycles.
 
 ---
 
