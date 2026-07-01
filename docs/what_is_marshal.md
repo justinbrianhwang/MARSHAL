@@ -69,7 +69,7 @@ comparable across agents.
    junction entry, lateral offset, collisions) plus the gesture timing.
 5. **Scoring** — the telemetry is scored two ways: a **strict, binary** pass/fail
    that only passes when the trajectory physically proves the expected action, and a
-   **contextual metric suite** (see [metrics](metrics.md) — planned).
+   **contextual metric suite** (see [metrics](metrics.md)).
 6. **Scoreboard** — per-episode results aggregate into the strict pass-rate and the
    continuous **MARSHAL-Graded** score (see [marshal_graded_score.md](marshal_graded_score.md)).
 
