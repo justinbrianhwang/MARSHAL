@@ -69,6 +69,16 @@ SCENARIO_AUTHORITY_WEIGHTS: Dict[str, float] = {
     "sequential_directive": 2.00,     # retain prior authority directive
     "rule_hierarchy": 1.75,           # authority plus pedestrian hierarchy
     "ambiguous_gesture": 1.50,        # cautious fallback under uncertainty
+    # Expansion scenarios (21-scenario set). Weighted on the same logic as the
+    # original 14: high-tier authority-verification / conflict = 2.00; temporal
+    # or emergency authority = 1.75; simpler exception / detour = 1.50.
+    "fake_vest_director": 2.00,          # reject a false (unauthorized) director
+    "two_civilians_disagree": 2.00,      # verify + resolve conflicting civilians
+    "civilian_warning_accident": 1.75,   # act on a hazard-backed civilian warning
+    "flagger_slow_then_stop": 1.75,      # temporal flagger directive
+    "emergency_scene_blocking": 1.50,    # emergency-scene detour
+    "school_crossing_guard": 1.50,       # crossing-guard authority
+    "barricade_self_detour": 1.50,       # road-closure self-detour
 }
 
 _SCENARIO_ALIASES = {
