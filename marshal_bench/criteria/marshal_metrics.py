@@ -95,9 +95,17 @@ METRIC_TO_R = {"AOC": "R3", "FOA": "R3", "TAA": "R2",
                # high-tier reasoning metrics
                "OCC": "R1", "APR": "R3", "DRM": "R3", "RHC": "R3", "AGI": "R2"}
 
-# MARSHAL Score weights (PPTX Slide 14).
-R_WEIGHTS = {"R1": 0.20, "R2": 0.10, "R3": 0.15, "R4": 0.10, "R5": 0.10,
-             "R6": 0.10, "R7": 0.10, "R8": 0.10, "R9": 0.05}
+# MARSHAL Score weights over the R1-R9 taxonomy (PPTX slides 7-10).
+# Re-balanced for the 21-scenario set (the slide-14 weights were set when the
+# benchmark had 9 scenarios). The mass now reflects what the 21 scenarios
+# actually stress: authority-conflict resolution (R3, ~15/21) and exceptional
+# handling (R7, ~6/21) are the two pillars; scene/relational (R2) and
+# interaction (R8) are cross-cutting; perception (R1) is a prerequisite tested
+# mainly by the occlusion case; planning/control/robustness/audit
+# (R4/R5/R6/R9) are not directly exercised by any current scenario and are kept
+# small as declared-but-under-covered. Sum = 1.00.
+R_WEIGHTS = {"R1": 0.10, "R2": 0.12, "R3": 0.28, "R4": 0.05, "R5": 0.03,
+             "R6": 0.02, "R7": 0.22, "R8": 0.13, "R9": 0.05}
 
 
 @dataclass

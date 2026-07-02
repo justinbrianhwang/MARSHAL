@@ -142,13 +142,22 @@ subscores (`METRIC_TO_R`), and finally into a single weighted score.
 
 **Metric → requirement (`METRIC_TO_R`) and how each subscore is formed:**
 
-| Requirement | Weight | Formed from | Instrumented? |
+Weights are **re-balanced for the 21-scenario set** (the original slide-14 weights
+were set at 9 scenarios). The mass now reflects what the 21 scenarios actually stress:
+authority-conflict resolution (R3, ~15/21) and exceptional handling (R7, ~6/21) are the
+two pillars.
+
+| Requirement (PPT taxonomy) | Weight | Formed from | Instrumented? |
 |---|---|---|---|
-| **R1** perception | 0.20 | `OCC` | partial (occlusion binary) |
-| **R2** scene / relational | 0.10 | `mean(TAA, AGI)` | yes |
-| **R3** rule compliance | 0.15 | `mean(AOC, FOA, APR, DRM, RHC, (1 − CRI))` | yes |
-| **R7** safety | 0.10 | `SBO` | yes |
-| **R4, R5, R6, R8, R9** | 0.10 / 0.10 / 0.10 / 0.10 / 0.05 | — | **NOT yet instrumented** |
+| **R3** Rule Compliance (authority hierarchy) | **0.28** | `mean(AOC, FOA, APR, DRM, RHC, (1 − CRI))` | yes |
+| **R7** Exceptional Handling | **0.22** | `SBO` | yes (partial — no near-miss signal) |
+| **R2** Scene Understanding | 0.12 | `mean(TAA, AGI)` | yes |
+| **R1** Perception Accuracy | 0.10 | `OCC` | partial (occlusion binary) |
+| **R8** Interactive Behavior | 0.13 | — | not yet instrumented |
+| **R4** Planning Rationality | 0.05 | — | not tested by any scenario |
+| **R5** Control Stability | 0.03 | — | not tested by any scenario |
+| **R6** Robustness | 0.02 | — | no weather/OOD scenarios |
+| **R9** Explainability & Audit | 0.05 | — | not yet instrumented |
 
 `CRI` enters R3 as its goodness complement `(1 − CRI)`. `RTL` is tagged to R3 in
 `METRIC_TO_R` but, being a raw latency rather than a `[0,1]` score, is **excluded from

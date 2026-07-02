@@ -210,7 +210,9 @@ def test_aggregate_means_partial_score_unmeasured_requirements_and_tier_rates():
         "R7": 0.5,
     }
     assert aggregate["r_unmeasured"] == ["R4", "R5", "R6", "R8", "R9"]
-    assert aggregate["marshal_score_partial"] == 69.09
+    # Measured R weights (R1=0.10, R2=0.12, R3=0.28, R7=0.22) renormalized over
+    # their 0.72 sum: 100*(1.0*0.10 + 0.5*0.12 + 0.5333*0.28 + 0.5*0.22)/0.72.
+    assert aggregate["marshal_score_partial"] == 58.24
     assert 0.0 <= aggregate["marshal_score_partial"] <= 100.0
     assert aggregate["tier_pass_rate"] == {
         "low": {"n": 2, "pass_rate": 0.5},
@@ -218,6 +220,17 @@ def test_aggregate_means_partial_score_unmeasured_requirements_and_tier_rates():
         "high": {"n": 3, "pass_rate": 0.6667},
     }
     assert len(aggregate["per_episode"]) == len(episodes)
+
+
+def test_every_scenario_has_an_authority_weight():
+    """Regression guard: every scored scenario must have an explicit graded
+    authority weight. The 7 expansion scenarios were originally omitted and
+    silently defaulted to 1.0, under-weighting the hardest authority cases in
+    the headline MARSHAL-Graded aggregate.
+    """
+    from marshal_bench.criteria.graded_episode_scoring import SCENARIO_AUTHORITY_WEIGHTS
+    missing = sorted(set(mm.SCENARIO_SPEC) - set(SCENARIO_AUTHORITY_WEIGHTS))
+    assert missing == [], f"scenarios missing an authority weight: {missing}"
 
 
 def test_metric_and_scenario_tables_are_internally_consistent():
