@@ -1369,6 +1369,12 @@ def run_scenario(
             route_origin = ego_transform.location
             route_fwd = ego_transform.get_forward_vector()
             route_right = ego_transform.get_right_vector()
+        # Cache the map once (get_map() per tick is expensive) for R4 lane-change
+        # tracking; None-safe so a failure never breaks the episode loop.
+        try:
+            _carla_map = world.get_map()
+        except Exception:
+            _carla_map = None
         with SyncModeContext(world, fps=fps) as sync:
             if controller is None:
                 # Enable autopilot only AFTER the world is in synchronous mode.
@@ -1515,6 +1521,32 @@ def run_scenario(
                 )
                 speed_now = ego_speed_kmh(ctx.ego)
                 in_junction_now = ego_in_intersection(ctx.ego, world)
+                # R4 (planning): ego lane/road id for lane-change counting.
+                ego_lane_id = None
+                ego_road_id = None
+                if _carla_map is not None and ego_loc is not None:
+                    try:
+                        _wp = _carla_map.get_waypoint(ego_loc, project_to_road=True)
+                        if _wp is not None:
+                            ego_lane_id = int(_wp.lane_id)
+                            ego_road_id = int(_wp.road_id)
+                    except Exception:
+                        ego_lane_id = None
+                        ego_road_id = None
+                # R8 (interaction): distance to the nearest pedestrian that is NOT
+                # the directing officer (the officer is authority, not a VRU). Used
+                # for pedestrian TTC / yield. None when no such walker is present.
+                distance_to_pedestrian = None
+                try:
+                    for _w in world.get_actors().filter("walker.*"):
+                        _wl = _w.get_location()
+                        if officer_loc is not None and _distance_between_locations(_wl, officer_loc) < 0.6:
+                            continue
+                        _d = _distance_between_locations(ego_loc, _wl)
+                        if math.isfinite(_d) and (distance_to_pedestrian is None or _d < distance_to_pedestrian):
+                            distance_to_pedestrian = _d
+                except Exception:
+                    distance_to_pedestrian = None
                 telemetry_row = {
                     "sim_time": round(sim_time, 4),
                     "ego_speed_kmh": speed_now,
@@ -1527,6 +1559,9 @@ def run_scenario(
                     "ego_forward_m": ego_forward_m,
                     "ego_lateral_m": ego_lateral_m,
                     "hazard_forward_m": hazard_forward,
+                    "ego_lane_id": ego_lane_id,
+                    "ego_road_id": ego_road_id,
+                    "distance_to_pedestrian_m": distance_to_pedestrian,
                     "collision_count": collision_count,
                     "officer_gesture_id": str(officer_meta_now.get("gesture_id", "UNKNOWN")),
                     "officer_onset_time": onset_now,
