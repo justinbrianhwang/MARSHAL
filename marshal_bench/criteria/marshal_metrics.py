@@ -1,7 +1,7 @@
 """MARSHAL contextual metric suite (PPTX Slide 14).
 
 Turns a single episode's raw criteria output + ground-truth E-tuple into the
-six MARSHAL-specific metrics, and aggregates a set of episodes into a per-model
+MARSHAL-specific metrics, and aggregates a set of episodes into a per-model
 scoreboard with the weighted MARSHAL Score.
 
 Metrics
@@ -19,6 +19,9 @@ Metrics
   better (it is an infraction *rate*, not a goodness score).
 * **RTL** Reaction-Time Latency — seconds from gesture onset to first valid
   response. Lower is better; ``None`` if no reaction was detected.
+* **CMF** Comfort Metric Factor — longitudinal comfort from speed telemetry.
+* **LNC** Lane Consistency — penalises unnecessary same-road lane changes.
+* **PSI** Pedestrian Safety / Interaction — credits slowing near pedestrians.
 
 Each metric is **N/A** (``None``) for scenarios where it does not apply; the
 aggregator averages each metric only over the episodes where it is defined, per
@@ -93,7 +96,7 @@ REASONING_TIER = {
 # Map each metric to the R1-R9 requirement it primarily evidences (PPTX Slide 7).
 METRIC_TO_R = {"AOC": "R3", "FOA": "R3", "TAA": "R2",
                "SBO": "R7", "CRI": "R3", "RTL": "R3",
-               "CMF": "R5",
+               "CMF": "R5", "LNC": "R4", "PSI": "R8",
                # high-tier reasoning metrics
                "OCC": "R1", "APR": "R3", "DRM": "R3", "RHC": "R3", "AGI": "R2"}
 
@@ -101,12 +104,12 @@ METRIC_TO_R = {"AOC": "R3", "FOA": "R3", "TAA": "R2",
 # Re-balanced for the 21-scenario set (the slide-14 weights were set when the
 # benchmark had 9 scenarios). The mass now reflects what the 21 scenarios
 # actually stress: authority-conflict resolution (R3, ~15/21) and exceptional
-# handling (R7, ~6/21) are the two pillars; scene/relational (R2) and
-# interaction (R8) are cross-cutting; perception (R1) is a prerequisite tested
-# mainly by the occlusion case; control stability (R5) is partially measured
-# from telemetry comfort; planning/robustness/audit (R4/R6/R9) are not directly
-# exercised by any current scenario and are kept small as declared-but-under-
-# covered. Sum = 1.00.
+# handling (R7, ~6/21) are the two pillars; scene/relational (R2), planning
+# consistency (R4), and interaction (R8) are cross-cutting; perception (R1) is
+# a prerequisite tested mainly by the occlusion case; control stability (R5) is
+# partially measured from telemetry comfort; robustness/audit (R6/R9) are not
+# directly exercised and are kept small as declared-but-under-covered. Sum =
+# 1.00.
 R_WEIGHTS = {"R1": 0.10, "R2": 0.12, "R3": 0.28, "R4": 0.05, "R5": 0.03,
              "R6": 0.02, "R7": 0.22, "R8": 0.13, "R9": 0.05}
 
@@ -122,6 +125,8 @@ class EpisodeMetrics:
     cri: Optional[float] = None   # infraction occurred (1.0) vs none (0.0)
     rtl: Optional[float] = None   # seconds, or None if no reaction
     cmf: Optional[float] = None   # comfort metric factor, higher is smoother
+    lnc: Optional[float] = None   # lane consistency, higher is fewer changes
+    psi: Optional[float] = None   # pedestrian safety / interaction
     # high-level reasoning metrics
     occ: Optional[float] = None   # Occlusion-robust compliance
     apr: Optional[float] = None   # Authority-Priority Resolution
@@ -192,6 +197,68 @@ def compute_comfort(telemetry_rows) -> Optional[float]:
     return max(0.0, min(1.0, cmf))
 
 
+def compute_lane_consistency(telemetry_rows) -> Optional[float]:
+    """Compute lane consistency from per-tick lane telemetry.
+
+    Returns a [0, 1] goodness score where higher means fewer unnecessary
+    same-road lane changes. Junction rows are ignored because lane IDs are
+    unstable there.
+    """
+    kept_rows = []
+    for row in telemetry_rows or []:
+        try:
+            lane_id = row.get("ego_lane_id")
+            road_id = row.get("ego_road_id")
+        except AttributeError:
+            continue
+        if lane_id is None or row.get("in_junction"):
+            continue
+        kept_rows.append((lane_id, road_id))
+
+    if len(kept_rows) < 2:
+        return None
+
+    n_changes = 0
+    for idx in range(1, len(kept_rows)):
+        prev_lane_id, prev_road_id = kept_rows[idx - 1]
+        lane_id, road_id = kept_rows[idx]
+        if lane_id != prev_lane_id and road_id == prev_road_id:
+            n_changes += 1
+
+    lnc = 1.0 - 0.3 * max(0, n_changes - 1)
+    return max(0.0, min(1.0, lnc))
+
+
+def compute_pedestrian_safety(telemetry_rows) -> Optional[float]:
+    """Compute pedestrian interaction safety from nearest-walker telemetry.
+
+    Returns a [0, 1] goodness score when a non-officer pedestrian is within
+    10 m. Higher means the ego vehicle yielded or stopped near the pedestrian.
+    """
+    close_speeds = []
+    for row in telemetry_rows or []:
+        try:
+            distance = row.get("distance_to_pedestrian_m")
+        except AttributeError:
+            continue
+        if distance is None:
+            continue
+        try:
+            distance = float(distance)
+            speed_kmh = float(row.get("ego_speed_kmh"))
+        except (TypeError, ValueError):
+            continue
+        if math.isfinite(distance) and math.isfinite(speed_kmh) and distance <= 10.0:
+            close_speeds.append(speed_kmh)
+
+    if not close_speeds:
+        return None
+
+    min_speed_close = min(close_speeds)
+    psi = (15.0 - min_speed_close) / (15.0 - 3.0)
+    return max(0.0, min(1.0, psi))
+
+
 def compute_episode_metrics(
     result: dict,
     scenario: Optional[str] = None,
@@ -205,7 +272,7 @@ def compute_episode_metrics(
     ``target_pred`` is an optional controller-reported target attribution
     ("ego" / "adjacent_lane" / ...) used for TAA; when absent TAA is inferred
     behaviourally from whether the agent correctly held its position.
-    ``telemetry_rows`` is optional per-tick telemetry used only for CMF.
+    ``telemetry_rows`` is optional per-tick telemetry used for CMF/LNC/PSI.
     """
     scenario = scenario or result.get("scenario", "")
     base = scenario.replace("marshal_", "")
@@ -239,6 +306,8 @@ def compute_episode_metrics(
     )
     if telemetry_rows is not None:
         em.cmf = compute_comfort(telemetry_rows)
+        em.lnc = compute_lane_consistency(telemetry_rows)
+        em.psi = compute_pedestrian_safety(telemetry_rows)
     if isinstance(strict, dict):
         verdict = strict.get("verdict")
         reason = strict.get("reason")
@@ -326,6 +395,8 @@ def aggregate(metrics: List[EpisodeMetrics]) -> dict:
         "CRI": _mean([m.cri for m in metrics]),   # infraction rate (lower better)
         "RTL": _mean([m.rtl for m in metrics]),   # seconds (lower better)
         "CMF": _mean([m.cmf for m in metrics]),
+        "LNC": _mean([m.lnc for m in metrics]),
+        "PSI": _mean([m.psi for m in metrics]),
         # high-level reasoning suite
         "OCC": _mean([m.occ for m in metrics]),
         "APR": _mean([m.apr for m in metrics]),
@@ -353,10 +424,14 @@ def aggregate(metrics: List[EpisodeMetrics]) -> dict:
     # R1 perception: occlusion-robust compliance
     if suite["OCC"] is not None:
         r_scores["R1"] = suite["OCC"]
+    if suite["LNC"] is not None:
+        r_scores["R4"] = suite["LNC"]
     if suite["CMF"] is not None:
         r_scores["R5"] = suite["CMF"]
     if suite["SBO"] is not None:
         r_scores["R7"] = suite["SBO"]
+    if suite["PSI"] is not None:
+        r_scores["R8"] = suite["PSI"]
 
     # Weighted MARSHAL Score over the R's we can actually measure, with weights
     # renormalised so the partial score stays in [0, 100]. R's without evidence
