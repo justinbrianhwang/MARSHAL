@@ -447,9 +447,9 @@ fully auditable.
 > denies STOP credit to controllers that merely creep to a halt without ever engaging
 > the scene — so an over-cautious "always-brake" model cannot bank partial credit it
 > didn't earn. On the 21-scenario suite the leaderboard is: **oracle 100.0**, then the
-> best non-privileged model **Qwen2.5-VL 65.7**, **TransFuser 59.7**, InterFuser 51.2,
-> NEAT 45.0, Qwen3-VL 44.9, OpenEMMA 40.1, CILRS 36.7, baseline 28.0, AIM 23.8,
-> TCP 22.1, MPC 14.5, PID 5.9 (per-model rows in the Results tables below).
+> best non-privileged model **Qwen2.5-VL 66.2**, **TransFuser 60.4**, InterFuser 51.6,
+> NEAT 41.0, Qwen3-VL 45.3, OpenEMMA 40.8, CILRS 36.7, baseline 26.3, AIM 22.8,
+> TCP 20.1, MPC 13.4, PID 5.1 (per-model rows in the Results tables below).
 >
 > **Why graded is the headline.** The strict binary count and the narrow
 > *authority-STOP (7)* subset both reward stopping, and the strongest controllers all
@@ -467,7 +467,7 @@ Reference sweep on stock Town03 (**21 scenarios** = 14 core + 7 expansion; full
 
 | model | track | MARSHAL-Graded | scenarios passed | low (3) | mid (6) | high (12) |
 |-------|-------|---------------:|-----------------:|--------:|--------:|----------:|
-| baseline (TM, officer-blind) | — | **28.0** | 3 / 21 | 0/3 | 1/6 | **2/12** |
+| baseline (TM, officer-blind) | — | **26.3** | 3 / 21 | 0/3 | 1/6 | **2/12** |
 | oracle (privileged authority) | A | **100.0** | 21 / 21 | 3/3 | 6/6 | **12/12** |
 | _your model_ | B _or_ C | _run `start.py`_ | — | — | — | — |
 
@@ -477,7 +477,7 @@ ignores the officer entirely. The oracle, which reasons over authority, solves
 **all 21 (100.0)**. That gap is the room an LLM/VLM reasoner has to make up over an
 E2E perception stack — and the quantitative case for authority-aware reasoning in
 autonomous driving. The best non-privileged models close only part of it
-(Qwen2.5-VL graded **65.7**, TransFuser **59.7**).
+(Qwen2.5-VL graded **66.2**, TransFuser **60.4**).
 
 _(Reproduce: `python scripts/run_marshal_sweep.py`; score your own model with
 `python start.py --controller <module:Class> --tag <name>`.)_
@@ -538,16 +538,16 @@ binary count across 3 tiers (low 3 / mid 6 / high 12). Sorted by MARSHAL-Graded.
 | model | track | MARSHAL-Graded | scenarios passed | low (3) | mid (6) | high (12) | authority-STOP (7) | link |
 |-------|-------|---------------:|-----------------:|--------:|--------:|----------:|-------------------:|------|
 | **oracle** (privileged) | A | **100.0**&Dagger; | **21 / 21** | 3/3 | 6/6 | 12/12 | 7 / 7&Dagger; | — (ours) |
-| **TransFuser**          | B | **59.7** | 11 / 21 | 2/3 | 2/6 | 7/12 | **4 / 7** | [github](https://github.com/autonomousvision/transfuser) |
-| InterFuser              | B | 51.2 | 8 / 21 | 1/3 | 1/6 | 6/12 | 3 / 7 | [github](https://github.com/opendilab/InterFuser) |
-| NEAT                    | B | 45.0 | 7 / 21 | 2/3 | 1/6 | 4/12 | **5 / 7** | [github](https://github.com/autonomousvision/neat) |
-| **OpenEMMA-B** — VLM planning&dagger; | B | 40.1 | 7 / 21 | 1/3 | 2/6 | 4/12 | 3 / 7 | [github](https://github.com/taco-group/OpenEMMA) |
+| **TransFuser**          | B | **60.4** | 11 / 21 | 2/3 | 2/6 | 7/12 | **4 / 7** | [github](https://github.com/autonomousvision/transfuser) |
+| InterFuser              | B | 51.6 | 8 / 21 | 1/3 | 1/6 | 6/12 | 3 / 7 | [github](https://github.com/opendilab/InterFuser) |
+| NEAT                    | B | 41.0 | 7 / 21 | 2/3 | 1/6 | 4/12 | **5 / 7** | [github](https://github.com/autonomousvision/neat) |
+| **OpenEMMA-B** — VLM planning&dagger; | B | 40.8 | 7 / 21 | 1/3 | 2/6 | 4/12 | 3 / 7 | [github](https://github.com/taco-group/OpenEMMA) |
 | CILRS                   | B | 36.7 | 5 / 21 | 0/3 | 2/6 | 3/12 | 1 / 7 | [github](https://github.com/felipecode/coiltraine) |
-| _baseline (TM, blind)_  | — | 28.0 | 3 / 21 | 0/3 | 1/6 | 2/12 | 1 / 7 | [CARLA TM](https://github.com/carla-simulator/carla) |
-| AIM                     | B | 23.8 | 3 / 21 | 1/3 | 0/6 | 2/12 | 2 / 7 | [github](https://github.com/autonomousvision/transfuser)&sect; |
-| TCP                     | B | 22.1 | 2 / 21 | 1/3 | 1/6 | 0/12 | 1 / 7 | [github](https://github.com/OpenDriveLab/TCP) |
-| MPC (control)           | B | 14.5 | 1 / 21 | 0/3 | 1/6 | 0/12 | 0 / 7 | — (classical) |
-| PID (control)           | B | 5.9 | 1 / 21 | 0/3 | 1/6 | 0/12 | 0 / 7 | — (classical) |
+| _baseline (TM, blind)_  | — | 26.3 | 3 / 21 | 0/3 | 1/6 | 2/12 | 1 / 7 | [CARLA TM](https://github.com/carla-simulator/carla) |
+| AIM                     | B | 22.8 | 3 / 21 | 1/3 | 0/6 | 2/12 | 2 / 7 | [github](https://github.com/autonomousvision/transfuser)&sect; |
+| TCP                     | B | 20.1 | 2 / 21 | 1/3 | 1/6 | 0/12 | 1 / 7 | [github](https://github.com/OpenDriveLab/TCP) |
+| MPC (control)           | B | 13.4 | 1 / 21 | 0/3 | 1/6 | 0/12 | 0 / 7 | — (classical) |
+| PID (control)           | B | 5.1 | 1 / 21 | 0/3 | 1/6 | 0/12 | 0 / 7 | — (classical) |
 
 <sub>&Dagger;oracle is privileged (reads ground truth) — calibration reference,
 not a competitor. &sect;AIM is a baseline released *within* the TransFuser repo
@@ -560,9 +560,9 @@ front-camera frame(s) — *not* a closed-loop driving score (see
 
 | model | track | input frames | prompt type | MARSHAL-Graded | scenarios passed | low (3) | mid (6) | high (12) | authority-STOP (7) | link |
 |-------|-------|--------------|-------------|---------------:|-----------------:|--------:|--------:|----------:|-------------------:|------|
-| **Qwen2.5-VL-72B**     | C | 1 / tick (~1.5 s) | per-tick STOP/GO/SLOW/HOLD | **65.7** | **12 / 21** | 2/3 | 2/6 | 8/12 | **5 / 7** | [github](https://github.com/QwenLM/Qwen2.5-VL) |
-| **Qwen3-VL-235B-A22B** | C | 1 / tick (~1.5 s) | per-tick STOP/GO/SLOW/HOLD | 44.9 | 8 / 21 | 2/3 | 1/6 | 5/12 | 4 / 7 | [github](https://github.com/QwenLM/Qwen3-VL) |
-| GLM-4.5V               | C | 1 / tick (~1.5 s) | per-tick STOP/GO/SLOW/HOLD | 35.6 | 5 / 21 | 2/3 | 1/6 | 2/12 | 2 / 7 | [github](https://github.com/zai-org/GLM-V) |
+| **Qwen2.5-VL-72B**     | C | 1 / tick (~1.5 s) | per-tick STOP/GO/SLOW/HOLD | **66.2** | **12 / 21** | 2/3 | 2/6 | 8/12 | **5 / 7** | [github](https://github.com/QwenLM/Qwen2.5-VL) |
+| **Qwen3-VL-235B-A22B** | C | 1 / tick (~1.5 s) | per-tick STOP/GO/SLOW/HOLD | 45.3 | 8 / 21 | 2/3 | 1/6 | 5/12 | 4 / 7 | [github](https://github.com/QwenLM/Qwen3-VL) |
+| GLM-4.5V               | C | 1 / tick (~1.5 s) | per-tick STOP/GO/SLOW/HOLD | 33.9 | 5 / 21 | 2/3 | 1/6 | 2/12 | 2 / 7 | [github](https://github.com/zai-org/GLM-V) |
 | _OpenEMMA-C_           | C | — | — | — | _planned (not yet run)_ | — | — | — | — | [github](https://github.com/taco-group/OpenEMMA) |
 
 > **Why two tables.** Track-B and Track-C results are reported separately because
@@ -583,8 +583,8 @@ front-camera frame(s) — *not* a closed-loop driving score (see
 
 - **On the engagement-gated graded score, the per-tick VLM leads — but the margin
   is narrow and the metric matters.** Qwen2.5-VL tops all non-privileged models
-  (graded **65.7**), just ahead of the LiDAR-equipped closed-loop **TransFuser
-  (59.7)**. On the *narrow* authority-STOP (7) subset the picture is muddier: the best
+  (graded **66.2**), just ahead of the LiDAR-equipped closed-loop **TransFuser
+  (60.4)**. On the *narrow* authority-STOP (7) subset the picture is muddier: the best
   VLM reads the human **5/7**, but the conservative E2E **NEAT also scores 5/7** and
   TransFuser 4/7 — because that subset rewards stopping, and **every strong controller
   here shares a stop-bias** (Qwen2.5-VL passes 12/21 yet **0/6** of the PROCEED/DETOUR
@@ -599,7 +599,7 @@ front-camera frame(s) — *not* a closed-loop driving score (see
   solved **only by the oracle**, and `green_stop` (officer STOP at a green light) is
   missed by almost every non-oracle model that reads the gesture.
 - **How you wire the VLM matters.** OpenEMMA-B — a VLM that regresses a *trajectory*
-  from a normal-driving prior — lands mid-pack (graded 40.1, 7/21)
+  from a normal-driving prior — lands mid-pack (graded 40.8, 7/21)
   but trails the per-tick Track-C reasoner on *authority-STOP* (**3/7** vs **5/7**):
   asked every tick "should I stop for this person?", a VLM
   reads the human far more often than one that smooths a path from a
