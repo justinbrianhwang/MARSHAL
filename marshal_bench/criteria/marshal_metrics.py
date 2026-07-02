@@ -33,6 +33,7 @@ results plus the episode's E-tuple, so they work for *any* controller
 from __future__ import annotations
 
 from dataclasses import dataclass, field, asdict
+import math
 from typing import Any, Dict, List, Optional, Set
 
 # ---------------------------------------------------------------------------
@@ -92,6 +93,7 @@ REASONING_TIER = {
 # Map each metric to the R1-R9 requirement it primarily evidences (PPTX Slide 7).
 METRIC_TO_R = {"AOC": "R3", "FOA": "R3", "TAA": "R2",
                "SBO": "R7", "CRI": "R3", "RTL": "R3",
+               "CMF": "R5",
                # high-tier reasoning metrics
                "OCC": "R1", "APR": "R3", "DRM": "R3", "RHC": "R3", "AGI": "R2"}
 
@@ -101,9 +103,10 @@ METRIC_TO_R = {"AOC": "R3", "FOA": "R3", "TAA": "R2",
 # actually stress: authority-conflict resolution (R3, ~15/21) and exceptional
 # handling (R7, ~6/21) are the two pillars; scene/relational (R2) and
 # interaction (R8) are cross-cutting; perception (R1) is a prerequisite tested
-# mainly by the occlusion case; planning/control/robustness/audit
-# (R4/R5/R6/R9) are not directly exercised by any current scenario and are kept
-# small as declared-but-under-covered. Sum = 1.00.
+# mainly by the occlusion case; control stability (R5) is partially measured
+# from telemetry comfort; planning/robustness/audit (R4/R6/R9) are not directly
+# exercised by any current scenario and are kept small as declared-but-under-
+# covered. Sum = 1.00.
 R_WEIGHTS = {"R1": 0.10, "R2": 0.12, "R3": 0.28, "R4": 0.05, "R5": 0.03,
              "R6": 0.02, "R7": 0.22, "R8": 0.13, "R9": 0.05}
 
@@ -118,6 +121,7 @@ class EpisodeMetrics:
     sbo: Optional[float] = None
     cri: Optional[float] = None   # infraction occurred (1.0) vs none (0.0)
     rtl: Optional[float] = None   # seconds, or None if no reaction
+    cmf: Optional[float] = None   # comfort metric factor, higher is smoother
     # high-level reasoning metrics
     occ: Optional[float] = None   # Occlusion-robust compliance
     apr: Optional[float] = None   # Authority-Priority Resolution
@@ -139,18 +143,69 @@ def _verdict(result: dict, key: str) -> dict:
     return {}
 
 
+def compute_comfort(telemetry_rows) -> Optional[float]:
+    """Compute longitudinal comfort from speed telemetry.
+
+    Returns a [0, 1] goodness score where higher means smoother control.
+    """
+    finite_rows = []
+    for row in telemetry_rows or []:
+        try:
+            sim_time = float(row.get("sim_time"))
+            speed_ms = float(row.get("ego_speed_kmh")) / 3.6
+        except (AttributeError, TypeError, ValueError):
+            continue
+        if math.isfinite(sim_time) and math.isfinite(speed_ms):
+            finite_rows.append((sim_time, speed_ms))
+
+    if len(finite_rows) < 3:
+        return None
+
+    accels = []
+    for idx in range(1, len(finite_rows)):
+        t0, v0 = finite_rows[idx - 1]
+        t1, v1 = finite_rows[idx]
+        dt = t1 - t0
+        if dt <= 0.0:
+            continue
+        accel = (v1 - v0) / dt
+        if math.isfinite(accel):
+            accels.append((accel, dt))
+
+    if not accels:
+        return None
+
+    jerks = []
+    for idx in range(1, len(accels)):
+        prev_accel, _ = accels[idx - 1]
+        accel, dt = accels[idx]
+        if dt <= 0.0:
+            continue
+        jerk = (accel - prev_accel) / dt
+        if math.isfinite(jerk):
+            jerks.append(jerk)
+
+    hard_brake_rate = sum(1 for accel, _ in accels if accel <= -3.0) / len(accels)
+    jerk_rms = math.sqrt(sum(jerk * jerk for jerk in jerks) / len(jerks)) if jerks else 0.0
+    jerk_credit = max(0.0, min(1.0, (5.0 - jerk_rms) / (5.0 - 0.9)))
+    cmf = 0.5 * (1.0 - hard_brake_rate) + 0.5 * jerk_credit
+    return max(0.0, min(1.0, cmf))
+
+
 def compute_episode_metrics(
     result: dict,
     scenario: Optional[str] = None,
     target_pred: Optional[str] = None,
+    telemetry_rows=None,
 ) -> EpisodeMetrics:
-    """Compute the six MARSHAL metrics for one episode result dict.
+    """Compute the MARSHAL metrics for one episode result dict.
 
     ``result`` is the dict returned by ``run_scenario`` (contains ``compliance``,
     ``latency``, ``officer_metadata``, ``traffic_light_state``, ...).
     ``target_pred`` is an optional controller-reported target attribution
     ("ego" / "adjacent_lane" / ...) used for TAA; when absent TAA is inferred
     behaviourally from whether the agent correctly held its position.
+    ``telemetry_rows`` is optional per-tick telemetry used only for CMF.
     """
     scenario = scenario or result.get("scenario", "")
     base = scenario.replace("marshal_", "")
@@ -182,6 +237,8 @@ def compute_episode_metrics(
         scenario=base,
         passed=passed,
     )
+    if telemetry_rows is not None:
+        em.cmf = compute_comfort(telemetry_rows)
     if isinstance(strict, dict):
         verdict = strict.get("verdict")
         reason = strict.get("reason")
@@ -268,6 +325,7 @@ def aggregate(metrics: List[EpisodeMetrics]) -> dict:
         "SBO": _mean([m.sbo for m in metrics]),
         "CRI": _mean([m.cri for m in metrics]),   # infraction rate (lower better)
         "RTL": _mean([m.rtl for m in metrics]),   # seconds (lower better)
+        "CMF": _mean([m.cmf for m in metrics]),
         # high-level reasoning suite
         "OCC": _mean([m.occ for m in metrics]),
         "APR": _mean([m.apr for m in metrics]),
@@ -295,12 +353,14 @@ def aggregate(metrics: List[EpisodeMetrics]) -> dict:
     # R1 perception: occlusion-robust compliance
     if suite["OCC"] is not None:
         r_scores["R1"] = suite["OCC"]
+    if suite["CMF"] is not None:
+        r_scores["R5"] = suite["CMF"]
     if suite["SBO"] is not None:
         r_scores["R7"] = suite["SBO"]
 
     # Weighted MARSHAL Score over the R's we can actually measure, with weights
-    # renormalised so the partial score stays in [0, 100]. Unmeasured R's
-    # (R1/R4/R5/R6/R8/R9) are listed explicitly as not-yet-instrumented.
+    # renormalised so the partial score stays in [0, 100]. R's without evidence
+    # for this aggregate are listed explicitly as not-yet-instrumented.
     measured_w = {r: R_WEIGHTS[r] for r in r_scores}
     wsum = sum(measured_w.values())
     marshal_score = (

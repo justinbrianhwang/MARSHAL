@@ -168,6 +168,74 @@ def test_rtl_is_reported_when_detected_and_none_when_missing():
     assert "RTL:no_reaction_detected" in missing.notes
 
 
+def test_compute_comfort_constant_speed_is_full_credit():
+    rows = [
+        {"sim_time": 0.0, "ego_speed_kmh": 36.0},
+        {"sim_time": 0.1, "ego_speed_kmh": 36.0},
+        {"sim_time": 0.2, "ego_speed_kmh": 36.0},
+        {"sim_time": 0.3, "ego_speed_kmh": 36.0},
+    ]
+
+    assert mm.compute_comfort(rows) == pytest.approx(1.0)
+
+
+def test_compute_comfort_hard_brake_loses_brake_and_jerk_credit():
+    rows = [
+        {"sim_time": 0.0, "ego_speed_kmh": 40.0},
+        {"sim_time": 0.1, "ego_speed_kmh": 0.0},
+        {"sim_time": 0.2, "ego_speed_kmh": 0.0},
+    ]
+
+    cmf = mm.compute_comfort(rows)
+
+    assert cmf == pytest.approx(0.25)
+    assert cmf < 0.6
+
+
+def test_compute_comfort_jerky_oscillation_loses_jerk_credit():
+    rows = [
+        {"sim_time": 0.0, "ego_speed_kmh": 36.0},
+        {"sim_time": 0.1, "ego_speed_kmh": 36.9},
+        {"sim_time": 0.2, "ego_speed_kmh": 36.0},
+        {"sim_time": 0.3, "ego_speed_kmh": 36.9},
+    ]
+
+    assert mm.compute_comfort(rows) == pytest.approx(0.5)
+
+
+def test_compute_comfort_requires_three_finite_rows():
+    assert mm.compute_comfort([
+        {"sim_time": 0.0, "ego_speed_kmh": 36.0},
+        {"sim_time": 0.1, "ego_speed_kmh": 36.0},
+    ]) is None
+    assert mm.compute_comfort([
+        {"sim_time": 0.0, "ego_speed_kmh": 36.0},
+        {"sim_time": 0.1, "ego_speed_kmh": float("nan")},
+        {"sim_time": 0.2, "ego_speed_kmh": 36.0},
+    ]) is None
+
+
+def test_compute_episode_metrics_populates_cmf_only_with_telemetry_rows():
+    rows = [
+        {"sim_time": 0.0, "ego_speed_kmh": 36.0},
+        {"sim_time": 0.1, "ego_speed_kmh": 36.0},
+        {"sim_time": 0.2, "ego_speed_kmh": 36.0},
+    ]
+
+    with_telemetry = mm.compute_episode_metrics(
+        result_for("green_stop"),
+        scenario="green_stop",
+        telemetry_rows=rows,
+    )
+    without_telemetry = mm.compute_episode_metrics(
+        result_for("green_stop"),
+        scenario="green_stop",
+    )
+
+    assert with_telemetry.cmf == pytest.approx(1.0)
+    assert without_telemetry.cmf is None
+
+
 def test_rtl_is_excluded_from_requirement_scores():
     fast = mm.compute_episode_metrics(
         result_for("green_stop", latency_detected=True, latency=0.25),
@@ -188,13 +256,13 @@ def test_rtl_is_excluded_from_requirement_scores():
 
 def test_aggregate_means_partial_score_unmeasured_requirements_and_tier_rates():
     episodes = [
-        mm.EpisodeMetrics("low-pass", "green_stop", aoc=1.0, sbo=1.0, rtl=2.0, passed=True),
-        mm.EpisodeMetrics("low-fail", "signal_off", aoc=0.0, sbo=0.0, passed=False),
-        mm.EpisodeMetrics("mid-pass", "red_proceed", aoc=1.0, sbo=1.0, cri=0.0, rtl=4.0, passed=True),
-        mm.EpisodeMetrics("mid-fail", "crash_detour", aoc=0.0, sbo=0.0, passed=False),
-        mm.EpisodeMetrics("high-pass", "occluded_officer", aoc=1.0, occ=1.0, passed=True),
-        mm.EpisodeMetrics("high-fail", "adjacent_lane", foa=0.0, taa=0.0, passed=False),
-        mm.EpisodeMetrics("high-pass-2", "ambiguous_gesture", agi=1.0, passed=True),
+        mm.EpisodeMetrics("low-pass", "green_stop", aoc=1.0, sbo=1.0, rtl=2.0, cmf=0.8, passed=True),
+        mm.EpisodeMetrics("low-fail", "signal_off", aoc=0.0, sbo=0.0, cmf=0.8, passed=False),
+        mm.EpisodeMetrics("mid-pass", "red_proceed", aoc=1.0, sbo=1.0, cri=0.0, rtl=4.0, cmf=0.8, passed=True),
+        mm.EpisodeMetrics("mid-fail", "crash_detour", aoc=0.0, sbo=0.0, cmf=0.8, passed=False),
+        mm.EpisodeMetrics("high-pass", "occluded_officer", aoc=1.0, occ=1.0, cmf=0.8, passed=True),
+        mm.EpisodeMetrics("high-fail", "adjacent_lane", foa=0.0, taa=0.0, cmf=0.8, passed=False),
+        mm.EpisodeMetrics("high-pass-2", "ambiguous_gesture", agi=1.0, cmf=0.8, passed=True),
     ]
 
     aggregate = mm.aggregate(episodes)
@@ -203,16 +271,19 @@ def test_aggregate_means_partial_score_unmeasured_requirements_and_tier_rates():
     assert aggregate["suite"]["SBO"] == 0.5
     assert aggregate["suite"]["RTL"] == 3.0
     assert aggregate["suite"]["CRI"] == 0.0
+    assert aggregate["suite"]["CMF"] == 0.8
     assert aggregate["r_scores"] == {
         "R3": 0.5333,
         "R2": 0.5,
         "R1": 1.0,
+        "R5": 0.8,
         "R7": 0.5,
     }
-    assert aggregate["r_unmeasured"] == ["R4", "R5", "R6", "R8", "R9"]
-    # Measured R weights (R1=0.10, R2=0.12, R3=0.28, R7=0.22) renormalized over
-    # their 0.72 sum: 100*(1.0*0.10 + 0.5*0.12 + 0.5333*0.28 + 0.5*0.22)/0.72.
-    assert aggregate["marshal_score_partial"] == 58.24
+    assert aggregate["r_unmeasured"] == ["R4", "R6", "R8", "R9"]
+    # Measured R weights (R1=0.10, R2=0.12, R3=0.28, R5=0.03, R7=0.22)
+    # renormalized over their 0.75 sum:
+    # 100*(1.0*0.10 + 0.5*0.12 + 0.5333*0.28 + 0.8*0.03 + 0.5*0.22)/0.75.
+    assert aggregate["marshal_score_partial"] == 59.11
     assert 0.0 <= aggregate["marshal_score_partial"] <= 100.0
     assert aggregate["tier_pass_rate"] == {
         "low": {"n": 2, "pass_rate": 0.5},

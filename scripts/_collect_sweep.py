@@ -16,7 +16,8 @@ import _run_vlm_test as vlm
 from _run_full_sweep import MODELS, SCEN
 from marshal_bench.criteria.graded_episode_scoring import (
     score_episode_from_telemetry, aggregate_graded_scores)
-from marshal_bench.criteria.marshal_metrics import REASONING_TIER
+from marshal_bench.criteria.marshal_metrics import (
+    REASONING_TIER, compute_episode_metrics, aggregate)
 
 TRACK_C = {"glm-4.5v", "qwen2.5-vl", "qwen3-vl"}
 
@@ -42,12 +43,23 @@ def read_tel(epdir):
         return None
 
 
+def read_result(epdir):
+    p = os.path.join(epdir, "result.json")
+    if not os.path.exists(p):
+        return None
+    try:
+        return json.load(open(p, encoding="utf-8"))
+    except Exception:
+        return None
+
+
 def main():
     matrix = {}      # model -> scenario -> {strict, credit}
     summary = {}
     for label, out_root, epid_fn, _ in MODELS:
         matrix[label] = {}
         ep_scores = []
+        ep_metrics = []
         npass = nfail = ninvalid = nmissing = 0
         for sc in SCEN:
             epdir = os.path.join(out_root, epid_fn(sc))
@@ -65,6 +77,14 @@ def main():
                 nfail += 1
             credit = None
             rows = read_tel(epdir)
+            result_dict = read_result(epdir)
+            if not isinstance(result_dict, dict):
+                result_dict = {"scenario": sc, "strict_scoring": strict}
+            else:
+                result_dict.setdefault("scenario", sc)
+                result_dict.setdefault("strict_scoring", strict)
+            ep_metrics.append(compute_episode_metrics(
+                result_dict, scenario=sc, telemetry_rows=rows))
             if rows:
                 try:
                     gs = score_episode_from_telemetry(
@@ -77,6 +97,7 @@ def main():
                     credit = None
             matrix[label][sc] = {"strict": verdict, "credit": credit}
         graded = aggregate_graded_scores(ep_scores)["marshal_graded"] if ep_scores else None
+        marshal_agg = aggregate(ep_metrics)
         scored = npass + nfail + ninvalid
         summary[label] = {
             "track": "C" if label in TRACK_C else "A/B",
@@ -84,14 +105,18 @@ def main():
             "missing": nmissing, "scored": scored,
             "pass_rate": round(100.0 * npass / scored, 1) if scored else None,
             "graded": graded,
+            "marshal_score": marshal_agg["marshal_score_partial"],
+            "r_scores": marshal_agg["r_scores"],
+            "suite": marshal_agg["suite"],
         }
 
     # print
-    print(f"{'model':14s} {'track':5s} {'pass':>4s}/{'tot':<3s} {'rate%':>6s} {'graded':>7s} {'miss':>4s}")
+    print(f"{'model':14s} {'track':5s} {'pass':>4s}/{'tot':<3s} {'rate%':>6s} {'graded':>7s} {'mscore':>7s} {'miss':>4s}")
     for label, _, _, _ in MODELS:
         s = summary[label]
         print(f"{label:14s} {s['track']:5s} {s['strict_pass']:>4d}/{s['scored']:<3d} "
-              f"{str(s['pass_rate']):>6s} {str(s['graded']):>7s} {s['missing']:>4d}")
+              f"{str(s['pass_rate']):>6s} {str(s['graded']):>7s} "
+              f"{str(s['marshal_score']):>7s} {s['missing']:>4d}")
 
     out = {"summary": summary, "matrix": matrix, "scenarios": SCEN,
            "tier": {sc: REASONING_TIER.get(sc) for sc in SCEN}}
