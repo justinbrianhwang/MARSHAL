@@ -215,11 +215,119 @@ def test_compute_comfort_requires_three_finite_rows():
     ]) is None
 
 
-def test_compute_episode_metrics_populates_cmf_only_with_telemetry_rows():
+def test_compute_lane_consistency_holding_one_lane_is_full_credit():
     rows = [
-        {"sim_time": 0.0, "ego_speed_kmh": 36.0},
-        {"sim_time": 0.1, "ego_speed_kmh": 36.0},
-        {"sim_time": 0.2, "ego_speed_kmh": 36.0},
+        {"ego_lane_id": 1, "ego_road_id": 10, "in_junction": False},
+        {"ego_lane_id": 1, "ego_road_id": 10, "in_junction": False},
+        {"ego_lane_id": 1, "ego_road_id": 10, "in_junction": False},
+    ]
+
+    assert mm.compute_lane_consistency(rows) == pytest.approx(1.0)
+
+
+def test_compute_lane_consistency_penalizes_three_same_road_lane_changes():
+    rows = [
+        {"ego_lane_id": 1, "ego_road_id": 10, "in_junction": False},
+        {"ego_lane_id": 2, "ego_road_id": 10, "in_junction": False},
+        {"ego_lane_id": 1, "ego_road_id": 10, "in_junction": False},
+        {"ego_lane_id": 2, "ego_road_id": 10, "in_junction": False},
+    ]
+
+    assert mm.compute_lane_consistency(rows) == pytest.approx(0.4)
+
+
+def test_compute_lane_consistency_ignores_lane_changes_across_road_ids():
+    rows = [
+        {"ego_lane_id": 1, "ego_road_id": 10, "in_junction": False},
+        {"ego_lane_id": 2, "ego_road_id": 11, "in_junction": False},
+        {"ego_lane_id": 3, "ego_road_id": 12, "in_junction": False},
+    ]
+
+    assert mm.compute_lane_consistency(rows) == pytest.approx(1.0)
+
+
+def test_compute_lane_consistency_ignores_junction_rows():
+    rows = [
+        {"ego_lane_id": 1, "ego_road_id": 10, "in_junction": False},
+        {"ego_lane_id": 2, "ego_road_id": 10, "in_junction": True},
+        {"ego_lane_id": 1, "ego_road_id": 10, "in_junction": False},
+    ]
+
+    assert mm.compute_lane_consistency(rows) == pytest.approx(1.0)
+
+
+def test_compute_lane_consistency_requires_two_valid_rows():
+    rows = [
+        {"ego_lane_id": 1, "ego_road_id": 10, "in_junction": False},
+        {"ego_lane_id": None, "ego_road_id": 10, "in_junction": False},
+        {"ego_lane_id": 2, "ego_road_id": 10, "in_junction": True},
+    ]
+
+    assert mm.compute_lane_consistency(rows) is None
+
+
+def test_compute_pedestrian_safety_full_credit_when_slows_near_pedestrian():
+    rows = [
+        {"ego_speed_kmh": 20.0, "distance_to_pedestrian_m": 12.0},
+        {"ego_speed_kmh": 5.0, "distance_to_pedestrian_m": 9.0},
+        {"ego_speed_kmh": 3.0, "distance_to_pedestrian_m": 8.0},
+    ]
+
+    assert mm.compute_pedestrian_safety(rows) == pytest.approx(1.0)
+
+
+def test_compute_pedestrian_safety_zero_credit_when_fast_near_pedestrian():
+    rows = [
+        {"ego_speed_kmh": 18.0, "distance_to_pedestrian_m": 9.0},
+        {"ego_speed_kmh": 15.0, "distance_to_pedestrian_m": 8.0},
+    ]
+
+    assert mm.compute_pedestrian_safety(rows) == pytest.approx(0.0)
+
+
+@pytest.mark.parametrize(
+    "rows",
+    [
+        [
+            {"ego_speed_kmh": 20.0, "distance_to_pedestrian_m": 12.0},
+            {"ego_speed_kmh": 18.0, "distance_to_pedestrian_m": 11.0},
+        ],
+        [
+            {"ego_speed_kmh": 20.0, "distance_to_pedestrian_m": None},
+            {"ego_speed_kmh": 18.0},
+        ],
+    ],
+)
+def test_compute_pedestrian_safety_returns_none_without_close_pedestrian(rows):
+    assert mm.compute_pedestrian_safety(rows) is None
+
+
+def test_compute_episode_metrics_populates_telemetry_metrics_only_with_rows():
+    rows = [
+        {
+            "sim_time": 0.0,
+            "ego_speed_kmh": 3.0,
+            "ego_lane_id": 1,
+            "ego_road_id": 10,
+            "in_junction": False,
+            "distance_to_pedestrian_m": 9.0,
+        },
+        {
+            "sim_time": 0.1,
+            "ego_speed_kmh": 3.0,
+            "ego_lane_id": 1,
+            "ego_road_id": 10,
+            "in_junction": False,
+            "distance_to_pedestrian_m": 9.0,
+        },
+        {
+            "sim_time": 0.2,
+            "ego_speed_kmh": 3.0,
+            "ego_lane_id": 1,
+            "ego_road_id": 10,
+            "in_junction": False,
+            "distance_to_pedestrian_m": 9.0,
+        },
     ]
 
     with_telemetry = mm.compute_episode_metrics(
@@ -233,7 +341,11 @@ def test_compute_episode_metrics_populates_cmf_only_with_telemetry_rows():
     )
 
     assert with_telemetry.cmf == pytest.approx(1.0)
+    assert with_telemetry.lnc == pytest.approx(1.0)
+    assert with_telemetry.psi == pytest.approx(1.0)
     assert without_telemetry.cmf is None
+    assert without_telemetry.lnc is None
+    assert without_telemetry.psi is None
 
 
 def test_rtl_is_excluded_from_requirement_scores():
@@ -291,6 +403,31 @@ def test_aggregate_means_partial_score_unmeasured_requirements_and_tier_rates():
         "high": {"n": 3, "pass_rate": 0.6667},
     }
     assert len(aggregate["per_episode"]) == len(episodes)
+
+
+def test_aggregate_uses_lnc_and_psi_for_r4_and_r8_when_present():
+    episodes = [
+        mm.EpisodeMetrics(
+            "instrumented",
+            "occluded_officer",
+            aoc=1.0,
+            taa=0.75,
+            sbo=0.9,
+            cmf=0.8,
+            lnc=0.4,
+            psi=1.0,
+            occ=1.0,
+            passed=True,
+        ),
+    ]
+
+    aggregate = mm.aggregate(episodes)
+
+    assert aggregate["suite"]["LNC"] == 0.4
+    assert aggregate["suite"]["PSI"] == 1.0
+    assert aggregate["r_scores"]["R4"] == 0.4
+    assert aggregate["r_scores"]["R8"] == 1.0
+    assert aggregate["r_unmeasured"] == ["R6", "R9"]
 
 
 def test_every_scenario_has_an_authority_weight():
