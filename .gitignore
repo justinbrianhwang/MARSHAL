@@ -28,3 +28,7 @@ assets/maps/*.xodr
 # Heavy character/prop source meshes (not needed at runtime; stock walker is used)
 *.fbx
 !assets/props/Town03Landmarks/Town03Landmarks.fbx
+
+# Internal-only working docs (progress logs, external-paper comparisons) — not for the public repo
+docs/meeting_progress_after_2026-07-01.md
+docs/comparison_with_wod_e2e.md
