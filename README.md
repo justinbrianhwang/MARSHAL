@@ -650,6 +650,66 @@ VLM rows are a single API pass (see the Table 2 note).</sub>
 
 ---
 
+## What MARSHAL reveals — findings that generalize beyond any single model
+
+The per-model breakdowns above say *how* each system failed. This section states the
+benchmark-level facts those failures add up to — claims about **authority-aware driving as
+a capability**, not about any one checkpoint. Each is reported with its evidence and its
+scope so it can be cited without over-reach.
+
+1. **Authority-aware reasoning is a separable capability that ordinary driving competence
+   does not confer.** The privileged oracle solves 21/21 (graded 100), while the best
+   non-privileged system reaches only graded ~66 (VLM) / ~56 (LiDAR E2E), and a whole
+   family of cases — contextual DETOUR (`crash_detour`, `civilian_warning_accident`,
+   `emergency_scene_blocking`, `barricade_self_detour`) and `ambulance_yield` — is solved
+   **only by the oracle**. The gap is not perception noise; it is the specific inability to
+   let a human directive *override* the prevailing traffic rule. MARSHAL isolates that axis
+   and shows it is not measured by nominal-driving benchmarks. *(Scope: single map, staged
+   scenarios.)*
+
+2. **The "stop-bias" is systematic across architecture families, not a per-model quirk.**
+   Every strong controller we tested — camera-only per-tick VLM, LiDAR closed-loop
+   geometry E2E, and trajectory-planning VLM — passes STOP cases yet collapses on
+   PROCEED/DETOUR (e.g. Qwen2.5-VL passes 12/21 but **0/6** of the PROCEED/DETOUR set).
+   Models built on a normal-driving prior default to braking under authority ambiguity.
+   This surfaces only because the suite is **balanced across STOP and non-STOP authority
+   actions**; a STOP-heavy benchmark would score the bias as success.
+
+3. **Whether a model can *use* its authority-reading ability is decided by the control
+   interface — not the backbone, the sensor modality, or the parameter count.** The same
+   VLM capability reads the officer when queried per-tick (STOP/GO/SLOW/HOLD) but goes
+   authority-blind when the model regresses a *trajectory* from a normal-driving prior
+   (logging the officer as "a pedestrian on the sidewalk" and following the green light).
+   Consistently, a camera-only per-tick VLM outscores a LiDAR-equipped closed-loop E2E on
+   the authority-STOP subset, and large E2E and classical control both fail — so in this
+   tail the differentiator is **reasoning/interface, not modality or scale**. *(Scope:
+   demonstrated across our specific per-tick vs full-planning wirings; Track-C is
+   single-sample.)*
+
+4. **Measuring this capability requires an engagement-gated, authority-weighted continuous
+   metric — strict-pass and distance-style scores under-measure it.** On an authority suite
+   an "always-brake" policy banks strict passes and looks competent; MARSHAL-Graded's
+   engagement gate (no credit for un-engaged creeping) plus authority weighting is what
+   separates *read the scene and acted* from *braked and got lucky*. The metric design is
+   itself a finding: the ranking you get depends on whether the score can see the stop-bias.
+
+5. **Closed-loop authority evaluation is irreducibly stochastic at decision boundaries, so
+   point-estimate leaderboards overstate rankings.** Learned controllers show run-to-run
+   graded variance up to ±6.8, concentrated on borderline cells (GPU/cuDNN non-determinism
+   + long-horizon simulation), while the privileged oracle is bit-identical across runs.
+   Two adjacent leaders (TransFuser 55.7 ± 4.9, InterFuser 53.6 ± 1.5) are a **statistical
+   tie**, not a clean ordering. The methodological consequence — benchmarks of this kind
+   must report distributions and per-cell pass-probability rather than single numbers — is
+   a contribution in its own right (see [docs/reproducibility.md](docs/reproducibility.md)).
+
+> **Bounding the claims.** These findings are established on a single synthetic map
+> (Town03) with staged scenarios and, for Track-C, a single API sample per scenario. They
+> are strong on internal validity (a deterministic oracle ceiling, controlled
+> counterfactual staging) and deliberately conservative on external validity — real-world
+> and cross-map generalization are stated as open work, not claimed.
+
+---
+
 ## Repository layout
 
 ```
