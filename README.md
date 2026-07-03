@@ -66,8 +66,9 @@ Every scenario is a self-contained closed-loop episode on **Town03**. You plug i
 your model as a *controller*, and MARSHAL spawns the officer, the gestures, the
 construction flagger, the ambulance, and the scene, runs the episode, and scores
 it. Built and verified on **CARLA 0.9.16**. It is an **initial implementation** with
-caveats kept visible (single-seed; a partial weighted MARSHAL Score; requirements
-R4–R6 / R8–R9 not yet instrumented).
+caveats kept visible (graded reported as a 3-run mean ± std, strict counts from one
+reference run; a partial weighted MARSHAL Score; requirements R6 / R9 not yet
+instrumented).
 
 ---
 
@@ -446,16 +447,21 @@ fully auditable.
 > calibrated so the privileged oracle = **100**. An **approach/engagement gate**
 > denies STOP credit to controllers that merely creep to a halt without ever engaging
 > the scene — so an over-cautious "always-brake" model cannot bank partial credit it
-> didn't earn. On the 21-scenario suite the leaderboard is: **oracle 100.0**, then the
-> best non-privileged model **Qwen2.5-VL 66.2**, **TransFuser 60.4**, InterFuser 51.6,
-> NEAT 41.0, Qwen3-VL 45.3, OpenEMMA 40.8, CILRS 36.7, baseline 26.3, AIM 22.8,
-> TCP 20.1, MPC 13.4, PID 5.1 (per-model rows in the Results tables below).
+> didn't earn. On the 21-scenario suite the leaderboard is (Track-B graded as the
+> **mean ± std of 3 independent closed-loop sweeps**): **oracle 100.0**, then the
+> best non-privileged model **Qwen2.5-VL 66.2**, **TransFuser 55.7 ± 4.9**,
+> InterFuser 53.6 ± 1.5, Qwen3-VL 45.3, OpenEMMA 39.5 ± 1.7, NEAT 36.5 ± 6.8,
+> GLM-4.5V 33.9, CILRS 31.2 ± 2.7, AIM 24.0 ± 2.7, baseline 23.9 ± 2.1,
+> TCP 14.8 ± 1.1, MPC 13.4, PID 5.8 (per-model rows in the Results tables below).
+> Track-C VLMs are a single API pass (telemetry re-scored deterministically), so
+> they carry no cross-sample std.
 >
 > **Why graded is the headline.** The strict binary count and the narrow
 > *authority-STOP (7)* subset both reward stopping, and the strongest controllers all
 > share a **conservative stop-bias** (e.g. our per-tick Qwen2.5-VL passes 12/21 but
-> *0/6* of the PROCEED/DETOUR scenarios; the conservative E2E NEAT ties it at 5/7 on
-> authority-STOP). The engagement-gated graded score is what separates "read the scene
+> *0/6* of the PROCEED/DETOUR scenarios; on the authority-STOP subset the best VLM
+> leads at 5/7 with the LiDAR E2E TransFuser next at 4/7). The engagement-gated
+> graded score is what separates "read the scene
 > and acted" from "braked and got lucky" — which is why we lead with it.
 
 ---
@@ -467,17 +473,17 @@ Reference sweep on stock Town03 (**21 scenarios** = 14 core + 7 expansion; full
 
 | model | track | MARSHAL-Graded | scenarios passed | low (3) | mid (6) | high (12) |
 |-------|-------|---------------:|-----------------:|--------:|--------:|----------:|
-| baseline (TM, officer-blind) | — | **26.3** | 3 / 21 | 0/3 | 1/6 | **2/12** |
+| baseline (TM, officer-blind) | — | **23.9 ± 2.1** | 2 / 21 | 0/3 | 1/6 | **1/12** |
 | oracle (privileged authority) | A | **100.0** | 21 / 21 | 3/3 | 6/6 | **12/12** |
 | _your model_ | B _or_ C | _run `start.py`_ | — | — | — | — |
 
 **The headline:** the officer-blind baseline (perception + traffic-light only)
-collapses on the high tier — **2/12** — and fails the low tier (0/3) because it
+collapses on the high tier — **1/12** — and fails the low tier (0/3) because it
 ignores the officer entirely. The oracle, which reasons over authority, solves
 **all 21 (100.0)**. That gap is the room an LLM/VLM reasoner has to make up over an
 E2E perception stack — and the quantitative case for authority-aware reasoning in
 autonomous driving. The best non-privileged models close only part of it
-(Qwen2.5-VL graded **66.2**, TransFuser **60.4**).
+(Qwen2.5-VL graded **66.2**, TransFuser **55.7 ± 4.9**).
 
 _(Reproduce: `python scripts/run_marshal_sweep.py`; score your own model with
 `python start.py --controller <module:Class> --tag <name>`.)_
@@ -535,24 +541,29 @@ model on its native sensor rig. **MARSHAL-Graded** is the continuous, oracle-cal
 stop-bias-corrected score (0–100, primary metric); *scenarios passed* is the strict
 binary count across 3 tiers (low 3 / mid 6 / high 12). Sorted by MARSHAL-Graded.
 
-| model | track | MARSHAL-Graded | scenarios passed | low (3) | mid (6) | high (12) | authority-STOP (7) | link |
+| model | track | MARSHAL-Graded (3-run mean ± std) | scenarios passed | low (3) | mid (6) | high (12) | authority-STOP (7) | link |
 |-------|-------|---------------:|-----------------:|--------:|--------:|----------:|-------------------:|------|
-| **oracle** (privileged) | A | **100.0**&Dagger; | **21 / 21** | 3/3 | 6/6 | 12/12 | 7 / 7&Dagger; | — (ours) |
-| **TransFuser**          | B | **60.4** | 11 / 21 | 2/3 | 2/6 | 7/12 | **4 / 7** | [github](https://github.com/autonomousvision/transfuser) |
-| InterFuser              | B | 51.6 | 8 / 21 | 1/3 | 1/6 | 6/12 | 3 / 7 | [github](https://github.com/opendilab/InterFuser) |
-| NEAT                    | B | 41.0 | 7 / 21 | 2/3 | 1/6 | 4/12 | **5 / 7** | [github](https://github.com/autonomousvision/neat) |
-| **OpenEMMA-B** — VLM planning&dagger; | B | 40.8 | 7 / 21 | 1/3 | 2/6 | 4/12 | 3 / 7 | [github](https://github.com/taco-group/OpenEMMA) |
-| CILRS                   | B | 36.7 | 5 / 21 | 0/3 | 2/6 | 3/12 | 1 / 7 | [github](https://github.com/felipecode/coiltraine) |
-| _baseline (TM, blind)_  | — | 26.3 | 3 / 21 | 0/3 | 1/6 | 2/12 | 1 / 7 | [CARLA TM](https://github.com/carla-simulator/carla) |
-| AIM                     | B | 22.8 | 3 / 21 | 1/3 | 0/6 | 2/12 | 2 / 7 | [github](https://github.com/autonomousvision/transfuser)&sect; |
-| TCP                     | B | 20.1 | 2 / 21 | 1/3 | 1/6 | 0/12 | 1 / 7 | [github](https://github.com/OpenDriveLab/TCP) |
-| MPC (control)           | B | 13.4 | 1 / 21 | 0/3 | 1/6 | 0/12 | 0 / 7 | — (classical) |
-| PID (control)           | B | 5.1 | 1 / 21 | 0/3 | 1/6 | 0/12 | 0 / 7 | — (classical) |
+| **oracle** (privileged) | A | **100.0 ± 0.0**&Dagger; | **21 / 21** | 3/3 | 6/6 | 12/12 | 7 / 7&Dagger; | — (ours) |
+| **TransFuser**          | B | **55.7 ± 4.9** | 11 / 21 | 2/3 | 2/6 | 7/12 | **4 / 7** | [github](https://github.com/autonomousvision/transfuser) |
+| InterFuser              | B | 53.6 ± 1.5 | 8 / 21 | 1/3 | 1/6 | 6/12 | 3 / 7 | [github](https://github.com/opendilab/InterFuser) |
+| **OpenEMMA-B** — VLM planning&dagger; | B | 39.5 ± 1.7 | 7 / 21 | 1/3 | 2/6 | 4/12 | 2 / 7 | [github](https://github.com/taco-group/OpenEMMA) |
+| NEAT                    | B | 36.5 ± 6.8 | 4 / 21 | 1/3 | 1/6 | 2/12 | 3 / 7 | [github](https://github.com/autonomousvision/neat) |
+| CILRS                   | B | 31.2 ± 2.7 | 4 / 21 | 0/3 | 1/6 | 3/12 | 1 / 7 | [github](https://github.com/felipecode/coiltraine) |
+| AIM                     | B | 24.0 ± 2.7 | 3 / 21 | 1/3 | 0/6 | 2/12 | 1 / 7 | [github](https://github.com/autonomousvision/transfuser)&sect; |
+| _baseline (TM, blind)_  | — | 23.9 ± 2.1 | 2 / 21 | 0/3 | 1/6 | 1/12 | 1 / 7 | [CARLA TM](https://github.com/carla-simulator/carla) |
+| TCP                     | B | 14.8 ± 1.1 | 1 / 21 | 0/3 | 1/6 | 0/12 | 0 / 7 | [github](https://github.com/OpenDriveLab/TCP) |
+| MPC (control)           | B | 13.4 ± 0.0 | 1 / 21 | 0/3 | 1/6 | 0/12 | 0 / 7 | — (classical) |
+| PID (control)           | B | 5.8 ± 0.1 | 1 / 21 | 0/3 | 1/6 | 0/12 | 0 / 7 | — (classical) |
 
 <sub>&Dagger;oracle is privileged (reads ground truth) — calibration reference,
 not a competitor. &sect;AIM is a baseline released *within* the TransFuser repo
 (no standalone repo). `oracle`, `PID`/`MPC` are our own reference controllers.
-21 scenarios = the 14 core + 7 expansion scenarios; single seed on stock Town03.</sub>
+21 scenarios = the 14 core + 7 expansion scenarios on stock Town03.
+**MARSHAL-Graded is the mean ± std of 3 independent closed-loop sweeps**; the
+strict pass-count columns (scenarios passed / tiers / authority-STOP) are shown
+for one reference sweep (run 1) so tier counts sum consistently — borderline
+cells vary by ±1–2 across runs (per-cell PASS-probabilities and per-run values:
+[docs/reproducibility.md](docs/reproducibility.md)). Sorted by MARSHAL-Graded.</sub>
 
 **Table 2 — Track-C: Visual Decision QA.** A VLM answers the ego action from
 front-camera frame(s) — *not* a closed-loop driving score (see
@@ -564,6 +575,11 @@ front-camera frame(s) — *not* a closed-loop driving score (see
 | **Qwen3-VL-235B-A22B** | C | 1 / tick (~1.5 s) | per-tick STOP/GO/SLOW/HOLD | 45.3 | 8 / 21 | 2/3 | 1/6 | 5/12 | 4 / 7 | [github](https://github.com/QwenLM/Qwen3-VL) |
 | GLM-4.5V               | C | 1 / tick (~1.5 s) | per-tick STOP/GO/SLOW/HOLD | 33.9 | 5 / 21 | 2/3 | 1/6 | 2/12 | 2 / 7 | [github](https://github.com/zai-org/GLM-V) |
 | _OpenEMMA-C_           | C | — | — | — | _planned (not yet run)_ | — | — | — | — | [github](https://github.com/taco-group/OpenEMMA) |
+
+<sub>Track-C graded is from a **single API pass per scenario** (the VLM's per-tick
+decisions are logged once, then re-scored deterministically), so unlike the Track-B
+rows it carries no cross-sample std — the model's own API sampling variance is not
+captured here and is a known caveat. Multi-sample VLM runs are future work.</sub>
 
 > **Why two tables.** Track-B and Track-C results are reported separately because
 > Track-B evaluates closed-loop control in CARLA, while Track-C evaluates visual
@@ -583,15 +599,17 @@ front-camera frame(s) — *not* a closed-loop driving score (see
 
 - **On the engagement-gated graded score, the per-tick VLM leads — but the margin
   is narrow and the metric matters.** Qwen2.5-VL tops all non-privileged models
-  (graded **66.2**), just ahead of the LiDAR-equipped closed-loop **TransFuser
-  (60.4)**. On the *narrow* authority-STOP (7) subset the picture is muddier: the best
-  VLM reads the human **5/7**, but the conservative E2E **NEAT also scores 5/7** and
-  TransFuser 4/7 — because that subset rewards stopping, and **every strong controller
-  here shares a stop-bias** (Qwen2.5-VL passes 12/21 yet **0/6** of the PROCEED/DETOUR
-  cases). The graded score, which denies credit for un-engaged creeping and weights
-  authority overrides, is what still separates the VLM reasoner from a model that
-  merely brakes a lot. *(Cross-track comparison: single-front-camera, per-tick
-  protocol — read with the Track-B vs Track-C caveat above.)*
+  (graded **66.2**), ahead of the LiDAR-equipped closed-loop **TransFuser
+  (55.7 ± 4.9)** — whose error bars overlap the next model, **InterFuser
+  (53.6 ± 1.5)**, so the two E2E leaders are statistically a tie for second across
+  the 3-run sweep. On the *narrow* authority-STOP (7) subset the best VLM reads the
+  human **5/7**, with TransFuser next at 4/7 — the subset rewards stopping, and
+  **every strong controller here shares a stop-bias** (Qwen2.5-VL passes 12/21 yet
+  **0/6** of the PROCEED/DETOUR cases). The graded score, which denies credit for
+  un-engaged creeping and weights authority overrides, is what still separates the
+  VLM reasoner from a model that merely brakes a lot. *(Cross-track comparison:
+  single-front-camera, per-tick protocol — read with the Track-B vs Track-C caveat
+  above.)*
 - **No learned model touches the oracle.** The best non-privileged models
   (Qwen2.5-VL 12/21, TransFuser 11/21) leave a wide gap to the oracle's 21/21 — the
   three contextual-DETOUR scenarios (`crash_detour`, `civilian_warning_accident`,
@@ -599,8 +617,8 @@ front-camera frame(s) — *not* a closed-loop driving score (see
   solved **only by the oracle**, and `green_stop` (officer STOP at a green light) is
   missed by almost every non-oracle model that reads the gesture.
 - **How you wire the VLM matters.** OpenEMMA-B — a VLM that regresses a *trajectory*
-  from a normal-driving prior — lands mid-pack (graded 40.8, 7/21)
-  but trails the per-tick Track-C reasoner on *authority-STOP* (**3/7** vs **5/7**):
+  from a normal-driving prior — lands mid-pack (graded 39.5, 7/21)
+  but trails the per-tick Track-C reasoner on *authority-STOP* (**2/7** vs **5/7**):
   asked every tick "should I stop for this person?", a VLM
   reads the human far more often than one that smooths a path from a
   green-light-means-go prior. OpenEMMA's misses split cleanly
@@ -626,7 +644,9 @@ the planning-based middle point between Track-B geometry E2E and the Track-C
 per-tick VLM. These numbers were re-measured after the officer hand-signals were
 corrected to authentic US traffic-direction poses (see *Officer hand signals*), so
 they supersede the earlier sweep; every model has **INVALID = 0** (no telemetry
-gaps). Results are single-seed (n = 1) — multi-seed runs are future work.</sub>
+gaps). Track-B graded is reported as the **mean ± std of 3 independent closed-loop
+sweeps** (n = 3); strict pass-counts are shown for one reference sweep. Track-C
+VLM rows are a single API pass (see the Table 2 note).</sub>
 
 ---
 
