@@ -733,15 +733,15 @@ results/                     # committed scoreboards
 
 MARSHAL is developed by:
 
-| Name | Role |
-|---|---|
-| **Sunjun Hwang** | Lead — design, implementation, experiments |
-| **Hyunjun Kim** | PhD student |
-| **Yohan Ko** | Professor |
-| **Hwisoo So** | Professor |
-| **Aviral Shrivastava** | Professor |
-| **Kaustubh Harapanahalli** | PhD student |
-| **Edward Andert** | PhD student |
+| Name | Affiliation | Degree |
+|---|---|---|
+| **Sunjun Hwang** | Yonsei University | BS graduate |
+| **Hyunjun Kim** | Yonsei University | PhD student |
+| **Yohan Ko** | Yonsei University | Professor |
+| **Hwisoo So** | Kyungpook National University | Professor |
+| **Aviral Shrivastava** | Arizona State University | Professor |
+| **Kaustubh Harapanahalli** | Arizona State University | PhD student |
+| **Edward Andert** | Arizona State University | PhD student |
 
 ---
 
