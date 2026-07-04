@@ -729,6 +729,22 @@ results/                     # committed scoreboards
 
 ---
 
+## Team
+
+MARSHAL is developed by:
+
+| Name | Role |
+|---|---|
+| **Sunjun Hwang** | Lead — design, implementation, experiments |
+| **Hyunjun Kim** | PhD student |
+| **Yohan Ko** | Professor |
+| **Hwisoo So** | Professor |
+| **Aviral Shrivastava** | Professor |
+| **Kaustubh Harapanahalli** | PhD student |
+| **Edward Andert** | PhD student |
+
+---
+
 ## Grounding & credits
 
 Authority precedence follows real traffic-control policy (officer signals
