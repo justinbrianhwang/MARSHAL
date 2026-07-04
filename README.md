@@ -14,14 +14,10 @@ harness**. You plug in any of those as a *controller*; MARSHAL generates the sce
 runs the closed-loop episode, and returns authority-aware reliability metrics.
 **New here? Start with [docs/what_is_marshal.md](docs/what_is_marshal.md).**
 
-```mermaid
-flowchart LR
-    A["Scenario Spec<br/>21 authority-conflict episodes"] --> B["Scenario Generator<br/>CARLA Town03 + officer / flagger /<br/>ambulance / hazard + gestures"]
-    B --> C["Driving Agent under test<br/>oracle · E2E · VLM (plug-in)"]
-    C --> D["Evaluation Engine<br/>strict telemetry + metric suite"]
-    D --> E["Reliability Metrics<br/>AOC · FOA · TAA · SBO · CRI · RTL → R1–R9"]
-    E --> F["MARSHAL Score<br/>strict pass-rate + MARSHAL-Graded (0–100)"]
-```
+<p align="center">
+  <img src="assets/architecture/pipeline.png" width="900"
+       alt="MARSHAL pipeline — Scenario Spec (21 authority-conflict episodes) → Scenario Generator (CARLA Town03; officer, flagger, ambulance, hazard, gestures) → Driving Agent under test (plug-in / swappable: A privileged oracle, B closed-loop E2E, C VLM) → Evaluation Engine (strict telemetry + metric suite) → Reliability Metrics (AOC · FOA · TAA · SBO · CRI · RTL → R1–R9) → MARSHAL Score (strict pass-rate + MARSHAL-Graded 0–100). Correct action per scenario: STOP / PROCEED / YIELD / DETOUR / HOLD.">
+</p>
 
 > **Legal basis (US traffic law).** MARSHAL's premise — that a human traffic
 > authority's directions take precedence over ordinary signals — reflects
