@@ -245,9 +245,14 @@
   figure.diagram figcaption { color: var(--faint); font-size: 13px; margin-top: 12px; max-width: var(--measure); }
 
   /* Team */
-  .team { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px 24px; margin-top: 4px; }
+  .team { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px 24px; margin-top: 4px; }
   .member .n { font-size: 15.5px; color: var(--ink); font-weight: 600; }
   .member .r { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-top: 3px; letter-spacing: .02em; }
+  .member .a { font-family: var(--mono); font-size: 11.5px; color: var(--faint); margin-top: 4px; display: flex; align-items: center; gap: 6px; }
+  .inst { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+  .inst-yonsei { background: #2C5CAA; }
+  .inst-knu    { background: #2E7D57; }
+  .inst-asu    { background: #7A4FA3; }
 
   /* Code */
   pre {
@@ -528,13 +533,17 @@ python start.py <span class="k">--controller</span> my_pkg.my_model:MyController
     <section id="team">
       <h2>Team</h2>
       <div class="team">
-        <div class="member"><div class="n">Sunjun Hwang</div><div class="r">Lead — design, implementation, experiments</div></div>
-        <div class="member"><div class="n">Hyunjun Kim</div><div class="r">PhD student</div></div>
-        <div class="member"><div class="n">Yohan Ko</div><div class="r">Professor</div></div>
-        <div class="member"><div class="n">Hwisoo So</div><div class="r">Professor</div></div>
-        <div class="member"><div class="n">Aviral Shrivastava</div><div class="r">Professor</div></div>
-        <div class="member"><div class="n">Kaustubh Harapanahalli</div><div class="r">PhD student</div></div>
-        <div class="member"><div class="n">Edward Andert</div><div class="r">PhD student</div></div>
+        
+        
+        <div class="member"><div class="n">Sunjun Hwang</div><div class="a"><span class="inst inst-yonsei"></span>Yonsei University</div><div class="r">BS graduate</div></div>
+        <div class="member"><div class="n">Hyunjun Kim</div><div class="a"><span class="inst inst-yonsei"></span>Yonsei University</div><div class="r">PhD student</div></div>
+        <div class="member"><div class="n">Yohan Ko</div><div class="a"><span class="inst inst-yonsei"></span>Yonsei University</div><div class="r">Professor</div></div>
+        <div class="member"><div class="n">Hwisoo So</div><div class="a"><span class="inst inst-knu"></span>Kyungpook National University</div><div class="r">Professor</div></div>
+        <div class="member"><div class="n">Aviral Shrivastava</div><div class="a"><span class="inst inst-asu"></span>Arizona State University</div><div class="r">Professor</div></div>
+        <div class="member"><div class="n">Kaustubh Harapanahalli</div><div class="a"><span class="inst inst-asu"></span>Arizona State University</div><div class="r">PhD student</div></div>
+        <div class="member"><div class="n">Edward Andert</div><div class="a"><span class="inst inst-asu"></span>Arizona State University</div><div class="r">PhD student</div></div>
+      
+      
       </div>
     </section>
   </main>
