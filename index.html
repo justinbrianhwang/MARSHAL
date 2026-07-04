@@ -244,6 +244,11 @@
   figure.diagram img { display: block; width: 100%; height: auto; }
   figure.diagram figcaption { color: var(--faint); font-size: 13px; margin-top: 12px; max-width: var(--measure); }
 
+  /* Team */
+  .team { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px 24px; margin-top: 4px; }
+  .member .n { font-size: 15.5px; color: var(--ink); font-weight: 600; }
+  .member .r { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-top: 3px; letter-spacing: .02em; }
+
   /* Code */
   pre {
     background: var(--code-bg);
@@ -518,6 +523,19 @@ python start.py <span class="k">--controller</span> my_pkg.my_model:MyController
     <section>
       <h2>Scope &amp; honesty</h2>
       <p class="disclaimer">MARSHAL is an initial implementation. Results are established on a single synthetic map (Town03) with staged scenarios, and Track-C VLMs use a single API sample per scenario. It is strong on internal validity — a deterministic oracle ceiling and controlled counterfactual staging — and deliberately conservative on external validity: real-world and cross-map generalization are stated as open work, not claimed. Not yet peer-reviewed.</p>
+    </section>
+
+    <section id="team">
+      <h2>Team</h2>
+      <div class="team">
+        <div class="member"><div class="n">Sunjun Hwang</div><div class="r">Lead — design, implementation, experiments</div></div>
+        <div class="member"><div class="n">Hyunjun Kim</div><div class="r">PhD student</div></div>
+        <div class="member"><div class="n">Yohan Ko</div><div class="r">Professor</div></div>
+        <div class="member"><div class="n">Hwisoo So</div><div class="r">Professor</div></div>
+        <div class="member"><div class="n">Aviral Shrivastava</div><div class="r">Professor</div></div>
+        <div class="member"><div class="n">Kaustubh Harapanahalli</div><div class="r">PhD student</div></div>
+        <div class="member"><div class="n">Edward Andert</div><div class="r">PhD student</div></div>
+      </div>
     </section>
   </main>
 
