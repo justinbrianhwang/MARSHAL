@@ -324,6 +324,11 @@
       <h2>What it is</h2>
       <p class="lead">MARSHAL is <b>not</b> a driving model, planner, or LLM — it is the evaluation harness. You plug any of those in as a <em>controller</em>; MARSHAL generates the scene, runs the closed-loop episode, and returns authority-aware reliability metrics.</p>
       <p>It stages 21 authority-conflict episodes in CARLA Town03 — an officer directing traffic, a construction flagger, an ambulance, a school crossing guard — where the correct action depends on obeying a human whose command <em>overrides</em> the ordinary road signal. The premise reflects long-standing US traffic law: the precedence is <b>safety&nbsp;&gt;&nbsp;authorized human command&nbsp;&gt;&nbsp;traffic device</b>.</p>
+      <figure class="diagram" style="max-width:380px;margin:22px auto 0;">
+        <div class="frame">
+          <img src="assets/figures/authority-precedence.png" alt="Authority precedence ladder: Safety (e.g. pedestrian crossing) overrides Authorized human command (e.g. police officer / flagger) which overrides Traffic control device (e.g. traffic light or sign). MARSHAL focuses on the middle tier.">
+        </div>
+      </figure>
     </section>
 
     <section id="pipeline">
@@ -336,6 +341,12 @@
           <img src="assets/architecture/pipeline.png" alt="MARSHAL pipeline: Scenario Spec (21 authority-conflict episodes) to Scenario Generator (CARLA Town03; officer, flagger, ambulance, hazard, gestures) to Driving Agent under test (plug-in: A privileged oracle, B closed-loop E2E, C VLM) to Evaluation Engine (strict telemetry + metric suite) to Reliability Metrics (AOC, FOA, TAA, SBO, CRI, RTL to R1-R9) to MARSHAL Score (strict pass-rate + MARSHAL-Graded 0-100). Correct action per scenario: STOP / PROCEED / YIELD / DETOUR / HOLD." width="1376" height="768">
         </div>
         <figcaption>The model under test occupies a single swappable slot — everything upstream and downstream is held fixed, so scores are comparable across oracle, E2E, and VLM.</figcaption>
+      </figure>
+      <figure class="diagram" style="margin-top:26px;">
+        <div class="frame">
+          <img src="assets/figures/episode-anatomy.png" alt="Anatomy of one green_stop episode: (1) front camera sees a green light with an officer signaling STOP; (2) the model reads 'green light, but officer signals STOP'; (3) it decides STOP over PROCEED / SLOW / HOLD; (4) it emits VehicleControl(throttle=0, brake=1, steer=0); (5) telemetry shows the ego halted at the stop-line — authority obeyed. The loop repeats every tick.">
+        </div>
+        <figcaption>One <code class="inline">green_stop</code> tick end to end: read the front camera → decide → actuate → score the realized telemetry, every tick.</figcaption>
       </figure>
     </section>
 
@@ -465,6 +476,11 @@
       <p style="margin-top:-6px;margin-bottom:22px;color:var(--muted);font-size:15px;max-width:var(--measure)">
         <b style="color:var(--ink)">MARSHAL-Graded</b> — the primary metric — is a continuous 0–100 credit from telemetry margins, authority-weighted, oracle-calibrated to 100, with an engagement gate that denies credit for un-engaged creeping. Reported as the mean&nbsp;±&nbsp;std of 3 closed-loop sweeps.
       </p>
+      <figure class="diagram" style="max-width:720px;margin:0 auto 22px;">
+        <div class="frame">
+          <img src="assets/figures/leaderboard.png" alt="Bar chart of MARSHAL-Graded (0–100) across all 14 models, sorted high to low: oracle 100.0±0.0 (calibration ceiling), Qwen2.5-VL 66.2, TransFuser 55.7±4.9, InterFuser 53.6±1.5, Qwen3-VL 45.3, OpenEMMA 39.5±1.7, NEAT 36.5±6.8, GLM-4.5V 33.9, CILRS 31.2±2.7, AIM 24.0±2.7, baseline 23.9±2.1, TCP 14.8±1.1, MPC 13.4, PID 5.8. TransFuser and InterFuser error bars overlap.">
+        </div>
+      </figure>
       <div class="tablecard">
         <table>
           <thead>
@@ -487,6 +503,12 @@
 
     <section>
       <h2>What MARSHAL reveals</h2>
+      <figure class="diagram" style="margin:0 0 26px;">
+        <div class="frame">
+          <img src="assets/figures/authority-gap.png" alt="Two panels at the same intersection (green light, officer signaling STOP). Left, officer-blind baseline: the car drives through the green light past the officer — obeys the signal, ignores the human. Right, MARSHAL oracle: the car stops at the line before the officer — obeys the human over the signal.">
+        </div>
+        <figcaption>The officer-blind baseline obeys the signal; the authority-aware oracle obeys the human. That gap — not perception — is what MARSHAL measures.</figcaption>
+      </figure>
       <div class="findings">
         <div class="finding">
           <b>Authority-aware reasoning is a separable capability that ordinary driving competence does not confer.</b>
