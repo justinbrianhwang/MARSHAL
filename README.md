@@ -19,6 +19,16 @@ runs the closed-loop episode, and returns authority-aware reliability metrics.
        alt="MARSHAL pipeline — Scenario Spec (21 authority-conflict episodes) → Scenario Generator (CARLA Town03; officer, flagger, ambulance, hazard, gestures) → Driving Agent under test (plug-in / swappable: A privileged oracle, B closed-loop E2E, C VLM) → Evaluation Engine (strict telemetry + metric suite) → Reliability Metrics (AOC · FOA · TAA · SBO · CRI · RTL → R1–R9) → MARSHAL Score (strict pass-rate + MARSHAL-Graded 0–100). Correct action per scenario: STOP / PROCEED / YIELD / DETOUR / HOLD.">
 </p>
 
+**What one episode looks like.** Every tick, the model under test receives a
+front-camera frame, decides one of STOP / PROCEED / SLOW / HOLD, emits a
+`VehicleControl`, and the realized telemetry is scored against the authority-correct
+behavior — here `green_stop`, where the officer's STOP overrides the green light:
+
+<p align="center">
+  <img src="assets/figures/episode-anatomy.png" width="880"
+       alt="Anatomy of one green_stop episode: (1) front camera sees a green light with an officer signaling STOP; (2) the model reads 'green light, but officer signals STOP'; (3) it decides STOP (over PROCEED / SLOW / HOLD); (4) it emits VehicleControl(throttle=0, brake=1, steer=0); (5) the telemetry shows the ego halted at the stop-line — authority obeyed. The loop repeats every tick.">
+</p>
+
 > **Legal basis (US traffic law).** MARSHAL's premise — that a human traffic
 > authority's directions take precedence over ordinary signals — reflects
 > long-standing US traffic law. A driver must obey traffic-control devices
@@ -37,10 +47,22 @@ runs the closed-loop episode, and returns authority-aware reliability metrics.
 > as a modeling assumption, not a jurisdiction-exact legal claim (see
 > [docs/legal_grounding.md](docs/legal_grounding.md)).
 
+<p align="center">
+  <img src="assets/figures/authority-precedence.png" width="440"
+       alt="Authority precedence ladder: (1) Safety (e.g. pedestrian crossing) overrides (2) Authorized human command (e.g. police officer / flagger instructions) which overrides (3) Traffic control device (e.g. traffic light or sign). MARSHAL focuses on tier 2 — the authorized human command overriding the device.">
+</p>
+
 Existing autonomous-driving benchmarks mainly evaluate driving performance,
 perception, navigation, and collision avoidance. MARSHAL focuses on a different
 question: **"Who should the vehicle obey?"**
 ([why this is a distinct evaluation dimension →](docs/problem_statement.md))
+
+<p align="center">
+  <img src="assets/figures/authority-gap.png" width="860"
+       alt="Two panels at the same intersection (green light, officer signaling STOP). Left, 'Officer-blind baseline': the car drives through the green light past the officer — ✗ 'obeys the signal, ignores the human'. Right, 'MARSHAL oracle': the car stops at the line before the officer — ✓ 'obeys the human over the signal'.">
+</p>
+
+<sub><p align="center"><i>The officer-blind baseline reads the green light and drives on; the authority-aware oracle reads the human and stops. That gap — not perception — is what MARSHAL measures.</i></p></sub>
 
 Simple STOP / GO gesture classification can be solved by vision, or by perception
 + a rule engine. The hard cases — **conflicting authorities, occluded officers,
@@ -392,6 +414,16 @@ high-tier reasoning metrics:
 
 ### How a run is scored
 
+Scoring is **telemetry-grounded**: the criteria read physical margins off the realized
+trajectory — how far from the stop-line the ego halted, its residual speed, how quickly
+it reacted to the gesture, and its lateral clearance — and calibrate them so the
+privileged oracle = 100.
+
+<p align="center">
+  <img src="assets/figures/what-marshal-measures.png" width="860"
+       alt="What MARSHAL measures, on a top-down view of an ego approaching a stop-line where an officer signals STOP: (1) stop distance — gap from front bumper to stop-line; (2) reaction latency — time from gesture onset to first braking; (3) residual speed — speed at halt, ~0 km/h is good; (4) lateral clearance — side gap from vehicle to officer; combined into a MARSHAL-Graded 0–100 score (oracle = 100).">
+</p>
+
 The pipeline goes **per-tick → per-episode → per-model**:
 
 1. **Per tick** — your controller's `VehicleControl` drives the ego closed-loop.
@@ -536,6 +568,11 @@ oracle would," not "happened to stop." *Scenarios passed* across 3 tiers
 model on its native sensor rig. **MARSHAL-Graded** is the continuous, oracle-calibrated,
 stop-bias-corrected score (0–100, primary metric); *scenarios passed* is the strict
 binary count across 3 tiers (low 3 / mid 6 / high 12). Sorted by MARSHAL-Graded.
+
+<p align="center">
+  <img src="assets/figures/leaderboard.png" width="760"
+       alt="Horizontal bar chart of MARSHAL-Graded (0–100), models sorted high to low: oracle 100.0±0.0 (gold, calibration ceiling), Qwen2.5-VL 66.2, TransFuser 55.7±4.9, InterFuser 53.6±1.5, Qwen3-VL 45.3, OpenEMMA 39.5±1.7, NEAT 36.5±6.8, GLM-4.5V 33.9, CILRS 31.2±2.7, AIM 24.0±2.7, baseline 23.9±2.1, TCP 14.8±1.1, MPC 13.4, PID 5.8. Track-C VLMs (†) are single-sample with no error bars; TransFuser and InterFuser error bars overlap (statistical tie).">
+</p>
 
 | model | track | MARSHAL-Graded (3-run mean ± std) | scenarios passed | low (3) | mid (6) | high (12) | authority-STOP (7) | link |
 |-------|-------|---------------:|-----------------:|--------:|--------:|----------:|-------------------:|------|
