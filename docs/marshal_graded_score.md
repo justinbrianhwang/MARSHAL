@@ -48,25 +48,42 @@ reading the authority.
 > a near-zero graded score consistent with its binary / authority-STOP result; a
 > decisive model that brakes from real speed keeps full credit.
 
-## Known issue (why the numbers are not published yet)
+## The formula (as implemented)
 
-The current draft over-credits over-cautious controllers: in a trial scoring,
-slow "creep-and-stop" agents floated up near the decisive VLMs purely on STOP
-partial-credit, because the engagement gate above is not yet wired in. The graded
-ranking should broadly **track the binary PASS + authority-STOP ordering**
-(decisive VLMs and the oracle on top; pure creepers near the bottom with the
-baseline). Until the engagement-gated curves reproduce that ordering and the
-oracle re-calibrates to ≈ 100, the graded numbers stay out of the README.
+For a policy $\pi$ evaluated over the $N$ scenarios:
 
-## Implementation status / TODO
+```math
+\text{MARSHAL-Graded}(\pi) \;=\; 100 \cdot \frac{\sum_{s=1}^{N} w_s \, c_s(\pi)}{\sum_{s=1}^{N} w_s}
+```
 
-- [x] Draft scorer module exists (`marshal_bench/criteria/graded_episode_scoring.py`).
-- [ ] Wire in the **approach/engagement gate** so creep-and-stop no longer earns
-  STOP credit.
-- [ ] Re-calibrate so oracle ≈ 100 and creepers (AIM / TCP / PID) drop below the
-  decisive VLMs.
-- [ ] Validate the graded ranking broadly tracks binary + authority-STOP.
-- [ ] Only then publish the numbers in `README.md` alongside the binary headline.
+- $c_s(\pi) \in [0,1]$ — per-episode **telemetry credit** (action correctness, reaction
+  latency, safety, maneuver quality). Invalid / malformed / adapter-error telemetry
+  scores `0`.
+- $w_s > 0$ — the **scenario authority weight** (`SCENARIO_AUTHORITY_WEIGHTS`).
+  Authority-override scenarios are deliberately weighted above 1.0; the denominator
+  normalizes by the weight sum, so the reported maximum stays 100.
+- The **engagement gate is folded into $c_s$**, not applied as a separate outer term.
+
+> **Note on the gate's form.** It is a *continuous* factor $e_s \in [0,1]$, **not** a
+> binary $\{0,1\}$ switch, and it applies **only to non-strict STOP/HOLD partial
+> credit**. Strict-compliant STOP/HOLD telemetry passes at $e_s = 1$; otherwise
+> $e_s$ is derived from approach speed and forward progress (or near-stopline
+> progress), with low-speed creep capped at `0.25`. A hard binary gate was tried and
+> rejected: it collapsed the calibrated oracle from 100 to ~45, because a legitimate
+> decisive stop far upstream is telemetrically indistinguishable from a creep on a
+> per-episode basis. Stop-bias is therefore handled *across* scenarios (the suite is
+> balanced over STOP and non-STOP actions), not by zeroing individual episodes.
+
+## Implementation status
+
+- [x] Scorer module (`marshal_bench/criteria/graded_episode_scoring.py`).
+- [x] **Approach/engagement gate wired in** (`_stop_hold_engagement_factor`), so
+      creep-and-stop no longer banks full STOP clearance credit.
+- [x] **Calibrated: the privileged oracle scores 100.0**, and the creepers
+      (PID 5.8, MPC 13.4, TCP 14.8) sit far below the decisive models.
+- [x] Graded ranking broadly tracks the binary PASS + authority-STOP ordering.
+- [x] **Published in `README.md`** as the primary metric, reported as the
+      mean ± std of 3 independent closed-loop sweeps.
 
 The **binary scorer (`strict_episode_scoring.py`) stays unchanged** — MARSHAL-
 Graded is additive and secondary.
