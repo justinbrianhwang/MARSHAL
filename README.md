@@ -448,8 +448,9 @@ The pipeline goes **per-tick → per-episode → per-model**:
    The R-subscores are combined into the weighted
 
    > **MARSHAL Score = 100 × Σ(wᵣ · Rᵣ) / Σ wᵣ** &nbsp; over the measured R's,
-   > with weights R1 .20, R2 .10, R3 .15, R4 .10, R5 .10, R6 .10, R7 .10,
-   > R8 .10, R9 .05.
+   > with weights **R1 .10, R2 .12, R3 .28, R4 .05, R5 .03, R6 .02, R7 .22,
+   > R8 .13, R9 .05** (re-balanced for the 21-scenario suite: the mass sits on
+   > authority-conflict resolution **R3** and exceptional handling **R7**).
 
    It is reported as a **partial** score: R's that aren't yet instrumented are
    listed under `r_unmeasured` and excluded from the denominator, so the number
@@ -473,9 +474,31 @@ fully auditable.
 > same telemetry margins (stop-distance, residual speed, reaction latency, lateral
 > clearance, decel), **authority-weighted** (authority-override scenarios count more),
 > calibrated so the privileged oracle = **100**. An **approach/engagement gate**
-> denies STOP credit to controllers that merely creep to a halt without ever engaging
-> the scene — so an over-cautious "always-brake" model cannot bank partial credit it
-> didn't earn. On the 21-scenario suite the leaderboard is (Track-B graded as the
+> withholds STOP credit from controllers that merely creep to a halt without ever
+> engaging the scene — so an over-cautious "always-brake" model cannot bank partial
+> credit it didn't earn.
+
+**How MARSHAL-Graded is computed.** For a policy $\pi$ over the $N$ scenarios:
+
+```math
+\text{MARSHAL-Graded}(\pi) \;=\; 100 \cdot \frac{\sum_{s=1}^{N} w_s \, c_s(\pi)}{\sum_{s=1}^{N} w_s}
+```
+
+- $c_s(\pi) \in [0,1]$ — the per-episode **telemetry credit**: action correctness,
+  reaction latency, safety (collision-free), and maneuver quality, all read off the
+  realized trajectory. Invalid or malformed telemetry scores `0`.
+- $w_s > 0$ — the **scenario authority weight**. Authority-override scenarios are
+  deliberately weighted above 1.0; the denominator normalizes by the weight sum, so
+  the reported maximum stays 100 (and the privileged oracle calibrates to exactly 100).
+- The **engagement gate is folded into $c_s$**, not applied as a separate outer factor.
+  It is a *continuous* factor $e_s \in [0,1]$ — **not** a binary $\{0,1\}$ switch — and
+  it applies **only to non-strict STOP/HOLD partial credit**: strict-compliant STOP/HOLD
+  telemetry passes at $e_s = 1$, otherwise $e_s$ follows from approach speed and forward
+  progress, with low-speed creep capped at `0.25`. (A hard binary gate was tried and
+  rejected — it collapsed the calibrated oracle from 100 to ~45. See
+  [docs/marshal_graded_score.md](docs/marshal_graded_score.md).)
+
+> On the 21-scenario suite the leaderboard is (Track-B graded as the
 > **mean ± std of 3 independent closed-loop sweeps**): **oracle 100.0**, then the
 > best non-privileged model **Qwen2.5-VL 66.2**, **TransFuser 55.7 ± 4.9**,
 > InterFuser 53.6 ± 1.5, Qwen3-VL 45.3, OpenEMMA 39.5 ± 1.7, NEAT 36.5 ± 6.8,
