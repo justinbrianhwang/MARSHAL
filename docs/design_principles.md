@@ -72,22 +72,24 @@ Every scenario corresponds to at least one of them.
 - **P7 — Ambiguity handling.** If the instruction is genuinely ambiguous, the
   model should choose a safe, conservative action.
 
-## 4. Tier Definition
+## 4. Grouping: the authority-conflict typology (tiers retired)
 
-Tiers are defined by **reasoning complexity**, not by importance.
+Scenarios are grouped by the **structure of the conflict**, not by a designed
+difficulty level (`CONFLICT_TYPE` in `marshal_bench/criteria/marshal_metrics.py`):
 
-- **Low Tier** — a single visible authority, a direct instruction, minimal
-  context reasoning. Largely solvable by perception + a rule engine.
-- **Mid Tier** — authority or hazard reasoning with moderate contextual
-  interpretation (e.g. a hazard in-path, a detour around a crash).
-- **High Tier** — requires at least one of: authority verification, target
-  attribution, occlusion robustness, temporal memory, conflict resolution, rule
-  hierarchy, or ambiguity handling.
+- **override (6)** — a valid human authority contradicts or replaces the device;
+- **stressed-override (5)** — override under a crosscutting stressor
+  (occlusion, ambiguity, target attribution, temporal memory/escalation);
+- **validity (3)** — is the commander legitimate at all?;
+- **conflict (2)** — two directives disagree;
+- **scene (2)** — the scene itself carries the authority (no human directs);
+- **safety (3)** — safety outranks every directive.
 
-The high tier is **more reasoning-intensive**, not "more important." The
-benchmark's quantitative argument is the *gap* between a model's low-tier and
-high-tier pass-rate: perception + rules clears the low tier, while the high tier
-is where authority-aware reasoning is required.
+An earlier low/mid/high *reasoning-tier* ladder was retired: measured over three
+full sweeps, tier labels do not track empirical difficulty (Spearman ρ = −0.22,
+12/13 models violate tier monotonicity). What predicts difficulty is the required
+maneuver and the conflict structure — the typology above. Full evidence and the
+decision record: [taxonomy_decision.md](taxonomy_decision.md).
 
 ## 5. What MARSHAL Does Not Claim
 

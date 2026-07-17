@@ -42,11 +42,13 @@ must:
 
 It evaluates this on two tracks: **closed-loop control in CARLA (Track-B)** and
 **visual decision QA (Track-C)** — see [tracks.md](tracks.md) — with **strict,
-telemetry-grounded, oracle-calibrated** scoring, plus reasoning-tier (low/mid/
-high) splits and authority-STOP subsets. The scenario set is principled, not
-ad-hoc (seven authority-aware reasoning principles; see
-[design_principles.md](design_principles.md) and
-[scenario_taxonomy.md](scenario_taxonomy.md)).
+telemetry-grounded, oracle-calibrated** scoring, an authority-STOP subset, and a
+per-**conflict-type** failure profile (override / stressed-override / validity /
+conflict / scene / safety). The scenario set is principled, not ad-hoc (seven
+authority-aware reasoning principles; see
+[design_principles.md](design_principles.md),
+[scenario_taxonomy.md](scenario_taxonomy.md), and the full design defense in
+[scenario_design_justification.md](scenario_design_justification.md)).
 
 ## What MARSHAL does *not* claim
 
@@ -56,12 +58,35 @@ deliberately isolates the local authority-conflict decision so success/failure i
 attributable to authority reasoning rather than to driving skill (see
 [design_principles.md](design_principles.md) §5).
 
-## TODO — exact citations to add (camera-ready)
+## Citations (verified links)
 
-- [ ] CARLA Leaderboard 1.0 / 2.0 — paper + leaderboard reference.
-- [ ] Bench2Drive — paper + scenario-count / protocol reference.
-- [ ] nuPlan — paper + closed-loop metric reference.
-- [ ] nuScenes / Waymo Open Motion / Argoverse 2 — dataset papers.
-- [ ] DriveLM / LingoQA / DriveVLM / Reason2Drive — VQA-reasoning paper references.
-- [ ] DeepAccident / CommonRoad (or the corner-case set actually cited) — references.
-- [ ] Confirm each "limitation" wording against the cited source (no overclaiming).
+- **CARLA** — Dosovitskiy et al., *CARLA: An Open Urban Driving Simulator*, CoRL 2017
+  ([arXiv:1711.03938](https://arxiv.org/abs/1711.03938)); Leaderboard:
+  [leaderboard.carla.org](https://leaderboard.carla.org/).
+- **Bench2Drive** — Jia et al., *Towards Multi-Ability Benchmarking of Closed-Loop
+  End-to-End Autonomous Driving*, NeurIPS 2024 (44 interactive scenarios;
+  [poster](https://neurips.cc/virtual/2024/poster/97436)).
+- **nuPlan** — Caesar et al., *nuPlan: A closed-loop ML-based planning benchmark*,
+  ([arXiv:2106.11810](https://arxiv.org/abs/2106.11810)).
+- **NAVSIM** — Dauner et al., NeurIPS 2024 — non-reactive real-log simulation, PDMS.
+- **WOD-E2E** — Xu et al., *Waymo Open Dataset for End-to-End Driving in Challenging
+  Long-tail Scenarios*, CVPR 2026 — open-loop RFS; names closed-loop as its own
+  limitation.
+- **HABIT** — *Human Action Benchmark for Interactive Traffic in CARLA*
+  ([arXiv:2511.19109](https://arxiv.org/abs/2511.19109)) — real human *motions*
+  (reaction/collision), no authority-obedience ground truth.
+- **DriveLM** — Sima et al., *Driving with Graph Visual Question Answering*, ECCV 2024
+  ([arXiv:2312.14150](https://arxiv.org/abs/2312.14150)); **DriveBench**
+  ([drive-bench.github.io](https://drive-bench.github.io/)) — VLM QA reliability,
+  no authority-conflict axis.
+- **Officer-gesture perception** — *Traffic Control Gesture Recognition for
+  Autonomous Vehicles* (TCG dataset, [arXiv:2007.16072](https://arxiv.org/abs/2007.16072))
+  and successors (e.g. [Sci. Reports 2025](https://www.nature.com/articles/s41598-025-02833-y))
+  — gesture *classification* only; no validity/override/closed-loop compliance.
+- **Deployment motivation** — CNN 2026 investigation of robotaxi emergency-scene
+  failures; NHTSA scrutiny (Axios, 2026-07-15); Phoenix officer-direction incident
+  (NBC). Full links: [scenario_design_justification.md](scenario_design_justification.md).
+
+- [ ] Camera-ready: confirm each "limitation" wording against the cited source
+  (no overclaiming); add LingoQA / Reason2Drive / DeepAccident if the paper's
+  related-work section ends up covering them.
