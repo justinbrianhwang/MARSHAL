@@ -89,9 +89,14 @@ authority-conflict typology.** Concretely:
 | `marshal_metrics.REASONING_TIER` | retained internally (tests, backwards compat), no longer surfaced in headline reporting |
 | Slides / paper | difficulty ladder framing out; conflict-space coverage framing in |
 
-**Status: recommended, pending team sign-off.** The narrative de-emphasis (README
-headline no longer tier-based) is already applied; the mechanical column/scoreboard
-swap above is a small, separately-reviewable change once the team ratifies this.
+**Status: ratified 2026-07-17.** The narrative de-emphasis (README headline no longer
+tier-based) is applied, and the mechanical column/scoreboard swap above is
+implemented: `CONFLICT_TYPE` / `CONFLICT_TYPE_ORDER` in
+`marshal_bench/criteria/marshal_metrics.py` group the 21 scenarios as
+override (6) · stressed-override (5) · validity (3) · conflict (2) · scene (2) ·
+safety (3); the scoreboard and `_collect_sweep.py` emit a `conflict_type_profile`,
+and the README reports the per-conflict-type failure profile. `REASONING_TIER` and
+`tier_pass_rate` remain in code/scoreboard as legacy only.
 
 ---
 

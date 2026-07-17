@@ -234,11 +234,10 @@ The 14x21 sweep collector (`scripts/_collect_sweep.py`) now emits this per-model
 MARSHAL Score alongside strict pass-rate and MARSHAL-Graded, including each model's
 `marshal_score`, `r_scores`, and metric `suite`.
 
-**Reasoning-tier pass rate.** Alongside the score, the aggregator reports the strict
-pass rate split by `REASONING_TIER` (low / mid / high). This is the benchmark's core
-argument in one number: the low tier is solvable by perception + a rule engine, while
-the high tier requires human-intent, conflict, memory, and ambiguity reasoning. The
-gap between the tiers is the quantitative case for authority-aware reasoning.
+**Authority-conflict profile.** Alongside the score, the aggregator reports strict
+passes, totals, and pass rates by `CONFLICT_TYPE`. This is the diagnostic breakdown
+for override, stressed-override, validity, conflict, scene, and safety cases.
+`tier_pass_rate` remains emitted as legacy compatibility metadata only.
 
 ---
 

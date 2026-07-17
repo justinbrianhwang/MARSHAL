@@ -81,9 +81,11 @@ Useful flags:
 
 `start.py` prints, and writes to `outputs/benchmark/<tag>/scoreboard.json`:
 
-- per-scenario pass/fail with reasoning tier,
-- the **reasoning-tier pass-rate** (low / mid / high) — the headline,
+- per-scenario pass/fail with authority-conflict type,
+- the **authority-conflict profile** — the diagnostic headline,
 - the metric suite, the R-subscores, and the weighted **MARSHAL Score**.
+
+The scoreboard still emits `tier_pass_rate` as legacy compatibility metadata.
 
 Copy the final `scoreboard.json` into [`../results/`](../results/) to commit it.
 

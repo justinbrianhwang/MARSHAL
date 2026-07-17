@@ -70,8 +70,8 @@ are (model, scenario) pairs whose strict verdict is not the same in all three ru
 - **Strict pass-rate is not seed-invariant for learned models.** NEAT and TransFuser
   swing by ±5 percentage points of pass-rate between runs; their scenarios-passed
   count moves by ±1–2. This is exactly why the README shows graded as a mean ± std and
-  fixes the strict per-tier breakdown to one reference run (so the tier counts sum
-  consistently) rather than averaging fractional PASS counts.
+  fixes the strict conflict-type profile to one reference run (so its cells sum to
+  the scenarios-passed count) rather than averaging fractional PASS counts.
 - **The variance concentrates on borderline authority/lane cells** — e.g.
   `unauthorized_go`, `ambiguous_gesture`, `adjacent_lane`, `flagger_control` — cases
   where the correct action sits near a decision boundary the strict scorer thresholds
