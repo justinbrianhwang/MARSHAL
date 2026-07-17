@@ -17,7 +17,8 @@ from _run_full_sweep import MODELS, SCEN
 from marshal_bench.criteria.graded_episode_scoring import (
     score_episode_from_telemetry, aggregate_graded_scores)
 from marshal_bench.criteria.marshal_metrics import (
-    REASONING_TIER, compute_episode_metrics, aggregate)
+    CONFLICT_TYPE, CONFLICT_TYPE_ORDER, REASONING_TIER,
+    compute_episode_metrics, aggregate)
 
 TRACK_C = {"glm-4.5v", "qwen2.5-vl", "qwen3-vl"}
 
@@ -99,6 +100,16 @@ def main():
         graded = aggregate_graded_scores(ep_scores)["marshal_graded"] if ep_scores else None
         marshal_agg = aggregate(ep_metrics)
         scored = npass + nfail + ninvalid
+        conflict_profile = {}
+        for conflict_type in CONFLICT_TYPE_ORDER:
+            scenarios = [sc for sc in SCEN if CONFLICT_TYPE.get(sc) == conflict_type]
+            conflict_profile[conflict_type] = {
+                "passed": sum(
+                    1 for sc in scenarios
+                    if matrix[label][sc]["strict"] == "PASS"
+                ),
+                "total": len(scenarios),
+            }
         summary[label] = {
             "track": "C" if label in TRACK_C else "A/B",
             "strict_pass": npass, "strict_fail": nfail, "invalid": ninvalid,
@@ -108,6 +119,7 @@ def main():
             "marshal_score": marshal_agg["marshal_score_partial"],
             "r_scores": marshal_agg["r_scores"],
             "suite": marshal_agg["suite"],
+            "conflict_profile": conflict_profile,
         }
 
     # print
@@ -119,6 +131,7 @@ def main():
               f"{str(s['marshal_score']):>7s} {s['missing']:>4d}")
 
     out = {"summary": summary, "matrix": matrix, "scenarios": SCEN,
+           "conflict_type": {sc: CONFLICT_TYPE.get(sc) for sc in SCEN},
            "tier": {sc: REASONING_TIER.get(sc) for sc in SCEN}}
     op = os.path.join(ROOT, "outputs", "full_sweep_results.json")
     json.dump(out, open(op, "w", encoding="utf-8"), indent=2)

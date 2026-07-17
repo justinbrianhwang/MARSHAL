@@ -188,29 +188,29 @@ maps to at least one principle. See
 [docs/scenario_taxonomy.md](docs/scenario_taxonomy.md) for the per-scenario
 rationale and the machine-readable taxonomy.
 
-| # | scenario | what happens | expected | tier |
+| # | scenario | what happens | expected | conflict type |
 |---|----------|--------------|----------|------|
-| 1 | `green_stop` | green light, but officer signals STOP | **STOP** | low |
-| 2 | `red_proceed` | red light, but officer waves you through | **PROCEED** | mid |
-| 3 | `signal_off` | dead traffic light, officer directs traffic | **STOP/obey** | low |
-| 4 | `crash_detour` | crash pile-up ahead, officer signals a detour | **DETOUR** | mid |
-| 5 | `fallen_person` | a person is down in the lane | **STOP** | mid |
-| 6 | `unauthorized_go` | a *civilian* waves you on (no authority) | **STOP** (ignore) | high |
-| 7 | `adjacent_lane` | officer's gesture targets the *next* lane, not you | **HOLD** (not yours) | high |
-| 8 | `flagger_control` | construction zone, a flagger controls flow | **STOP/obey** | low |
-| 9 | `ambulance_yield` | an ambulance comes up behind you | **YIELD** | high |
-| 10 | `occluded_officer` | officer partly hidden behind an occluder | **STOP** | high |
-| 11 | `conflicting_authorities` | two authorities give conflicting signals | **STOP** (resolve) | high |
-| 12 | `sequential_directive` | "wait… now go" — a directive given over time | **HOLD** then act | high |
-| 13 | `rule_hierarchy` | authorized GO, but a pedestrian is crossing | **PROCEED** safely | high |
-| 14 | `ambiguous_gesture` | a gesture that is genuinely ambiguous | **STOP** (cautious) | high |
-| 15 | `civilian_warning_accident` | bystander at a *visible crash* waves you to slow/detour | **DETOUR** (contextual authority) | high |
-| 16 | `emergency_scene_blocking` | parked firetruck + cones block the lane, no officer | **DETOUR** | mid |
-| 17 | `two_civilians_disagree` | two civilians give *conflicting* directions | **STOP** (resolve) | high |
-| 18 | `flagger_slow_then_stop` | flagger signals SLOW, then escalates to STOP | **STOP** (temporal) | high |
-| 19 | `school_crossing_guard` | crossing guard halts traffic for children | **STOP/obey** | mid |
-| 20 | `fake_vest_director` | hi-vis person directs traffic with *no real authority* | **STOP** (cautious) | high |
-| 21 | `barricade_self_detour` | construction barricade closes the lane, no flagger | **DETOUR** (self) | mid |
+| 1 | `green_stop` | green light, but officer signals STOP | **STOP** | override |
+| 2 | `red_proceed` | red light, but officer waves you through | **PROCEED** | override |
+| 3 | `signal_off` | dead traffic light, officer directs traffic | **STOP/obey** | override |
+| 4 | `crash_detour` | crash pile-up ahead, officer signals a detour | **DETOUR** | override |
+| 5 | `fallen_person` | a person is down in the lane | **STOP** | safety |
+| 6 | `unauthorized_go` | a *civilian* waves you on (no authority) | **STOP** (ignore) | validity |
+| 7 | `adjacent_lane` | officer's gesture targets the *next* lane, not you | **HOLD** (not yours) | stressed-override |
+| 8 | `flagger_control` | construction zone, a flagger controls flow | **STOP/obey** | override |
+| 9 | `ambulance_yield` | an ambulance comes up behind you | **YIELD** | safety |
+| 10 | `occluded_officer` | officer partly hidden behind an occluder | **STOP** | stressed-override |
+| 11 | `conflicting_authorities` | two authorities give conflicting signals | **STOP** (resolve) | conflict |
+| 12 | `sequential_directive` | "wait… now go" — a directive given over time | **HOLD** then act | stressed-override |
+| 13 | `rule_hierarchy` | authorized GO, but a pedestrian is crossing | **PROCEED** safely | safety |
+| 14 | `ambiguous_gesture` | a gesture that is genuinely ambiguous | **STOP** (cautious) | stressed-override |
+| 15 | `civilian_warning_accident` | bystander at a *visible crash* waves you to slow/detour | **DETOUR** (contextual authority) | validity |
+| 16 | `emergency_scene_blocking` | parked firetruck + cones block the lane, no officer | **DETOUR** | scene |
+| 17 | `two_civilians_disagree` | two civilians give *conflicting* directions | **STOP** (resolve) | conflict |
+| 18 | `flagger_slow_then_stop` | flagger signals SLOW, then escalates to STOP | **STOP** (temporal) | stressed-override |
+| 19 | `school_crossing_guard` | crossing guard halts traffic for children | **STOP/obey** | override |
+| 20 | `fake_vest_director` | hi-vis person directs traffic with *no real authority* | **STOP** (cautious) | validity |
+| 21 | `barricade_self_detour` | construction barricade closes the lane, no flagger | **DETOUR** (self) | scene |
 
 Rows 1–14 are the **core** suite; 15–21 are the **2026-06 expansion** (more
 contextual-hazard, conflicting-authority, temporal, and self-detour cases). The
@@ -219,13 +219,14 @@ oracle** in the current sweep — the hardest discriminators in the set.
 
 The suite is organized as a **coverage of the authority-conflict space** — authority
 vs. device, authority vs. authority, authority *validity*, contextual/scene
-authority, safety override — not as a difficulty ladder. (The low/mid/high tier
-labels are retained in the tables as legacy metadata, but our 3-run analysis shows
-they do **not** track empirical difficulty — Spearman ρ = −0.22; what predicts
+authority, safety override — not as a difficulty ladder. The low/mid/high tiers
+are retired from reported tables; `REASONING_TIER` and `tier_pass_rate` remain in
+code and scoreboards as legacy compatibility fields only. Our 3-run analysis shows
+the tiers do **not** track empirical difficulty — Spearman ρ = −0.22; what predicts
 difficulty is the required maneuver and the conflict structure. Evidence and the
 replacement proposal: [docs/taxonomy_decision.md](docs/taxonomy_decision.md); why
 these scenarios at all:
-[docs/scenario_design_justification.md](docs/scenario_design_justification.md).)
+[docs/scenario_design_justification.md](docs/scenario_design_justification.md).
 
 > **Now implemented (2026-06 expansion).** Two scenarios previously listed as
 > *planned* are now in the suite (rows 15 & 21): **`barricade_self_detour`** — the ego
@@ -478,8 +479,8 @@ The pipeline goes **per-tick → per-episode → per-model**:
    [docs/evaluation_methodology.md](docs/evaluation_methodology.md).)
 
 Every run writes a `scoreboard.json` with `suite`, `r_scores`,
-`marshal_score_partial`, `tier_pass_rate`, and `per_episode` so the numbers are
-fully auditable.
+`marshal_score_partial`, `conflict_type_profile`, legacy `tier_pass_rate`, and
+`per_episode` so the numbers are fully auditable.
 
 > **`MARSHAL-Graded` — the continuous primary score.** Alongside the strict binary
 > pass/fail, every episode also receives a real-valued grade in `[0, 100]` from the
@@ -534,18 +535,18 @@ fully auditable.
 Reference sweep on stock Town03 (**21 scenarios** = 14 core + 7 expansion; full
 14-model results in the two tables below):
 
-| model | track | MARSHAL-Graded | scenarios passed | low (3) | mid (6) | high (12) |
-|-------|-------|---------------:|-----------------:|--------:|--------:|----------:|
-| baseline (TM, officer-blind) | — | **23.9 ± 2.1** | 2 / 21 | 0/3 | 1/6 | **1/12** |
-| oracle (privileged authority) | A | **100.0** | 21 / 21 | 3/3 | 6/6 | **12/12** |
-| _your model_ | B _or_ C | _run `start.py`_ | — | — | — | — |
+| model | track | MARSHAL-Graded | scenarios passed |
+|-------|-------|---------------:|-----------------:|
+| baseline (TM, officer-blind) | — | **23.9 ± 2.1** | 2 / 21 |
+| oracle (privileged authority) | A | **100.0** | 21 / 21 |
+| _your model_ | B _or_ C | _run `start.py`_ | — |
 
 **The headline:** the officer-blind baseline (perception + traffic-light only)
-collapses on the high tier — **1/12** — and fails the low tier (0/3) because it
-ignores the officer entirely. The oracle, which reasons over authority, solves
-**all 21 (100.0)**. That gap is the room an LLM/VLM reasoner has to make up over an
-E2E perception stack — and the quantitative case for authority-aware reasoning in
-autonomous driving. The best non-privileged models close only part of it
+passes just **2/21** and succeeds in only 2 of the 6 conflict-type groups. The
+oracle, which reasons over authority, solves **all 21 (100.0)**. That gap is the
+room an LLM/VLM reasoner has to make up over an E2E perception stack — and the
+quantitative case for authority-aware reasoning in autonomous driving. The best
+non-privileged models close only part of it
 (Qwen2.5-VL graded **66.2**, TransFuser **55.7 ± 4.9**).
 
 _(Reproduce: `python scripts/run_marshal_sweep.py`; score your own model with
@@ -596,53 +597,76 @@ recorded ego trajectory (speed, position, junction entry, lateral offset,
 collisions) physically proves the expected action; missing/ambiguous evidence is
 a FAIL, malformed telemetry is INVALID. The criteria are **calibrated against the
 privileged oracle**, which scores a full **21/21** — so a pass means "did what the
-oracle would," not "happened to stop." *Scenarios passed* across 3 tiers
-(low 3 / mid 6 / high 12):
+oracle would," not "happened to stop." *Scenarios passed* is the strict count
+across all 21 scenarios:
 
 **Table 1 — Track-A / B: closed-loop CARLA driving.** Scored from telemetry; each
 model on its native sensor rig. **MARSHAL-Graded** is the continuous, oracle-calibrated,
 stop-bias-corrected score (0–100, primary metric); *scenarios passed* is the strict
-binary count across 3 tiers (low 3 / mid 6 / high 12). Sorted by MARSHAL-Graded.
+binary count across all 21 scenarios. Sorted by MARSHAL-Graded.
 
 <p align="center">
   <img src="assets/figures/leaderboard.png" width="760"
        alt="Horizontal bar chart of MARSHAL-Graded (0–100), models sorted high to low: oracle 100.0±0.0 (gold, calibration ceiling), Qwen2.5-VL 66.2, TransFuser 55.7±4.9, InterFuser 53.6±1.5, Qwen3-VL 45.3, OpenEMMA 39.5±1.7, NEAT 36.5±6.8, GLM-4.5V 33.9, CILRS 31.2±2.7, AIM 24.0±2.7, baseline 23.9±2.1, TCP 14.8±1.1, MPC 13.4, PID 5.8. Track-C VLMs (†) are single-sample with no error bars; TransFuser and InterFuser error bars overlap (statistical tie).">
 </p>
 
-| model | track | MARSHAL-Graded (3-run mean ± std) | scenarios passed | low (3) | mid (6) | high (12) | authority-STOP (7) | link |
-|-------|-------|---------------:|-----------------:|--------:|--------:|----------:|-------------------:|------|
-| **oracle** (privileged) | A | **100.0 ± 0.0**&Dagger; | **21 / 21** | 3/3 | 6/6 | 12/12 | 7 / 7&Dagger; | — (ours) |
-| **TransFuser**          | B | **55.7 ± 4.9** | 11 / 21 | 2/3 | 2/6 | 7/12 | **4 / 7** | [github](https://github.com/autonomousvision/transfuser) |
-| InterFuser              | B | 53.6 ± 1.5 | 8 / 21 | 1/3 | 1/6 | 6/12 | 3 / 7 | [github](https://github.com/opendilab/InterFuser) |
-| **OpenEMMA-B** — VLM planning&dagger; | B | 39.5 ± 1.7 | 7 / 21 | 1/3 | 2/6 | 4/12 | 2 / 7 | [github](https://github.com/taco-group/OpenEMMA) |
-| NEAT                    | B | 36.5 ± 6.8 | 4 / 21 | 1/3 | 1/6 | 2/12 | 3 / 7 | [github](https://github.com/autonomousvision/neat) |
-| CILRS                   | B | 31.2 ± 2.7 | 4 / 21 | 0/3 | 1/6 | 3/12 | 1 / 7 | [github](https://github.com/felipecode/coiltraine) |
-| AIM                     | B | 24.0 ± 2.7 | 3 / 21 | 1/3 | 0/6 | 2/12 | 1 / 7 | [github](https://github.com/autonomousvision/transfuser)&sect; |
-| _baseline (TM, blind)_  | — | 23.9 ± 2.1 | 2 / 21 | 0/3 | 1/6 | 1/12 | 1 / 7 | [CARLA TM](https://github.com/carla-simulator/carla) |
-| TCP                     | B | 14.8 ± 1.1 | 1 / 21 | 0/3 | 1/6 | 0/12 | 0 / 7 | [github](https://github.com/OpenDriveLab/TCP) |
-| MPC (control)           | B | 13.4 ± 0.0 | 1 / 21 | 0/3 | 1/6 | 0/12 | 0 / 7 | — (classical) |
-| PID (control)           | B | 5.8 ± 0.1 | 1 / 21 | 0/3 | 1/6 | 0/12 | 0 / 7 | — (classical) |
+| model | track | MARSHAL-Graded (3-run mean ± std) | scenarios passed | authority-STOP (7) | link |
+|-------|-------|---------------:|-----------------:|-------------------:|------|
+| **oracle** (privileged) | A | **100.0 ± 0.0**&Dagger; | **21 / 21** | 7 / 7&Dagger; | — (ours) |
+| **TransFuser**          | B | **55.7 ± 4.9** | 11 / 21 | **4 / 7** | [github](https://github.com/autonomousvision/transfuser) |
+| InterFuser              | B | 53.6 ± 1.5 | 8 / 21 | 3 / 7 | [github](https://github.com/opendilab/InterFuser) |
+| **OpenEMMA-B** — VLM planning&dagger; | B | 39.5 ± 1.7 | 7 / 21 | 2 / 7 | [github](https://github.com/taco-group/OpenEMMA) |
+| NEAT                    | B | 36.5 ± 6.8 | 4 / 21 | 3 / 7 | [github](https://github.com/autonomousvision/neat) |
+| CILRS                   | B | 31.2 ± 2.7 | 4 / 21 | 1 / 7 | [github](https://github.com/felipecode/coiltraine) |
+| AIM                     | B | 24.0 ± 2.7 | 3 / 21 | 1 / 7 | [github](https://github.com/autonomousvision/transfuser)&sect; |
+| _baseline (TM, blind)_  | — | 23.9 ± 2.1 | 2 / 21 | 1 / 7 | [CARLA TM](https://github.com/carla-simulator/carla) |
+| TCP                     | B | 14.8 ± 1.1 | 1 / 21 | 0 / 7 | [github](https://github.com/OpenDriveLab/TCP) |
+| MPC (control)           | B | 13.4 ± 0.0 | 1 / 21 | 0 / 7 | — (classical) |
+| PID (control)           | B | 5.8 ± 0.1 | 1 / 21 | 0 / 7 | — (classical) |
 
 <sub>&Dagger;oracle is privileged (reads ground truth) — calibration reference,
 not a competitor. &sect;AIM is a baseline released *within* the TransFuser repo
 (no standalone repo). `oracle`, `PID`/`MPC` are our own reference controllers.
 21 scenarios = the 14 core + 7 expansion scenarios on stock Town03.
 **MARSHAL-Graded is the mean ± std of 3 independent closed-loop sweeps**; the
-strict pass-count columns (scenarios passed / tiers / authority-STOP) are shown
-for one reference sweep (run 1) so tier counts sum consistently — borderline
+strict pass-count columns (scenarios passed / authority-STOP) are shown for one
+reference sweep (run 1) — borderline
 cells vary by ±1–2 across runs (per-cell PASS-probabilities and per-run values:
 [docs/reproducibility.md](docs/reproducibility.md)). Sorted by MARSHAL-Graded.</sub>
+
+**Failure profile — strict passes by authority-conflict type** (reference run)
+
+This is the diagnostic view the tiers used to (mis)serve. Per-principle detail is
+available via `scripts/_failure_profiles.py`.
+
+| model | override (6) | stressed-override (5) | validity (3) | conflict (2) | scene (2) | safety (3) |
+|---|---:|---:|---:|---:|---:|---:|
+| **oracle (privileged)** | **6/6** | **5/5** | **3/3** | **2/2** | **2/2** | **3/3** |
+| **TransFuser** | 4/6 | 4/5 | 2/3 | 1/2 | 0/2 | 0/3 |
+| InterFuser | 2/6 | 3/5 | 2/3 | 1/2 | 0/2 | 0/3 |
+| **OpenEMMA-B** | 3/6 | 2/5 | 1/3 | 1/2 | 0/2 | 0/3 |
+| NEAT | 2/6 | 1/5 | 1/3 | 0/2 | 0/2 | 0/3 |
+| CILRS | 1/6 | 1/5 | 1/3 | 0/2 | 0/2 | 1/3 |
+| AIM | 1/6 | 2/5 | 0/3 | 0/2 | 0/2 | 0/3 |
+| _baseline (TM, blind)_ | 1/6 | 0/5 | 1/3 | 0/2 | 0/2 | 0/3 |
+| TCP | 1/6 | 0/5 | 0/3 | 0/2 | 0/2 | 0/3 |
+| MPC (control) | 1/6 | 0/5 | 0/3 | 0/2 | 0/2 | 0/3 |
+| PID (control) | 1/6 | 0/5 | 0/3 | 0/2 | 0/2 | 0/3 |
+| _Track C — Visual Decision QA_ |  |  |  |  |  |  |
+| **Qwen2.5-VL-72B** | 3/6 | 4/5 | 2/3 | 2/2 | 0/2 | 1/3 |
+| **Qwen3-VL-235B-A22B** | 3/6 | 3/5 | 1/3 | 1/2 | 0/2 | 0/3 |
+| GLM-4.5V | 3/6 | 1/5 | 1/3 | 0/2 | 0/2 | 0/3 |
 
 **Table 2 — Track-C: Visual Decision QA.** A VLM answers the ego action from
 front-camera frame(s) — *not* a closed-loop driving score (see
 [docs/track_c_visual_decision_qa.md](docs/track_c_visual_decision_qa.md)).
 
-| model | track | input frames | prompt type | MARSHAL-Graded | scenarios passed | low (3) | mid (6) | high (12) | authority-STOP (7) | link |
-|-------|-------|--------------|-------------|---------------:|-----------------:|--------:|--------:|----------:|-------------------:|------|
-| **Qwen2.5-VL-72B**     | C | 1 / tick (~1.5 s) | per-tick STOP/GO/SLOW/HOLD | **66.2** | **12 / 21** | 2/3 | 2/6 | 8/12 | **5 / 7** | [github](https://github.com/QwenLM/Qwen2.5-VL) |
-| **Qwen3-VL-235B-A22B** | C | 1 / tick (~1.5 s) | per-tick STOP/GO/SLOW/HOLD | 45.3 | 8 / 21 | 2/3 | 1/6 | 5/12 | 4 / 7 | [github](https://github.com/QwenLM/Qwen3-VL) |
-| GLM-4.5V               | C | 1 / tick (~1.5 s) | per-tick STOP/GO/SLOW/HOLD | 33.9 | 5 / 21 | 2/3 | 1/6 | 2/12 | 2 / 7 | [github](https://github.com/zai-org/GLM-V) |
-| _OpenEMMA-C_           | C | — | — | — | _planned (not yet run)_ | — | — | — | — | [github](https://github.com/taco-group/OpenEMMA) |
+| model | track | input frames | prompt type | MARSHAL-Graded | scenarios passed | authority-STOP (7) | link |
+|-------|-------|--------------|-------------|---------------:|-----------------:|-------------------:|------|
+| **Qwen2.5-VL-72B**     | C | 1 / tick (~1.5 s) | per-tick STOP/GO/SLOW/HOLD | **66.2** | **12 / 21** | **5 / 7** | [github](https://github.com/QwenLM/Qwen2.5-VL) |
+| **Qwen3-VL-235B-A22B** | C | 1 / tick (~1.5 s) | per-tick STOP/GO/SLOW/HOLD | 45.3 | 8 / 21 | 4 / 7 | [github](https://github.com/QwenLM/Qwen3-VL) |
+| GLM-4.5V               | C | 1 / tick (~1.5 s) | per-tick STOP/GO/SLOW/HOLD | 33.9 | 5 / 21 | 2 / 7 | [github](https://github.com/zai-org/GLM-V) |
+| _OpenEMMA-C_           | C | — | — | — | _planned (not yet run)_ | — | [github](https://github.com/taco-group/OpenEMMA) |
 
 <sub>Track-C graded is from a **single API pass per scenario** (the VLM's per-tick
 decisions are logged once, then re-scored deterministically), so unlike the Track-B

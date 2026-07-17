@@ -76,9 +76,7 @@ _SCENARIO_ALIASES = {
     "signal_officer_control": "signal_off",
 }
 
-# Reasoning tier per scenario — the benchmark's core argument: the low tier is
-# solvable by perception + a rule engine (no LLM); the high tier needs human-
-# intent / conflict / memory / social reasoning (LLM-required).
+# Legacy reasoning tier per scenario, retained for backwards compatibility.
 REASONING_TIER = {
     "green_stop": "low", "red_proceed": "mid", "signal_off": "low",
     "crash_detour": "mid", "fallen_person": "mid", "unauthorized_go": "high",
@@ -92,6 +90,32 @@ REASONING_TIER = {
     "school_crossing_guard": "mid", "fake_vest_director": "high",
     "barricade_self_detour": "mid",
 }
+
+# Authority-conflict typology (docs/taxonomy_decision.md). Groups scenarios by the
+# structure of the conflict, not by designed difficulty. Crosscutting stressors
+# (occlusion / ambiguity / attribution / temporal) live inside "stressed-override".
+CONFLICT_TYPE = {
+    # plain authority-over-device: a valid human authority contradicts/replaces the device
+    "green_stop": "override", "red_proceed": "override", "signal_off": "override",
+    "flagger_control": "override", "school_crossing_guard": "override",
+    "crash_detour": "override",
+    # override under a crosscutting stressor
+    "occluded_officer": "stressed-override",      # occlusion
+    "ambiguous_gesture": "stressed-override",     # ambiguity
+    "adjacent_lane": "stressed-override",         # target attribution
+    "sequential_directive": "stressed-override",  # temporal memory
+    "flagger_slow_then_stop": "stressed-override",# temporal escalation
+    # is the commander legitimate?
+    "unauthorized_go": "validity", "fake_vest_director": "validity",
+    "civilian_warning_accident": "validity",
+    # conflicting directives
+    "conflicting_authorities": "conflict", "two_civilians_disagree": "conflict",
+    # scene authority, no human directs — the ego must decide
+    "emergency_scene_blocking": "scene", "barricade_self_detour": "scene",
+    # safety outranks everything
+    "fallen_person": "safety", "ambulance_yield": "safety", "rule_hierarchy": "safety",
+}
+CONFLICT_TYPE_ORDER = ["override", "stressed-override", "validity", "conflict", "scene", "safety"]
 
 # Map each metric to the R1-R9 requirement it primarily evidences (PPTX Slide 7).
 METRIC_TO_R = {"AOC": "R3", "FOA": "R3", "TAA": "R2",
@@ -443,9 +467,18 @@ def aggregate(metrics: List[EpisodeMetrics]) -> dict:
         if wsum else None
     )
 
-    # Reasoning-tier pass rate — the benchmark's core argument: low-tier
-    # (perception/rule-engine-solvable) vs high-tier (LLM-required) accuracy.
-    tier_pass: Dict[str, dict] = {}
+    # Diagnostic pass profile grouped by authority-conflict structure.
+    conflict_type_profile: Dict[str, dict] = {}
+    for conflict_type in CONFLICT_TYPE_ORDER:
+        eps = [m for m in metrics if CONFLICT_TYPE.get(m.scenario) == conflict_type]
+        conflict_type_profile[conflict_type] = {
+            "passed": sum(1 for m in eps if m.passed),
+            "total": len(eps),
+            "pass_rate": round(sum(1 for m in eps if m.passed) / len(eps), 4)
+            if eps else 0.0,
+        }
+
+    tier_pass: Dict[str, dict] = {}  # legacy
     for tier in ("low", "mid", "high"):
         eps = [m for m in metrics if REASONING_TIER.get(m.scenario) == tier]
         if eps:
@@ -460,6 +493,7 @@ def aggregate(metrics: List[EpisodeMetrics]) -> dict:
         "r_scores": r_scores,
         "r_unmeasured": [r for r in R_WEIGHTS if r not in r_scores],
         "marshal_score_partial": marshal_score,
-        "tier_pass_rate": tier_pass,
+        "conflict_type_profile": conflict_type_profile,
+        "tier_pass_rate": tier_pass,  # legacy
         "per_episode": [m.as_dict() for m in metrics],
     }

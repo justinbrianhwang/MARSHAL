@@ -402,6 +402,14 @@ def test_aggregate_means_partial_score_unmeasured_requirements_and_tier_rates():
         "mid": {"n": 2, "pass_rate": 0.5},
         "high": {"n": 3, "pass_rate": 0.6667},
     }
+    assert aggregate["conflict_type_profile"] == {
+        "override": {"passed": 2, "total": 4, "pass_rate": 0.5},
+        "stressed-override": {"passed": 2, "total": 3, "pass_rate": 0.6667},
+        "validity": {"passed": 0, "total": 0, "pass_rate": 0.0},
+        "conflict": {"passed": 0, "total": 0, "pass_rate": 0.0},
+        "scene": {"passed": 0, "total": 0, "pass_rate": 0.0},
+        "safety": {"passed": 0, "total": 0, "pass_rate": 0.0},
+    }
     assert len(aggregate["per_episode"]) == len(episodes)
 
 
@@ -447,6 +455,17 @@ def test_metric_and_scenario_tables_are_internally_consistent():
     for metric_name in mm.METRIC_TO_R:
         assert metric_name.lower() in episode_fields
 
-    assert set(mm.SCENARIO_SPEC) == set(mm.REASONING_TIER)
+    assert set(mm.CONFLICT_TYPE) == set(mm.SCENARIO_SPEC) == set(mm.REASONING_TIER)
+    assert {
+        conflict_type: sum(value == conflict_type for value in mm.CONFLICT_TYPE.values())
+        for conflict_type in mm.CONFLICT_TYPE_ORDER
+    } == {
+        "override": 6,
+        "stressed-override": 5,
+        "validity": 3,
+        "conflict": 2,
+        "scene": 2,
+        "safety": 3,
+    }
     assert set(mm.R_WEIGHTS) == {f"R{i}" for i in range(1, 10)}
     assert sum(mm.R_WEIGHTS.values()) == pytest.approx(1.0)

@@ -47,6 +47,7 @@ must reason about **human intent and rule priority**:
 | Perception+intent | Officer partially occluded → still obey | `occluded_officer` |
 | Ambiguity | STOP-like but unclear → infer intent, act cautiously | `ambiguous_gesture` |
 
-The benchmark reports a **low-tier** (perception/rule-engine-solvable) vs
-**high-tier** (LLM-required) pass-rate split (`tier_pass_rate` in the
-aggregated scoreboard) to make this argument quantitatively.
+The benchmark reports an authority-conflict profile (`conflict_type_profile` in
+the aggregated scoreboard) to show where a model succeeds across override,
+validity, directive conflict, scene authority, and safety cases. The former
+`tier_pass_rate` remains as legacy compatibility metadata only.

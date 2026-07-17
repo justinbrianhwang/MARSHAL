@@ -29,13 +29,11 @@ Quick start
 Output
 ------
 * A per-model scoreboard JSON at ``<out>/<tag>/scoreboard.json``.
-* A readable table on stdout: per-scenario pass + reasoning tier, the
-  reasoning-tier pass-rate split (low/mid/high), and the weighted MARSHAL Score.
+* A readable table on stdout: per-scenario pass + authority-conflict type, the
+  conflict-type profile, and the weighted MARSHAL Score.
 
-The headline number is the **high-tier pass-rate**: scenarios solvable by
-perception + a rule engine (low tier) vs scenarios that require human-intent /
-authority / memory / social reasoning (high tier) — the evidence for why an
-LLM-style reasoner is needed beyond an E2E perception stack.
+The diagnostic headline is the **authority-conflict profile**: strict passes over
+override, stressed-override, validity, conflict, scene, and safety cases.
 """
 from __future__ import annotations
 
@@ -55,7 +53,8 @@ except Exception:  # noqa: BLE001
     pass
 
 from marshal_bench.criteria.marshal_metrics import (  # noqa: E402
-    compute_episode_metrics, aggregate, REASONING_TIER, SCENARIO_SPEC)
+    compute_episode_metrics, aggregate, CONFLICT_TYPE, CONFLICT_TYPE_ORDER,
+    REASONING_TIER, SCENARIO_SPEC)
 
 PY = sys.executable
 RUNNER = os.path.join(_THIS, "scripts", "run_marshal_officer_demo.py")
@@ -118,19 +117,29 @@ def _print_scoreboard(tag: str, board: dict, per: dict) -> None:
     print("\n" + "=" * 64)
     print(f"  MARSHAL SCOREBOARD  —  model: {tag}")
     print("=" * 64)
-    print(f"\n  {'scenario':24s} {'tier':5s} {'pass':5s}  expected")
-    print(f"  {'-'*24} {'-'*5} {'-'*5}  {'-'*8}")
+    print(f"\n  {'scenario':24s} {'conflict type':19s} {'pass':5s}  expected")
+    print(f"  {'-'*24} {'-'*19} {'-'*5}  {'-'*8}")
     for scen in ALL_SCENARIOS:
         info = per.get(scen)
         if info is None:
-            print(f"  {scen:24s} {'-':5s} {'NORUN':5s}")
+            print(f"  {scen:24s} {'-':19s} {'NORUN':5s}")
             continue
         exp = SCENARIO_SPEC.get(scen, {}).get("expected", "?")
         mark = "PASS" if info["passed"] else "FAIL"
-        print(f"  {scen:24s} {str(info['tier']):5s} {mark:5s}  {exp}")
+        print(f"  {scen:24s} {str(info['conflict_type']):19s} {mark:5s}  {exp}")
 
+    profile = board.get("conflict_type_profile", {})
+    print("\n  authority-conflict profile:")
+    for conflict_type in CONFLICT_TYPE_ORDER:
+        item = profile.get(conflict_type)
+        if item:
+            pct = round(100.0 * item["pass_rate"], 1)
+            print(f"    {conflict_type:19s} {pct:5.1f}%   "
+                  f"({item['passed']}/{item['total']})")
+
+    # Legacy tier summary retained behind the conflict-type headline.
     tp = board.get("tier_pass_rate", {})
-    print("\n  reasoning-tier pass-rate (the core argument):")
+    print("\n  reasoning-tier pass-rate (legacy):")
     for tier in ("low", "mid", "high"):
         t = tp.get(tier)
         if t:
@@ -199,9 +208,13 @@ def main(argv=None) -> int:
             continue
         em = compute_episode_metrics(res, scenario=scen)
         metrics.append(em)
-        per[scen] = {"passed": em.passed, "tier": REASONING_TIER.get(scen)}
+        per[scen] = {
+            "passed": em.passed,
+            "conflict_type": CONFLICT_TYPE.get(scen),
+            "tier": REASONING_TIER.get(scen),  # legacy
+        }
         print(f"        {'PASS' if em.passed else 'FAIL'}  "
-              f"(tier={REASONING_TIER.get(scen)})", flush=True)
+              f"(conflict_type={CONFLICT_TYPE.get(scen)})", flush=True)
 
     if not metrics:
         print("\nNo episodes produced results. Is CARLA running on "

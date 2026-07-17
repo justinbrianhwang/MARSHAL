@@ -4,8 +4,7 @@ Runs every registered scenario under each controller (TM baseline + oracle),
 isolated per-run via subprocess + a per-controller output root, then aggregates
 the per-episode marshal_metrics into a scoreboard JSON + a readable table.
 
-The scoreboard's headline is the reasoning-tier pass-rate split — the evidence
-for why high-level (LLM-style) reasoning is required beyond E2E/perception.
+The scoreboard's diagnostic headline is the authority-conflict profile.
 
 Usage (CARLA must be running on Town03):
     C:/.../envs/marshal/python.exe scripts/run_marshal_sweep.py
@@ -24,7 +23,7 @@ if _ROOT not in sys.path:
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 from marshal_bench.criteria.marshal_metrics import (  # noqa: E402
-    compute_episode_metrics, aggregate, REASONING_TIER)
+    compute_episode_metrics, aggregate, CONFLICT_TYPE, REASONING_TIER)
 
 PY = sys.executable
 RUNNER = os.path.join(_THIS, "run_marshal_officer_demo.py")
@@ -75,7 +74,11 @@ def main() -> int:
                 continue
             em = compute_episode_metrics(res, scenario=scen)
             ems.append(em)
-            per[scen] = {"passed": em.passed, "tier": REASONING_TIER.get(scen)}
+            per[scen] = {
+                "passed": em.passed,
+                "conflict_type": CONFLICT_TYPE.get(scen),
+                "tier": REASONING_TIER.get(scen),  # legacy
+            }
         board[controller] = aggregate(ems)
         board[controller]["per_scenario_pass"] = per
 
@@ -90,7 +93,8 @@ def main() -> int:
         b = board.get(controller, {})
         print(f"\n[{controller}]  n={b.get('n_episodes')}  "
               f"MARSHAL(partial)={b.get('marshal_score_partial')}")
-        print("  tier pass-rate:", b.get("tier_pass_rate"))
+        print("  conflict-type profile:", b.get("conflict_type_profile"))
+        print("  tier pass-rate (legacy):", b.get("tier_pass_rate"))
         print("  suite:", {k: v for k, v in (b.get("suite") or {}).items()
                            if v is not None})
     return 0
