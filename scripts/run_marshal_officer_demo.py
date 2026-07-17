@@ -141,6 +141,8 @@ _SCENARIO_MAP: dict[str, tuple[str, str]] = {
 # CLI parsing
 # ---------------------------------------------------------------------------
 def _build_parser() -> argparse.ArgumentParser:
+    from marshal_bench.utils.conditions import parse_weather_params
+
     p = argparse.ArgumentParser(
         description="Run a MARSHAL officer-control demo scenario.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -175,6 +177,11 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Output root directory for per-episode logs.",
     )
     p.add_argument("--fps", type=float, default=20.0, help="Simulation fixed-delta FPS.")
+    p.add_argument("--weather", default=None,
+                   help="CARLA WeatherParameters preset name.")
+    p.add_argument("--weather-params", type=parse_weather_params, default=None,
+                   metavar="K=V,K=V",
+                   help="Float weather parameters applied over --weather.")
     p.add_argument(
         "--timeout",
         type=float,
@@ -215,6 +222,8 @@ def _resolve_config_path(scenario: str, override: Optional[str]) -> str:
 
 def _apply_cli_overrides(config: dict, args: argparse.Namespace) -> dict:
     """Apply CLI flags on top of the YAML config (CLI wins)."""
+    from marshal_bench.utils.conditions import merge_condition_config
+
     if args.town:
         config["town"] = args.town
     if args.controller is not None:
@@ -223,6 +232,7 @@ def _apply_cli_overrides(config: dict, args: argparse.Namespace) -> dict:
         config["fps"] = float(args.fps)
     if args.timeout is not None:
         config["timeout_sec"] = float(args.timeout)
+    merge_condition_config(config, args.weather, args.weather_params)
     if args.debug:
         officer = dict(config.get("officer") or {})
         officer["use_debug_visuals"] = True

@@ -47,6 +47,11 @@ from marshal_bench.criteria.strict_episode_scoring import (
     write_strict_artifacts,
 )
 from marshal_bench.utils.carla_api_compat import SyncModeContext, import_carla
+from marshal_bench.utils.conditions import (
+    condition_from_config,
+    describe,
+    resolve,
+)
 try:  # logos/landmarks are dropped in the distributed repo — optional import
     from marshal_bench.utils.landmarks import ensure_town03_landmarks
 except Exception:  # noqa: BLE001
@@ -93,6 +98,8 @@ class ScenarioContext:
     frames_ego_dir: Optional[str] = None
     traffic_manager: Any = None
     original_settings: Any = None
+    original_weather: Any = None
+    weather_applied: bool = False
     extra_actors: list = field(default_factory=list)  # per-scenario scene actors
     spawned_actor_ids: list = field(default_factory=list)
 
@@ -138,6 +145,14 @@ def apply_weather(world: Any, weather_name: Optional[str]) -> None:
         world.set_weather(preset)
     except Exception as e:
         log.warning("world.set_weather(%s) failed: %s", weather_name, e)
+
+
+def should_apply_condition(cfg: dict) -> bool:
+    """Whether the new first-class ``cfg['weather']`` branch is requested."""
+    if "weather" not in cfg:
+        return False
+    condition = condition_from_config(cfg.get("weather"))
+    return condition.weather_preset is not None or condition.weather_params is not None
 
 
 # ---------------------------------------------------------------------------
@@ -1137,7 +1152,41 @@ def run_scenario(
     try:
         world = ensure_town(client, config.get("town"))
         ctx.world = world
+        # Legacy scenario YAML behavior: all shipped configs explicitly apply
+        # environment.weather=ClearNoon here.  Keep this call unchanged for I3.
         apply_weather(world, (config.get("environment") or {}).get("weather"))
+
+        weather_applied = False
+        if should_apply_condition(config):
+            try:
+                condition = condition_from_config(config.get("weather"))
+                requested_weather = resolve(condition, import_carla())
+                if requested_weather is not None:
+                    # If the pre-condition state cannot be captured, do not
+                    # apply: a conditioned episode must always be restorable.
+                    ctx.original_weather = world.get_weather()
+                    world.set_weather(requested_weather)
+                    ctx.weather_applied = True
+                    weather_applied = True
+            except Exception as e:
+                log.warning("Could not apply episode weather condition: %s", e)
+
+        try:
+            actual_weather = world.get_weather()
+        except Exception as e:
+            log.warning("world.get_weather() failed while logging condition: %s", e)
+            actual_weather = None
+        try:
+            map_name = world.get_map().name
+            condition_town = map_name.rsplit("/", 1)[-1]
+        except Exception:
+            condition_town = config.get("town")
+        result["condition"] = {
+            "town": condition_town,
+            "weather_applied": weather_applied,
+            "weather": describe(actual_weather),
+        }
+        logger.log_event("episode_condition", **result["condition"])
 
         # Persistent benchmark landmarks (fountain lab-logo signposts). A fresh
         # Town03 load drops the custom prop, so re-spawn it every episode
@@ -1650,6 +1699,7 @@ def run_scenario(
                 logger.episode_dir,
                 telemetry_rows,
                 strict_score,
+                metadata={"condition": result.get("condition")},
             )
             strict_score["artifacts"] = artifact_paths
             result["strict_scoring"] = strict_score
@@ -1770,6 +1820,14 @@ def teardown(ctx: ScenarioContext) -> None:
         except Exception:
             pass
 
+    # Restore the exact pre-condition object after all episode actors are gone,
+    # preventing weather leakage between sweep cells.
+    if ctx.weather_applied and ctx.world is not None and ctx.original_weather is not None:
+        try:
+            ctx.world.set_weather(ctx.original_weather)
+        except Exception as e:
+            log.debug("weather restoration failed: %s", e)
+
 
 # ---------------------------------------------------------------------------
 # Misc helpers
@@ -1810,6 +1868,7 @@ __all__ = [
     "ego_speed_kmh",
     "officer_transform_in_front_of",
     "run_scenario",
+    "should_apply_condition",
     "spawn_ego",
     "teardown",
 ]

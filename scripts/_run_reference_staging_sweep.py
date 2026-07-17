@@ -29,6 +29,10 @@ from marshal_bench.criteria.marshal_metrics import (  # noqa: E402
     compute_episode_metrics,
 )
 from marshal_bench.utils.carla_api_compat import import_carla  # noqa: E402
+from marshal_bench.utils.conditions import (  # noqa: E402
+    merge_condition_config,
+    parse_weather_params,
+)
 from marshal_bench.utils.logging_utils import EpisodeLogger, setup_root_logger  # noqa: E402
 
 OUT_ROOT = os.path.join(ROOT, "tmp", "_codex_reference_sweep_runs")
@@ -64,9 +68,17 @@ def _jsonable(obj: Any) -> Any:
     return str(obj)
 
 
-def _run_one(client: Any, controller: str, scenario: str, seed: Any = None) -> Dict[str, Any]:
+def _run_one(
+    client: Any,
+    controller: str,
+    scenario: str,
+    seed: Any = None,
+    weather: Any = None,
+    weather_params: Any = None,
+) -> Dict[str, Any]:
     spec = vlm.SCENARIOS[scenario]
     cfg = staging.load_staged_config(ROOT, scenario, spec, controller)
+    merge_condition_config(cfg, weather, weather_params)
     if seed is not None:
         cfg["seed"] = int(seed)
     cfg["episode_id"] = _episode_id(controller, scenario) + (f"_s{seed}" if seed is not None else "")
@@ -134,6 +146,8 @@ def _run_one(client: Any, controller: str, scenario: str, seed: Any = None) -> D
         "exception": error,
         "traceback": tb,
         "episode_dir": logger.episode_dir,
+        "condition": result.get("condition"),
+        "weather_applied": bool((result.get("condition") or {}).get("weather_applied")),
     }
     try:
         with open(os.path.join(logger.episode_dir, "result.json"), "w", encoding="utf-8") as fh:
@@ -213,6 +227,11 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=None,
                         help="Scenario RNG seed; also namespaces the episode id "
                              "as <id>_s<seed> so seeds do not overwrite each other.")
+    parser.add_argument("--weather", default=None,
+                        help="CARLA WeatherParameters preset name.")
+    parser.add_argument("--weather-params", type=parse_weather_params, default=None,
+                        metavar="K=V,K=V",
+                        help="Float weather parameters applied over --weather.")
     args = parser.parse_args()
     controllers = args.controllers or list(CONTROLLERS)
     scenarios = args.scenarios or list(vlm.SCENARIO_ORDER)
@@ -229,7 +248,14 @@ def main() -> int:
     rows: List[Dict[str, Any]] = []
     for controller in controllers:
         for scenario in scenarios:
-            rows.append(_run_one(client, controller, scenario, seed=args.seed))
+            rows.append(_run_one(
+                client,
+                controller,
+                scenario,
+                seed=args.seed,
+                weather=args.weather,
+                weather_params=args.weather_params,
+            ))
             _write_outputs(rows)
     _write_outputs(rows)
     print(f"Wrote {RESULTS_JSON}")

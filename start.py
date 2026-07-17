@@ -55,6 +55,10 @@ except Exception:  # noqa: BLE001
 from marshal_bench.criteria.marshal_metrics import (  # noqa: E402
     compute_episode_metrics, aggregate, CONFLICT_TYPE, CONFLICT_TYPE_ORDER,
     REASONING_TIER, SCENARIO_SPEC)
+from marshal_bench.utils.conditions import (  # noqa: E402
+    merge_condition_config,
+    parse_weather_params,
+)
 
 PY = sys.executable
 RUNNER = os.path.join(_THIS, "scripts", "run_marshal_officer_demo.py")
@@ -84,6 +88,13 @@ def _run_episode(controller: str, scenario: str, args, out_root: str) -> dict | 
            "--port", str(args.port),
            "--fps", str(args.fps),
            "--out", out_root]
+    condition_cfg = _build_episode_condition_cfg(args)
+    condition = condition_cfg.get("weather") or {}
+    if "preset" in condition:
+        cmd.extend(["--weather", condition["preset"]])
+    if "params" in condition:
+        encoded = ",".join(f"{key}={value}" for key, value in condition["params"].items())
+        cmd.extend(["--weather-params", encoded])
     if args.debug:
         cmd.append("--debug")
     try:
@@ -155,7 +166,7 @@ def _print_scoreboard(tag: str, board: dict, per: dict) -> None:
 
 
 # ---------------------------------------------------------------------------
-def main(argv=None) -> int:
+def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         description="Score an autonomous-driving model on the MARSHAL benchmark.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -174,13 +185,27 @@ def main(argv=None) -> int:
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=2000)
     p.add_argument("--fps", type=float, default=20.0)
+    p.add_argument("--weather", default=None,
+                   help="CARLA WeatherParameters preset name.")
+    p.add_argument("--weather-params", type=parse_weather_params, default=None,
+                   metavar="K=V,K=V",
+                   help="Float weather parameters applied over --weather.")
     p.add_argument("--episode-timeout", type=float, default=300.0,
                    help="Wall-clock seconds before an episode is abandoned.")
     p.add_argument("--out", default=os.path.join(_THIS, "outputs", "benchmark"),
                    help="Output root; results go to <out>/<tag>/.")
     p.add_argument("--debug", action="store_true",
                    help="Stream per-episode logs + officer debug visuals.")
-    args = p.parse_args(argv)
+    return p
+
+
+def _build_episode_condition_cfg(args: argparse.Namespace) -> dict:
+    """Build the exact condition fragment forwarded to every episode."""
+    return merge_condition_config({}, args.weather, args.weather_params)
+
+
+def main(argv=None) -> int:
+    args = _build_parser().parse_args(argv)
 
     scenarios = args.scenarios or ALL_SCENARIOS
     unknown = [s for s in scenarios if s not in ALL_SCENARIOS]
@@ -199,6 +224,7 @@ def main(argv=None) -> int:
 
     metrics = []
     per = {}
+    episode_conditions = []
     for i, scen in enumerate(scenarios, 1):
         print(f"  [{i:2d}/{len(scenarios)}] {scen} ...", flush=True)
         res = _run_episode(args.controller, scen, args, out_root)
@@ -208,10 +234,13 @@ def main(argv=None) -> int:
             continue
         em = compute_episode_metrics(res, scenario=scen)
         metrics.append(em)
+        if isinstance(res.get("condition"), dict):
+            episode_conditions.append(res["condition"])
         per[scen] = {
             "passed": em.passed,
             "conflict_type": CONFLICT_TYPE.get(scen),
             "tier": REASONING_TIER.get(scen),  # legacy
+            "weather_applied": bool((res.get("condition") or {}).get("weather_applied")),
         }
         print(f"        {'PASS' if em.passed else 'FAIL'}  "
               f"(conflict_type={CONFLICT_TYPE.get(scen)})", flush=True)
@@ -225,6 +254,10 @@ def main(argv=None) -> int:
     board["model"] = tag
     board["controller"] = args.controller
     board["map"] = args.town
+    # All episodes receive the same requested condition.  Use the first actual
+    # world-derived block so the scoreboard records what CARLA ran, not merely
+    # what the user requested.
+    board["condition"] = episode_conditions[0] if episode_conditions else None
     board["per_scenario_pass"] = per
     board["wall_seconds"] = round(time.monotonic() - t0, 1)
 
