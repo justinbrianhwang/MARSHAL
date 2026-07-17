@@ -20,6 +20,7 @@ ROOT = os.path.abspath(os.path.join(THIS, os.pardir))
 sys.path.insert(0, THIS); sys.path.insert(0, ROOT)
 import _carla_manager as cm
 import _run_vlm_test as vlm
+from marshal_bench.utils.conditions import parse_weather_params
 
 SCEN = list(vlm.SCENARIO_ORDER)  # 21
 RESTART_EVERY = 12
@@ -121,7 +122,26 @@ def main(argv=None) -> int:
     ap.add_argument("--only", nargs="+", help="run only these model labels")
     ap.add_argument("--scenarios", nargs="+", help="restrict scenarios")
     ap.add_argument("--no-resume", action="store_true")
+    ap.add_argument("--weather", default=None,
+                    help="CARLA WeatherParameters preset name for every episode")
+    ap.add_argument("--weather-params", type=parse_weather_params, default=None,
+                    metavar="K=V,K=V",
+                    help="Float weather parameters applied over --weather")
     args = ap.parse_args(argv)
+
+    run_env = dict(ENV)
+    for key in (
+        "MARSHAL_SWEEP_CONDITION_ACTIVE",
+        "MARSHAL_SWEEP_WEATHER",
+        "MARSHAL_SWEEP_WEATHER_PARAMS",
+    ):
+        run_env.pop(key, None)
+    if args.weather is not None or args.weather_params is not None:
+        run_env["MARSHAL_SWEEP_CONDITION_ACTIVE"] = "1"
+    if args.weather is not None:
+        run_env["MARSHAL_SWEEP_WEATHER"] = args.weather
+    if args.weather_params is not None:
+        run_env["MARSHAL_SWEEP_WEATHER_PARAMS"] = json.dumps(args.weather_params)
 
     models = [m for m in MODELS if (not args.only or m[0] in args.only)]
     scenarios = args.scenarios or SCEN
@@ -155,7 +175,7 @@ def main(argv=None) -> int:
             ok = False
             for attempt in (1, 2):
                 try:
-                    rc = subprocess.run(cmd_fn(sc), cwd=ROOT, env=ENV,
+                    rc = subprocess.run(cmd_fn(sc), cwd=ROOT, env=run_env,
                                         timeout=PER_EP_TIMEOUT).returncode
                 except subprocess.TimeoutExpired:
                     rc = -9

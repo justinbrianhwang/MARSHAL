@@ -522,6 +522,7 @@ def write_strict_artifacts(
     episode_dir: str,
     telemetry_rows: List[Dict[str, Any]],
     strict_score: Dict[str, Any],
+    metadata: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, str]:
     """Write wide telemetry CSV plus JSON score artifacts into an episode dir."""
     root = Path(episode_dir)
@@ -536,7 +537,11 @@ def write_strict_artifacts(
         for row in telemetry_rows:
             writer.writerow({key: row.get(key) for key in TELEMETRY_FIELDS})
 
-    payload = {"telemetry": telemetry_rows, "strict_scoring": strict_score}
+    payload = {
+        "metadata": metadata or {},
+        "telemetry": telemetry_rows,
+        "strict_scoring": strict_score,
+    }
     with open(json_path, "w", encoding="utf-8") as fh:
         json.dump(payload, fh, indent=2, default=str)
     with open(score_path, "w", encoding="utf-8") as fh:

@@ -12,6 +12,7 @@ import os
 from typing import Any, Dict, List, Optional, Tuple
 
 from marshal_bench.utils.carla_api_compat import import_carla
+from marshal_bench.utils.conditions import merge_condition_config
 
 log = logging.getLogger("scripts._shared_staging")
 
@@ -141,6 +142,18 @@ def load_staged_config(
     cfg["town"] = "Town03"
     cfg["fps"] = 20
     cfg["timeout_sec"] = 14
+    # The full-sweep orchestrator spans several runner CLIs.  It serializes its
+    # two condition flags into child-process transport variables; normalize
+    # them immediately into the same top-level cfg["weather"] path used by all
+    # episodes.
+    sweep_condition_active = os.environ.get("MARSHAL_SWEEP_CONDITION_ACTIVE") == "1"
+    env_preset = os.environ.get("MARSHAL_SWEEP_WEATHER") if sweep_condition_active else None
+    env_params_raw = (
+        os.environ.get("MARSHAL_SWEEP_WEATHER_PARAMS")
+        if sweep_condition_active else None
+    )
+    env_params = json.loads(env_params_raw) if env_params_raw is not None else None
+    merge_condition_config(cfg, env_preset, env_params)
     spawn = station_spawn(root, scenario_key)
     if spawn:
         cfg.setdefault("ego", {})["spawn_transform"] = spawn

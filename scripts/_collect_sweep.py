@@ -7,7 +7,7 @@ matrix + per-model summary and writes outputs/full_sweep_results.json.
 Run from the marshal env:  python scripts/_collect_sweep.py
 """
 from __future__ import annotations
-import os, sys, json
+import hashlib, os, sys, json
 
 THIS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(THIS, os.pardir))
@@ -54,6 +54,25 @@ def read_result(epdir):
         return None
 
 
+def _extract_condition(result_blob):
+    if not isinstance(result_blob, dict):
+        return None
+    if isinstance(result_blob.get("condition"), dict):
+        return result_blob["condition"]
+    nested = result_blob.get("result")
+    if isinstance(nested, dict) and isinstance(nested.get("condition"), dict):
+        return nested["condition"]
+    return None
+
+
+def _condition_key(condition):
+    weather = (condition or {}).get("weather")
+    if not isinstance(weather, dict):
+        return None
+    canonical = json.dumps(weather, sort_keys=True, separators=(",", ":"))
+    return "weather-sha256:" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16]
+
+
 def main():
     matrix = {}      # model -> scenario -> {strict, credit}
     summary = {}
@@ -61,9 +80,14 @@ def main():
         matrix[label] = {}
         ep_scores = []
         ep_metrics = []
+        conditions_seen = set()
         npass = nfail = ninvalid = nmissing = 0
         for sc in SCEN:
             epdir = os.path.join(out_root, epid_fn(sc))
+            result_blob = read_result(epdir)
+            condition_key = _condition_key(_extract_condition(result_blob))
+            if condition_key is not None:
+                conditions_seen.add(condition_key)
             strict = read_strict(epdir)
             if strict is None:
                 matrix[label][sc] = {"strict": "MISSING", "credit": None}
@@ -78,7 +102,7 @@ def main():
                 nfail += 1
             credit = None
             rows = read_tel(epdir)
-            result_dict = read_result(epdir)
+            result_dict = result_blob
             if not isinstance(result_dict, dict):
                 result_dict = {"scenario": sc, "strict_scoring": strict}
             else:
@@ -120,6 +144,7 @@ def main():
             "r_scores": marshal_agg["r_scores"],
             "suite": marshal_agg["suite"],
             "conflict_profile": conflict_profile,
+            "conditions_seen": sorted(conditions_seen),
         }
 
     # print
