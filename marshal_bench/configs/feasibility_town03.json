@@ -1,0 +1,86 @@
+{
+  "green_stop": {
+    "feasible": true,
+    "reason": "selected tl88-r0-l3-s4.0 from 21/45 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface shoulder"
+  },
+  "red_proceed": {
+    "feasible": true,
+    "reason": "selected tl78-r67-l3-s2.7 from 21/45 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface shoulder"
+  },
+  "signal_off": {
+    "feasible": true,
+    "reason": "selected tl77-r30-l-2-s72.8 from 21/45 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface shoulder"
+  },
+  "crash_detour": {
+    "feasible": true,
+    "reason": "selected tl89-r65-l3-s3.4 from 21/45 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface shoulder"
+  },
+  "fallen_person": {
+    "feasible": true,
+    "reason": "selected tl90-r73-l1-s1.9 from 21/45 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty; spawn clear; initial stopline distance 28.0 m; officer surface not_required"
+  },
+  "unauthorized_go": {
+    "feasible": true,
+    "reason": "selected tl88-r0-l3-s4.0 from 21/45 satisfying candidates; reuse count 1, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface shoulder"
+  },
+  "adjacent_lane": {
+    "feasible": true,
+    "reason": "selected tl78-r67-l3-s2.7 from 21/45 satisfying candidates; reuse count 1, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface shoulder"
+  },
+  "flagger_control": {
+    "feasible": true,
+    "reason": "selected tl77-r30-l-2-s72.8 from 21/45 satisfying candidates; reuse count 1, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface shoulder"
+  },
+  "ambulance_yield": {
+    "feasible": true,
+    "reason": "selected tl89-r65-l3-s3.4 from 4/45 satisfying candidates; reuse count 1, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface shoulder"
+  },
+  "occluded_officer": {
+    "feasible": true,
+    "reason": "selected tl88-r0-l3-s4.0 from 21/45 satisfying candidates; reuse count 2, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface shoulder"
+  },
+  "conflicting_authorities": {
+    "feasible": true,
+    "reason": "selected tl78-r67-l3-s2.7 from 21/45 satisfying candidates; reuse count 2, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface shoulder"
+  },
+  "sequential_directive": {
+    "feasible": true,
+    "reason": "selected tl77-r30-l-2-s72.8 from 21/45 satisfying candidates; reuse count 2, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface shoulder"
+  },
+  "rule_hierarchy": {
+    "feasible": true,
+    "reason": "selected tl89-r65-l3-s3.4 from 21/45 satisfying candidates; reuse count 2, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface shoulder"
+  },
+  "ambiguous_gesture": {
+    "feasible": true,
+    "reason": "selected tl88-r0-l3-s4.0 from 21/45 satisfying candidates; reuse count 3, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface shoulder"
+  },
+  "civilian_warning_accident": {
+    "feasible": true,
+    "reason": "selected tl78-r67-l3-s2.7 from 21/45 satisfying candidates; reuse count 3, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface shoulder"
+  },
+  "emergency_scene_blocking": {
+    "feasible": true,
+    "reason": "selected tl83-r73-l-1-s29.4 from 21/45 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty; spawn clear; initial stopline distance 28.0 m; officer surface not_required"
+  },
+  "two_civilians_disagree": {
+    "feasible": true,
+    "reason": "selected tl77-r30-l-2-s72.8 from 21/45 satisfying candidates; reuse count 3, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface shoulder"
+  },
+  "flagger_slow_then_stop": {
+    "feasible": true,
+    "reason": "selected tl89-r65-l3-s3.4 from 21/45 satisfying candidates; reuse count 3, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface shoulder"
+  },
+  "school_crossing_guard": {
+    "feasible": true,
+    "reason": "selected tl88-r0-l3-s4.0 from 21/45 satisfying candidates; reuse count 4, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface shoulder"
+  },
+  "fake_vest_director": {
+    "feasible": true,
+    "reason": "selected tl78-r67-l3-s2.7 from 21/45 satisfying candidates; reuse count 4, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface shoulder"
+  },
+  "barricade_self_detour": {
+    "feasible": true,
+    "reason": "selected tl93-r0-l-1-s39.9 from 21/45 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty; spawn clear; initial stopline distance 28.0 m; officer surface not_required"
+  }
+}

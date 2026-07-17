@@ -1,0 +1,218 @@
+{
+  "map": "Town03",
+  "spawn_tolerance_m": 35.0,
+  "stopline_tolerance_m": 12.0,
+  "comparisons": {
+    "green_stop": {
+      "within_tolerance": false,
+      "spawn_distance_m": 286.782,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": 282.917,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "divergence is explicit: the global run-up+margin optimum is a different valid approach; Town03's hand file intentionally distributes scenarios across distinct benchmark locations",
+      "curated_stopline_resolved": true,
+      "witness_violations": []
+    },
+    "red_proceed": {
+      "within_tolerance": false,
+      "spawn_distance_m": 360.002,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": null,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "divergence is explicit: the global run-up+margin optimum is a different valid approach; Town03's hand file intentionally distributes scenarios across distinct benchmark locations",
+      "curated_stopline_resolved": false,
+      "witness_violations": []
+    },
+    "signal_off": {
+      "within_tolerance": false,
+      "spawn_distance_m": 53.121,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": 20.866,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "divergence is explicit: the global run-up+margin optimum is a different valid approach; Town03's hand file intentionally distributes scenarios across distinct benchmark locations",
+      "curated_stopline_resolved": true,
+      "witness_violations": []
+    },
+    "crash_detour": {
+      "within_tolerance": false,
+      "spawn_distance_m": 305.241,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": 300.715,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "divergence is explicit: the global run-up+margin optimum is a different valid approach; Town03's hand file intentionally distributes scenarios across distinct benchmark locations",
+      "curated_stopline_resolved": true,
+      "witness_violations": []
+    },
+    "fallen_person": {
+      "within_tolerance": false,
+      "spawn_distance_m": 388.625,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": 406.475,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "divergence is explicit: the global run-up+margin optimum is a different valid approach; Town03's hand file intentionally distributes scenarios across distinct benchmark locations",
+      "curated_stopline_resolved": true,
+      "witness_violations": []
+    },
+    "unauthorized_go": {
+      "within_tolerance": false,
+      "spawn_distance_m": 353.662,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": 360.857,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "divergence is explicit: the global run-up+margin optimum is a different valid approach; Town03's hand file intentionally distributes scenarios across distinct benchmark locations",
+      "curated_stopline_resolved": true,
+      "witness_violations": []
+    },
+    "adjacent_lane": {
+      "within_tolerance": true,
+      "spawn_distance_m": 10.268,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": 0.0,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "generated and curated approaches agree within the documented tolerance",
+      "curated_stopline_resolved": true,
+      "witness_violations": []
+    },
+    "flagger_control": {
+      "within_tolerance": false,
+      "spawn_distance_m": 63.655,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": 52.555,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "divergence is explicit: the global run-up+margin optimum is a different valid approach; Town03's hand file intentionally distributes scenarios across distinct benchmark locations",
+      "curated_stopline_resolved": true,
+      "witness_violations": []
+    },
+    "ambulance_yield": {
+      "within_tolerance": false,
+      "spawn_distance_m": 379.97,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": 370.577,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "divergence is explicit: the global run-up+margin optimum is a different valid approach; Town03's hand file intentionally distributes scenarios across distinct benchmark locations",
+      "curated_stopline_resolved": true,
+      "witness_violations": []
+    },
+    "occluded_officer": {
+      "within_tolerance": false,
+      "spawn_distance_m": 360.314,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": 338.577,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "divergence is explicit: the global run-up+margin optimum is a different valid approach; Town03's hand file intentionally distributes scenarios across distinct benchmark locations",
+      "curated_stopline_resolved": true,
+      "witness_violations": []
+    },
+    "conflicting_authorities": {
+      "within_tolerance": false,
+      "spawn_distance_m": 331.011,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": 333.271,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "divergence is explicit: the global run-up+margin optimum is a different valid approach; Town03's hand file intentionally distributes scenarios across distinct benchmark locations",
+      "curated_stopline_resolved": true,
+      "witness_violations": []
+    },
+    "sequential_directive": {
+      "within_tolerance": false,
+      "spawn_distance_m": 94.551,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": 73.409,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "divergence is explicit: the global run-up+margin optimum is a different valid approach; Town03's hand file intentionally distributes scenarios across distinct benchmark locations",
+      "curated_stopline_resolved": true,
+      "witness_violations": []
+    },
+    "rule_hierarchy": {
+      "within_tolerance": false,
+      "spawn_distance_m": 253.122,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": 200.287,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "divergence is explicit: the global run-up+margin optimum is a different valid approach; Town03's hand file intentionally distributes scenarios across distinct benchmark locations",
+      "curated_stopline_resolved": true,
+      "witness_violations": []
+    },
+    "ambiguous_gesture": {
+      "within_tolerance": false,
+      "spawn_distance_m": 68.717,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": 68.706,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "divergence is explicit: the global run-up+margin optimum is a different valid approach; Town03's hand file intentionally distributes scenarios across distinct benchmark locations",
+      "curated_stopline_resolved": true,
+      "witness_violations": []
+    },
+    "civilian_warning_accident": {
+      "within_tolerance": false,
+      "spawn_distance_m": 250.274,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": 251.851,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "divergence is explicit: the global run-up+margin optimum is a different valid approach; Town03's hand file intentionally distributes scenarios across distinct benchmark locations",
+      "curated_stopline_resolved": true,
+      "witness_violations": []
+    },
+    "emergency_scene_blocking": {
+      "within_tolerance": false,
+      "spawn_distance_m": 320.279,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": 272.673,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "divergence is explicit: the global run-up+margin optimum is a different valid approach; Town03's hand file intentionally distributes scenarios across distinct benchmark locations",
+      "curated_stopline_resolved": true,
+      "witness_violations": []
+    },
+    "two_civilians_disagree": {
+      "within_tolerance": false,
+      "spawn_distance_m": 151.112,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": 151.133,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "divergence is explicit: the global run-up+margin optimum is a different valid approach; Town03's hand file intentionally distributes scenarios across distinct benchmark locations",
+      "curated_stopline_resolved": true,
+      "witness_violations": []
+    },
+    "flagger_slow_then_stop": {
+      "within_tolerance": false,
+      "spawn_distance_m": 409.26,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": 412.14,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "divergence is explicit: the global run-up+margin optimum is a different valid approach; Town03's hand file intentionally distributes scenarios across distinct benchmark locations",
+      "curated_stopline_resolved": true,
+      "witness_violations": []
+    },
+    "school_crossing_guard": {
+      "within_tolerance": false,
+      "spawn_distance_m": 404.762,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": 403.077,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "divergence is explicit: the global run-up+margin optimum is a different valid approach; Town03's hand file intentionally distributes scenarios across distinct benchmark locations",
+      "curated_stopline_resolved": true,
+      "witness_violations": []
+    },
+    "fake_vest_director": {
+      "within_tolerance": false,
+      "spawn_distance_m": 388.895,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": 355.128,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "divergence is explicit: the global run-up+margin optimum is a different valid approach; Town03's hand file intentionally distributes scenarios across distinct benchmark locations",
+      "curated_stopline_resolved": true,
+      "witness_violations": []
+    },
+    "barricade_self_detour": {
+      "within_tolerance": false,
+      "spawn_distance_m": 165.089,
+      "spawn_tolerance_m": 35.0,
+      "stopline_distance_m": 125.538,
+      "stopline_tolerance_m": 12.0,
+      "explanation": "divergence is explicit: the global run-up+margin optimum is a different valid approach; Town03's hand file intentionally distributes scenarios across distinct benchmark locations",
+      "curated_stopline_resolved": true,
+      "witness_violations": []
+    }
+  },
+  "witness_violations": {}
+}
