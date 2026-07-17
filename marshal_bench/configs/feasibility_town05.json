@@ -1,0 +1,86 @@
+{
+  "green_stop": {
+    "feasible": true,
+    "reason": "selected tl502-r1-l-2-s43.1 from 44/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk"
+  },
+  "red_proceed": {
+    "feasible": true,
+    "reason": "selected tl517-r3-l2-s6.8 from 44/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk"
+  },
+  "signal_off": {
+    "feasible": true,
+    "reason": "selected tl512-r40-l-2-s34.8 from 44/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk"
+  },
+  "crash_detour": {
+    "feasible": true,
+    "reason": "selected tl493-r47-l2-s4.6 from 44/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface shoulder"
+  },
+  "fallen_person": {
+    "feasible": true,
+    "reason": "selected tl500-r2-l1-s4.3 from 44/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty; spawn clear; initial stopline distance 28.0 m; officer surface not_required"
+  },
+  "unauthorized_go": {
+    "feasible": true,
+    "reason": "selected tl530-r38-l4-s6.6 from 44/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface shoulder"
+  },
+  "adjacent_lane": {
+    "feasible": true,
+    "reason": "selected tl509-r22-l2-s7.1 from 44/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk"
+  },
+  "flagger_control": {
+    "feasible": true,
+    "reason": "selected tl515-r22-l-2-s38.9 from 44/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk"
+  },
+  "ambulance_yield": {
+    "feasible": true,
+    "reason": "selected tl532-r36-l4-s6.1 from 5/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.1 m; officer surface shoulder"
+  },
+  "occluded_officer": {
+    "feasible": true,
+    "reason": "selected tl511-r21-l-2-s48.8 from 44/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk"
+  },
+  "conflicting_authorities": {
+    "feasible": true,
+    "reason": "selected tl507-r17-l-2-s4.5 from 44/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk"
+  },
+  "sequential_directive": {
+    "feasible": true,
+    "reason": "selected tl486-r21-l2-s6.8 from 44/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk"
+  },
+  "rule_hierarchy": {
+    "feasible": true,
+    "reason": "selected tl534-r0-l2-s6.6 from 44/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk"
+  },
+  "ambiguous_gesture": {
+    "feasible": true,
+    "reason": "selected tl529-r29-l2-s6.3 from 44/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk"
+  },
+  "civilian_warning_accident": {
+    "feasible": true,
+    "reason": "selected tl535-r26-l2-s6.4 from 44/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk"
+  },
+  "emergency_scene_blocking": {
+    "feasible": true,
+    "reason": "selected tl502-r1-l-1-s43.1 from 44/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty; spawn clear; initial stopline distance 28.0 m; officer surface not_required"
+  },
+  "two_civilians_disagree": {
+    "feasible": true,
+    "reason": "selected tl522-r44-l2-s7.2 from 44/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk"
+  },
+  "flagger_slow_then_stop": {
+    "feasible": true,
+    "reason": "selected tl536-r39-l-2-s40.8 from 44/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk"
+  },
+  "school_crossing_guard": {
+    "feasible": true,
+    "reason": "selected tl537-r25-l-2-s10.8 from 44/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk"
+  },
+  "fake_vest_director": {
+    "feasible": true,
+    "reason": "selected tl505-r18-l2-s6.8 from 44/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.1 m; officer surface sidewalk"
+  },
+  "barricade_self_detour": {
+    "feasible": true,
+    "reason": "selected tl517-r3-l1-s6.8 from 44/89 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty; spawn clear; initial stopline distance 28.0 m; officer surface not_required"
+  }
+}
