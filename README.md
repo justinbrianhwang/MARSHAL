@@ -54,8 +54,10 @@ behavior — here `green_stop`, where the officer's STOP overrides the green lig
 
 Existing autonomous-driving benchmarks mainly evaluate driving performance,
 perception, navigation, and collision avoidance. MARSHAL focuses on a different
-question: **"Who should the vehicle obey?"**
-([why this is a distinct evaluation dimension →](docs/problem_statement.md))
+question: **"Can the vehicle identify and obey the correct authority?"** — existing
+benchmarks ask *"can it drive safely?"*; MARSHAL asks *"who should it obey?"*
+([why this is a distinct evaluation dimension →](docs/problem_statement.md) ·
+[why these scenarios — deployment incidents, statutes, and the benchmark gap →](docs/scenario_design_justification.md))
 
 <p align="center">
   <img src="assets/figures/authority-gap.png" width="860"
@@ -215,9 +217,15 @@ contextual-hazard, conflicting-authority, temporal, and self-detour cases). The
 three new **DETOUR** scenarios (15, 16, 21) are solved **only by the privileged
 oracle** in the current sweep — the hardest discriminators in the set.
 
-The **high tier** is the reasoning core of the benchmark — it is **more
-reasoning-intensive**, not "more important": an officer-blind, light-only agent
-passes the low tier and fails the high tier. See *Results* below.
+The suite is organized as a **coverage of the authority-conflict space** — authority
+vs. device, authority vs. authority, authority *validity*, contextual/scene
+authority, safety override — not as a difficulty ladder. (The low/mid/high tier
+labels are retained in the tables as legacy metadata, but our 3-run analysis shows
+they do **not** track empirical difficulty — Spearman ρ = −0.22; what predicts
+difficulty is the required maneuver and the conflict structure. Evidence and the
+replacement proposal: [docs/taxonomy_decision.md](docs/taxonomy_decision.md); why
+these scenarios at all:
+[docs/scenario_design_justification.md](docs/scenario_design_justification.md).)
 
 > **Now implemented (2026-06 expansion).** Two scenarios previously listed as
 > *planned* are now in the suite (rows 15 & 21): **`barricade_self_detour`** — the ego
@@ -456,14 +464,18 @@ The pipeline goes **per-tick → per-episode → per-model**:
    listed under `r_unmeasured` and excluded from the denominator, so the number
    stays in [0, 100].
 
-4. **The headline — reasoning-tier pass-rate.** Every scenario is tagged
-   **low / mid / high** tier, and we report the pass-rate per tier. Low-tier
-   (signal classification) is solvable by perception + a rule engine; high-tier
-   (authority conflict, occlusion, memory, ambiguity) needs reasoning. The gap
-   between an agent's **low-tier and high-tier pass-rate is the headline result**
-   — the direct, quantified measure of why an LLM/VLM reasoner is needed beyond
-   an E2E stack. (In our reference sweep the officer-blind baseline scores ~0% on
-   the high tier while the privileged oracle scores ~100%.)
+4. **The headline — the authority gap.** The headline result is the gap between
+   the officer-blind baseline (obeys the light, ignores the human: graded ~24)
+   and the privileged oracle (obeys the legally correct authority: graded 100),
+   and how much of that gap each model closes — read primarily on
+   **MARSHAL-Graded**, certified by strict Pass/Fail, and explained by the
+   per-principle **failure profile** (which conflict types a model fails:
+   `scripts/_failure_profiles.py`). This is the direct, quantified measure of
+   authority-aware reasoning beyond driving competence. (Per-tier pass-rates are
+   still emitted in `scoreboard.json` as legacy metadata — see
+   [docs/taxonomy_decision.md](docs/taxonomy_decision.md) for why tiers are no
+   longer the headline; the three scores' roles are defined in
+   [docs/evaluation_methodology.md](docs/evaluation_methodology.md).)
 
 Every run writes a `scoreboard.json` with `suite`, `r_scores`,
 `marshal_score_partial`, `tier_pass_rate`, and `per_episode` so the numbers are
