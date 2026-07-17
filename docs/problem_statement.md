@@ -103,11 +103,14 @@ the perception. A model must:
 5. **Act** on it in closed loop — and remember temporally-extended directives
    ("wait… now go").
 
-The low-tier scenarios are solvable by perception + a rule engine; the high-tier
-scenarios require human-intent, conflict-resolution, memory, and ambiguity handling.
-The gap between the two tiers is the quantitative case for authority-aware reasoning.
-See [scenarios.md](scenarios.md) for the full 21-scenario set and
-[design_principles.md](design_principles.md) for the selection principles.
+The plain signal-override cases are solvable by perception + a rule engine; the
+validity, conflict, contextual-authority, and stressed cases require human-intent
+reasoning, conflict resolution, memory, and ambiguity handling. The quantitative
+case for authority-aware reasoning is the **authority gap** — the distance between
+the officer-blind baseline (graded ~24) and the privileged oracle (100), and how
+much of it each model closes. See [scenarios.md](scenarios.md) for the full
+21-scenario set and [design_principles.md](design_principles.md) for the selection
+principles and the conflict typology.
 
 ## Why MARSHAL matters
 

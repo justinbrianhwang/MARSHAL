@@ -408,8 +408,8 @@ class MyController(EpisodeController):
 
 ## Metrics & the MARSHAL Score
 
-Each episode is scored by the contextual metric suite (PPTX Slide 14) plus the
-high-tier reasoning metrics:
+Each episode is scored by the contextual metric suite plus the
+authority-reasoning metrics:
 
 | metric | meaning |
 |--------|---------|
