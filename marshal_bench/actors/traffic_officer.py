@@ -46,7 +46,8 @@ class TrafficOfficer:
 
     # z-lift candidates applied on spawn collisions to ride over uneven terrain
     _SPAWN_Z_RETRIES_M: tuple[float, ...] = (0.0, 0.5, 1.0)
-    _PROCEED_BODY_YAW_OFFSET_DEG: float = -90.0
+    # Limb gestures must not rotate a correctly staged director away from ego.
+    _PROCEED_BODY_YAW_OFFSET_DEG: float = 0.0
     _PADDLE_RADIUS_M: float = 0.32
 
     def __init__(

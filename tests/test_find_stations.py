@@ -174,3 +174,80 @@ def test_at_pose_runup_is_walked_route_distance_to_linked_stopline():
     assert facts is not None
     assert facts["runup_m"] == step_count * step
     assert facts["stopline_distance_m"] == step_count * step
+
+
+def test_required_actor_derivation_covers_adjacent_lane_and_detour():
+    adjacent = find_stations._required_scene_actors("adjacent_lane", {"scene": {}})
+    assert [(item.role, item.count, item.blueprint_kind) for item in adjacent] == [
+        ("adjacent-lane vehicle", 1, "vehicle")
+    ]
+
+    detour = find_stations._required_scene_actors(
+        "crash_detour", {"scene": {"crash_vehicles": 4}}
+    )
+    assert [(item.role, item.count, item.blueprint_kind) for item in detour] == [
+        ("pileup vehicle", 4, "vehicle")
+    ]
+
+
+def test_required_actor_probe_failure_makes_candidate_explicitly_infeasible(
+    monkeypatch,
+):
+    candidate = {
+        "id": "synthetic",
+        "spawn": {"x": 0.0, "y": 0.0, "z": 0.5, "yaw": 0.0},
+        "stopline": {"x": 28.0, "y": 0.0, "z": 0.0},
+        "signalized": True,
+        "forward_traffic_light_distance_m": 28.0,
+        "junction_approach": True,
+        "runup_m": 28.0,
+        "geometric_margin_m": 10.0,
+        "adjacent_same_road_lane": True,
+        "detour_clearance_m": 3.5,
+        "junction_free_forward_m": 80.0,
+        "offroad_shoulder": True,
+        "surface_by_offset": {"3.2": {"offroad": True, "surface": "sidewalk"}},
+    }
+    requirements = {
+        "hard": {
+            "needs_traffic_light": True,
+            "needs_sidewalk_point": False,
+            "needs_adjacent_same_road_lane": True,
+            "needs_detour_room": False,
+            "min_detour_clearance_m": 0.0,
+            "needs_offroad_shoulder": False,
+        },
+        "generation": {
+            "needs_junction_approach": True,
+            "min_runup_m": 28.0,
+            "min_initial_stopline_m": 20.0,
+            "max_initial_stopline_m": 40.0,
+            "prefers_sidewalk_point": False,
+            "officer_lateral_offset_m": 3.2,
+            "detour_hazard_start_m": 0.0,
+            "detour_staged_span_m": 0.0,
+            "detour_pass_margin_m": 0.0,
+            "detour_merge_taper_m": 0.0,
+            "min_detour_runout_m": 0.0,
+        },
+        "notes": "synthetic",
+    }
+    monkeypatch.setattr(find_stations, "_spawn_is_clear", lambda *args: True)
+    monkeypatch.setattr(
+        find_stations,
+        "_probe_required_scene_actor_spawns",
+        lambda *args: "adjacent-lane vehicle",
+    )
+
+    chosen, reason = find_stations._select_with_validation(
+        object(),
+        _Carla,
+        [candidate],
+        requirements,
+        object(),
+        "adjacent_lane",
+        {"scene": {}},
+    )
+
+    assert chosen is None
+    assert reason == "required scene actor spawn failed: adjacent-lane vehicle"

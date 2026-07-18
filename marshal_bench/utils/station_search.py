@@ -32,6 +32,11 @@ GENERATION_REQUIREMENT_FIELDS = frozenset(
         "max_initial_stopline_m",
         "prefers_sidewalk_point",
         "officer_lateral_offset_m",
+        "detour_hazard_start_m",
+        "detour_staged_span_m",
+        "detour_pass_margin_m",
+        "detour_merge_taper_m",
+        "min_detour_runout_m",
     }
 )
 REQUIREMENT_FIELDS = HARD_REQUIREMENT_FIELDS | GENERATION_REQUIREMENT_FIELDS
@@ -41,6 +46,19 @@ TRAFFIC_LIGHT_PIN_RADIUS_M = 75.0
 
 def _finite_number(value: Any) -> bool:
     return isinstance(value, Real) and not isinstance(value, bool) and math.isfinite(float(value))
+
+
+def detour_runout_m(
+    hazard_start_m: float,
+    staged_span_m: float,
+    pass_margin_m: float,
+    merge_taper_m: float,
+) -> float:
+    """Return the full straight, junction-free DETOUR staging envelope."""
+    values = (hazard_start_m, staged_span_m, pass_margin_m, merge_taper_m)
+    if any(not _finite_number(value) or float(value) < 0.0 for value in values):
+        raise ValueError("detour run-out terms must be finite non-negative numbers")
+    return sum(float(value) for value in values)
 
 
 def validate_requirements(requirements: Mapping[str, Any]) -> list[str]:
@@ -82,6 +100,11 @@ def validate_requirements(requirements: Mapping[str, Any]) -> list[str]:
         "max_initial_stopline_m",
         "min_detour_clearance_m",
         "officer_lateral_offset_m",
+        "detour_hazard_start_m",
+        "detour_staged_span_m",
+        "detour_pass_margin_m",
+        "detour_merge_taper_m",
+        "min_detour_runout_m",
     ):
         if name in flattened and (not _finite_number(flattened[name]) or float(flattened[name]) < 0.0):
             errors.append(f"{name} must be a finite non-negative number")
@@ -92,6 +115,20 @@ def validate_requirements(requirements: Mapping[str, Any]) -> list[str]:
         > float(flattened["max_initial_stopline_m"])
     ):
         errors.append("min_initial_stopline_m must not exceed max_initial_stopline_m")
+    runout_names = (
+        "detour_hazard_start_m",
+        "detour_staged_span_m",
+        "detour_pass_margin_m",
+        "detour_merge_taper_m",
+    )
+    if all(_finite_number(flattened.get(name)) for name in runout_names) and _finite_number(
+        flattened.get("min_detour_runout_m")
+    ):
+        derived = detour_runout_m(*(float(flattened[name]) for name in runout_names))
+        if not math.isclose(derived, float(flattened["min_detour_runout_m"]), abs_tol=1e-9):
+            errors.append(
+                f"min_detour_runout_m must equal its four terms ({derived:.1f} m)"
+            )
     if "notes" in requirements and (not isinstance(requirements["notes"], str) or not requirements["notes"].strip()):
         errors.append("notes must be a non-empty string")
     return errors
@@ -173,6 +210,15 @@ def _requirement_violations(
         reasons.append(
             f"detour clearance {detour_clearance:.1f} m is below {minimum_detour:.1f} m"
         )
+    minimum_runout = float(requirements.get("min_detour_runout_m", 0.0) or 0.0)
+    junction_free_forward = float(
+        topology_facts.get("junction_free_forward_m", 0.0) or 0.0
+    )
+    if junction_free_forward + 1e-9 < minimum_runout:
+        reasons.append(
+            f"junction-free straight detour run-out {junction_free_forward:.1f} m is below "
+            f"{minimum_runout:.1f} m"
+        )
     if requirements.get("needs_offroad_shoulder") and not topology_facts.get("offroad_shoulder", False):
         reasons.append("off-road shoulder required")
     return reasons
@@ -188,6 +234,13 @@ def witness_violations(
     occupy the transform during a particular mining run.
     """
     return _requirement_violations(topology_facts, hard_requirements(requirements))
+
+
+def generation_violations(
+    topology_facts: Mapping[str, Any], requirements: Mapping[str, Any]
+) -> list[str]:
+    """Return candidate-generation failures without promoting them to witness-hard."""
+    return _requirement_violations(topology_facts, generation_requirements(requirements))
 
 
 def candidate_rejections(candidate: Mapping[str, Any], requirements: Mapping[str, Any]) -> list[str]:

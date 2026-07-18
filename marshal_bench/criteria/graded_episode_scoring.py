@@ -434,13 +434,10 @@ def _latency_factor(
                 trigger = "forward_motion"
                 break
     elif action == "PROCEED":
-        for row in rows:
-            if float(row["sim_time"]) < onset:
-                continue
-            if row.get("in_junction") is True and float(row["ego_speed_kmh"]) >= GRADED_THRESHOLDS["proceed_speed_kmh"]:
-                latency_s = float(row["sim_time"]) - onset
-                trigger = "moving_junction_entry"
-                break
+        motion_time = _first_proceed_motion_time(rows, onset)
+        if motion_time is not None:
+            latency_s = motion_time - onset
+            trigger = "proceed_motion"
 
     if latency_s is None:
         # No reaction was detected. If the final action credit is already
@@ -629,6 +626,23 @@ def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: f
     return action_credit, components, evidence, "graded STOP/HOLD stopline, speed, conflict-zone, and engagement margins"
 
 
+def _first_proceed_motion_time(
+    rows: Sequence[Dict[str, Any]], onset: float
+) -> Optional[float]:
+    """Return the first post-onset evidence that the ego acted on PROCEED.
+
+    Junction entry is completion evidence, not reaction evidence: its timestamp
+    includes the station's approach length. Speed is used instead of raw
+    displacement so localisation jitter cannot earn prompt credit.
+    """
+    for row in rows:
+        if float(row["sim_time"]) < onset:
+            continue
+        if float(row["ego_speed_kmh"]) >= GRADED_THRESHOLDS["proceed_speed_kmh"]:
+            return float(row["sim_time"])
+    return None
+
+
 def _score_proceed(rows: Sequence[Dict[str, Any]], onset: float) -> Tuple[float, Dict[str, float], Dict[str, Any], str]:
     after = _between(rows, onset)
     entries = [r for r in after if r.get("in_junction") is True]
@@ -636,19 +650,25 @@ def _score_proceed(rows: Sequence[Dict[str, Any]], onset: float) -> Tuple[float,
     if entries:
         first = entries[0]
         entry_latency = float(first["sim_time"]) - onset
+        motion_time = _first_proceed_motion_time(rows, onset)
+        response_latency = (
+            float(motion_time) - onset if motion_time is not None else None
+        )
         entry_speed = float(first["ego_speed_kmh"])
         speed_credit = _linear_credit(entry_speed, GRADED_THRESHOLDS["proceed_speed_kmh"], 0.0)
         prompt_credit = _linear_credit(
-            entry_latency,
+            response_latency,
             GRADED_THRESHOLDS["proceed_prompt_full_s"],
             GRADED_THRESHOLDS["proceed_prompt_zero_s"],
         )
         action_credit = (0.65 * speed_credit) + (0.35 * prompt_credit)
-        components = {"entry_speed": speed_credit, "prompt_entry": prompt_credit}
+        components = {"entry_speed": speed_credit, "prompt_response": prompt_credit}
         evidence = {
-            "curve": "PROCEED: 0.65*moving-entry speed credit + 0.35*prompt-entry credit.",
+            "curve": "PROCEED: 0.65*moving-entry speed credit + 0.35*prompt-response credit.",
             "entry_time_s": _round(first["sim_time"], 3),
             "entry_latency_s": _round(entry_latency, 3),
+            "response_time_s": _round(motion_time, 3),
+            "response_latency_s": _round(response_latency, 3),
             "entry_speed_kmh": _round(entry_speed),
             "entered_junction": True,
         }

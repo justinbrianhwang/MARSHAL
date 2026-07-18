@@ -33,6 +33,7 @@ import logging
 import math
 import os
 import random
+import re
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
@@ -101,7 +102,61 @@ class ScenarioContext:
     original_weather: Any = None
     weather_applied: bool = False
     extra_actors: list = field(default_factory=list)  # per-scenario scene actors
+    blocking_actors: list = field(default_factory=list)  # on-route obstruction
     spawned_actor_ids: list = field(default_factory=list)
+
+
+def _actor_id(actor: Any) -> Optional[int]:
+    try:
+        actor_id = getattr(actor, "id", None)
+        return int(actor_id) if actor_id is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _scene_actor_group(ctx: ScenarioContext, actor_id: Optional[int]) -> Optional[str]:
+    """Classify an actor ID within this episode's managed scene."""
+    if actor_id is None:
+        return None
+    if any(_actor_id(actor) == actor_id for actor in ctx.blocking_actors):
+        return "blocking"
+    officer_actors = []
+    if ctx.officer is not None:
+        try:
+            officer_actors.append(ctx.officer.get_actor())
+        except Exception:
+            pass
+        officer_actors.extend(list(getattr(ctx.officer, "_aux_actors", ()) or ()))
+    if any(_actor_id(actor) == actor_id for actor in officer_actors):
+        return "officer_or_civilian"
+    if any(_actor_id(actor) == actor_id for actor in ctx.extra_actors):
+        return "extra"
+    return None
+
+
+def _collision_identity_record(
+    ctx: ScenarioContext, event: Any, sim_time: float
+) -> dict[str, Any]:
+    other = getattr(event, "other_actor", None)
+    other_id = _actor_id(other)
+    group = _scene_actor_group(ctx, other_id)
+    return {
+        "sim_time": round(float(sim_time), 4),
+        "other_type_id": str(getattr(other, "type_id", "") or ""),
+        "other_actor_id": other_id,
+        "other_is_scene_actor": group is not None,
+        "other_scene_actor_group": group,
+    }
+
+
+def _append_collision_identity(
+    records: list[dict[str, Any]],
+    ctx: ScenarioContext,
+    event: Any,
+    sim_time: float,
+) -> None:
+    if len(records) < 20:
+        records.append(_collision_identity_record(ctx, event, sim_time))
 
 
 # ---------------------------------------------------------------------------
@@ -364,6 +419,32 @@ def spawn_ego(
 # ---------------------------------------------------------------------------
 # Officer placement
 # ---------------------------------------------------------------------------
+def yaw_toward_location(source: Any, target: Any) -> float:
+    """Yaw whose forward vector points from ``source`` to ``target`` in XY."""
+    dx = float(target.x) - float(source.x)
+    dy = float(target.y) - float(source.y)
+    if math.hypot(dx, dy) <= 1e-9:
+        raise ValueError("facing direction is undefined for coincident locations")
+    return math.degrees(math.atan2(dy, dx))
+
+
+def facing_ego_deg(director_transform: Any, ego_transform: Any) -> Optional[float]:
+    """Angle between a director's forward vector and director-to-ego vector."""
+    if director_transform is None or ego_transform is None:
+        return None
+    try:
+        dx = float(ego_transform.location.x) - float(director_transform.location.x)
+        dy = float(ego_transform.location.y) - float(director_transform.location.y)
+        distance = math.hypot(dx, dy)
+        if distance <= 1e-9:
+            return None
+        forward = director_transform.get_forward_vector()
+        dot = max(-1.0, min(1.0, (float(forward.x) * dx + float(forward.y) * dy) / distance))
+        return round(math.degrees(math.acos(dot)), 6)
+    except Exception:
+        return None
+
+
 def officer_transform_in_front_of(
     ego_transform: Any,
     distance: float = OFFICER_DISTANCE_FROM_EGO,
@@ -386,8 +467,9 @@ def officer_transform_in_front_of(
         y=ego_transform.location.y + fwd.y * distance + right.y * lateral,
         z=ego_transform.location.z,
     )
-    # Officer faces the ego, i.e. opposite the ego's forward heading.
-    facing_yaw = ego_transform.rotation.yaw + 180.0
+    # Use the final, laterally offset location: route yaw + 180 is wrong on
+    # curved approaches and increasingly wrong as the lateral offset grows.
+    facing_yaw = yaw_toward_location(loc, ego_transform.location)
     rot = carla.Rotation(pitch=0.0, yaw=facing_yaw, roll=0.0)
     return carla.Transform(loc, rot)
 
@@ -420,8 +502,11 @@ def officer_transform_on_ego_route(
                 y=twf.location.y + right.y * lateral,
                 z=twf.location.z,
             )
-            # Officer faces back down the lane, i.e. at the oncoming ego.
-            rot = carla.Rotation(pitch=0.0, yaw=twf.rotation.yaw + 180.0, roll=0.0)
+            rot = carla.Rotation(
+                pitch=0.0,
+                yaw=yaw_toward_location(loc, ego_transform.location),
+                roll=0.0,
+            )
             return carla.Transform(loc, rot)
     except Exception as e:
         log.warning("Waypoint officer placement failed (%s); using straight-ahead.", e)
@@ -470,7 +555,7 @@ class _NullOfficer:
         pass
 
 
-def _officer_at_stopline(stopline_tf: Any, lateral: float) -> Any:
+def _officer_at_stopline(stopline_tf: Any, lateral: float, ego_transform: Any) -> Any:
     """Officer transform AT a traffic-light stop line, offset to the lane's
     right and facing the oncoming ego."""
     carla = import_carla()
@@ -480,9 +565,11 @@ def _officer_at_stopline(stopline_tf: Any, lateral: float) -> Any:
         y=stopline_tf.location.y + right.y * lateral,
         z=stopline_tf.location.z,
     )
-    # The stop waypoint faces the direction of travel; the officer faces back
-    # at the oncoming ego.
-    rot = carla.Rotation(pitch=0.0, yaw=stopline_tf.rotation.yaw + 180.0, roll=0.0)
+    rot = carla.Rotation(
+        pitch=0.0,
+        yaw=yaw_toward_location(loc, ego_transform.location),
+        roll=0.0,
+    )
     return carla.Transform(loc, rot)
 
 
@@ -500,7 +587,7 @@ def build_officer(
     """
     lateral = float(officer_cfg.get("lateral_offset", OFFICER_LATERAL_OFFSET))
     if officer_stopline is not None:
-        transform = _officer_at_stopline(officer_stopline, lateral)
+        transform = _officer_at_stopline(officer_stopline, lateral, ego_transform)
     else:
         transform = officer_transform_on_ego_route(
             world,
@@ -890,27 +977,64 @@ def _repin_forward_lights(
 # ---------------------------------------------------------------------------
 # Curated scenario locations (the benchmark 'location' dimension)
 # ---------------------------------------------------------------------------
+_CONFIGS_DIR = os.path.abspath(os.path.join(
+    os.path.dirname(__file__), os.pardir, "configs"
+))
 _STATIONS_CACHE: Optional[dict] = None
+_STATIONS_BY_TOWN_CACHE: dict[str, Optional[dict]] = {}
 
 
-def _load_station(scenario_name: str) -> Optional[dict]:
+def _station_town_key(town: Any) -> Optional[str]:
+    """Return a recognised CARLA town suffix, or ``None`` for legacy lookup."""
+    if not isinstance(town, str) or not town.strip():
+        return None
+    suffix = town.strip().replace("\\", "/").rsplit("/", 1)[-1]
+    match = re.search(r"(Town\d+(?:_[A-Za-z0-9]+)*)$", suffix, re.IGNORECASE)
+    return match.group(1).lower() if match else None
+
+
+def _load_station(scenario_name: str, town: Any = None) -> Optional[dict]:
     """Return the curated {x,y,z,yaw} spawn for a scenario from
-    configs/stations.json, or None. Keyed by the bare scenario name
-    (``marshal_green_stop`` -> ``green_stop``)."""
+    the station file for ``town``, or None.
+
+    Town03, custom Town03 map variants, and absent/unrecognised town names use
+    the original ``configs/stations.json`` path and cache.  Other recognised
+    towns use ``stations_<town>.json`` and never fall back to Town03 poses.
+    Keys use the bare scenario name (``marshal_green_stop`` ->
+    ``green_stop``).
+    """
     global _STATIONS_CACHE
-    if _STATIONS_CACHE is None:
-        path = os.path.join(os.path.dirname(__file__), os.pardir, "configs",
-                            "stations.json")
-        try:
-            with open(os.path.abspath(path), encoding="utf-8") as fh:
-                _STATIONS_CACHE = json.load(fh).get("stations", {})
-        except Exception as e:
-            log.debug("could not load stations.json: %s", e)
-            _STATIONS_CACHE = {}
+    town_key = _station_town_key(town)
+    legacy = town_key is None or town_key == "town03" or town_key.startswith("town03_")
+    if legacy:
+        path = os.path.join(_CONFIGS_DIR, "stations.json")
+        if _STATIONS_CACHE is None:
+            try:
+                with open(path, encoding="utf-8") as fh:
+                    _STATIONS_CACHE = json.load(fh).get("stations", {})
+            except Exception as e:
+                log.debug("could not load stations.json: %s", e)
+                _STATIONS_CACHE = {}
+        stations = _STATIONS_CACHE
+    else:
+        path = os.path.join(_CONFIGS_DIR, f"stations_{town_key}.json")
+        if path not in _STATIONS_BY_TOWN_CACHE:
+            try:
+                with open(path, encoding="utf-8") as fh:
+                    _STATIONS_BY_TOWN_CACHE[path] = json.load(fh).get("stations", {})
+            except Exception as e:
+                log.warning("Could not load station file %s: %s", path, e)
+                _STATIONS_BY_TOWN_CACHE[path] = None
+        stations = _STATIONS_BY_TOWN_CACHE[path]
+        if stations is None:
+            return None
+
     base = scenario_name.replace("marshal_", "")
     base = {"signal_officer_control": "signal_off"}.get(base, base)
-    st = _STATIONS_CACHE.get(base)
+    st = stations.get(base)
     if not st:
+        if not legacy:
+            log.warning("Station key %r is missing from %s", base, path)
         return None
     return {"x": float(st["x"]), "y": float(st["y"]),
             "z": float(st.get("z", 0.5)), "yaw": float(st["yaw"])}
@@ -1069,17 +1193,55 @@ def _build_observation(
     v = ctx.ego.get_velocity()
     speed = math.hypot(v.x, v.y)
     image = ctx.latest_ego_frame
-    return {
+    # Controller-only physical signal: signed distance to the furthest scene
+    # hazard along the ego heading. A negative value means every managed
+    # hazard actor is behind the ego; the oracle uses <-5 m to bound a detour.
+    hazard_forward_m = None
+    blocking_hazard_forward_m = None
+    try:
+        forward = tf.get_forward_vector()
+        relative = []
+        for actor in list(ctx.extra_actors):
+            location = _location_from_transform_or_actor(actor)
+            if location is None:
+                continue
+            relative.append(
+                (float(location.x) - float(tf.location.x)) * float(forward.x)
+                + (float(location.y) - float(tf.location.y)) * float(forward.y)
+            )
+        if relative:
+            hazard_forward_m = max(relative)
+        blocking_relative = []
+        for actor in list(ctx.blocking_actors):
+            location = _location_from_transform_or_actor(actor)
+            if location is None:
+                continue
+            blocking_relative.append(
+                (float(location.x) - float(tf.location.x)) * float(forward.x)
+                + (float(location.y) - float(tf.location.y)) * float(forward.y)
+            )
+        if blocking_relative:
+            blocking_hazard_forward_m = max(blocking_relative)
+    except Exception:
+        hazard_forward_m = None
+        blocking_hazard_forward_m = None
+    observation = {
         "sim_time": sim_time,
         "ego_x": tf.location.x, "ego_y": tf.location.y, "ego_z": tf.location.z,
         "ego_yaw": tf.rotation.yaw,
         "ego_speed": speed, "ego_speed_kmh": speed * 3.6,
         "tl_state": get_traffic_light_state(ctx.traffic_light),
         "in_junction": ego_in_intersection(ctx.ego, world),
+        "hazard_forward_m": hazard_forward_m,
         "image": image,
         "image_hwc": tuple(image.shape) if image is not None else None,
         "frames_ego_dir": ctx.frames_ego_dir,
     }
+    # Presence means the scenario supplied a physical blocking set. Omit this
+    # for legacy hooks so controllers retain the old all-hazard fallback.
+    if ctx.blocking_actors:
+        observation["blocking_hazard_forward_m"] = blocking_hazard_forward_m
+    return observation
 
 
 # ---------------------------------------------------------------------------
@@ -1203,10 +1365,16 @@ def run_scenario(
 
         ego_cfg = dict(config.get("ego") or {})
         # Curated fixed location (the benchmark 'location' dimension): if the
-        # config didn't pin a spawn, look up this scenario's station in
-        # configs/stations.json so every run starts at the SAME Town03 spot.
+        # config didn't pin a spawn, resolve this scenario's station for the
+        # configured (or world-derived) town.
         if ego_cfg.get("spawn_transform") is None:
-            st = _load_station(name)
+            active_town = config.get("town")
+            if not active_town:
+                try:
+                    active_town = world.get_map().name.rsplit("/", 1)[-1]
+                except Exception:
+                    active_town = None
+            st = _load_station(name, town=active_town)
             if st is not None:
                 ego_cfg["spawn_transform"] = st
                 log.info("Using curated station for %s: (%.1f, %.1f) yaw=%.1f",
@@ -1263,6 +1431,12 @@ def run_scenario(
             ctx.officer = _NullOfficer(officer_stopline or ego_transform)
             log.info("No officer configured — running with a null officer.")
         result["officer_metadata"] = ctx.officer.get_metadata()
+        director_facing = {
+            "staging": facing_ego_deg(ctx.officer.get_transform(), ego_transform)
+            if officer_raw else None,
+            "gesture_onset": None,
+        }
+        result["officer_metadata"]["facing_ego_deg"] = dict(director_facing)
         logger.log_event("officer_spawned", **result["officer_metadata"])
         if officer_raw and result["officer_metadata"].get("actor_id") is None:
             message = f"required officer actor missing for {name}"
@@ -1283,7 +1457,13 @@ def run_scenario(
                 extra = setup_extra_actors(
                     world, ctx.ego, ego_transform, ctx.officer, config
                 )
+                blocking = getattr(extra, "blocking_actors", None)
                 ctx.extra_actors = [a for a in (extra or []) if a is not None]
+                if blocking is not None:
+                    managed_ids = {id(a) for a in ctx.extra_actors}
+                    ctx.blocking_actors = [
+                        a for a in blocking if a is not None and id(a) in managed_ids
+                    ]
                 log.info("Spawned %d extra scene actor(s)", len(ctx.extra_actors))
                 if not ctx.extra_actors:
                     message = f"required extra scene actors missing for {name}"
@@ -1325,6 +1505,8 @@ def run_scenario(
 
         # Collision hookup.
         collision_count = 0
+        collision_events: list[dict[str, Any]] = []
+        sim_time = 0.0
 
         def _on_collision(event: Any) -> None:
             nonlocal collision_count
@@ -1345,6 +1527,7 @@ def run_scenario(
                 pass
             if count_event:
                 collision_count += 1
+                _append_collision_identity(collision_events, ctx, event, sim_time)
                 try:
                     compliance.register_collision(event)
                 except Exception as e:
@@ -1390,10 +1573,10 @@ def run_scenario(
         )
 
         # Main sync loop.
-        sim_time = 0.0
         delta = 1.0 / fps
         terminated = "timeout"
         telemetry_rows: list[dict] = []
+        facing_onset_recorded = False
         controller_errors: list[str] = []
         # Desired signal state to hold for the whole run (Green for green_stop).
         tl_state_desired = (config.get("traffic_light") or {}).get("state")
@@ -1447,6 +1630,8 @@ def run_scenario(
                 except Exception as e:
                     log.debug("TrafficManager sync setup failed: %s", e)
                 try:
+                    if hasattr(controller, "set_episode_dir"):
+                        controller.set_episode_dir(logger.episode_dir)
                     controller.setup(world, ctx.ego, setup_ground_truth, carla)
                     log.info("Controller '%s' set up (track=%s)",
                              getattr(controller, "name", "?"),
@@ -1568,6 +1753,17 @@ def run_scenario(
                 officer_active = sim_time >= onset_now and (
                     duration_now is None or sim_time <= onset_now + duration_now
                 )
+                officer_facing_now = None
+                if officer_raw:
+                    try:
+                        officer_facing_now = facing_ego_deg(
+                            ctx.officer.get_transform(), ctx.ego.get_transform()
+                        )
+                    except Exception:
+                        officer_facing_now = None
+                    if not facing_onset_recorded and sim_time >= onset_now:
+                        director_facing["gesture_onset"] = officer_facing_now
+                        facing_onset_recorded = True
                 speed_now = ego_speed_kmh(ctx.ego)
                 in_junction_now = ego_in_intersection(ctx.ego, world)
                 # R4 (planning): ego lane/road id for lane-change counting.
@@ -1616,6 +1812,7 @@ def run_scenario(
                     "officer_onset_time": onset_now,
                     "officer_duration_sec": duration_now,
                     "officer_active": officer_active,
+                    "officer_facing_ego_deg": officer_facing_now,
                     "control_finite": control_finite_this_tick,
                 }
                 telemetry_rows.append(telemetry_row)
@@ -1639,6 +1836,7 @@ def run_scenario(
                     officer_onset_time=onset_now,
                     officer_duration_sec=duration_now,
                     officer_active=officer_active,
+                    officer_facing_ego_deg=officer_facing_now,
                     control_finite=control_finite_this_tick,
                 )
 
@@ -1695,11 +1893,19 @@ def run_scenario(
                 controller_errors=controller_errors,
                 setup_errors=scene_setup_errors,
             )
+            result["officer_metadata"] = ctx.officer.get_metadata()
+            result["officer_metadata"]["facing_ego_deg"] = dict(director_facing)
             artifact_paths = write_strict_artifacts(
                 logger.episode_dir,
                 telemetry_rows,
                 strict_score,
-                metadata={"condition": result.get("condition")},
+                metadata={
+                    "condition": result.get("condition"),
+                    "collisions": collision_events,
+                    "officer": {
+                        "facing_ego_deg": dict(director_facing),
+                    } if officer_raw else None,
+                },
             )
             strict_score["artifacts"] = artifact_paths
             result["strict_scoring"] = strict_score

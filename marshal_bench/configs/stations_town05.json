@@ -7,7 +7,7 @@
       "y": -4.264,
       "z": 0.5,
       "yaw": 179.861,
-      "tl_id": 502,
+      "tl_id": 2731,
       "lanes": 2
     },
     "red_proceed": {
@@ -15,7 +15,7 @@
       "y": 6.626,
       "z": 0.5,
       "yaw": 359.861,
-      "tl_id": 517,
+      "tl_id": 2746,
       "lanes": 2
     },
     "signal_off": {
@@ -23,47 +23,47 @@
       "y": 41.74,
       "z": 0.555,
       "yaw": 90.379,
-      "tl_id": 512,
+      "tl_id": 2741,
       "lanes": 2
     },
     "crash_detour": {
-      "x": -44.213,
-      "y": -42.109,
-      "z": 0.555,
-      "yaw": 269.663,
-      "tl_id": 493,
-      "lanes": 2
+      "x": -247.249,
+      "y": -58.369,
+      "z": 10.5,
+      "yaw": 89.156,
+      "tl_id": -1,
+      "lanes": 3
     },
     "fallen_person": {
       "x": -175.498,
       "y": 2.976,
       "z": 0.5,
       "yaw": 359.861,
-      "tl_id": 500,
+      "tl_id": 2729,
       "lanes": 3
     },
     "unauthorized_go": {
+      "x": -44.213,
+      "y": -42.109,
+      "z": 0.555,
+      "yaw": 269.663,
+      "tl_id": 2722,
+      "lanes": 2
+    },
+    "adjacent_lane": {
       "x": 78.8,
       "y": 187.96,
       "z": 0.5,
       "yaw": 180.288,
-      "tl_id": 530,
+      "tl_id": 2759,
       "lanes": 3
     },
-    "adjacent_lane": {
+    "flagger_control": {
       "x": -98.702,
       "y": 94.954,
       "z": 0.5,
       "yaw": 0.066,
-      "tl_id": 509,
-      "lanes": 2
-    },
-    "flagger_control": {
-      "x": -74.498,
-      "y": 84.481,
-      "z": 0.5,
-      "yaw": -179.934,
-      "tl_id": 515,
+      "tl_id": 2738,
       "lanes": 2
     },
     "ambulance_yield": {
@@ -71,104 +71,104 @@
       "y": -186.469,
       "z": 1.83,
       "yaw": 0.076,
-      "tl_id": 532,
+      "tl_id": 2761,
       "lanes": 3
     },
     "occluded_officer": {
+      "x": -74.498,
+      "y": 84.481,
+      "z": 0.5,
+      "yaw": -179.934,
+      "tl_id": 2744,
+      "lanes": 2
+    },
+    "conflicting_authorities": {
       "x": -3.498,
       "y": 84.563,
       "z": 0.5,
       "yaw": -179.934,
-      "tl_id": 511,
+      "tl_id": 2740,
       "lanes": 2
     },
-    "conflicting_authorities": {
+    "sequential_directive": {
       "x": -54.739,
       "y": -46.343,
       "z": 0.555,
       "yaw": 89.663,
-      "tl_id": 507,
+      "tl_id": 2736,
       "lanes": 2
     },
-    "sequential_directive": {
+    "rule_hierarchy": {
       "x": -17.452,
       "y": 95.047,
       "z": 0.5,
       "yaw": 0.066,
-      "tl_id": 486,
+      "tl_id": 2715,
       "lanes": 2
     },
-    "rule_hierarchy": {
+    "ambiguous_gesture": {
       "x": -17.447,
       "y": 6.092,
       "z": 0.5,
       "yaw": 359.861,
-      "tl_id": 534,
+      "tl_id": 2763,
       "lanes": 2
     },
-    "ambiguous_gesture": {
+    "civilian_warning_accident": {
+      "x": -247.013,
+      "y": -42.371,
+      "z": 10.5,
+      "yaw": 89.156,
+      "tl_id": -1,
+      "lanes": 3
+    },
+    "emergency_scene_blocking": {
+      "x": 110.007,
+      "y": -143.302,
+      "z": 0.539,
+      "yaw": 192.011,
+      "tl_id": -1,
+      "lanes": 2
+    },
+    "two_civilians_disagree": {
       "x": 24.596,
       "y": 40.949,
       "z": 0.5,
       "yaw": 90.023,
-      "tl_id": 529,
+      "tl_id": 2758,
       "lanes": 2
     },
-    "civilian_warning_accident": {
+    "flagger_slow_then_stop": {
       "x": 35.093,
       "y": 47.599,
       "z": 0.5,
       "yaw": -89.977,
-      "tl_id": 535,
+      "tl_id": 2764,
       "lanes": 2
     },
-    "emergency_scene_blocking": {
-      "x": -76.852,
-      "y": -0.764,
-      "z": 0.5,
-      "yaw": 179.861,
-      "tl_id": 502,
-      "lanes": 3
-    },
-    "two_civilians_disagree": {
+    "school_crossing_guard": {
       "x": -195.084,
       "y": -46.75,
       "z": 0.555,
       "yaw": 89.984,
-      "tl_id": 522,
+      "tl_id": 2751,
       "lanes": 2
     },
-    "flagger_slow_then_stop": {
+    "fake_vest_director": {
       "x": 76.257,
       "y": -5.104,
       "z": 0.5,
       "yaw": -179.75,
-      "tl_id": 536,
-      "lanes": 2
-    },
-    "school_crossing_guard": {
-      "x": 25.202,
-      "y": -47.467,
-      "z": 0.5,
-      "yaw": 91.532,
-      "tl_id": 537,
-      "lanes": 2
-    },
-    "fake_vest_director": {
-      "x": -43.649,
-      "y": 48.448,
-      "z": 0.555,
-      "yaw": 270.379,
-      "tl_id": 505,
+      "tl_id": 2765,
       "lanes": 2
     },
     "barricade_self_detour": {
-      "x": -237.098,
-      "y": 3.126,
+      "x": 105.677,
+      "y": -200.717,
       "z": 0.5,
-      "yaw": 359.861,
-      "tl_id": 517,
-      "lanes": 3
+      "yaw": -176.818,
+      "tl_id": -1,
+      "lanes": 4
     }
   }
 }

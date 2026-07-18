@@ -14,13 +14,23 @@
       "min_initial_stopline_m",
       "max_initial_stopline_m",
       "prefers_sidewalk_point",
-      "officer_lateral_offset_m"
+      "officer_lateral_offset_m",
+      "detour_hazard_start_m",
+      "detour_staged_span_m",
+      "detour_pass_margin_m",
+      "detour_merge_taper_m",
+      "min_detour_runout_m"
     ]
   },
   "criterion_defaults": {
     "generation": {
       "min_initial_stopline_m": 20.0,
-      "max_initial_stopline_m": 40.0
+      "max_initial_stopline_m": 40.0,
+      "detour_hazard_start_m": 0.0,
+      "detour_staged_span_m": 0.0,
+      "detour_pass_margin_m": 0.0,
+      "detour_merge_taper_m": 0.0,
+      "min_detour_runout_m": 0.0
     }
   },
   "classification_notes": {
@@ -69,8 +79,10 @@
   },
   "crash_detour": {
     "needs_traffic_light": true,
-    "needs_junction_approach": true,
+    "needs_junction_approach": false,
     "min_runup_m": 28.0,
+    "min_initial_stopline_m": 0.0,
+    "max_initial_stopline_m": 75.0,
     "needs_sidewalk_point": false,
     "prefers_sidewalk_point": true,
     "needs_adjacent_same_road_lane": false,
@@ -78,7 +90,12 @@
     "min_detour_clearance_m": 1.5,
     "needs_offroad_shoulder": false,
     "officer_lateral_offset_m": 2.2,
-    "notes": "Crash actors stay within the ego lane (scene_actors.py:65-125; marshal_crash_detour_demo.py:26-36). The oracle uses any adjacent driving lane then falls back to a 3.6 m route offset (oracle.py:410-418,484-548), while DETOUR scoring observes 1.5 m lateral clearance (strict_episode_scoring.py:20-24,359-388). The officer is placed at a 2.2 m route-relative offset without a Sidewalk/Shoulder classification check (_common.py:395-428,489-509)."
+    "detour_hazard_start_m": 34.0,
+    "detour_staged_span_m": 18.0,
+    "detour_pass_margin_m": 4.0,
+    "detour_merge_taper_m": 12.0,
+    "min_detour_runout_m": 68.0,
+    "notes": "The config starts the four-car crash at 34 m (marshal_crash_detour_demo.py:26-36), and scene_actors.py:101-103 stages four centers through +18 m. Strict passage adds 4 m (strict_episode_scoring.py:20-25), then the oracle merge plan tapers for 12 m (oracle.py:670-681). The resulting 68 m detour run-out is generation-only."
   },
   "fallen_person": {
     "needs_traffic_light": true,
@@ -212,8 +229,10 @@
   },
   "civilian_warning_accident": {
     "needs_traffic_light": true,
-    "needs_junction_approach": true,
+    "needs_junction_approach": false,
     "min_runup_m": 28.0,
+    "min_initial_stopline_m": 0.0,
+    "max_initial_stopline_m": 75.0,
     "needs_sidewalk_point": false,
     "prefers_sidewalk_point": true,
     "needs_adjacent_same_road_lane": false,
@@ -221,12 +240,19 @@
     "min_detour_clearance_m": 1.5,
     "needs_offroad_shoulder": false,
     "officer_lateral_offset_m": 3.2,
-    "notes": "The crash is placed on the ego route at marshal_civilian_warning_accident_demo.py:27-37 and kept within that lane by scene_actors.py:65-125. The oracle accepts adjacent passage or its 3.6 m fallback offset (oracle.py:410-418,484-548), and the scorer requires 1.5 m lateral clearance (strict_episode_scoring.py:20-24,359-388). The runner stages the civilian 3.2 m lateral without enforcing a Sidewalk/Shoulder map class (_shared_staging.py:24-48; _common.py:395-428,489-509)."
+    "detour_hazard_start_m": 32.0,
+    "detour_staged_span_m": 18.0,
+    "detour_pass_margin_m": 4.0,
+    "detour_merge_taper_m": 12.0,
+    "min_detour_runout_m": 66.0,
+    "notes": "The config and stager start the four-car crash at 32 m (marshal_civilian_warning_accident_demo.py:27-37), and scene_actors.py:101-103 stages four centers through +18 m. Strict passage adds 4 m (strict_episode_scoring.py:20-25), then the oracle merge plan tapers for 12 m (oracle.py:670-681). The resulting 66 m detour run-out is generation-only."
   },
   "emergency_scene_blocking": {
     "needs_traffic_light": true,
-    "needs_junction_approach": true,
+    "needs_junction_approach": false,
     "min_runup_m": 28.0,
+    "min_initial_stopline_m": 0.0,
+    "max_initial_stopline_m": 75.0,
     "needs_sidewalk_point": false,
     "prefers_sidewalk_point": false,
     "needs_adjacent_same_road_lane": false,
@@ -234,7 +260,12 @@
     "min_detour_clearance_m": 1.5,
     "needs_offroad_shoulder": false,
     "officer_lateral_offset_m": 0.0,
-    "notes": "The emergency vehicle is offset only 0.45 m while blocking the ego route at marshal_emergency_scene_blocking_demo.py:90-137,176-205. The oracle accepts adjacent passage in either side then a 3.6 m fallback route offset (oracle.py:410-418,484-548), and DETOUR scoring observes 1.5 m lateral clearance (strict_episode_scoring.py:20-24,359-388)."
+    "detour_hazard_start_m": 28.0,
+    "detour_staged_span_m": 0.0,
+    "detour_pass_margin_m": 4.0,
+    "detour_merge_taper_m": 12.0,
+    "min_detour_runout_m": 44.0,
+    "notes": "The emergency vehicle center is staged at block_distance 28 m (marshal_emergency_scene_blocking_demo.py:89-137), with no blocking center beyond it. Strict passage adds 4 m (strict_episode_scoring.py:20-25), then the oracle merge plan tapers for 12 m (oracle.py:670-681). The resulting 44 m detour run-out is generation-only."
   },
   "two_civilians_disagree": {
     "needs_traffic_light": true,
@@ -290,8 +321,10 @@
   },
   "barricade_self_detour": {
     "needs_traffic_light": true,
-    "needs_junction_approach": true,
+    "needs_junction_approach": false,
     "min_runup_m": 28.0,
+    "min_initial_stopline_m": 0.0,
+    "max_initial_stopline_m": 75.0,
     "needs_sidewalk_point": false,
     "prefers_sidewalk_point": false,
     "needs_adjacent_same_road_lane": false,
@@ -299,7 +332,12 @@
     "min_detour_clearance_m": 1.5,
     "needs_offroad_shoulder": false,
     "officer_lateral_offset_m": 0.0,
-    "notes": "The barricades span only the ego lane at scene_actors.py:232-302, called by marshal_barricade_self_detour_demo.py:26-35. The oracle accepts adjacent passage then falls back to a 3.6 m route offset (oracle.py:410-418,484-548), while DETOUR scoring observes 1.5 m lateral clearance (strict_episode_scoring.py:20-24,359-388)."
+    "detour_hazard_start_m": 26.0,
+    "detour_staged_span_m": 5.0,
+    "detour_pass_margin_m": 4.0,
+    "detour_merge_taper_m": 12.0,
+    "min_detour_runout_m": 47.0,
+    "notes": "The barricade starts at block_distance 26 m (marshal_barricade_self_detour_demo.py:26-35), and scene_actors.py:278-292 puts its blocking works vehicle 5 m behind it. Strict passage adds 4 m (strict_episode_scoring.py:20-25), then the oracle merge plan tapers for 12 m (oracle.py:670-681). The resulting 47 m detour run-out is generation-only."
   }
   }
 }
