@@ -62,6 +62,7 @@ from marshal_bench.utils.conditions import (  # noqa: E402
 
 PY = sys.executable
 RUNNER = os.path.join(_THIS, "scripts", "run_marshal_officer_demo.py")
+CONFIGS_DIR = os.path.join(_THIS, "marshal_bench", "configs")
 
 # The 21 MARSHAL scenarios: 14 core + 7 expansion (authority-axis coverage).
 ALL_SCENARIOS = [
@@ -135,6 +136,9 @@ def _print_scoreboard(tag: str, board: dict, per: dict) -> None:
         if info is None:
             print(f"  {scen:24s} {'-':19s} {'NORUN':5s}")
             continue
+        if info.get("status") == "infeasible_on_map":
+            print(f"  {scen:24s} {'-':19s} {'SKIP':5s}")
+            continue
         exp = SCENARIO_SPEC.get(scen, {}).get("expected", "?")
         mark = "PASS" if info["passed"] else "FAIL"
         print(f"  {scen:24s} {str(info['conflict_type']):19s} {mark:5s}  {exp}")
@@ -162,6 +166,10 @@ def _print_scoreboard(tag: str, board: dict, per: dict) -> None:
     print(f"  R-subscores  : {board.get('r_scores')}")
     print(f"  unmeasured R : {board.get('r_unmeasured')}")
     print(f"\n  >>> MARSHAL Score (partial): {board.get('marshal_score_partial')} / 100")
+    for scen in ALL_SCENARIOS:
+        info = per.get(scen) or {}
+        if info.get("status") == "infeasible_on_map":
+            print(f"  SKIP (infeasible on {board.get('map')}): {scen} — {info.get('reason')}")
     print("=" * 64 + "\n")
 
 
@@ -204,6 +212,47 @@ def _build_episode_condition_cfg(args: argparse.Namespace) -> dict:
     return merge_condition_config({}, args.weather, args.weather_params)
 
 
+def _town_file_key(town: object) -> str | None:
+    if not isinstance(town, str) or not town.strip():
+        return None
+    suffix = town.strip().replace("\\", "/").rsplit("/", 1)[-1]
+    return suffix.lower() if suffix.lower().startswith("town") else None
+
+
+def _load_feasibility_mask(town: object) -> dict:
+    """Load explicit infeasibility entries for non-Town03 maps.
+
+    Town03 intentionally bypasses even a generated mask file so the default
+    benchmark path and scoreboard remain bit-compatible with earlier runs.
+    """
+    town_key = _town_file_key(town)
+    if town_key is None or town_key == "town03" or town_key.startswith("town03_"):
+        return {}
+    path = os.path.join(CONFIGS_DIR, f"feasibility_{town_key}.json")
+    if not os.path.isfile(path):
+        return {}
+    try:
+        with open(path, encoding="utf-8") as fh:
+            payload = json.load(fh)
+    except Exception as exc:  # noqa: BLE001
+        print(f"WARNING: could not load feasibility mask {path}: {exc}", file=sys.stderr)
+        return {}
+    return {
+        scenario: str(entry.get("reason") or "marked infeasible by map mask")
+        for scenario, entry in payload.items()
+        if isinstance(entry, dict) and entry.get("feasible") is False
+    }
+
+
+def _shape_infeasible_entries(scenarios: list[str], town: object) -> dict:
+    mask = _load_feasibility_mask(town)
+    return {
+        scenario: {"status": "infeasible_on_map", "reason": mask[scenario]}
+        for scenario in scenarios
+        if scenario in mask
+    }
+
+
 def main(argv=None) -> int:
     args = _build_parser().parse_args(argv)
 
@@ -223,9 +272,13 @@ def main(argv=None) -> int:
     t0 = time.monotonic()
 
     metrics = []
-    per = {}
+    per = _shape_infeasible_entries(scenarios, args.town)
     episode_conditions = []
     for i, scen in enumerate(scenarios, 1):
+        if scen in per:
+            print(f"  [{i:2d}/{len(scenarios)}] {scen} ... SKIP "
+                  f"(infeasible on {args.town})", flush=True)
+            continue
         print(f"  [{i:2d}/{len(scenarios)}] {scen} ...", flush=True)
         res = _run_episode(args.controller, scen, args, out_root)
         if res is None:
@@ -245,7 +298,8 @@ def main(argv=None) -> int:
         print(f"        {'PASS' if em.passed else 'FAIL'}  "
               f"(conflict_type={CONFLICT_TYPE.get(scen)})", flush=True)
 
-    if not metrics:
+    runnable_n = len(scenarios) - len(per)
+    if not metrics and runnable_n:
         print("\nNo episodes produced results. Is CARLA running on "
               f"{args.host}:{args.port} with map {args.town}?", file=sys.stderr)
         return 1

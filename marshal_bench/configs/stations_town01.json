@@ -7,7 +7,7 @@
       "y": 280.733,
       "z": 0.5,
       "yaw": 90.035,
-      "tl_id": 245,
+      "tl_id": 5647,
       "lanes": 2
     },
     "red_proceed": {
@@ -15,7 +15,7 @@
       "y": 83.058,
       "z": 0.5,
       "yaw": 90.035,
-      "tl_id": 255,
+      "tl_id": 5657,
       "lanes": 2
     },
     "signal_off": {
@@ -23,31 +23,31 @@
       "y": 179.619,
       "z": 0.5,
       "yaw": 270.035,
-      "tl_id": 257,
+      "tl_id": 5659,
       "lanes": 2
     },
     "crash_detour": {
+      "x": 10.009,
+      "y": 330.54,
+      "z": 0.5,
+      "yaw": 0.031,
+      "tl_id": -1,
+      "lanes": 2
+    },
+    "fallen_person": {
       "x": 334.81,
       "y": 148.611,
       "z": 0.5,
       "yaw": 90.035,
-      "tl_id": 258,
+      "tl_id": 5660,
       "lanes": 2
     },
-    "fallen_person": {
+    "unauthorized_go": {
       "x": 338.837,
       "y": 104.891,
       "z": 0.5,
       "yaw": 270.035,
-      "tl_id": 254,
-      "lanes": 2
-    },
-    "unauthorized_go": {
-      "x": 338.752,
-      "y": 244.919,
-      "z": 0.5,
-      "yaw": 270.035,
-      "tl_id": 260,
+      "tl_id": 5656,
       "lanes": 2
     },
     "adjacent_lane": {
@@ -55,111 +55,111 @@
       "y": -1.98,
       "z": 0.5,
       "yaw": 180.03,
-      "tl_id": 253,
+      "tl_id": 5655,
       "lanes": 2
     },
     "flagger_control": {
+      "x": 338.752,
+      "y": 244.919,
+      "z": 0.5,
+      "yaw": 270.035,
+      "tl_id": 5662,
+      "lanes": 2
+    },
+    "occluded_officer": {
       "x": 139.324,
       "y": 129.432,
       "z": 0.5,
       "yaw": 180.026,
-      "tl_id": 236,
+      "tl_id": 5638,
       "lanes": 2
     },
-    "occluded_officer": {
+    "conflicting_authorities": {
       "x": 42.132,
       "y": 1.97,
       "z": 0.5,
       "yaw": 359.981,
-      "tl_id": 264,
+      "tl_id": 5666,
       "lanes": 2
     },
-    "conflicting_authorities": {
+    "sequential_directive": {
       "x": 92.386,
       "y": 105.878,
       "z": 0.5,
       "yaw": 269.991,
-      "tl_id": 232,
+      "tl_id": 5634,
       "lanes": 2
     },
-    "sequential_directive": {
+    "rule_hierarchy": {
       "x": 92.397,
       "y": 180.526,
       "z": 0.5,
       "yaw": 269.991,
-      "tl_id": 235,
+      "tl_id": 5637,
       "lanes": 2
     },
-    "rule_hierarchy": {
+    "ambiguous_gesture": {
       "x": 88.383,
       "y": 84.266,
       "z": 0.5,
       "yaw": 89.991,
-      "tl_id": 237,
+      "tl_id": 5639,
       "lanes": 2
     },
-    "ambiguous_gesture": {
+    "civilian_warning_accident": {
+      "x": 396.303,
+      "y": 158.54,
+      "z": 0.5,
+      "yaw": -90.012,
+      "tl_id": -1,
+      "lanes": 2
+    },
+    "emergency_scene_blocking": {
+      "x": 396.297,
+      "y": 134.54,
+      "z": 0.5,
+      "yaw": -90.012,
+      "tl_id": -1,
+      "lanes": 2
+    },
+    "two_civilians_disagree": {
+      "x": 137.929,
+      "y": -2.046,
+      "z": 0.5,
+      "yaw": -179.994,
+      "tl_id": 5668,
+      "lanes": 2
+    },
+    "flagger_slow_then_stop": {
       "x": 88.393,
       "y": 149.756,
       "z": 0.5,
       "yaw": 89.991,
-      "tl_id": 240,
+      "tl_id": 5642,
       "lanes": 2
     },
-    "civilian_warning_accident": {
+    "school_crossing_guard": {
       "x": 88.413,
       "y": 281.014,
       "z": 0.5,
       "yaw": 89.991,
-      "tl_id": 242,
+      "tl_id": 5644,
       "lanes": 2
     },
-    "emergency_scene_blocking": {
+    "fake_vest_director": {
       "x": 92.407,
       "y": 245.191,
       "z": 0.5,
       "yaw": 269.991,
-      "tl_id": 238,
-      "lanes": 2
-    },
-    "two_civilians_disagree": {
-      "x": 137.975,
-      "y": 55.494,
-      "z": 0.5,
-      "yaw": 179.993,
-      "tl_id": 233,
-      "lanes": 2
-    },
-    "flagger_slow_then_stop": {
-      "x": 108.339,
-      "y": 59.498,
-      "z": 0.5,
-      "yaw": -0.007,
-      "tl_id": 249,
-      "lanes": 2
-    },
-    "school_crossing_guard": {
-      "x": 286.378,
-      "y": 59.476,
-      "z": 0.5,
-      "yaw": -0.007,
-      "tl_id": 251,
-      "lanes": 2
-    },
-    "fake_vest_director": {
-      "x": 205.079,
-      "y": 55.486,
-      "z": 0.5,
-      "yaw": 179.993,
-      "tl_id": 247,
+      "tl_id": 5640,
       "lanes": 2
     },
     "barricade_self_detour": {
-      "x": 203.041,
-      "y": -2.039,
+      "x": 396.319,
+      "y": 238.54,
       "z": 0.5,
-      "yaw": -179.994,
-      "tl_id": 263,
+      "yaw": -90.012,
+      "tl_id": -1,
       "lanes": 2
     }
   }

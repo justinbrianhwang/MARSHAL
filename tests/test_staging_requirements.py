@@ -84,7 +84,9 @@ def test_requirements_match_executable_stagers_and_configs():
         # is candidate-generation policy and is skipped for curated stations.
         has_signal = bool((config.get("traffic_light") or {}).get("state"))
         assert entry["needs_traffic_light"] is has_signal, scenario
-        assert entry["needs_junction_approach"] is has_signal, scenario
+        assert entry["needs_junction_approach"] is (
+            has_signal and SCENARIO_SPEC[scenario]["expected"] != "DETOUR"
+        ), scenario
         assert entry["min_runup_m"] == (28.0 if has_signal else 0.0), scenario
 
         has_officer = bool(config.get("officer"))

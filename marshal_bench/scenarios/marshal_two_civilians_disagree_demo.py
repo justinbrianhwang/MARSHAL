@@ -13,7 +13,7 @@ import logging
 from typing import Any
 
 from marshal_bench.actors.gesture_engine import GestureID
-from marshal_bench.scenarios._common import run_scenario
+from marshal_bench.scenarios._common import run_scenario, yaw_toward_location
 from marshal_bench.utils.carla_api_compat import import_carla
 from marshal_bench.utils.logging_utils import EpisodeLogger
 
@@ -62,7 +62,11 @@ def _setup_extra_actors(
         y=base_tf.location.y + fwd.y * forward_offset + right.y * lateral_offset,
         z=base_tf.location.z + z_offset,
     )
-    rot = carla.Rotation(pitch=0.0, yaw=ego_transform.rotation.yaw + 180.0, roll=0.0)
+    rot = carla.Rotation(
+        pitch=0.0,
+        yaw=yaw_toward_location(loc, ego_transform.location),
+        roll=0.0,
+    )
     actor = world.try_spawn_actor(bp, carla.Transform(loc, rot))
     if actor is None:
         log.warning("second civilian: spawn returned None")

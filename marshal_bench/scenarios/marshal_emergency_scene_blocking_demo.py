@@ -12,7 +12,7 @@ import logging
 from typing import Any
 
 from marshal_bench.actors.gesture_engine import GestureID
-from marshal_bench.actors.scene_actors import route_waypoint
+from marshal_bench.actors.scene_actors import route_blocking_actors, route_waypoint
 from marshal_bench.scenarios._common import run_scenario
 from marshal_bench.utils.carla_api_compat import import_carla  # noqa: F401
 from marshal_bench.utils.logging_utils import EpisodeLogger
@@ -180,7 +180,7 @@ def _setup_extra_actors(
     actors = []
     actors.extend(_spawn_emergency_vehicle(world, ego_transform, scene))
     actors.extend(_spawn_cones(world, ego_transform, scene))
-    return actors
+    return route_blocking_actors(actors)
 
 
 def run(client: Any, config: dict, logger: EpisodeLogger) -> dict:

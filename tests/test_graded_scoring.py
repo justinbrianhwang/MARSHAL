@@ -139,6 +139,42 @@ def test_safety_factor_table(collision_count, expected_factor):
     assert verdict["safety_factor"] == pytest.approx(expected_factor)
 
 
+def test_proceed_promptness_is_response_time_not_station_approach_length():
+    rows = make_rows(
+        times=[0.0, 1.0, 2.0, 5.0, 9.0],
+        speeds=[0.0, 0.0, 4.0, 12.0, 20.0],
+        ego_forward_m=[0.0, 0.0, 1.0, 12.0, 35.0],
+        distance_to_stopline_m=[35.0, 35.0, 34.0, 23.0, 0.0],
+        in_junction=[False, False, False, False, True],
+        officer_gesture_id="PROCEED",
+        officer_onset_time=1.0,
+    )
+
+    verdict = score(rows, expected_action="PROCEED", scenario="red_proceed")
+
+    assert verdict["credit"] == pytest.approx(1.0)
+    assert verdict["component_credits"]["prompt_response"] == pytest.approx(1.0)
+    assert verdict["evidence"]["entry_latency_s"] == pytest.approx(8.0)
+    assert verdict["evidence"]["response_latency_s"] == pytest.approx(1.0)
+    assert verdict["evidence"]["latency"]["trigger"] == "proceed_motion"
+
+
+def test_proceed_still_requires_moving_junction_entry_for_full_credit():
+    rows = make_rows(
+        times=[0.0, 1.0, 2.0, 5.0, 9.0],
+        speeds=[0.0, 0.0, 4.0, 12.0, 20.0],
+        ego_forward_m=[0.0, 0.0, 1.0, 12.0, 35.0],
+        in_junction=False,
+        officer_gesture_id="PROCEED",
+        officer_onset_time=1.0,
+    )
+
+    verdict = score(rows, expected_action="PROCEED", scenario="red_proceed")
+
+    assert verdict["credit"] <= 0.30
+    assert verdict["evidence"]["entered_junction"] is False
+
+
 def test_stop_credit_rewards_earlier_slower_stop_over_late_fast_conflict_entry():
     better = score(clean_stop_before_line(), expected_action="STOP", scenario="green_stop")
     worse_rows = make_rows(

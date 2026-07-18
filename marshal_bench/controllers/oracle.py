@@ -7,11 +7,30 @@ the scenario-level authority rule as a longitudinal/offset override.
 """
 from __future__ import annotations
 
+import json
 import math
+import os
 from typing import Any, Dict, Optional
 
 from marshal_bench.controllers.base import EpisodeController
 from marshal_bench.utils.carla_api_compat import ensure_agents_on_path
+
+
+class _RouteTarget:
+    """Waypoint-compatible target with an overridden transform location.
+
+    CARLA's LocalPlanner only needs waypoint metadata plus ``transform``.  A
+    proxy lets the detour follow the mission waypoint sequence while its PID
+    targets are displaced laterally, without switching to another lane's
+    topology chain.
+    """
+
+    def __init__(self, waypoint: Any, transform: Any) -> None:
+        self._waypoint = waypoint
+        self.transform = transform
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._waypoint, name)
 
 
 class OracleController(EpisodeController):
@@ -34,9 +53,23 @@ class OracleController(EpisodeController):
         self._route_offset = 0.0
         self._last_steer = 0.0
         self._detour_committed = False
+        self._detour_merge_started = False
+        self._original_route = []
         self._yield_resume_time = 0.0
         self._proceed_wait_until = 0.0
         self._pedestrian_yield_done = False
+        self._route_origin = None
+        self._route_forward = None
+        self._route_right = None
+        self._lateral_watchdog_engaged = False
+        self._lateral_watchdog_stood_down = False
+        self._episode_dir: Optional[str] = None
+        self._debug_file = None
+        self._merge_start_forward_m: Optional[float] = None
+
+    def set_episode_dir(self, episode_dir: str) -> None:
+        """Supply the runner-owned artifact directory for optional diagnostics."""
+        self._episode_dir = episode_dir
 
     def setup(self, world: Any, ego: Any, ground_truth: Dict[str, Any],
               carla: Any) -> None:
@@ -49,7 +82,24 @@ class OracleController(EpisodeController):
         self._target_speed_kmh = float(self.gt.get("target_speed_kmh") or 25.0)
         self._action = self._resolve_action()
         self._onset_time = self._resolve_onset_time()
+        self._route_offset = 0.0
+        self._detour_committed = False
+        self._detour_merge_started = False
+        self._original_route = []
+        self._lateral_watchdog_engaged = False
+        self._lateral_watchdog_stood_down = False
+        self._merge_start_forward_m = None
         self._pedestrian_yield_done = False
+        try:
+            route_tf = ego.get_transform()
+            self._route_origin = route_tf.location
+            self._route_forward = route_tf.get_forward_vector()
+            self._route_right = route_tf.get_right_vector()
+        except Exception:
+            self._route_origin = None
+            self._route_forward = None
+            self._route_right = None
+        self._configure_debug_output()
         scene = self.gt.get("S_safety_context") or {}
         if self._action == "YIELD":
             self._yield_resume_time = self._onset_time + float(
@@ -64,8 +114,6 @@ class OracleController(EpisodeController):
 
         self._agent = self._make_basic_agent()
         self._set_straight_plan()
-        if self._action == "DETOUR":
-            self._prepare_detour_plan()
 
         # Give stop/yield scenarios a tiny rolling start before the criteria
         # begin sampling; several scenario onsets are at t=0/1s and the
@@ -97,13 +145,20 @@ class OracleController(EpisodeController):
         self._last_steer = float(getattr(base, "steer", self._last_steer) or 0.0)
 
         if self._action == "PROCEED":
-            return self._proceed_control(base, sim_time, speed)
-        if self._action == "DETOUR":
-            return self._detour_control(base, sim_time, speed, obs)
-        if self._action == "YIELD":
-            return self._yield_control(base, sim_time, speed)
+            control = self._proceed_control(base, sim_time, speed)
+        elif self._action == "DETOUR":
+            control = self._detour_control(base, sim_time, speed, obs)
+        elif self._action == "YIELD":
+            control = self._yield_control(base, sim_time, speed)
+        else:
+            control = self._stop_control(base, sim_time, speed)
+        return control
 
-        return self._stop_control(base, sim_time, speed)
+    def _step_with_debug(self, observation: Dict[str, Any], dt: float) -> Any:
+        control = OracleController.step(self, observation, dt)
+        obs = observation or {}
+        self._write_debug_record(obs, float(obs.get("sim_time") or 0.0))
+        return control
 
     def report_target(self) -> Optional[str]:
         return self._target_pred
@@ -184,6 +239,7 @@ class OracleController(EpisodeController):
             prev_yaw = float(wp.transform.rotation.yaw)
         try:
             if plan:
+                self._original_route = list(plan)
                 self._agent.set_global_plan(
                     plan, stop_waypoint_creation=True, clean_queue=True
                 )
@@ -311,6 +367,9 @@ class OracleController(EpisodeController):
     ) -> Any:
         if sim_time >= self._onset_time and not self._detour_committed:
             self._prepare_detour_plan()
+        if self._detour_committed and not self._detour_merge_started:
+            if self._hazard_cleared(obs):
+                self._start_detour_merge()
         ctrl = self._copy_control(base)
         if sim_time >= self._onset_time:
             if speed > 7.0:
@@ -325,7 +384,7 @@ class OracleController(EpisodeController):
         else:
             ctrl.throttle = min(max(float(getattr(base, "throttle", 0.0)), 0.25), 0.38)
             ctrl.brake = 0.0
-        return ctrl
+        return self._ensure_lateral_response(ctrl, sim_time)
 
     def _yield_control(self, base: Any, sim_time: float, speed: float) -> Any:
         if sim_time >= self._onset_time and self._route_offset < 1.2:
@@ -341,10 +400,10 @@ class OracleController(EpisodeController):
             if speed < self._target_speed_kmh / 3.6:
                 ctrl.throttle = max(float(getattr(base, "throttle", 0.0)), 0.45)
             ctrl.brake = 0.0
-            return ctrl
+            return self._ensure_lateral_response(ctrl, sim_time)
         ctrl.throttle = 0.0
         ctrl.brake = 0.85 if speed > 0.4 else 0.55
-        return ctrl
+        return self._ensure_lateral_response(ctrl, sim_time)
 
     def _nearest_pedestrian_distance(self) -> Optional[float]:
         if self.world is None or self.ego is None:
@@ -407,16 +466,74 @@ class OracleController(EpisodeController):
             except Exception:
                 pass
 
+    def _route_displacement(self) -> tuple[float, float]:
+        """Return ego forward/lateral displacement in the setup route frame."""
+        if (
+            self.ego is None
+            or self._route_origin is None
+            or self._route_forward is None
+            or self._route_right is None
+        ):
+            return 0.0, 0.0
+        try:
+            loc = self.ego.get_location()
+            dx = float(loc.x) - float(self._route_origin.x)
+            dy = float(loc.y) - float(self._route_origin.y)
+            forward = dx * float(self._route_forward.x) + dy * float(self._route_forward.y)
+            lateral = dx * float(self._route_right.x) + dy * float(self._route_right.y)
+            return forward, lateral
+        except Exception:
+            return 0.0, 0.0
+
+    def _route_heading_error(self) -> float:
+        if self.ego is None or self._route_forward is None or self._route_right is None:
+            return 0.0
+        try:
+            fwd = self.ego.get_transform().get_forward_vector()
+            return math.atan2(
+                float(fwd.x) * float(self._route_right.x)
+                + float(fwd.y) * float(self._route_right.y),
+                float(fwd.x) * float(self._route_forward.x)
+                + float(fwd.y) * float(self._route_forward.y),
+            )
+        except Exception:
+            return 0.0
+
+    def _ensure_lateral_response(self, ctrl: Any, sim_time: float) -> Any:
+        """Dead-man fallback for a lateral plan that produces no response.
+
+        The normal local-planner path stays authoritative. The watchdog engages
+        only after 5 m of forward travel with neither lateral motion nor steering,
+        then tracks the exact offset selected by that plan in the route frame.
+        """
+        if (
+            sim_time < self._onset_time
+            or abs(self._route_offset) < 1.0
+            or self._lateral_watchdog_stood_down
+        ):
+            return ctrl
+        forward, lateral = self._route_displacement()
+        base_steer = float(getattr(ctrl, "steer", 0.0) or 0.0)
+        if abs(base_steer) >= 0.05:
+            # A planner response is conclusive: never let the fallback replace
+            # it later in the episode, even if a subsequent segment is straight.
+            self._lateral_watchdog_engaged = False
+            self._lateral_watchdog_stood_down = True
+            return ctrl
+        if not self._lateral_watchdog_engaged:
+            if forward < 5.0 or abs(lateral) >= 0.25:
+                return ctrl
+            self._lateral_watchdog_engaged = True
+
+        error = self._route_offset - lateral
+        heading_error = self._route_heading_error()
+        steer = (0.16 * error) - (0.80 * heading_error)
+        ctrl.steer = max(-0.55, min(0.55, steer))
+        return ctrl
+
     def _prepare_detour_plan(self) -> None:
-        planned_offset = self._set_detour_corridor_plan()
-        # CARLA's local-planner offset is signed relative to waypoint right:
-        # negative moves left, positive moves right.
-        self._route_offset = (
-            planned_offset
-            if planned_offset is not None
-            else self._fallback_detour_offset()
-        )
-        self._set_agent_offset(self._route_offset)
+        self._route_offset = self._detour_route_offset()
+        self._set_route_offset_plan(self._route_offset)
         try:
             self._agent.ignore_vehicles(True)
         except Exception:
@@ -427,59 +544,206 @@ class OracleController(EpisodeController):
             pass
         self._detour_committed = True
 
-    def _set_detour_corridor_plan(
-        self, horizon_m: float = 120.0, step_m: float = 2.0
-    ) -> Optional[float]:
-        if self._agent is None or self._map is None or self.ego is None:
+    def _detour_route_offset(self) -> float:
+        """Select the baseline lane-centre-plus-clearance displacement."""
+        cur = self._current_route_waypoint()
+        if cur is None:
+            return self._fallback_detour_offset()
+        adjacent = self._select_detour_lane(cur)
+        if adjacent is not None:
+            _side, lane, lateral_to_lane = adjacent
+            return self._offset_into_adjacent_lane(cur, lane, lateral_to_lane)
+
+        # No qualifying neighbour can be inspected. Derive the fallback from
+        # road geometry rather than a town-specific/bare 3.6 m literal.
+        side = self._detour_side_order()[0]
+        sign = -1.0 if side == "left" else 1.0
+        try:
+            lane_width = float(cur.lane_width)
+        except Exception:
+            lane_width = 3.5
+        margin = float(self.config.get("detour_safety_margin_m", 0.55))
+        return sign * (lane_width + max(0.45, min(0.70, margin)))
+
+    def _current_route_waypoint(self) -> Any:
+        if self._map is None or self.ego is None:
             return None
         try:
-            cur = self._map.get_waypoint(
+            return self._map.get_waypoint(
                 self.ego.get_location(), project_to_road=True
             )
         except Exception:
             return None
-        if cur is None:
-            return None
 
-        adjacent = self._select_detour_lane(cur)
-        if adjacent is None:
-            return None
-        _side, lane, lateral_to_lane = adjacent
-
-        option = self._road_option
-        plan = []
-        wp = cur
-        # Keep the route on the ego's original heading. Some adjacent-lane
-        # waypoint chains turn onto cross streets near Town03 junctions, so the
-        # base plan follows the original lane and the signed offset places the
-        # ego in the open adjacent lane.
-        origin_yaw = float(cur.transform.rotation.yaw)
-        n_steps = max(8, int(horizon_m / max(0.5, step_m)))
-        for _ in range(n_steps):
-            plan.append((wp, option))
-            try:
-                nxt = list(wp.next(step_m))
-            except Exception:
-                break
-            if not nxt:
-                break
-            cand = min(
-                nxt,
-                key=lambda cand: abs(
-                    self._angle_delta(float(cand.transform.rotation.yaw), origin_yaw)
-                ),
+    def _remaining_original_route(self) -> list[tuple[Any, Any]]:
+        if not self._original_route or self.ego is None:
+            return []
+        try:
+            loc = self.ego.get_location()
+            index = min(
+                range(len(self._original_route)),
+                key=lambda i: (
+                    float(self._original_route[i][0].transform.location.x) - float(loc.x)
+                ) ** 2
+                + (
+                    float(self._original_route[i][0].transform.location.y) - float(loc.y)
+                ) ** 2,
             )
-            if abs(self._angle_delta(
-                float(cand.transform.rotation.yaw), origin_yaw)) > 30.0:
-                break  # would diverge onto a cross street; keep straight
-            wp = cand
+        except Exception:
+            index = 0
+        return self._original_route[index:]
+
+    def _shift_route_waypoint(self, waypoint: Any, offset: float) -> Any:
+        transform = waypoint.transform
+        loc = transform.location
+        right = transform.get_right_vector()
+        shifted = self.carla.Location(
+            x=float(loc.x) + float(right.x) * offset,
+            y=float(loc.y) + float(right.y) * offset,
+            z=float(getattr(loc, "z", 0.0)),
+        )
+        shifted_transform = self.carla.Transform(shifted, transform.rotation)
+        return _RouteTarget(waypoint, shifted_transform)
+
+    def _set_route_offset_plan(
+        self, offset: float, *, blend_distance_m: Optional[float] = None
+    ) -> bool:
+        route = self._remaining_original_route()
+        if self._agent is None or not route:
+            return False
+        plan = []
+        travelled = 0.0
+        previous = None
+        for waypoint, option in route:
+            loc = waypoint.transform.location
+            if previous is not None:
+                try:
+                    travelled += float(loc.distance(previous))
+                except Exception:
+                    travelled += math.hypot(
+                        float(loc.x) - float(previous.x),
+                        float(loc.y) - float(previous.y),
+                    )
+            target_offset = offset
+            if blend_distance_m is not None:
+                fraction = (
+                    1.0
+                    if blend_distance_m <= 0.0
+                    else min(1.0, travelled / blend_distance_m)
+                )
+                target_offset = offset * (1.0 - fraction)
+            plan.append((self._shift_route_waypoint(waypoint, target_offset), option))
+            previous = loc
         try:
             self._agent.set_global_plan(
                 plan, stop_waypoint_creation=True, clean_queue=True
             )
-            return self._offset_into_adjacent_lane(cur, lane, lateral_to_lane)
+            return True
         except Exception:
-            return None
+            return False
+
+    def _hazard_cleared(self, obs: Dict[str, Any]) -> bool:
+        signal = "blocking_hazard_forward_m"
+        if signal not in obs:
+            # Compatibility for scenario hooks that predate an explicit
+            # blocking set: their physical signal covered all managed actors.
+            signal = "hazard_forward_m"
+        try:
+            relative_forward = float(obs.get(signal))
+        except (TypeError, ValueError):
+            relative_forward = float("nan")
+        if math.isfinite(relative_forward):
+            return relative_forward < -5.0
+
+        # Compatibility for callers that do not yet supply physical hazard
+        # telemetry. The fallback mirrors the configured actor layouts.
+        scene = self.gt.get("S_safety_context") or {}
+        forward, _lateral = self._route_displacement()
+        if scene.get("crash_distance") is not None:
+            count = max(1, min(5, int(scene.get("crash_vehicles", 4))))
+            clear_at = float(scene["crash_distance"]) + 6.0 * (count - 1) + 5.0
+            return forward > clear_at
+        if scene.get("block_distance") is not None:
+            return forward > float(scene["block_distance"]) + 12.0
+        return False
+
+    def _start_detour_merge(self, blend_distance_m: float = 12.0) -> None:
+        if self._detour_merge_started:
+            return
+        offset = self._route_offset
+        if self._set_route_offset_plan(offset, blend_distance_m=blend_distance_m):
+            self._detour_merge_started = True
+            forward, _lateral = self._route_displacement()
+            self._merge_start_forward_m = forward
+            # The merge plan itself tapers to zero. Disable the constant-offset
+            # dead-man target so it cannot fight that planned return.
+            self._route_offset = 0.0
+            self._lateral_watchdog_engaged = False
+            self._lateral_watchdog_stood_down = True
+
+    def _configure_debug_output(self) -> None:
+        self._close_debug_output()
+        if os.environ.get("MARSHAL_ORACLE_DEBUG") != "1" or not self._episode_dir:
+            return
+        try:
+            path = os.path.join(self._episode_dir, "oracle_debug.jsonl")
+            self._debug_file = open(path, "w", encoding="utf-8", buffering=1)
+            self.step = self._step_with_debug
+        except OSError:
+            self._debug_file = None
+
+    def _write_debug_record(self, obs: Dict[str, Any], sim_time: float) -> None:
+        if self._debug_file is None:
+            return
+        try:
+            forward, lateral = self._route_displacement()
+            if sim_time < self._onset_time:
+                phase = "pre_onset"
+            elif self._action == "DETOUR" and self._detour_merge_started:
+                phase = "merge"
+            elif self._action == "DETOUR" and self._detour_committed:
+                phase = "detour"
+            elif self._action == "DETOUR":
+                phase = "detour_pending"
+            else:
+                phase = self._action.lower()
+            blocking = obs.get("blocking_hazard_forward_m")
+            try:
+                blocking = float(blocking)
+                if not math.isfinite(blocking):
+                    blocking = None
+            except (TypeError, ValueError):
+                blocking = None
+            merge_progress = 0.0
+            if self._detour_merge_started and self._merge_start_forward_m is not None:
+                merge_progress = max(0.0, forward - self._merge_start_forward_m)
+            record = {
+                "sim_time": sim_time,
+                "phase": phase,
+                "route_offset_target": self._route_offset,
+                "applied_offset_estimate": lateral,
+                "blocking_hazard_forward_m": blocking,
+                "merge_active": self._detour_merge_started,
+                "merge_progress_m": merge_progress,
+            }
+            self._debug_file.write(json.dumps(record, separators=(",", ":")) + "\n")
+            self._debug_file.flush()
+        except Exception:
+            # Diagnostics must never change controller behavior.
+            self._close_debug_output()
+
+    def _close_debug_output(self) -> None:
+        self.__dict__.pop("step", None)
+        debug_file, self._debug_file = self._debug_file, None
+        if debug_file is not None:
+            try:
+                debug_file.flush()
+                debug_file.close()
+            except Exception:
+                pass
+
+    def teardown(self) -> None:
+        self._close_debug_output()
 
     def _select_detour_lane(self, cur: Any) -> Optional[tuple[str, Any, float]]:
         origin_yaw = float(cur.transform.rotation.yaw)
@@ -524,6 +788,7 @@ class OracleController(EpisodeController):
     def _offset_into_adjacent_lane(
         self, cur: Any, lane: Any, lateral_to_lane: float
     ) -> float:
+        """Use the committed baseline's lane centre plus outward clearance."""
         sign = -1.0 if lateral_to_lane < 0.0 else 1.0
         try:
             lane_width = float(lane.lane_width)
@@ -545,7 +810,9 @@ class OracleController(EpisodeController):
 
     def _fallback_detour_offset(self) -> float:
         side = self._detour_side_order()[0]
-        return -3.6 if side == "left" else 3.6
+        margin = float(self.config.get("detour_safety_margin_m", 0.55))
+        magnitude = 3.5 + max(0.45, min(0.70, margin))
+        return -magnitude if side == "left" else magnitude
 
     @staticmethod
     def _angle_delta(a: float, b: float) -> float:

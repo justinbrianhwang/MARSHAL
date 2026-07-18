@@ -10,6 +10,7 @@ from marshal_bench.utils.station_search import (
     candidate_rejections,
     candidate_score,
     compare_station_tolerance,
+    detour_runout_m,
     select_best_candidate,
     validate_stations_payload,
     witness_violations,
@@ -31,6 +32,7 @@ def candidate(**overrides):
         "officer_offroad": True,
         "adjacent_same_road_lane": True,
         "detour_clearance_m": 3.5,
+        "junction_free_forward_m": 80.0,
         "offroad_shoulder": True,
         "spawn_clear": True,
     }
@@ -52,6 +54,11 @@ def requirements(**overrides):
         "min_detour_clearance_m": 0.0,
         "needs_offroad_shoulder": False,
         "officer_lateral_offset_m": 3.2,
+        "detour_hazard_start_m": 0.0,
+        "detour_staged_span_m": 0.0,
+        "detour_pass_margin_m": 0.0,
+        "detour_merge_taper_m": 0.0,
+        "min_detour_runout_m": 0.0,
         "notes": "synthetic",
     }
     flat.update(overrides)
@@ -76,6 +83,11 @@ def requirements(**overrides):
                 "max_initial_stopline_m",
                 "prefers_sidewalk_point",
                 "officer_lateral_offset_m",
+                "detour_hazard_start_m",
+                "detour_staged_span_m",
+                "detour_pass_margin_m",
+                "detour_merge_taper_m",
+                "min_detour_runout_m",
             )
         },
         "notes": flat["notes"],
@@ -126,6 +138,32 @@ def test_specialised_requirements_are_hard_filters():
         "detour clearance 1.4 m is below 1.5 m",
         "off-road shoulder required",
     ]
+
+
+@pytest.mark.parametrize(
+    ("terms", "expected"),
+    [
+        ((34.0, 18.0, 4.0, 12.0), 68.0),
+        ((32.0, 18.0, 4.0, 12.0), 66.0),
+        ((28.0, 0.0, 4.0, 12.0), 44.0),
+        ((26.0, 5.0, 4.0, 12.0), 47.0),
+    ],
+)
+def test_detour_runout_arithmetic(terms, expected):
+    assert detour_runout_m(*terms) == expected
+
+
+def test_detour_runout_is_generation_only_and_has_precise_rejection():
+    req = requirements(
+        detour_hazard_start_m=32.0,
+        detour_staged_span_m=18.0,
+        detour_pass_margin_m=4.0,
+        detour_merge_taper_m=12.0,
+        min_detour_runout_m=66.0,
+    )
+    rejected = candidate_rejections(candidate(junction_free_forward_m=65.9), req)
+    assert rejected == ["junction-free straight detour run-out 65.9 m is below 66.0 m"]
+    assert witness_violations(candidate(junction_free_forward_m=1.0), req) == []
 
 
 def test_scoring_and_selection_order_is_runup_plus_margin():

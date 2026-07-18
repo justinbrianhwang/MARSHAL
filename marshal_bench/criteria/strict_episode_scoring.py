@@ -45,6 +45,7 @@ TELEMETRY_FIELDS: Tuple[str, ...] = (
     "officer_onset_time",
     "officer_duration_sec",
     "officer_active",
+    "officer_facing_ego_deg",
     "control_finite",
 )
 

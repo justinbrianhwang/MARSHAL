@@ -22,6 +22,19 @@ from marshal_bench.utils.carla_api_compat import import_carla
 log = logging.getLogger("marshal_bench.actors.scene_actors")
 
 
+class ManagedSceneActors(list):
+    """Scene actors with an optional lane-blocking subset."""
+
+    def __init__(self, actors=(), *, blocking_actors=()) -> None:
+        super().__init__(actors)
+        self.blocking_actors = list(blocking_actors)
+
+
+def route_blocking_actors(actors: list) -> ManagedSceneActors:
+    """Mark already-spawned, route-confined actors as the DETOUR blockage."""
+    return ManagedSceneActors(actors, blocking_actors=actors)
+
+
 # ---------------------------------------------------------------------------
 # Geometry helpers
 # ---------------------------------------------------------------------------
@@ -123,7 +136,7 @@ def spawn_crash_pileup(
         if actor is not None:
             out.append(actor)
     log.info("crash pileup: spawned %d/%d vehicles at %.0f m", len(out), n, distance)
-    return out
+    return route_blocking_actors(out)
 
 
 # ---------------------------------------------------------------------------
@@ -301,7 +314,7 @@ def spawn_construction_zone(
                 out.append(a)
     log.info("construction zone: spawned %d items, lane closed at %.0f m",
              len(out), block_distance)
-    return out
+    return route_blocking_actors(out)
 
 
 # ---------------------------------------------------------------------------
@@ -441,8 +454,9 @@ def spawn_flagger(
         y=twf.location.y + right.y * lateral,
         z=twf.location.z + 0.60,
     )
-    # face back toward the ego
-    rot = carla.Rotation(yaw=twf.rotation.yaw + 180.0)
+    from marshal_bench.scenarios._common import yaw_toward_location
+
+    rot = carla.Rotation(yaw=yaw_toward_location(loc, ego_transform.location))
     bp = walkers[-1]  # a different blueprint from the police 0030
     actor = world.try_spawn_actor(bp, carla.Transform(loc, rot))
     if actor is None:

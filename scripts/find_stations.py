@@ -13,12 +13,16 @@ from __future__ import annotations
 
 import argparse
 import copy
+import importlib
 import json
 import math
 import os
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Optional
+
+import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,6 +36,7 @@ from marshal_bench.utils.station_search import (  # noqa: E402
     classify_requirements,
     compare_station_tolerance,
     generation_requirements,
+    generation_violations,
     hard_requirements,
     select_best_candidate,
     station_from_candidate,
@@ -52,6 +57,135 @@ WITNESS_HEADING_TOLERANCE_DEG = 45.0
 WITNESS_SIGNAL_TRACE_LIMIT_M = 80.0
 TRACE_STEP_M = 2.0
 TRACE_LIMIT_M = 120.0
+DETOUR_STRAIGHT_HEADING_TOLERANCE_DEG = 10.0
+
+
+@dataclass(frozen=True)
+class RequiredSceneActor:
+    """One actor role whose absence makes the staged scenario invalid."""
+
+    role: str
+    count: int
+    blueprint_kind: str
+
+
+def _required_scene_actors(
+    scenario: str, config: Mapping[str, Any]
+) -> tuple[RequiredSceneActor, ...]:
+    """Mirror the required ``setup_extra_actors`` products by scenario.
+
+    Decorative cones are intentionally omitted. The listed actors are the
+    semantic scene participants/blockers requested by the scenario hook; each
+    is probe-spawned through that hook's real placement code.
+    """
+    scene = config.get("scene") or {}
+    if scenario in {"crash_detour", "civilian_warning_accident"}:
+        return (
+            RequiredSceneActor(
+                "pileup vehicle",
+                max(1, min(int(scene.get("crash_vehicles", 4)), 5)),
+                "vehicle",
+            ),
+        )
+    if scenario == "fallen_person":
+        return (RequiredSceneActor("fallen person", 1, "walker"),)
+    if scenario == "adjacent_lane":
+        return (RequiredSceneActor("adjacent-lane vehicle", 1, "vehicle"),)
+    if scenario in {
+        "flagger_control",
+        "flagger_slow_then_stop",
+        "barricade_self_detour",
+    }:
+        return (
+            RequiredSceneActor("barricade", 3, "barricade"),
+            RequiredSceneActor("works vehicle", 1, "vehicle"),
+        )
+    if scenario == "ambulance_yield":
+        return (RequiredSceneActor("ambulance", 1, "vehicle"),)
+    if scenario == "occluded_officer":
+        return (RequiredSceneActor("occluding vehicle", 1, "vehicle"),)
+    if scenario == "conflicting_authorities":
+        return (RequiredSceneActor("second authority", 1, "walker"),)
+    if scenario == "rule_hierarchy":
+        return (RequiredSceneActor("crossing pedestrian", 1, "walker"),)
+    if scenario == "emergency_scene_blocking":
+        return (RequiredSceneActor("emergency vehicle", 1, "vehicle"),)
+    if scenario == "two_civilians_disagree":
+        return (RequiredSceneActor("second civilian", 1, "walker"),)
+    if scenario == "school_crossing_guard":
+        count = max(1, min(2, int(scene.get("pedestrian_count", 2))))
+        return (RequiredSceneActor("crossing pedestrian", count, "walker"),)
+    return ()
+
+
+def _blueprint_matches_kind(blueprint_id: str, kind: str) -> bool:
+    blueprint_id = str(blueprint_id).lower()
+    if kind == "vehicle":
+        return blueprint_id.startswith("vehicle.")
+    if kind == "walker":
+        return blueprint_id.startswith("walker.pedestrian.")
+    if kind == "barricade":
+        return "barricade" in blueprint_id or "streetbarrier" in blueprint_id
+    return False
+
+
+class _ProbeActor:
+    """Destroyed real actor stand-in used to let a stager finish cheaply."""
+
+    def __init__(self, blueprint_id: str, transform: Any) -> None:
+        self.type_id = blueprint_id
+        self._transform = transform
+
+    def get_transform(self) -> Any:
+        return self._transform
+
+    def set_transform(self, transform: Any) -> None:
+        self._transform = transform
+
+    def destroy(self) -> None:
+        return None
+
+    def __getattr__(self, _name: str) -> Any:
+        return lambda *args, **kwargs: None
+
+
+class _ProbeWorld:
+    """Forward read-only world calls and immediately destroy probe spawns."""
+
+    def __init__(self, world: Any) -> None:
+        self._world = world
+        self.spawned_blueprints: list[str] = []
+
+    def try_spawn_actor(self, blueprint: Any, transform: Any) -> Optional[_ProbeActor]:
+        actor = None
+        try:
+            actor = self._world.try_spawn_actor(blueprint, transform)
+            if actor is None:
+                return None
+            blueprint_id = str(
+                getattr(actor, "type_id", None) or getattr(blueprint, "id", "")
+            )
+            self.spawned_blueprints.append(blueprint_id)
+            return _ProbeActor(blueprint_id, transform)
+        except Exception:
+            return None
+        finally:
+            if actor is not None:
+                try:
+                    actor.destroy()
+                except Exception:
+                    pass
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._world, name)
+
+
+class _ProbeOfficer:
+    def __init__(self, transform: Any) -> None:
+        self._transform = transform
+
+    def get_transform(self) -> Any:
+        return self._transform
 
 
 def _location_dict(location: Any) -> dict[str, float]:
@@ -109,6 +243,28 @@ def _trace_clear_lane(waypoint: Any, direction: str, limit_m: float = TRACE_LIMI
         except Exception:
             break
         if nxt is None or bool(getattr(nxt, "is_junction", False)):
+            break
+        current = nxt
+        distance += TRACE_STEP_M
+    return distance
+
+
+def _trace_detour_runout(waypoint: Any, limit_m: float = TRACE_LIMIT_M) -> float:
+    """Trace forward until a junction, route end, or material road curvature."""
+    current = waypoint
+    distance = 0.0
+    start_yaw = float(waypoint.transform.rotation.yaw)
+    while distance + TRACE_STEP_M <= limit_m:
+        try:
+            nxt = _best_branch(current.next(TRACE_STEP_M), current)
+        except Exception:
+            break
+        if nxt is None or bool(getattr(nxt, "is_junction", False)):
+            break
+        heading_delta = abs(
+            (float(nxt.transform.rotation.yaw) - start_yaw + 180.0) % 360.0 - 180.0
+        )
+        if heading_delta > DETOUR_STRAIGHT_HEADING_TOLERANCE_DEG:
             break
         current = nxt
         distance += TRACE_STEP_M
@@ -293,6 +449,7 @@ def _topology_facts_from_waypoints(
         ),
         "junction_approach": _junction_ahead(stop_wp) if signalized else False,
         "runup_m": runup,
+        "junction_free_forward_m": round(_trace_detour_runout(spawn_wp), 3),
         "initial_stopline_distance_m": (
             round(
                 math.hypot(
@@ -379,11 +536,23 @@ def _non_signal_candidates(world: Any, carla: Any) -> list[dict[str, Any]]:
     carla_map = world.get_map()
     out: list[dict[str, Any]] = []
     seen: set[tuple[int, int, int]] = set()
+    sources: list[tuple[Any, Optional[Any]]] = []
     try:
-        waypoints = carla_map.generate_waypoints(8.0)
+        for spawn_tf in carla_map.get_spawn_points():
+            wp = carla_map.get_waypoint(
+                spawn_tf.location,
+                project_to_road=True,
+                lane_type=carla.LaneType.Driving,
+            )
+            if wp is not None:
+                sources.append((wp, spawn_tf))
     except Exception:
-        return out
-    for wp in waypoints:
+        pass
+    try:
+        sources.extend((wp, None) for wp in carla_map.generate_waypoints(8.0))
+    except Exception:
+        pass
+    for wp, guaranteed_spawn in sources:
         try:
             if wp.lane_type != carla.LaneType.Driving or wp.is_junction:
                 continue
@@ -396,7 +565,18 @@ def _non_signal_candidates(world: Any, carla: Any) -> list[dict[str, Any]]:
         forward = _trace_clear_lane(wp, "next")
         if forward < 35.0:
             continue
-        out.append(_topology_facts_from_waypoints(carla_map, carla, wp))
+        facts = _topology_facts_from_waypoints(
+                carla_map,
+                carla,
+                wp,
+                forward_traffic_light_distance_m=_nearest_forward_traffic_light_distance(
+                    world, wp.transform
+                ),
+            )
+        if guaranteed_spawn is not None:
+            facts["spawn"] = _transform_dict(guaranteed_spawn)
+            facts["id"] = "spawn-" + facts["id"]
+        out.append(facts)
     return out
 
 
@@ -415,22 +595,32 @@ def _for_requirements(candidate: Mapping[str, Any], requirements: Mapping[str, A
 
 def _spawn_is_clear(world: Any, carla: Any, candidate: Mapping[str, Any], blueprint: Any) -> bool:
     spawn = candidate["spawn"]
-    transform = carla.Transform(
-        carla.Location(x=float(spawn["x"]), y=float(spawn["y"]), z=float(spawn["z"])),
-        carla.Rotation(yaw=float(spawn["yaw"])),
-    )
-    actor = None
-    try:
-        actor = world.try_spawn_actor(blueprint, transform)
-        return actor is not None
-    except Exception:
-        return False
-    finally:
-        if actor is not None:
-            try:
-                actor.destroy()
-            except Exception:
-                pass
+    base_z = float(spawn["z"])
+    for z_lift in (0.0, 0.5, 1.0, 1.5):
+        transform = carla.Transform(
+            carla.Location(
+                x=float(spawn["x"]),
+                y=float(spawn["y"]),
+                z=base_z + z_lift,
+            ),
+            carla.Rotation(yaw=float(spawn["yaw"])),
+        )
+        actor = None
+        try:
+            actor = world.try_spawn_actor(blueprint, transform)
+            if actor is not None:
+                if isinstance(candidate, dict):
+                    candidate["spawn"]["z"] = round(base_z + z_lift, 3)
+                return True
+        except Exception:
+            pass
+        finally:
+            if actor is not None:
+                try:
+                    actor.destroy()
+                except Exception:
+                    pass
+    return False
 
 
 def _ego_blueprint(world: Any) -> Any:
@@ -446,21 +636,97 @@ def _ego_blueprint(world: Any) -> Any:
     return vehicles[0]
 
 
+def _candidate_transform(carla: Any, candidate: Mapping[str, Any]) -> Any:
+    spawn = candidate["spawn"]
+    return carla.Transform(
+        carla.Location(
+            x=float(spawn["x"]),
+            y=float(spawn["y"]),
+            z=float(spawn["z"]),
+        ),
+        carla.Rotation(yaw=float(spawn["yaw"])),
+    )
+
+
+def _probe_required_scene_actor_spawns(
+    world: Any,
+    carla: Any,
+    candidate: Mapping[str, Any],
+    scenario: str,
+    config: Mapping[str, Any],
+) -> Optional[str]:
+    """Return the first missing required role, or ``None`` when all spawn.
+
+    The real scenario hook supplies pose generation, blueprint selection, and
+    fallback retries. ``_ProbeWorld`` changes only actor lifetime: every real
+    probe actor is destroyed immediately so candidates stay isolated and the
+    validation pass remains cheap.
+    """
+    required = _required_scene_actors(scenario, config)
+    if not required:
+        return None
+
+    module = importlib.import_module(
+        f"marshal_bench.scenarios.marshal_{scenario}_demo"
+    )
+    from marshal_bench.scenarios._common import officer_transform_on_ego_route
+    probe_world = _ProbeWorld(world)
+    ego_transform = _candidate_transform(carla, candidate)
+    officer_cfg = config.get("officer") or {}
+    officer_transform = ego_transform
+    if officer_cfg:
+        officer_transform = officer_transform_on_ego_route(
+            probe_world,
+            ego_transform,
+            distance=float(officer_cfg.get("distance", 30.0)),
+            lateral=float(officer_cfg.get("lateral_offset", 2.2)),
+        )
+    try:
+        setup = getattr(module, "_setup_extra_actors")
+        setup(
+            probe_world,
+            None,
+            ego_transform,
+            _ProbeOfficer(officer_transform),
+            dict(config),
+        )
+    except Exception:
+        return required[0].role
+
+    for actor_requirement in required:
+        spawned = sum(
+            _blueprint_matches_kind(blueprint_id, actor_requirement.blueprint_kind)
+            for blueprint_id in probe_world.spawned_blueprints
+        )
+        if spawned < actor_requirement.count:
+            return actor_requirement.role
+    return None
+
+
 def _select_with_validation(
     world: Any,
     carla: Any,
     candidates: list[dict[str, Any]],
     requirements: Mapping[str, Any],
     blueprint: Any,
+    scenario: str,
+    scenario_config: Mapping[str, Any],
     station_use_counts: Optional[Mapping[str, int]] = None,
 ) -> tuple[Optional[dict[str, Any]], str]:
     working = [_for_requirements(candidate, requirements) for candidate in candidates]
     blocked = 0
+    required_actor_failures: dict[str, int] = {}
     while True:
         chosen, reason = select_best_candidate(
             working, requirements, station_use_counts=station_use_counts
         )
         if chosen is None:
+            if required_actor_failures:
+                failed_role = max(
+                    required_actor_failures,
+                    key=lambda role: required_actor_failures[role],
+                )
+                return None, f"required scene actor spawn failed: {failed_role}"
             suffix = f"; {blocked} otherwise-suitable spawn(s) were blocked" if blocked else ""
             return None, reason + suffix
         if not _spawn_is_clear(world, carla, chosen, blueprint):
@@ -479,7 +745,7 @@ def _select_with_validation(
         maximum_initial = float(
             generation.get("max_initial_stopline_m", MAX_INITIAL_STOPLINE_M)
         )
-        if hard.get("needs_traffic_light") and not (
+        if chosen.get("signalized") and hard.get("needs_traffic_light") and not (
             minimum_initial <= initial_distance <= maximum_initial
         ):
             for candidate in working:
@@ -495,6 +761,23 @@ def _select_with_validation(
             # Normally filtered before selection; retain this explicit validation
             # guard so the emitted feasibility mask cannot silently degrade.
             return None, "chosen officer point is on the road or unmapped"
+        failed_role = _probe_required_scene_actor_spawns(
+            world,
+            carla,
+            chosen,
+            scenario,
+            scenario_config,
+        )
+        if failed_role is not None:
+            required_actor_failures[failed_role] = (
+                required_actor_failures.get(failed_role, 0) + 1
+            )
+            blocked += 1
+            for candidate in working:
+                if candidate.get("id") == chosen.get("id"):
+                    candidate["spawn_clear"] = False
+                    break
+            continue
         chosen["spawn_clear"] = True
         chosen["initial_stopline_distance_m"] = round(initial_distance, 3)
         return chosen, reason
@@ -764,6 +1047,11 @@ def _write_self_test(
             if witness_facts is None
             else witness_violations(witness_facts, requirement)
         )
+        generation_checks = (
+            [projection_error or "witness topology projection failed"]
+            if witness_facts is None
+            else generation_violations(witness_facts, requirement)
+        )
         if violations:
             witness_failures[scenario] = violations
             for violation in violations:
@@ -773,6 +1061,7 @@ def _write_self_test(
                 "skipped": True,
                 "reason": status["reason"],
                 "witness_violations": violations,
+                "curated_generation_violations": generation_checks,
             }
             continue
         generated_station = generated[scenario]
@@ -795,6 +1084,12 @@ def _write_self_test(
             )
         comparison["curated_stopline_resolved"] = old_stopline is not None
         comparison["witness_violations"] = violations
+        comparison["curated_generation_violations"] = generation_checks
+        comparison["curated_detour_runout"] = {
+            "available_m": None if witness_facts is None else witness_facts.get("junction_free_forward_m"),
+            "required_m": generation_requirements(requirement).get("min_detour_runout_m", 0.0),
+            "satisfies": not any("detour run-out" in item for item in generation_checks),
+        }
         rows[scenario] = comparison
     report = {
         "map": "Town03",
@@ -861,6 +1156,15 @@ def _load_requirements() -> dict[str, Any]:
     return requirements
 
 
+def _load_probe_configs() -> dict[str, dict[str, Any]]:
+    """Load the scenario YAML consumed by ``calibrate_town.py`` live runs."""
+    configs: dict[str, dict[str, Any]] = {}
+    for scenario in SCENARIO_SPEC:
+        path = ROOT / "marshal_bench" / "configs" / f"demo_{scenario}.yaml"
+        configs[scenario] = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    return configs
+
+
 def _ensure_world(client: Any, town: str) -> Any:
     world = client.get_world()
     current = str(world.get_map().name).replace("\\", "/").split("/")[-1]
@@ -887,6 +1191,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     out_path = _resolve_output(args.out, town)
     feasibility_path = out_path.with_name(f"feasibility_{town.lower()}.json")
     requirements = _load_requirements()
+    probe_configs = _load_probe_configs()
 
     carla = import_carla()
     client = carla.Client(args.host, args.port)
@@ -904,8 +1209,13 @@ def main(argv: Optional[list[str]] = None) -> int:
     station_use_counts: dict[str, int] = {}
     for scenario in SCENARIO_SPEC:
         requirement = requirements[scenario]
+        runout_required = float(
+            generation_requirements(requirement).get("min_detour_runout_m", 0.0) or 0.0
+        )
         pool = (
-            signal_candidates
+            signal_candidates + road_candidates
+            if runout_required > 0.0
+            else signal_candidates
             if hard_requirements(requirement)["needs_traffic_light"]
             else road_candidates
         )
@@ -915,6 +1225,8 @@ def main(argv: Optional[list[str]] = None) -> int:
             pool,
             requirement,
             blueprint,
+            scenario,
+            probe_configs[scenario],
             station_use_counts=station_use_counts,
         )
         if chosen is None:
@@ -927,8 +1239,14 @@ def main(argv: Optional[list[str]] = None) -> int:
         station_use_counts[chosen_id] = station_use_counts.get(chosen_id, 0) + 1
         detail = (
             f"{reason}; spawn clear; initial stopline distance "
-            f"{chosen['initial_stopline_distance_m']:.1f} m; officer surface {chosen['officer_surface']}"
+            f"{chosen['initial_stopline_distance_m']:.1f} m; officer surface {chosen['officer_surface']}; "
+            f"junction-free forward {chosen['junction_free_forward_m']:.1f} m"
         )
+        required_roles = _required_scene_actors(scenario, probe_configs[scenario])
+        if required_roles:
+            detail += "; required scene actors spawn clear: " + ", ".join(
+                f"{item.role} x{item.count}" for item in required_roles
+            )
         feasibility[scenario] = {"feasible": True, "reason": detail}
         print(f"FEASIBLE   {scenario}: {chosen['id']} score={chosen['runup_m'] + chosen['geometric_margin_m']:.1f}")
 
