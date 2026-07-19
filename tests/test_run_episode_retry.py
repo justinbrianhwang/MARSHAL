@@ -1,5 +1,6 @@
 """start.py _run_episode crash-retry matrix (Kimi finding 6.2)."""
 import subprocess
+import time
 from types import SimpleNamespace
 
 import start
@@ -35,6 +36,9 @@ def _patch(monkeypatch, run_effects, results):
     monkeypatch.setattr(start.subprocess, "run", fake_run)
     monkeypatch.setattr(start.os.path, "isdir", lambda _p: True)
     monkeypatch.setattr(start.os, "listdir", lambda _p: [])
+    # A result.json written during this invocation (fresh by default; the
+    # stale-artifact test overrides this with an old timestamp).
+    monkeypatch.setattr(start.os.path, "getmtime", lambda _p: time.time() + 60)
     return calls, fake_collect
 
 
@@ -95,3 +99,26 @@ def test_clean_failure_without_result_is_not_retried(monkeypatch):
     out = start._run_episode("oracle", "green_stop", _args(), "outdir")
     assert out is None
     assert calls["run"] == 1
+
+
+def test_stale_result_from_prior_run_is_ignored_and_crash_retried(monkeypatch):
+    """A double-crash on a reused --tag must NOT return the previous run's
+    result.json: its mtime predates this invocation, so it is skipped and
+    the crash is retried (then reported as a real failure)."""
+    calls, _ = _patch(monkeypatch, [3221226505, 3221226505], [None])
+    stale = {"scenario": "green_stop", "stale": True}
+    monkeypatch.setattr(start.os, "listdir", lambda _p: ["marshal_green_stop_run"])
+    monkeypatch.setattr(start.os.path, "isfile", lambda _p: True)
+    # The artifact is older than the run start -> must be treated as stale.
+    monkeypatch.setattr(start.os.path, "getmtime", lambda _p: time.time() - 3600)
+    monkeypatch.setattr(start.json, "load", lambda _f: {"result": stale})
+    import builtins
+    real_open = builtins.open
+    monkeypatch.setattr(
+        builtins, "open",
+        lambda *a, **k: SimpleNamespace(__enter__=lambda s: s, __exit__=lambda *x: None)
+        if str(a[0]).endswith("result.json") else real_open(*a, **k),
+    )
+    out = start._run_episode("oracle", "green_stop", _args(), "outdir")
+    assert out is None            # stale result rejected
+    assert calls["run"] == 2      # crash retried once

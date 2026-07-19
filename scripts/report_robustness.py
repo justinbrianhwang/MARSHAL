@@ -42,43 +42,59 @@ def _load_json(path: Path) -> Optional[dict]:
         return None
 
 
-def _episode_graded(episode_dir: Path) -> Optional[float]:
-    """Re-score one finished episode's graded credit from its artifacts."""
+def _episode_graded(episode_dir: Path) -> tuple[Optional[float], bool]:
+    """Re-score one episode: ``(graded credit or None, excluded_as_invalid)``.
+
+    An INVALID episode (scene setup broke — e.g. the staging integrity
+    guard fired) is EXCLUDED, not scored 0.0: an infrastructure failure
+    must not be numerically indistinguishable from worst-case behaviour,
+    and an invalid baseline episode must not depress ``base_mean`` into
+    clamp-inflated (lucky) retentions.
+    """
     blob = _load_json(episode_dir / "result.json")
     if blob is None:
-        return None
+        return None, False
     result = blob.get("result", blob)
+    strict = result.get("strict_scoring") or {}
+    setup_errors = (result.get("scene_setup") or {}).get("errors") or ()
+    if strict.get("invalid") or setup_errors:
+        return None, True
     telemetry = _load_json(episode_dir / "strict_telemetry.json") or {}
     rows = telemetry.get("telemetry") or telemetry.get("rows") or []
     if not rows:
-        return None
-    strict = result.get("strict_scoring") or {}
+        return None, False
     graded = score_graded_episode(
         dict(result),
         rows,
         scenario=result.get("scenario"),
         expected_action=strict.get("expected_action") or result.get("expected_action"),
-        setup_errors=(result.get("scene_setup") or {}).get("errors") or (),
+        setup_errors=setup_errors,
     )
     try:
-        return float(graded.get("credit"))
+        return float(graded.get("credit")), False
     except (TypeError, ValueError):
-        return None
+        return None, False
 
 
-def _run_graded_mean(tag: str) -> tuple[Optional[float], int, Optional[dict]]:
-    """Mean graded credit over a run's episodes + its scoreboard, by tag."""
+def _run_graded_mean(tag: str) -> tuple[Optional[float], int, int, Optional[dict]]:
+    """Mean graded credit over a run's VALID episodes + its scoreboard.
+
+    Returns ``(mean, scored_n, invalid_excluded_n, scoreboard)``.
+    """
     run_dir = BENCH_ROOT / tag
     board = _load_json(run_dir / "scoreboard.json")
     credits = []
+    invalid_excluded = 0
     for episode_dir in sorted(run_dir.glob("marshal_*_*")):
         if not episode_dir.is_dir():
             continue
-        credit = _episode_graded(episode_dir)
-        if credit is not None:
+        credit, invalid = _episode_graded(episode_dir)
+        if invalid:
+            invalid_excluded += 1
+        elif credit is not None:
             credits.append(credit)
     mean = round(sum(credits) / len(credits), 6) if credits else None
-    return mean, len(credits), board
+    return mean, len(credits), invalid_excluded, board
 
 
 def _condition_label(board: Optional[dict], fallback: str) -> str:
@@ -97,20 +113,29 @@ def main() -> int:
                              "robustness_<baseline-tag>.json)")
     args = parser.parse_args()
 
-    base_mean, base_n, base_board = _run_graded_mean(args.baseline_tag)
+    base_mean, base_n, base_invalid, base_board = _run_graded_mean(args.baseline_tag)
     if base_mean is None or base_board is None:
         print(f"ERROR: baseline run {args.baseline_tag!r} has no scored episodes "
               f"or no scoreboard.json under {BENCH_ROOT}")
         return 2
+    if base_invalid:
+        print(f"WARNING: baseline {args.baseline_tag} excluded {base_invalid} "
+              f"INVALID episode(s); base mean covers survivors only — "
+              f"retentions are not the full grid")
 
     per_condition: dict[str, Optional[float]] = {}
+    invalid_excluded: dict[str, int] = {}
     rows = []
     for tag in [t for t in args.condition_tags.split(",") if t.strip()]:
         tag = tag.strip()
-        mean, n, board = _run_graded_mean(tag)
+        mean, n, invalid, board = _run_graded_mean(tag)
         label = _condition_label(board, tag)
         per_condition[label] = mean
+        invalid_excluded[label] = invalid
         rows.append((label, tag, n, mean))
+        if invalid:
+            print(f"WARNING: {tag} excluded {invalid} INVALID episode(s) "
+                  f"(scene setup broke); they do NOT count as 0.0")
         if n != base_n:
             # A missing/extra episode silently shifts the condition mean —
             # surface it so a partial run is never mistaken for the grid.
@@ -127,6 +152,11 @@ def main() -> int:
     combined["baseline_tag"] = args.baseline_tag
     combined["baseline_condition"] = _condition_label(base_board, "ClearNoon")
     combined["condition_tags"] = {label: tag for label, tag, _n, _m in rows}
+    # Keep the quarantine fact in the artifact, not just on stdout.
+    combined["invalid_excluded"] = {
+        "baseline": base_invalid,
+        "per_condition": invalid_excluded,
+    }
 
     out_path = Path(args.out) if args.out else (
         BENCH_ROOT / f"robustness_{args.baseline_tag}.json"
