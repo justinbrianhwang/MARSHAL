@@ -12,7 +12,11 @@ import logging
 from typing import Any
 
 from marshal_bench.actors.gesture_engine import GestureID
-from marshal_bench.actors.scene_actors import route_blocking_actors, route_waypoint
+from marshal_bench.actors.scene_actors import (
+    _freeze,
+    route_blocking_actors,
+    route_waypoint,
+)
 from marshal_bench.scenarios._common import run_scenario
 from marshal_bench.utils.carla_api_compat import import_carla  # noqa: F401
 from marshal_bench.utils.logging_utils import EpisodeLogger
@@ -129,6 +133,10 @@ def _spawn_emergency_vehicle(world: Any, ego_transform: Any, scene: dict) -> lis
             actor = world.try_spawn_actor(bp, carla.Transform(loc, rot))
             if actor is not None:
                 _park_vehicle(actor, carla)
+                # Physics OFF like the crash-pileup vehicles: a physics-on
+                # parked truck can be launched airborne by a spawn
+                # depenetration impulse, voiding the staged scene.
+                _freeze(actor)
                 _set_emergency_lights(actor, carla)
                 log.info("emergency scene: parked %s at %.0f m", actor.type_id, distance)
                 return [actor]
@@ -152,8 +160,12 @@ def _spawn_cones(world: Any, ego_transform: Any, scene: dict) -> list:
 
     out = []
     block_distance = float(scene.get("block_distance", 28.0))
-    start_distance = max(4.0, block_distance - 10.0)
-    span = max(1.0, block_distance - start_distance)
+    # End the funnel short of the emergency vehicle: a cone spawned inside
+    # the (frozen) truck gets ejected by the depenetration solver, breaking
+    # the staged scene.
+    end_distance = max(4.0, block_distance - 6.0)
+    start_distance = max(4.0, end_distance - 10.0)
+    span = max(1.0, end_distance - start_distance)
     for i in range(count):
         frac = i / max(1, count - 1)
         wp = route_waypoint(world, ego_transform, start_distance + span * frac)
@@ -169,6 +181,7 @@ def _spawn_cones(world: Any, ego_transform: Any, scene: dict) -> list:
         )
         actor = world.try_spawn_actor(cone_bps[0], carla.Transform(loc, twf.rotation))
         if actor is not None:
+            _freeze(actor)
             out.append(actor)
     return out
 

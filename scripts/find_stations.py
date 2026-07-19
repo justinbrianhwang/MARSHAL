@@ -736,7 +736,22 @@ def _probe_required_officer_spawn(
     officer_cfg = dict(config.get("officer") or {})
     if not officer_cfg:
         return True
-    from marshal_bench.scenarios._common import build_officer
+    from marshal_bench.scenarios._common import (
+        OFFICER_LATERAL_OFFSET,
+        YIELD_ROUTE_OFFSET_M,
+        build_officer,
+        yield_officer_center_clearance_m,
+    )
+
+    # Mirror run_scenario's YIELD placement: the runtime raises the officer's
+    # lateral offset to yield-offset + geometric clearance (~4.23 m), so the
+    # probe must certify THAT pose, not the 2.2 m default.
+    expected = str((config.get("expected_behavior") or {}).get("action") or "").upper()
+    if expected == "YIELD":
+        officer_cfg["lateral_offset"] = max(
+            float(officer_cfg.get("lateral_offset", OFFICER_LATERAL_OFFSET)),
+            YIELD_ROUTE_OFFSET_M + yield_officer_center_clearance_m(1.082),
+        )
 
     officer = None
     try:

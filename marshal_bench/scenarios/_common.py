@@ -115,6 +115,32 @@ def _stop_completion_reached(
     )
 
 
+def _detour_completion_reached(
+    anchor_forward_m: Optional[float],
+    ego_forward_m: Any,
+    ego_lateral_m: Any,
+    sim_time: float,
+    onset_time: float,
+) -> bool:
+    """True once the DETOUR maneuver's validated envelope is fully driven.
+
+    Envelope end = hazard anchor + pass margin (4) + merge taper (12) + 1 m
+    buffer, with the merge physically complete (|lateral| < 1.0). Episodes
+    must not run past it: on small grid towns the route can loop back
+    through the staged scene (Town02 esb re-met its firetruck at +47 m).
+    """
+    if anchor_forward_m is None or sim_time <= onset_time:
+        return False
+    try:
+        forward = float(ego_forward_m)
+        lateral = float(ego_lateral_m)
+    except (TypeError, ValueError):
+        return False
+    if not (math.isfinite(forward) and math.isfinite(lateral)):
+        return False
+    return forward >= float(anchor_forward_m) + 17.0 and abs(lateral) < 1.0
+
+
 def _hold_ego_during_spawn_settle(ego: Any) -> None:
     """Prevent spawn roll with service brake, avoiding CARLA handbrake latch."""
     try:
@@ -1191,6 +1217,50 @@ def _distance_between_locations(a: Any, b: Any) -> float:
     return math.sqrt(dx * dx + dy * dy + dz * dz)
 
 
+# A staged blocking actor that leaves its spawn pose without the ego touching
+# anything means the scene premise broke (e.g. a spawn depenetration impulse
+# launched it). Spawn-settle wobble stays well under 1 m; a launch moves the
+# actor tens of metres.
+STAGING_DRIFT_LIMIT_M = 2.5
+
+
+def _capture_actor_xy(actors: Any) -> dict:
+    """Map actor id -> current (x, y) for every readable actor."""
+    out: dict = {}
+    for actor in actors or ():
+        if actor is None:
+            continue
+        try:
+            location = _location_from_transform_or_actor(actor)
+        except Exception:  # noqa: BLE001
+            location = None
+        if location is None:
+            continue
+        key = _actor_id(actor)
+        if key is None:
+            key = id(actor)
+        try:
+            out[key] = (float(location.x), float(location.y))
+        except Exception:  # noqa: BLE001
+            continue
+    return out
+
+
+def _staging_drift_violations(
+    staged: dict, live: dict, limit_m: float = STAGING_DRIFT_LIMIT_M
+) -> list:
+    """Return ``[(actor_key, drift_m), ...]`` for actors past ``limit_m``."""
+    out = []
+    for key, staged_xy in (staged or {}).items():
+        live_xy = (live or {}).get(key)
+        if live_xy is None:
+            continue
+        drift = math.hypot(live_xy[0] - staged_xy[0], live_xy[1] - staged_xy[1])
+        if math.isfinite(drift) and drift > limit_m:
+            out.append((key, drift))
+    return out
+
+
 def _project_from_origin(loc: Any, origin: Any, fwd: Any, right: Any) -> tuple[float, float]:
     try:
         dx = float(loc.x) - float(origin.x)
@@ -1389,45 +1459,6 @@ def _blocking_route_forward_m(
     if ctx.blocking_clear_latched:
         return min(monotonic, -5.000001)
     return monotonic
-
-
-def _sample_route_arc(
-    world: Any, origin: Any, *, step_m: float = 1.0, limit_m: float = 200.0
-) -> list[tuple[Any, float]]:
-    """Sample the least-turning driving route ahead of ``origin``."""
-    try:
-        current = world.get_map().get_waypoint(origin, project_to_road=True)
-    except Exception:
-        return []
-    if current is None:
-        return []
-    origin_waypoint = current
-    samples = [(current.transform.location, 0.0)]
-    travelled = 0.0
-    previous_yaw = float(current.transform.rotation.yaw)
-    while travelled + step_m <= limit_m + 1e-9:
-        try:
-            branches = list(origin_waypoint.next(travelled + step_m) or [])
-        except Exception:
-            break
-        if not branches:
-            break
-        # Scene actors are staged with route_waypoint(), whose executable
-        # contract is origin_wp.next(distance)[0]. Anchor every sample at that
-        # same origin; chaining next(1) selects another Town04 branch.
-        current = branches[0]
-        location = current.transform.location
-        previous = samples[-1][0]
-        try:
-            travelled += float(location.distance(previous))
-        except Exception:
-            travelled += math.hypot(
-                float(location.x) - float(previous.x),
-                float(location.y) - float(previous.y),
-            )
-        samples.append((location, travelled))
-        previous_yaw = float(current.transform.rotation.yaw)
-    return samples
 
 
 # ---------------------------------------------------------------------------
@@ -1663,6 +1694,7 @@ def run_scenario(
             "valid": setup_extra_actors is None,
             "errors": [],
         }
+        blocking_staged_xy: dict = {}
         if setup_extra_actors is not None:
             try:
                 extra = setup_extra_actors(
@@ -1675,6 +1707,7 @@ def run_scenario(
                     ctx.blocking_actors = [
                         a for a in blocking if a is not None and id(a) in managed_ids
                     ]
+                    blocking_staged_xy = _capture_actor_xy(ctx.blocking_actors)
                 log.info("Spawned %d extra scene actor(s)", len(ctx.extra_actors))
                 if not ctx.extra_actors:
                     message = f"required extra scene actors missing for {name}"
@@ -1717,6 +1750,7 @@ def run_scenario(
         # Collision hookup.
         collision_count = 0
         collision_events: list[dict[str, Any]] = []
+        staging_drift_flagged = False
         sim_time = 0.0
 
         def _on_collision(event: Any) -> None:
@@ -1954,6 +1988,32 @@ def run_scenario(
                     if math.isfinite(dist) and (hazard_distance is None or dist < hazard_distance):
                         hazard_distance = dist
                         hazard_forward = h_forward
+
+                # Staging integrity: a blocking actor that moves before any
+                # ego contact voids the scene premise (spawn depenetration
+                # launch, runaway prop, ...). Surface it as a setup error so
+                # the episode scores INVALID instead of a lucky PASS against
+                # a vanished obstacle.
+                if (blocking_staged_xy and not staging_drift_flagged
+                        and collision_count == 0):
+                    drifted = _staging_drift_violations(
+                        blocking_staged_xy, _capture_actor_xy(ctx.blocking_actors)
+                    )
+                    if drifted:
+                        staging_drift_flagged = True
+                        drift_key, drift_m = drifted[0]
+                        message = (
+                            f"staging integrity: blocking actor {drift_key} "
+                            f"moved {drift_m:.1f} m with no ego contact"
+                        )
+                        scene_setup_errors.append(message)
+                        logger.log_event(
+                            "staging_integrity_violation",
+                            sim_time=sim_time,
+                            actor_id=drift_key,
+                            drift_m=round(drift_m, 2),
+                        )
+                        log.warning(message)
                 officer_meta_now = {}
                 try:
                     officer_meta_now = ctx.officer.get_metadata() if ctx.officer else {}
@@ -2068,6 +2128,7 @@ def run_scenario(
                         in_junction_now,
                         entered_junction_after_start,
                         stopline_distance_m=distance_to_stopline,
+                        reaction_deadline_s=max_reaction_time,
                     ):
                         terminated = "ego_stopped_in_conflict_zone"
                         break
@@ -2078,12 +2139,6 @@ def run_scenario(
                         if sim_time > onset + 4.0:
                             break
                 elif expected_action_effective == "DETOUR":
-                    # The validated maneuver envelope ends at
-                    # anchor + pass margin (4) + merge taper (12) + 1 m
-                    # buffer, with the merge physically complete. Running
-                    # past it re-enters unvalidated road — on small grid
-                    # towns the route can loop back through the staged
-                    # scene (Town02 esb re-met its firetruck at +47 m).
                     if detour_anchor_forward_m is None:
                         try:
                             _hf = float(hazard_forward)
@@ -2091,18 +2146,12 @@ def run_scenario(
                                 detour_anchor_forward_m = _hf
                         except (TypeError, ValueError):
                             pass
-                    try:
-                        _fwd = float(ego_forward_m)
-                        _lat = float(ego_lateral_m)
-                    except (TypeError, ValueError):
-                        _fwd = _lat = float("nan")
-                    if (
-                        detour_anchor_forward_m is not None
-                        and sim_time > onset
-                        and math.isfinite(_fwd)
-                        and math.isfinite(_lat)
-                        and _fwd >= detour_anchor_forward_m + 17.0
-                        and abs(_lat) < 1.0
+                    if _detour_completion_reached(
+                        detour_anchor_forward_m,
+                        ego_forward_m,
+                        ego_lateral_m,
+                        sim_time,
+                        onset,
                     ):
                         terminated = "detour_completed"
                         break

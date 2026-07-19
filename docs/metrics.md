@@ -206,7 +206,7 @@ two pillars.
 | **R8** Interactive Behavior | 0.13 | `PSI` | partial (requires `distance_to_pedestrian_m` telemetry from re-run episodes) |
 | **R4** Planning Rationality | 0.05 | `LNC` | partial (requires `ego_lane_id` / `ego_road_id` telemetry from re-run episodes) |
 | **R5** Control Stability | 0.03 | `CMF` | partial (longitudinal jerk + hard-brake; steering oscillation still missing) |
-| **R6** Robustness | 0.02 | — | no weather/OOD scenarios |
+| **R6** Robustness | 0.02 | `mean over conditions c of clip(graded(c) / graded(ClearNoon), 0, 1)` — cross-run condition retention over the reported weather/time grid (`scripts/report_robustness.py`, `condition_retention_r6()` → `aggregate(condition_robustness=...)`) | yes (requires a condition-grid run set) |
 | **R9** Explainability & Audit | 0.05 | — | not yet instrumented |
 
 `CRI` enters R3 as its goodness complement `(1 − CRI)`. `RTL` is tagged to R3 in
@@ -297,7 +297,9 @@ subjective model is used anywhere in the curve.
 - **Honest partial coverage.** R4, R5, and R8 are telemetry-instrumented only
   partially: LNC covers lane consistency, CMF covers longitudinal comfort but not
   steering oscillation, and PSI covers close pedestrian interaction only when the new
-  nearest-pedestrian telemetry is present. R6 and R9 are still not instrumented; OCC
+  nearest-pedestrian telemetry is present. R6 is measured only when a
+  condition-grid run set exists (`scripts/report_robustness.py`); R9 is still
+  not instrumented; OCC
   and DRM are binary until finer traces are logged; SBO has no near-miss signal yet;
   results are single-seed. These are surfaced in the output, not hidden.
 - **Two scores, one telemetry.** The strict pass-rate, MARSHAL-Graded, and per-model

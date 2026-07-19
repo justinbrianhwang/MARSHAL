@@ -68,6 +68,7 @@ class OracleController(EpisodeController):
         self._lateral_watchdog_engaged = False
         self._lateral_watchdog_stood_down = False
         self._lateral_watchdog_baseline: Optional[float] = None
+        self._stop_roll_anchor = None
         self._episode_dir: Optional[str] = None
         self._debug_file = None
         self._merge_start_forward_m: Optional[float] = None
@@ -102,6 +103,7 @@ class OracleController(EpisodeController):
         self._lateral_watchdog_engaged = False
         self._lateral_watchdog_stood_down = False
         self._lateral_watchdog_baseline = None
+        self._stop_roll_anchor = None
         self._merge_start_forward_m = None
         self._merge_blend_distance_m = 12.0
         self._merge_start_offset = 0.0

@@ -277,6 +277,7 @@ def spawn_construction_zone(
                 bar_bps[0],
                 carla.Transform(loc, carla.Rotation(yaw=btf.rotation.yaw + 90.0)))
             if a is not None:
+                _freeze(a)
                 out.append(a)
 
     # A works vehicle just behind the barricades — the real obstacle the
@@ -292,6 +293,7 @@ def spawn_construction_zone(
             carla.Location(ttf.location.x, ttf.location.y, ttf.location.z + 0.3),
             ttf.rotation))
         if a is not None:
+            _freeze(a)
             out.append(a)
 
     # Cones funnelling up to the closure from both lane edges.
@@ -311,6 +313,7 @@ def spawn_construction_zone(
                                  twf.location.z + 0.1)
             a = world.try_spawn_actor(cone_bps[0], carla.Transform(loc, twf.rotation))
             if a is not None:
+                _freeze(a)
                 out.append(a)
     log.info("construction zone: spawned %d items, lane closed at %.0f m",
              len(out), block_distance)

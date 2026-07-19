@@ -90,8 +90,8 @@ your model as a *controller*, and MARSHAL spawns the officer, the gestures, the
 construction flagger, the ambulance, and the scene, runs the episode, and scores
 it. Built and verified on **CARLA 0.9.16**. It is an **initial implementation** with
 caveats kept visible (graded reported as a 3-run mean ± std, strict counts from one
-reference run; a partial weighted MARSHAL Score; requirements R6 / R9 not yet
-instrumented).
+reference run; a partial weighted MARSHAL Score; requirement R9 not yet
+instrumented — R6 is measured via the condition-retention protocol below).
 
 ---
 
@@ -187,7 +187,19 @@ automatically by [`scripts/find_stations.py`](scripts/find_stations.py), which
 only accepts a candidate after witness-validated topology checks, real spawn
 probes for the officer and every required scene actor, and a 0.5 m-spaced
 **ego-volume physical corridor sweep** over the full detour maneuver
-(outbound, hold, and merge-back). A scenario a town genuinely cannot host is
+(outbound, hold, and merge-back). Detour-family scenarios additionally require
+a junction-free straight run-out covering the full validated maneuver envelope,
+
+```math
+L_{\mathrm{runout}} \;=\; d_{\mathrm{hazard}} + L_{\mathrm{staged}} + m_{\mathrm{pass}} + L_{\mathrm{taper}},
+\qquad m_{\mathrm{pass}} = 4\,\mathrm{m},\; L_{\mathrm{taper}} = 12\,\mathrm{m},
+```
+
+where $d_{\mathrm{hazard}}$ is the stagepoint of the first blocking actor and
+$L_{\mathrm{staged}}$ the physical span of the staged scene (derived from
+blueprint bounding boxes — e.g. the fire-truck's rotated half-extent). The
+episode itself terminates at this envelope's end, so results never depend on
+unvalidated road beyond it. A scenario a town genuinely cannot host is
 **masked with a measured reason** (e.g. Town01 has no shoulder lanes for
 `ambulance_yield`) instead of silently dropped — see the per-town
 `marshal_bench/configs/stations_town*.json` + `feasibility_*.json`. Every
@@ -447,6 +459,30 @@ authority-reasoning metrics:
 | **RTL** | Reaction-Time Latency (seconds; lower is better) |
 | **OCC / APR / DRM / RHC / AGI** | occlusion-robust / authority-priority / directive-recall / rule-hierarchy / ambiguous-gesture-intent |
 
+**Formal definitions.** Write $S_m$ for the set of episodes where metric $m$
+applies (e.g. FOA only where an *unauthorized* gesture is staged), $a_s$ for
+the action the agent realized in episode $s$, $a_s^{\star}$ for the expected
+authority-aware action, and $\mathbb{1}[\cdot]$ for the indicator. The 0/1
+metrics are applicability-restricted means:
+
+```math
+\mathrm{AOC} = \frac{1}{|S_{\mathrm{AOC}}|}\sum_{s \in S_{\mathrm{AOC}}} \mathbb{1}\!\left[a_s = a_s^{\star}\right],
+\qquad
+\mathrm{FOA} = 1 - \underbrace{\frac{1}{|S_{\mathrm{FOA}}|}\sum_{s \in S_{\mathrm{FOA}}} \mathbb{1}\!\left[a_s = a_s^{\mathrm{unauth}}\right]}_{\text{false-obedience rate}}
+```
+
+```math
+\mathrm{SBO} = \frac{1}{|S_{\mathrm{SBO}}|}\sum_{s \in S_{\mathrm{SBO}}} \mathbb{1}\!\left[a_s = a_s^{\star} \wedge \neg\,\mathrm{collision}_s \wedge \neg\,\mathrm{nearmiss}_s\right],
+\qquad
+\mathrm{RTL} = \frac{1}{|S_{\mathrm{RTL}}|}\sum_{s \in S_{\mathrm{RTL}}} \left(t_s^{\mathrm{react}} - t_s^{\mathrm{onset}}\right)
+```
+
+TAA and the reasoning metrics (OCC, APR, DRM, RHC, AGI) follow the same
+$\mathbb{1}[\text{correct}]$ pattern on their own applicability sets; CRI is an
+infraction **rate** (an *unjustified* red-line crossing), so its goodness
+contribution enters the score as $1-\mathrm{CRI}$; RTL is reported in seconds
+and never folded into the weighted score.
+
 ### How a run is scored
 
 Scoring is **telemetry-grounded**: the criteria read physical margins off the realized
@@ -476,33 +512,68 @@ The pipeline goes **per-tick → per-episode → per-model**:
    compliance verdict is satisfied.
 
 3. **Per model (aggregate)** — every metric is averaged over the episodes where
-   it is defined. `CRI` is an infraction **rate** (lower is better); `RTL` is a
-   latency in seconds (reported, not folded into the score). Each metric maps to
-   a requirement **R1–R9** (e.g. AOC/FOA/APR/DRM/RHC → R3 rule-compliance,
-   TAA/AGI → R2 relational understanding, OCC → R1 perception, SBO → R7 safety).
-   The R-subscores are combined into the weighted
+   it is defined, then folded into requirement subscores **R1–R9**:
 
-   > **MARSHAL Score = 100 × Σ(wᵣ · Rᵣ) / Σ wᵣ** &nbsp; over the measured R's,
-   > with weights **R1 .10, R2 .12, R3 .28, R4 .05, R5 .03, R6 .02, R7 .22,
-   > R8 .13, R9 .05** (re-balanced for the 21-scenario suite: the mass sits on
-   > authority-conflict resolution **R3** and exceptional handling **R7**).
+```math
+\mathrm{R3} = \mathrm{mean}\bigl(\mathrm{AOC},\, \mathrm{FOA},\, \mathrm{APR},\, \mathrm{DRM},\, \mathrm{RHC},\, 1-\mathrm{CRI}\bigr), \qquad
+\mathrm{R2} = \mathrm{mean}\bigl(\mathrm{TAA},\, \mathrm{AGI}\bigr),
+```
 
-   It is reported as a **partial** score: R's that aren't yet instrumented are
-   listed under `r_unmeasured` and excluded from the denominator, so the number
-   stays in [0, 100].
+```math
+\mathrm{R1} = \mathrm{OCC}, \quad
+\mathrm{R4} = \mathrm{LNC}, \quad
+\mathrm{R5} = \mathrm{CMF}, \quad
+\mathrm{R7} = \mathrm{SBO}, \quad
+\mathrm{R8} = \mathrm{PSI},
+```
+
+   each mean taken over the terms that are measured for the run. **R6
+   (robustness)** is cross-run evidence — retention of the graded score under
+   the weather/time-of-day grid $C$ against the ClearNoon baseline $c_0$
+   (`scripts/report_robustness.py`):
+
+```math
+\mathrm{R6} \;=\; \frac{1}{|C|}\sum_{c \in C}\; \mathrm{clip}\!\left(\frac{\mathrm{Graded}(c)}{\mathrm{Graded}(c_0)},\; 0,\; 1\right)
+```
+
+   (clipped so a model that *improves* in rain does not earn more than full
+   retention). The R-subscores combine into the weighted score over the
+   **measured** requirement set $M \subseteq \{\mathrm{R1},\dots,\mathrm{R9}\}$:
+
+```math
+\text{MARSHAL Score} \;=\; 100 \cdot \frac{\sum_{r \in M} w_r\, R_r}{\sum_{r \in M} w_r},
+\qquad
+w = \begin{pmatrix} R1 & R2 & R3 & R4 & R5 & R6 & R7 & R8 & R9 \\ .10 & .12 & .28 & .05 & .03 & .02 & .22 & .13 & .05 \end{pmatrix}
+```
+
+   (re-balanced for the 21-scenario suite: the mass sits on authority-conflict
+   resolution **R3** and exceptional handling **R7**). It is reported as a
+   **partial** score: R's that aren't yet instrumented are listed under
+   `r_unmeasured` and excluded from the denominator — the renormalization keeps
+   the number in $[0, 100]$.
 
 4. **The headline — the authority gap.** The headline result is the gap between
    the officer-blind baseline (obeys the light, ignores the human: graded ~24)
    and the privileged oracle (obeys the legally correct authority: graded 100),
    and how much of that gap each model closes — read primarily on
    **MARSHAL-Graded**, certified by strict Pass/Fail, and explained by the
-   per-principle **failure profile** (which conflict types a model fails:
-   `scripts/_failure_profiles.py`). This is the direct, quantified measure of
-   authority-aware reasoning beyond driving competence. (Per-tier pass-rates are
-   still emitted in `scoreboard.json` as legacy metadata — see
-   [docs/taxonomy_decision.md](docs/taxonomy_decision.md) for why tiers are no
-   longer the headline; the three scores' roles are defined in
-   [docs/evaluation_methodology.md](docs/evaluation_methodology.md).)
+   per-principle **failure profile**: the diagnostic axis is the
+   **authority-conflict type** $k$ of each scenario,
+
+```math
+\mathrm{PassRate}(k) \;=\; \frac{1}{|S_k|}\sum_{s \in S_k} \mathbb{1}\!\left[\mathrm{pass}_s\right],
+\qquad
+k \in \{\text{override},\ \text{stressed-override},\ \text{validity},\ \text{conflict},\ \text{scene},\ \text{safety}\}
+```
+
+   (which conflict types a model fails: `scripts/_failure_profiles.py`). This is
+   the direct, quantified measure of authority-aware reasoning beyond driving
+   competence. (Per-tier pass-rates are still emitted in `scoreboard.json` as
+   legacy metadata only — the low/mid/high tiers are **retired** from all
+   reported results; see [docs/taxonomy_decision.md](docs/taxonomy_decision.md)
+   for why (they do not track empirical difficulty), and
+   [docs/evaluation_methodology.md](docs/evaluation_methodology.md) for the
+   three scores' roles.)
 
 Every run writes a `scoreboard.json` with `suite`, `r_scores`,
 `marshal_score_partial`, `conflict_type_profile`, legacy `tier_pass_rate`, and
@@ -527,8 +598,15 @@ Every run writes a `scoreboard.json` with `suite`, `r_scores`,
   reaction latency, safety (collision-free), and maneuver quality, all read off the
   realized trajectory. Invalid or malformed telemetry scores `0`.
 - $w_s > 0$ — the **scenario authority weight**. Authority-override scenarios are
-  deliberately weighted above 1.0; the denominator normalizes by the weight sum, so
-  the reported maximum stays 100 (and the privileged oracle calibrates to exactly 100).
+  deliberately weighted above 1.0 (1.5–2.0×): normatively, they are where the legal
+  hierarchy *safety > authorized human > device* actually binds; diagnostically, they
+  are where the officer-blind baseline and the oracle diverge. The denominator
+  normalizes by the weight sum, so the reported maximum stays 100 (and the privileged
+  oracle calibrates to exactly 100). **The weights encode emphasis, not the ranking**:
+  under a uniform-weights ablation the model ranking is identical, and 1,000 random
+  ±25% weight perturbations give Kendall $\tau = 0.988 \pm 0.013$ against the shipped
+  ranking — full sensitivity analysis in
+  [docs/evaluation_methodology.md](docs/evaluation_methodology.md).
 - The **engagement gate is folded into $c_s$**, not applied as a separate outer factor.
   It is a *continuous* factor $e_s \in [0,1]$ — **not** a binary $\{0,1\}$ switch — and
   it applies **only to non-strict STOP/HOLD partial credit**: strict-compliant STOP/HOLD
@@ -621,9 +699,12 @@ privileged ground truth.
 **Scoring is strict and telemetry-grounded.** An episode passes only when the
 recorded ego trajectory (speed, position, junction entry, lateral offset,
 collisions) physically proves the expected action; missing/ambiguous evidence is
-a FAIL, malformed telemetry is INVALID. The criteria are **calibrated against the
-privileged oracle**, which scores a full **21/21** — so a pass means "did what the
-oracle would," not "happened to stop." *Scenarios passed* is the strict count
+a FAIL, malformed telemetry is INVALID. Staged scenes are integrity-checked at
+runtime: every blocking actor is physics-frozen at its staged pose, and if one
+still moves more than 2.5 m before any ego contact the episode is voided as
+INVALID — an episode can never pass against an obstacle that vanished. The
+criteria are **calibrated against the privileged oracle**, which scores a full
+**21/21** — so a pass means "did what the oracle would," not "happened to stop." *Scenarios passed* is the strict count
 across all 21 scenarios:
 
 **Table 1 — Track-A / B: closed-loop CARLA driving.** Scored from telemetry; each
