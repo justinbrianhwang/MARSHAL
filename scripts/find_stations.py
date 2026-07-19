@@ -395,7 +395,11 @@ def _surface_facts(
 ) -> dict[str, Any]:
     """Mine the route-relative officer offsets used by the scenario stagers."""
     surface_by_offset: dict[str, Any] = {}
-    for offset, officer_distance in ((2.2, 30.0), (3.2, 13.0), (4.3, 30.0)):
+    # -7.0 is out_of_jurisdiction_director's signed left-corner-plaza offset;
+    # sampling it certifies that surface (its prefers_sidewalk_point) instead
+    # of leaving every candidate at officer_surface="unknown".
+    for offset, officer_distance in ((2.2, 30.0), (3.2, 13.0), (4.3, 30.0),
+                                     (-7.0, 30.0)):
         try:
             officer_wp = _best_branch(spawn_waypoint.next(officer_distance), spawn_waypoint)
         except Exception:

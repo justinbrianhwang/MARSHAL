@@ -31,6 +31,8 @@ SCENARIO_PRINCIPLES = {
     "school_crossing_guard": "authority recognition (guard)",
     "fake_vest_director": "authority verification (false authority)",
     "barricade_self_detour": "contextual hazard reasoning (self)",
+    "stale_directive_residue": "temporal validity (directive release)",
+    "out_of_jurisdiction_director": "spatial validity (directive scope)",
 }
 
 SCENARIO_ACTIONS = {
@@ -55,6 +57,8 @@ SCENARIO_ACTIONS = {
     "school_crossing_guard": "STOP",
     "fake_vest_director": "STOP",
     "barricade_self_detour": "DETOUR",
+    "stale_directive_residue": "PROCEED",
+    "out_of_jurisdiction_director": "PROCEED",
 }
 
 

@@ -8,10 +8,30 @@ import random
 
 import pytest
 
-from scripts._analysis_common import load_runs, kendall_tau, mean_credit, spearman, strict_pass_frac
+from scripts._analysis_common import (
+    SCENARIO_ACTIONS,
+    SCENARIO_PRINCIPLES,
+    load_runs,
+    kendall_tau,
+    mean_credit,
+    spearman,
+    strict_pass_frac,
+)
 from scripts._analyze_tiers import analyze as analyze_tiers
 from scripts._failure_profiles import analyze as analyze_failures
 from scripts._weight_sensitivity import analyze as analyze_weights
+
+
+def test_analysis_tables_cover_every_registered_scenario():
+    """_failure_profiles.analyze hard-raises on a scenario missing from these
+    tables, so they must track start.ALL_SCENARIOS (the 23-scenario suite),
+    not a stale subset."""
+    import start
+
+    missing_principles = [s for s in start.ALL_SCENARIOS if s not in SCENARIO_PRINCIPLES]
+    missing_actions = [s for s in start.ALL_SCENARIOS if s not in SCENARIO_ACTIONS]
+    assert not missing_principles, f"SCENARIO_PRINCIPLES missing: {missing_principles}"
+    assert not missing_actions, f"SCENARIO_ACTIONS missing: {missing_actions}"
 
 
 def _fixture_runs():
