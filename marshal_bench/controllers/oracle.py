@@ -20,6 +20,26 @@ from marshal_bench.utils.carla_api_compat import ensure_agents_on_path
 log = logging.getLogger(__name__)
 
 
+def _finite_directive_wait_until(
+    officer_cfg: Dict[str, Any], onset_time: float
+) -> Optional[float]:
+    """When to release a PROCEED held by a finite ego-addressed directive.
+
+    stale_directive_residue: a STOP/HOLD gesture aimed at the ego with a
+    finite ``duration`` suppresses progress only while it is live; the oracle
+    proceeds shortly after it expires. Returns ``None`` when no such
+    directive applies (open-ended window, other addressee, or a gesture that
+    never suppressed progress).
+    """
+    gesture = str(officer_cfg.get("gesture") or "").upper()
+    duration = officer_cfg.get("duration")
+    target = str(officer_cfg.get("target_relation") or "ego").lower()
+    if (gesture in {"STOP", "HOLD"} and duration is not None
+            and target in {"ego", "self", "vehicle"}):
+        return float(onset_time) + float(duration) + 0.5
+    return None
+
+
 class _RouteTarget:
     """Waypoint-compatible target with an overridden transform location.
 
@@ -61,6 +81,7 @@ class OracleController(EpisodeController):
         self._original_route = []
         self._yield_resume_time = 0.0
         self._proceed_wait_until = 0.0
+        self._directive_hold_until = 0.0
         self._pedestrian_yield_done = False
         self._route_origin = None
         self._route_forward = None
@@ -135,6 +156,19 @@ class OracleController(EpisodeController):
             self._proceed_wait_until = self._onset_time + float(
                 scene.get("pedestrian_clear_sec") or 5.8
             )
+        self._directive_hold_until = 0.0
+        if self._action == "PROCEED" and not self._proceed_wait_until:
+            # A progress-suppressing directive addressed to the ego with a
+            # finite window (stale_directive_residue): hold a full stop until
+            # it expires, then proceed on the green. Distinct from
+            # _proceed_wait_until — that path first rolls 4.5 m toward the
+            # hazard window, which here could cross the stop line while the
+            # directive is still live.
+            wait = _finite_directive_wait_until(
+                self.config.get("officer") or {}, self._onset_time
+            )
+            if wait is not None:
+                self._directive_hold_until = wait
 
         self._agent = self._make_basic_agent()
         self._set_straight_plan()
@@ -286,7 +320,11 @@ class OracleController(EpisodeController):
         light = str(self.gt.get("L_light_state") or "").lower()
 
         if target not in {"ego", "self", "vehicle"}:
-            return "HOLD"
+            # The directive is addressed to someone else. If the privileged
+            # expectation is to keep moving (out_of_jurisdiction_director:
+            # own green governs), spatial scoping means the ego proceeds;
+            # otherwise hold on its own signal (adjacent_lane keeps its red).
+            return action if action == "PROCEED" else "HOLD"
         # False-obedience avoidance: an UNAUTHORIZED actor's go/turn gesture is
         # ignored — but ONLY when the privileged expected action is itself to not
         # proceed (STOP/HOLD), e.g. unauthorized_go / fake_vest_director. When the
@@ -374,6 +412,22 @@ class OracleController(EpisodeController):
         if sim_time < self._onset_time:
             ctrl.throttle = 0.0
             ctrl.brake = 0.35
+            return ctrl
+
+        if self._directive_hold_until and sim_time < self._directive_hold_until:
+            # A live STOP/HOLD directive addressed to the ego: hold a full
+            # stop with no approach roll — the stop line may be only metres
+            # ahead and must not be crossed while the directive is active.
+            # Latching the roll state makes the release a clean launch (the
+            # 4.5 m creep exists for the pedestrian window, not for this).
+            self._proceed_stop_latched = True
+            if getattr(self, "_proceed_anchor", None) is None:
+                try:
+                    self._proceed_anchor = self.ego.get_location()
+                except Exception:
+                    self._proceed_anchor = None
+            ctrl.throttle = 0.0
+            ctrl.brake = 1.0 if speed > 0.25 else 0.85
             return ctrl
 
         roll_target_m = 4.5

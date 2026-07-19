@@ -319,6 +319,32 @@
     "officer_lateral_offset_m": 3.2,
     "notes": "The fake director waves PROCEED through Red at marshal_fake_vest_director_demo.py:29-47 and demo_fake_vest_director.yaml:16-27; runner offset is _shared_staging.py:36-48."
   },
+  "stale_directive_residue": {
+    "needs_traffic_light": true,
+    "needs_junction_approach": true,
+    "min_runup_m": 28.0,
+    "needs_sidewalk_point": false,
+    "prefers_sidewalk_point": true,
+    "needs_adjacent_same_road_lane": false,
+    "needs_detour_room": false,
+    "min_detour_clearance_m": 0.0,
+    "needs_offroad_shoulder": false,
+    "officer_lateral_offset_m": 3.2,
+    "notes": "Requirements identical to flagger_control (docs/scenario_expansion.md C1). No lane closure is staged - the lane must stay passable for the post-release PROCEED; the release tick hook idles and turns the flagger at marshal_stale_directive_residue_demo.py:29-61; station lookup aliases to the flagger_control witness pose at _common.py:1160-1172."
+  },
+  "out_of_jurisdiction_director": {
+    "needs_traffic_light": true,
+    "needs_junction_approach": true,
+    "min_runup_m": 28.0,
+    "needs_sidewalk_point": false,
+    "prefers_sidewalk_point": true,
+    "needs_adjacent_same_road_lane": false,
+    "needs_detour_room": false,
+    "min_detour_clearance_m": 0.0,
+    "needs_offroad_shoulder": false,
+    "officer_lateral_offset_m": -7.0,
+    "notes": "Common signal criteria; the director stands at lateral -7.0 m (left-corner plaza, dashcam-visible; the right side is hedge-occluded at the witness station - demo_out_of_jurisdiction_director.yaml) and is turned toward the cross street by the tick hook at marshal_out_of_jurisdiction_director_demo.py:27-53; station lookup aliases to the fake_vest_director witness pose at _common.py:1160-1172. A true cross-street officer point is generation-class until a mined witness exists (docs/scenario_expansion.md C2)."
+  },
   "barricade_self_detour": {
     "needs_traffic_light": true,
     "needs_junction_approach": false,

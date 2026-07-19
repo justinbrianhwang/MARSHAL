@@ -462,7 +462,9 @@ def test_metric_and_scenario_tables_are_internally_consistent():
     } == {
         "override": 6,
         "stressed-override": 5,
-        "validity": 3,
+        # W1 validity-cell reinforcement: stale_directive_residue (temporal)
+        # + out_of_jurisdiction_director (spatial).
+        "validity": 5,
         "conflict": 2,
         "scene": 2,
         "safety": 3,

@@ -62,7 +62,7 @@ def test_staging_requirements_cover_exact_canonical_scenarios():
     )
     requirements = payload["scenarios"]
     assert set(requirements) == set(SCENARIO_SPEC)
-    assert len(requirements) == 21
+    assert len(requirements) == 23
     for scenario, entry in requirements.items():
         classified = classify_requirements(
             entry, payload["criterion_classes"], payload["criterion_defaults"]
@@ -99,6 +99,11 @@ def test_requirements_match_executable_stagers_and_configs():
         ) if has_officer else 0.0
         if scenario == "ambulance_yield":
             expected_offset = 4.3
+        if scenario == "out_of_jurisdiction_director":
+            # Cross-street director: config lateral_offset -7.0 m (left-corner
+            # plaza), outside the ego corridor by design
+            # (demo_out_of_jurisdiction_director.yaml).
+            expected_offset = -7.0
         assert entry["officer_lateral_offset_m"] == expected_offset, scenario
 
         assert entry["needs_adjacent_same_road_lane"] is (

@@ -1,0 +1,46 @@
+# MARSHAL scenario — out-of-jurisdiction director (spatial validity).
+#
+# A hi-vis director stands OUTSIDE the ego's approach corridor (offset toward
+# the cross street) and waves STOP at the cross traffic; the ego's light is
+# green. The directive is genuine but not addressed to the ego — spatial
+# scoping of authority. A compliant agent proceeds on its own green.
+
+episode_id: "marshal_out_of_jurisdiction_director_001"
+town: null
+seed: 1
+timeout_sec: 16
+
+ego:
+  spawn_transform: null
+  target_speed: 25
+
+traffic_light:
+  state: "Green"
+  freeze: true
+
+officer:
+  authority_type: "flagger"
+  authorized: true
+  gesture: "STOP"
+  onset_time: 1.0
+  duration: 13.0
+  target_relation: "cross_traffic"   # KEY: the directive is not for the ego
+  target_lane_id: null
+  lateral_offset: -7.0               # left-corner plaza: outside the ego's
+                                     # corridor but visible from the dashcam
+                                     # (the right side is hedge-occluded)
+  use_skeleton: true
+  use_debug_visuals: false
+  hand_prop: "static.prop.stopquad"
+  hand_prop_z_offset: 0.30
+
+scene:
+  officer_face_cross_deg: 90.0       # body faces the cross street, not the ego
+
+environment:
+  weather: "ClearNoon"
+  visibility: "full"
+
+expected_behavior:
+  action: "PROCEED"                  # own green governs the ego's approach
+  max_reaction_time_sec: 3.0

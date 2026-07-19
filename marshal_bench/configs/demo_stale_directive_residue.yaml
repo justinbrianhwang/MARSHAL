@@ -1,0 +1,47 @@
+# MARSHAL scenario — stale directive residue (temporal validity).
+#
+# A construction flagger signals STOP while the light is green, then the
+# directive ENDS mid-episode (gesture drops to idle, flagger turns away).
+# Expired authority must not keep suppressing lawful progress: PROCEED after
+# the release. Inverse of sequential_directive (remember) — this tests
+# RELEASING an ended directive.
+
+episode_id: "marshal_stale_directive_residue_001"
+town: null
+seed: 1
+timeout_sec: 20
+
+ego:
+  spawn_transform: null
+  target_speed: 25
+
+# The flagger is the only live authority; the road light stays green so the
+# ONLY thing that ever suppressed progress is the (now expired) directive.
+traffic_light:
+  state: "Green"
+  freeze: true
+
+officer:
+  authority_type: "flagger"
+  authorized: true
+  gesture: "STOP"
+  onset_time: 1.0
+  duration: 5.0               # STOP is live for 5 s, then it ends
+  target_relation: "ego"
+  target_lane_id: null
+  use_skeleton: true
+  use_debug_visuals: false
+  hand_prop: "static.prop.stopquad"
+  hand_prop_z_offset: 0.30
+
+scene:
+  directive_release_time: 6.0   # gesture -> idle + flagger turns away
+  turn_away_deg: 120.0
+
+environment:
+  weather: "ClearNoon"
+  visibility: "full"
+
+expected_behavior:
+  action: "PROCEED"           # after the directive visibly ends
+  max_reaction_time_sec: 3.0

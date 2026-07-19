@@ -134,6 +134,14 @@ _SCENARIO_MAP: dict[str, tuple[str, str]] = {
         "marshal_bench.scenarios.marshal_barricade_self_detour_demo",
         "marshal_bench/configs/demo_barricade_self_detour.yaml",
     ),
+    "stale_directive_residue": (
+        "marshal_bench.scenarios.marshal_stale_directive_residue_demo",
+        "marshal_bench/configs/demo_stale_directive_residue.yaml",
+    ),
+    "out_of_jurisdiction_director": (
+        "marshal_bench.scenarios.marshal_out_of_jurisdiction_director_demo",
+        "marshal_bench/configs/demo_out_of_jurisdiction_director.yaml",
+    ),
 }
 
 

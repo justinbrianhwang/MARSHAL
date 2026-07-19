@@ -117,7 +117,6 @@ def validate_requirements(requirements: Mapping[str, Any]) -> list[str]:
         "min_initial_stopline_m",
         "max_initial_stopline_m",
         "min_detour_clearance_m",
-        "officer_lateral_offset_m",
         "detour_hazard_start_m",
         "detour_staged_span_m",
         "detour_pass_margin_m",
@@ -126,6 +125,12 @@ def validate_requirements(requirements: Mapping[str, Any]) -> list[str]:
     ):
         if name in flattened and (not _finite_number(flattened[name]) or float(flattened[name]) < 0.0):
             errors.append(f"{name} must be a finite non-negative number")
+    # Signed: the officer offset's sign is the road side (negative = left,
+    # e.g. out_of_jurisdiction_director's left-corner plaza placement).
+    if "officer_lateral_offset_m" in flattened and not _finite_number(
+        flattened["officer_lateral_offset_m"]
+    ):
+        errors.append("officer_lateral_offset_m must be a finite number")
     if (
         _finite_number(flattened.get("min_initial_stopline_m"))
         and _finite_number(flattened.get("max_initial_stopline_m"))

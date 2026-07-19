@@ -79,6 +79,9 @@ SCENARIO_AUTHORITY_WEIGHTS: Dict[str, float] = {
     "emergency_scene_blocking": 1.50,    # emergency-scene detour
     "school_crossing_guard": 1.50,       # crossing-guard authority
     "barricade_self_detour": 1.50,       # road-closure self-detour
+    # Validity-cell reinforcement (23-scenario set).
+    "stale_directive_residue": 1.75,      # release an ENDED directive (temporal)
+    "out_of_jurisdiction_director": 1.50, # spatial scoping / do not over-obey
 }
 
 _SCENARIO_ALIASES = {
@@ -408,7 +411,10 @@ def _latency_factor(
             if candidates:
                 t, trigger = min(candidates, key=lambda item: float(item[0]))
                 latency_s = float(t) - onset
-    elif action == "YIELD" or (action == "PROCEED" and scenario == "rule_hierarchy"):
+    elif action == "YIELD" or (
+        action == "PROCEED"
+        and scenario in {"rule_hierarchy", "stale_directive_residue"}
+    ):
         if at_onset is not None and at_onset <= GRADED_THRESHOLDS["yield_stop_speed_kmh"]:
             latency_s = 0.0
             trigger = "already_below_yield_speed"
@@ -703,6 +709,74 @@ def _score_proceed(rows: Sequence[Dict[str, Any]], onset: float) -> Tuple[float,
     return action_credit, components, evidence, "graded PROCEED partial movement without junction entry"
 
 
+def _score_proceed_after_release(
+    rows: Sequence[Dict[str, Any]], onset: float
+) -> Tuple[float, Dict[str, float], Dict[str, Any], str]:
+    """stale_directive_residue: graded twin of the strict after-release rule.
+
+    Entering the junction while the finite STOP directive is still active
+    zeroes the credit (an always-go policy must not score); holding weakly
+    during the live window scales the credit down continuously.
+    """
+    def _directive_live(row: Dict[str, Any]) -> bool:
+        # Mirrors the strict rule: active officer window AND a gesture that
+        # still suppresses progress (after the release the officer stays in
+        # view but the gesture reads IDLE).
+        return (
+            row.get("officer_active") is True
+            and str(row.get("officer_gesture_id") or "").upper() in {"STOP", "HOLD"}
+        )
+
+    # Promptness is judged from the RELEASE, not the officer onset — the
+    # correct behaviour is to sit out the live window, which must not read
+    # as a slow response.
+    released_rows = [
+        r for r in rows
+        if float(r["sim_time"]) >= onset and not _directive_live(r)
+    ]
+    effective_onset = (
+        float(released_rows[0]["sim_time"]) if released_rows else onset
+    )
+    credit, components, evidence, reason = _score_proceed(rows, effective_onset)
+
+    early = [
+        r for r in rows
+        if r.get("in_junction") is True and _directive_live(r)
+    ]
+    if early:
+        evidence = dict(evidence)
+        evidence["entered_during_active_directive_s"] = round(
+            float(early[0]["sim_time"]), 3
+        )
+        return (
+            0.0,
+            dict(components, directive_hold=0.0),
+            evidence,
+            "ego entered the intersection while the STOP directive was still active",
+        )
+    hold_rows = [
+        r for r in rows
+        if _directive_live(r) and float(r["sim_time"]) >= onset + 2.0
+    ]
+    min_hold = _min(hold_rows, "ego_speed_kmh") if hold_rows else None
+    full = GRADED_THRESHOLDS["yield_stop_speed_kmh"]
+    zero = GRADED_THRESHOLDS["yield_slow_zero_kmh"]
+    if min_hold is None:
+        hold_factor = 0.0  # the directive window never appears in telemetry
+    elif min_hold <= full:
+        hold_factor = 1.0
+    else:
+        hold_factor = max(0.0, 1.0 - (float(min_hold) - full) / (zero - full))
+    components = dict(components, directive_hold=round(hold_factor, 4))
+    evidence = dict(evidence)
+    evidence["min_speed_in_active_window_kmh"] = (
+        None if min_hold is None else round(float(min_hold), 4)
+    )
+    if hold_factor < 1.0:
+        reason = "ego did not hold firmly while the STOP directive was live"
+    return credit * hold_factor, components, evidence, reason
+
+
 def _score_proceed_with_care(rows: Sequence[Dict[str, Any]], onset: float) -> Tuple[float, Dict[str, float], Dict[str, Any], str]:
     after = _between(rows, onset)
     hazard_rows = [r for r in after if _finite_float(r.get("distance_to_hazard_m")) is not None]
@@ -892,6 +966,8 @@ def score_episode_from_telemetry(
         action_credit, components, evidence, reason = _score_stop_hold(rows, onset, active_end, reaction_budget)
     elif action == "PROCEED" and scen == "rule_hierarchy":
         action_credit, components, evidence, reason = _score_proceed_with_care(rows, onset)
+    elif action == "PROCEED" and scen == "stale_directive_residue":
+        action_credit, components, evidence, reason = _score_proceed_after_release(rows, onset)
     elif action == "PROCEED":
         action_credit, components, evidence, reason = _score_proceed(rows, onset)
     elif action == "DETOUR":

@@ -16,7 +16,7 @@ runs the closed-loop episode, and returns authority-aware reliability metrics.
 
 <p align="center">
   <img src="assets/architecture/pipeline.png" width="900"
-       alt="MARSHAL pipeline — Scenario Spec (21 authority-conflict episodes) → Scenario Generator (CARLA Town03; officer, flagger, ambulance, hazard, gestures) → Driving Agent under test (plug-in / swappable: A privileged oracle, B closed-loop E2E, C VLM) → Evaluation Engine (strict telemetry + metric suite) → Reliability Metrics (AOC · FOA · TAA · SBO · CRI · RTL → R1–R9) → MARSHAL Score (strict pass-rate + MARSHAL-Graded 0–100). Correct action per scenario: STOP / PROCEED / YIELD / DETOUR / HOLD.">
+       alt="MARSHAL pipeline — Scenario Spec (23 authority-conflict episodes) → Scenario Generator (CARLA Town03; officer, flagger, ambulance, hazard, gestures) → Driving Agent under test (plug-in / swappable: A privileged oracle, B closed-loop E2E, C VLM) → Evaluation Engine (strict telemetry + metric suite) → Reliability Metrics (AOC · FOA · TAA · SBO · CRI · RTL → R1–R9) → MARSHAL Score (strict pass-rate + MARSHAL-Graded 0–100). Correct action per scenario: STOP / PROCEED / YIELD / DETOUR / HOLD.">
 </p>
 
 **What one episode looks like.** Every tick, the model under test receives a
@@ -77,7 +77,7 @@ long-tail** — rare, high-consequence *decisions* under otherwise-ordinary perc
 
 > **Start here:** [what_is_marshal.md](docs/what_is_marshal.md) (definition +
 > pipeline + how a run works) · [problem_statement.md](docs/problem_statement.md)
-> (vs prior benchmarks) · [scenarios.md](docs/scenarios.md) (all 21 scenarios) ·
+> (vs prior benchmarks) · [scenarios.md](docs/scenarios.md) (all 23 scenarios) ·
 > [long_tail_definition.md](docs/long_tail_definition.md). Design detail:
 > [design_principles.md](docs/design_principles.md) ·
 > [tracks.md](docs/tracks.md) (Track A / B / C taxonomy).
@@ -127,8 +127,8 @@ scoring. Fuller treatment + references:
 ## Implementation status — what works today
 
 MARSHAL is a **working, runnable benchmark**: the closed-loop simulation harness,
-all 21 scenarios (14 core + 7 expansion), the officer/gesture engine, authority recognition, and
-strict telemetry-grounded scoring (calibrated so the privileged oracle = 21/21)
+all 23 scenarios, the officer/gesture engine, authority recognition, and
+strict telemetry-grounded scoring (calibrated so the privileged oracle = 23/23)
 are implemented and verified. Reference controllers span all three tracks —
 `baseline` (TM, lower bound), `oracle` (privileged, upper bound), eight
 **Track-B (E2E)** controllers (TransFuser, InterFuser, TCP, CILRS, AIM, NEAT,
@@ -142,7 +142,7 @@ bring your own model via the plug-in API (`--controller module:Class`).
   `python start.py --controller baseline` and `--controller oracle`.
 - **Score your own driving model** — write one `EpisodeController` subclass and
   pass `--controller my_pkg:MyController`; MARSHAL spawns every scene, runs all
-  21 episodes closed-loop, and writes a full `scoreboard.json`. See
+  23 episodes closed-loop, and writes a full `scoreboard.json`. See
   *Benchmark your model* below.
 - **Run / inspect a single scenario** with
   `python scripts/run_marshal_officer_demo.py --scenario <name>` (dumps chase-cam
@@ -172,8 +172,10 @@ bring your own model via the plug-in API (`--controller module:Class`).
 ## The benchmark maps
 
 The benchmark runs on **stock CARLA maps** — no custom map, no download. The
-reference map is **Town03**: the 21 scenarios live at 21 fixed, curated
-locations across the map (see
+reference map is **Town03**: the 23 scenarios live at fixed, curated
+locations across the map (21 distinct poses — `stale_directive_residue` and
+`out_of_jurisdiction_director` deliberately reuse the `flagger_control` /
+`fake_vest_director` witness poses; see
 [`marshal_bench/configs/stations.json`](marshal_bench/configs/stations.json)),
 each a drivable lane a short run-up before a real traffic light, where an
 officer / flagger / ambulance takes over from the signal. The scenarios are
@@ -205,16 +207,18 @@ unvalidated road beyond it. A scenario a town genuinely cannot host is
 `marshal_bench/configs/stations_town*.json` + `feasibility_*.json`. Every
 town ships only after the privileged oracle passes its full calibration gate
 ([`scripts/calibrate_town.py`](scripts/calibrate_town.py)) live: currently
-**8/8 towns green** (Town03 21/21 at graded 100.0; T01 20/20, T02 19/19,
-T04 19/19, T05 21/21, T06 18/18, T07 16/16, T10HD 16/16).
+**8/8 towns green** on the 21-scenario suite (Town03 21/21 at graded 100.0;
+T01 20/20, T02 19/19, T04 19/19, T05 21/21, T06 18/18, T07 16/16, T10HD 16/16).
+Rows 22–23 are oracle-validated on Town03; their multi-town calibration ships
+with the next sweep.
 
 **Conditions.** Any CARLA weather / time-of-day preset applies per run
 (`--weather HardRainNoon`, `--weather-params sun_altitude_angle=-30,...`);
 the active condition is recorded in each episode's telemetry metadata.
 
-### The scenarios (14 core + 7 expansion)
+### The scenarios (23 authority-conflict episodes)
 
-**Scenario design principle.** The 14 *core* scenarios are selected to cover seven
+**Scenario design principle.** The scenarios are selected to cover seven
 authority-aware reasoning principles: **signal override, authority verification,
 target attribution, contextual hazard reasoning, temporal directive memory, rule
 hierarchy, and ambiguity handling.** The set is not arbitrary — each scenario
@@ -246,11 +250,19 @@ rationale and the machine-readable taxonomy.
 | 19 | `school_crossing_guard` | crossing guard halts traffic for children | **STOP/obey** | override |
 | 20 | `fake_vest_director` | hi-vis person directs traffic with *no real authority* | **STOP** (cautious) | validity |
 | 21 | `barricade_self_detour` | construction barricade closes the lane, no flagger | **DETOUR** (self) | scene |
+| 22 | `stale_directive_residue` | flagger's STOP visibly *ends* (idle, turns away) on a green | **PROCEED** (after release) | validity |
+| 23 | `out_of_jurisdiction_director` | hi-vis director waves STOP — at the *cross traffic*, not you | **PROCEED** (own green) | validity |
 
-Rows 1–14 are the **core** suite; 15–21 are the **2026-06 expansion** (more
-contextual-hazard, conflicting-authority, temporal, and self-detour cases). The
-three new **DETOUR** scenarios (15, 16, 21) are solved **only by the privileged
-oracle** in the current sweep — the hardest discriminators in the set.
+Several scenarios come in deliberate mirrored pairs that make one-sided
+policies fail: `stale_directive_residue` tests *releasing* an ended directive
+(the inverse of `sequential_directive`'s memory test), and
+`out_of_jurisdiction_director` tests *not* obeying a directive addressed to
+someone else on a green (the counterpart of `adjacent_lane`'s red).
+`stale_directive_residue` is scored with dedicated after-release gates:
+entering while the STOP is live is a FAIL, and so is never actually holding
+for it — an always-go policy cannot pass. The three **DETOUR** scenarios
+(15, 16, 21) are solved **only by the privileged oracle** in the current
+sweep — the hardest discriminators in the set.
 
 The suite is organized as a **coverage of the authority-conflict space** — authority
 vs. device, authority vs. authority, authority *validity*, contextual/scene
@@ -263,19 +275,17 @@ replacement proposal: [docs/taxonomy_decision.md](docs/taxonomy_decision.md); wh
 these scenarios at all:
 [docs/scenario_design_justification.md](docs/scenario_design_justification.md).
 
-> **Now implemented (2026-06 expansion).** Two scenarios previously listed as
-> *planned* are now in the suite (rows 15 & 21): **`barricade_self_detour`** — the ego
-> must **autonomously detour around a construction barricade** (partial lane closure,
-> no flagger) — and **`civilian_warning_accident`** — a bystander **near a visible
-> crash** waves the ego to slow/detour, so the civilian carries *contextual* authority
-> and should be heeded (expected **DETOUR**). The latter is the deliberate counterpart
-> to `unauthorized_go`: same actor class, **opposite** correct action *because* of the
-> scene hazard context. See [docs/scenario_taxonomy.md](docs/scenario_taxonomy.md).
+> **A deliberate mirrored pair.** `civilian_warning_accident` (row 15) is the
+> counterpart to `unauthorized_go` (row 6): the **same actor class** (a civilian
+> waving), the **opposite** correct action — *because* the visible crash gives
+> the civilian contextual authority. An agent cannot pass both with a fixed
+> obey-humans or ignore-humans policy.
+> See [docs/scenario_taxonomy.md](docs/scenario_taxonomy.md).
 
 ### Watch the oracle handle each scenario
 
 The clips below are the privileged **oracle** (Track A — the expected-behaviour
-reference) driving each of the **21** scenarios (14 core + 7 expansion) end to end
+reference) driving each of the **23** scenarios end to end
 on stock Town03. Every
 clip shows the officer / flagger / hazard in front of the ego and the correct
 authority-aware response. (Numbers match the table above; full-resolution MP4s
@@ -316,8 +326,6 @@ are in [`Oracle_demo/`](Oracle_demo/).)
 | ![rule_hierarchy](Oracle_demo/rule_hierarchy.gif) | ![ambiguous_gesture](Oracle_demo/ambiguous_gesture.gif) |
 | authorized GO, pedestrian crossing → **yield** | unclear gesture → **cautious stop** |
 
-**2026-06 expansion (rows 15–21):**
-
 | 15 · `civilian_warning_accident` | 16 · `emergency_scene_blocking` |
 |:---:|:---:|
 | ![civilian_warning_accident](Oracle_demo/civilian_warning_accident.gif) | ![emergency_scene_blocking](Oracle_demo/emergency_scene_blocking.gif) |
@@ -337,6 +345,11 @@ are in [`Oracle_demo/`](Oracle_demo/).)
 |:---:|:---:|
 | ![barricade_self_detour](Oracle_demo/barricade_self_detour.gif) | |
 | construction barricade closes lane → **self-detour** | |
+
+| 22 · `stale_directive_residue` | 23 · `out_of_jurisdiction_director` |
+|:---:|:---:|
+| ![stale_directive_residue](Oracle_demo/stale_directive_residue.gif) | ![out_of_jurisdiction_director](Oracle_demo/out_of_jurisdiction_director.gif) |
+| flagger's STOP ends (turns away) → **proceed after release** | director halts the *cross* traffic → **proceed on own green** |
 
 ## Officer hand signals
 
@@ -546,7 +559,7 @@ The pipeline goes **per-tick → per-episode → per-model**:
 w = \begin{pmatrix} R1 & R2 & R3 & R4 & R5 & R6 & R7 & R8 & R9 \\ .10 & .12 & .28 & .05 & .03 & .02 & .22 & .13 & .05 \end{pmatrix}
 ```
 
-   (re-balanced for the 21-scenario suite: the mass sits on authority-conflict
+   (re-balanced for the full scenario suite: the mass sits on authority-conflict
    resolution **R3** and exceptional handling **R7**). It is reported as a
    **partial** score: R's that aren't yet instrumented are listed under
    `r_unmeasured` and excluded from the denominator — the renormalization keeps
@@ -636,7 +649,12 @@ Every run writes a `scoreboard.json` with `suite`, `r_scores`,
 
 ## Results
 
-Reference sweep on stock Town03 (**21 scenarios** = 14 core + 7 expansion; full
+> All model results in this section were measured on the **21-scenario suite**
+> (before rows 22–23 landed). The privileged oracle also clears the current
+> 23-scenario suite at 23/23 (graded 100.0); model re-runs on the extended
+> suite ship with the next sweep.
+
+Reference sweep on stock Town03 (**21-scenario suite**; full
 14-model results in the two tables below):
 
 | model | track | MARSHAL-Graded | scenarios passed |
@@ -734,7 +752,7 @@ binary count across all 21 scenarios. Sorted by MARSHAL-Graded.
 <sub>&Dagger;oracle is privileged (reads ground truth) — calibration reference,
 not a competitor. &sect;AIM is a baseline released *within* the TransFuser repo
 (no standalone repo). `oracle`, `PID`/`MPC` are our own reference controllers.
-21 scenarios = the 14 core + 7 expansion scenarios on stock Town03.
+21 scenarios = the benchmark suite on stock Town03 at measurement time (rows 1–21).
 **MARSHAL-Graded is the mean ± std of 3 independent closed-loop sweeps**; the
 strict pass-count columns (scenarios passed / authority-STOP) are shown for one
 reference sweep (run 1) — borderline
