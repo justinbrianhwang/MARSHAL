@@ -1,11 +1,15 @@
 import json
 from types import SimpleNamespace
 
+import pytest
+
 from marshal_bench.controllers.oracle import OracleController
 from marshal_bench.scenarios._common import (
     ScenarioContext,
+    _blocking_route_forward_m,
     _append_collision_identity,
     _collision_identity_record,
+    yield_officer_center_clearance_m,
 )
 
 
@@ -117,3 +121,21 @@ def test_oracle_debug_unset_creates_no_artifact(tmp_path, monkeypatch):
     controller._write_debug_record({}, sim_time=1.0)
 
     assert not (tmp_path / "oracle_debug.jsonl").exists()
+
+
+def test_route_arc_clearance_is_monotonic_and_latched():
+    locations = [SimpleNamespace(x=float(i), y=0.0, z=0.0) for i in range(12)]
+    actor = SimpleNamespace(get_location=lambda: locations[5])
+    ctx = ScenarioContext(
+        blocking_actors=[actor],
+    )
+
+    assert _blocking_route_forward_m(ctx, object(), locations[0]) == 5.0
+    assert _blocking_route_forward_m(ctx, object(), locations[11]) < -5.0
+    actor.get_location = lambda: locations[11]
+    assert _blocking_route_forward_m(ctx, object(), locations[6]) < -5.0
+    assert ctx.blocking_clear_latched is True
+
+
+def test_yield_clearance_arithmetic_is_pinned_to_model3_geometry():
+    assert yield_officer_center_clearance_m(1.081725) == pytest.approx(2.631725)

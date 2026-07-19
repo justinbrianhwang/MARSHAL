@@ -174,3 +174,25 @@ def test_merge_plan_does_not_follow_adjacent_chain_through_junction():
 
     for installed, _options in controller._agent.plans:
         assert all(target._waypoint is not cross_street for target, _option in installed)
+
+
+def test_real_clearance_sequence_calls_plan_and_rejection_is_loud(caplog):
+    controller, _originals = _controller()
+    controller._prepare_detour_plan()
+    initial_calls = len(controller._agent.plans)
+
+    def reject(*_args, **_kwargs):
+        raise RuntimeError("synthetic set_global_plan rejection")
+
+    controller._agent.set_global_plan = reject
+    controller._detour_committed = True
+    with caplog.at_level("WARNING"):
+        assert controller._hazard_cleared(
+            {"blocking_hazard_forward_m": -5.01}
+        ) is True
+        controller._start_detour_merge()
+
+    assert len(controller._agent.plans) == initial_calls
+    assert controller._detour_merge_started is True
+    assert controller._merge_fallback_active is True
+    assert "RuntimeError: synthetic set_global_plan rejection" in caplog.text

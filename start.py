@@ -98,30 +98,46 @@ def _run_episode(controller: str, scenario: str, args, out_root: str) -> dict | 
         cmd.extend(["--weather-params", encoded])
     if args.debug:
         cmd.append("--debug")
-    try:
-        proc = subprocess.run(
-            cmd, env=env, cwd=_THIS, timeout=args.episode_timeout,
-            stdout=(None if args.debug else subprocess.DEVNULL),
-            stderr=(None if args.debug else subprocess.DEVNULL),
-        )
-        if proc.returncode not in (0, None):
-            print(f"     (subprocess exit {proc.returncode})", flush=True)
-    except subprocess.TimeoutExpired:
-        print(f"     TIMEOUT after {args.episode_timeout}s", flush=True)
-    except Exception as e:  # noqa: BLE001
-        print(f"     run error: {e}", flush=True)
 
-    if not os.path.isdir(out_root):
+    def _collect_result() -> dict | None:
+        if not os.path.isdir(out_root):
+            return None
+        for d in os.listdir(out_root):
+            if scenario.replace("_", "") in d.replace("_", ""):
+                rj = os.path.join(out_root, d, "result.json")
+                if os.path.isfile(rj):
+                    try:
+                        blob = json.load(open(rj, encoding="utf-8"))
+                        return blob.get("result", blob)
+                    except Exception:  # noqa: BLE001
+                        return None
         return None
-    for d in os.listdir(out_root):
-        if scenario.replace("_", "") in d.replace("_", ""):
-            rj = os.path.join(out_root, d, "result.json")
-            if os.path.isfile(rj):
-                try:
-                    blob = json.load(open(rj, encoding="utf-8"))
-                    return blob.get("result", blob)
-                except Exception:  # noqa: BLE001
-                    return None
+
+    # The CARLA 0.9.16 Windows client intermittently dies with
+    # 0xC0000409 on the first episode after a map load, leaving no
+    # result.json. One retry distinguishes that infra flake from a real
+    # scenario failure; a second identical death is reported as-is.
+    for attempt in (1, 2):
+        crashed = False
+        try:
+            proc = subprocess.run(
+                cmd, env=env, cwd=_THIS, timeout=args.episode_timeout,
+                stdout=(None if args.debug else subprocess.DEVNULL),
+                stderr=(None if args.debug else subprocess.DEVNULL),
+            )
+            if proc.returncode not in (0, None):
+                crashed = True
+                print(f"     (subprocess exit {proc.returncode})", flush=True)
+        except subprocess.TimeoutExpired:
+            print(f"     TIMEOUT after {args.episode_timeout}s", flush=True)
+        except Exception as e:  # noqa: BLE001
+            crashed = True
+            print(f"     run error: {e}", flush=True)
+
+        result = _collect_result()
+        if result is not None or not crashed or attempt == 2:
+            return result
+        print("     (episode crashed without a result — retrying once)", flush=True)
     return None
 
 

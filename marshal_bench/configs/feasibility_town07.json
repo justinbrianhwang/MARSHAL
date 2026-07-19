@@ -1,0 +1,86 @@
+{
+  "green_stop": {
+    "feasible": true,
+    "reason": "selected tl9702-r11-l1-s6.1 from 6/15 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference unavailable; used hard-feasible fallback; spawn clear; initial stopline distance 28.0 m; officer surface road_or_unmapped; junction-free forward 34.0 m"
+  },
+  "red_proceed": {
+    "feasible": true,
+    "reason": "selected tl9699-r23-l-1-s22.5 from 6/15 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference unavailable; used hard-feasible fallback; spawn clear; initial stopline distance 28.0 m; officer surface road_or_unmapped; junction-free forward 32.0 m"
+  },
+  "signal_off": {
+    "feasible": true,
+    "reason": "selected tl9692-r45-l1-s6.9 from 6/15 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference unavailable; used hard-feasible fallback; spawn clear; initial stopline distance 28.1 m; officer surface road_or_unmapped; junction-free forward 34.0 m"
+  },
+  "crash_detour": {
+    "feasible": false,
+    "reason": "no candidate satisfies all requirements: detour clearance 0.0 m is below 1.5 m (1/133); detour clearance 0.5 m is below 1.5 m (1/133); forward traffic light within 75 m required (91/133); junction-free straight detour run-out 0.0 m is below 68.0 m (2/133); junction-free straight detour run-out 10.0 m is below 68.0 m (4/133); junction-free straight detour run-out 12.0 m is below 68.0 m (10/133); junction-free straight detour run-out 16.0 m is below 68.0 m (2/133); junction-free straight detour run-out 18.0 m is below 68.0 m (2/133); junction-free straight detour run-out 2.0 m is below 68.0 m (5/133); junction-free straight detour run-out 20.0 m is below 68.0 m (1/133); junction-free straight detour run-out 22.0 m is below 68.0 m (1/133); junction-free straight detour run-out 24.0 m is below 68.0 m (1/133); junction-free straight detour run-out 26.0 m is below 68.0 m (1/133); junction-free straight detour run-out 30.0 m is below 68.0 m (2/133); junction-free straight detour run-out 32.0 m is below 68.0 m (5/133); junction-free straight detour run-out 34.0 m is below 68.0 m (3/133); junction-free straight detour run-out 36.0 m is below 68.0 m (2/133); junction-free straight detour run-out 38.0 m is below 68.0 m (2/133); junction-free straight detour run-out 4.0 m is below 68.0 m (19/133); junction-free straight detour run-out 40.0 m is below 68.0 m (11/133); junction-free straight detour run-out 42.0 m is below 68.0 m (5/133); junction-free straight detour run-out 44.0 m is below 68.0 m (2/133); junction-free straight detour run-out 46.0 m is below 68.0 m (3/133); junction-free straight detour run-out 48.0 m is below 68.0 m (3/133); junction-free straight detour run-out 50.0 m is below 68.0 m (7/133); junction-free straight detour run-out 52.0 m is below 68.0 m (2/133); junction-free straight detour run-out 54.0 m is below 68.0 m (3/133); junction-free straight detour run-out 56.0 m is below 68.0 m (1/133); junction-free straight detour run-out 58.0 m is below 68.0 m (2/133); junction-free straight detour run-out 6.0 m is below 68.0 m (7/133); junction-free straight detour run-out 60.0 m is below 68.0 m (1/133); junction-free straight detour run-out 64.0 m is below 68.0 m (4/133); junction-free straight detour run-out 66.0 m is below 68.0 m (1/133); junction-free straight detour run-out 8.0 m is below 68.0 m (4/133); run-up 0.0 m is below 28.0 m (26/133); run-up 10.0 m is below 28.0 m (2/133); run-up 12.0 m is below 28.0 m (2/133); run-up 14.0 m is below 28.0 m (1/133); run-up 18.0 m is below 28.0 m (1/133); run-up 2.0 m is below 28.0 m (5/133); run-up 20.0 m is below 28.0 m (1/133); run-up 22.0 m is below 28.0 m (1/133); run-up 24.0 m is below 28.0 m (8/133); run-up 26.0 m is below 28.0 m (3/133); run-up 27.9 m is below 28.0 m (2/133); run-up 28.0 m is below 28.0 m (7/133); run-up 4.0 m is below 28.0 m (2/133); run-up 6.0 m is below 28.0 m (2/133)"
+  },
+  "fallen_person": {
+    "feasible": true,
+    "reason": "selected tl9702-r11-l1-s6.1 from 6/15 satisfying candidates; reuse count 1, 15% quality window, 16% reuse penalty; spawn clear; initial stopline distance 28.0 m; officer surface not_required; junction-free forward 34.0 m; required scene actors spawn clear: fallen person x1"
+  },
+  "unauthorized_go": {
+    "feasible": true,
+    "reason": "selected tl9699-r23-l-1-s22.5 from 6/15 satisfying candidates; reuse count 1, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference unavailable; used hard-feasible fallback; spawn clear; initial stopline distance 28.0 m; officer surface road_or_unmapped; junction-free forward 32.0 m"
+  },
+  "adjacent_lane": {
+    "feasible": true,
+    "reason": "selected tl9695-r24-l-1-s54.2 from 3/15 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference unavailable; used hard-feasible fallback; spawn clear; initial stopline distance 28.6 m; officer surface road_or_unmapped; junction-free forward 12.0 m; required scene actors spawn clear: adjacent-lane vehicle x1"
+  },
+  "flagger_control": {
+    "feasible": true,
+    "reason": "selected tl9692-r45-l1-s6.9 from 6/15 satisfying candidates; reuse count 1, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference unavailable; used hard-feasible fallback; spawn clear; initial stopline distance 28.1 m; officer surface road_or_unmapped; junction-free forward 34.0 m; required scene actors spawn clear: barricade x3, works vehicle x1"
+  },
+  "ambulance_yield": {
+    "feasible": false,
+    "reason": "physical feasibility probe failed: ego-sized lateral maneuver corridor blocked"
+  },
+  "occluded_officer": {
+    "feasible": true,
+    "reason": "selected tl9702-r11-l1-s6.1 from 6/15 satisfying candidates; reuse count 2, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference unavailable; used hard-feasible fallback; spawn clear; initial stopline distance 28.0 m; officer surface road_or_unmapped; junction-free forward 34.0 m; required scene actors spawn clear: occluding vehicle x1"
+  },
+  "conflicting_authorities": {
+    "feasible": true,
+    "reason": "selected tl9699-r23-l-1-s22.5 from 6/15 satisfying candidates; reuse count 2, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference unavailable; used hard-feasible fallback; spawn clear; initial stopline distance 28.0 m; officer surface road_or_unmapped; junction-free forward 32.0 m; required scene actors spawn clear: second authority x1"
+  },
+  "sequential_directive": {
+    "feasible": true,
+    "reason": "selected tl9692-r45-l1-s6.9 from 6/15 satisfying candidates; reuse count 2, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference unavailable; used hard-feasible fallback; spawn clear; initial stopline distance 28.1 m; officer surface road_or_unmapped; junction-free forward 34.0 m"
+  },
+  "rule_hierarchy": {
+    "feasible": true,
+    "reason": "selected tl9692-r45-l1-s6.9 from 4/15 satisfying candidates; reuse count 3, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference unavailable; used hard-feasible fallback; spawn clear; initial stopline distance 28.1 m; officer surface road_or_unmapped; junction-free forward 34.0 m; required scene actors spawn clear: crossing pedestrian x1"
+  },
+  "ambiguous_gesture": {
+    "feasible": true,
+    "reason": "selected tl9702-r11-l1-s6.1 from 6/15 satisfying candidates; reuse count 3, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference unavailable; used hard-feasible fallback; spawn clear; initial stopline distance 28.0 m; officer surface road_or_unmapped; junction-free forward 34.0 m"
+  },
+  "civilian_warning_accident": {
+    "feasible": false,
+    "reason": "no candidate satisfies all requirements: detour clearance 0.0 m is below 1.5 m (1/133); detour clearance 0.5 m is below 1.5 m (1/133); forward traffic light within 75 m required (91/133); junction-free straight detour run-out 0.0 m is below 66.0 m (2/133); junction-free straight detour run-out 10.0 m is below 66.0 m (4/133); junction-free straight detour run-out 12.0 m is below 66.0 m (10/133); junction-free straight detour run-out 16.0 m is below 66.0 m (2/133); junction-free straight detour run-out 18.0 m is below 66.0 m (2/133); junction-free straight detour run-out 2.0 m is below 66.0 m (5/133); junction-free straight detour run-out 20.0 m is below 66.0 m (1/133); junction-free straight detour run-out 22.0 m is below 66.0 m (1/133); junction-free straight detour run-out 24.0 m is below 66.0 m (1/133); junction-free straight detour run-out 26.0 m is below 66.0 m (1/133); junction-free straight detour run-out 30.0 m is below 66.0 m (2/133); junction-free straight detour run-out 32.0 m is below 66.0 m (5/133); junction-free straight detour run-out 34.0 m is below 66.0 m (3/133); junction-free straight detour run-out 36.0 m is below 66.0 m (2/133); junction-free straight detour run-out 38.0 m is below 66.0 m (2/133); junction-free straight detour run-out 4.0 m is below 66.0 m (19/133); junction-free straight detour run-out 40.0 m is below 66.0 m (11/133); junction-free straight detour run-out 42.0 m is below 66.0 m (5/133); junction-free straight detour run-out 44.0 m is below 66.0 m (2/133); junction-free straight detour run-out 46.0 m is below 66.0 m (3/133); junction-free straight detour run-out 48.0 m is below 66.0 m (3/133); junction-free straight detour run-out 50.0 m is below 66.0 m (7/133); junction-free straight detour run-out 52.0 m is below 66.0 m (2/133); junction-free straight detour run-out 54.0 m is below 66.0 m (3/133); junction-free straight detour run-out 56.0 m is below 66.0 m (1/133); junction-free straight detour run-out 58.0 m is below 66.0 m (2/133); junction-free straight detour run-out 6.0 m is below 66.0 m (7/133); junction-free straight detour run-out 60.0 m is below 66.0 m (1/133); junction-free straight detour run-out 64.0 m is below 66.0 m (4/133); junction-free straight detour run-out 8.0 m is below 66.0 m (4/133); run-up 0.0 m is below 28.0 m (26/133); run-up 10.0 m is below 28.0 m (2/133); run-up 12.0 m is below 28.0 m (2/133); run-up 14.0 m is below 28.0 m (1/133); run-up 18.0 m is below 28.0 m (1/133); run-up 2.0 m is below 28.0 m (5/133); run-up 20.0 m is below 28.0 m (1/133); run-up 22.0 m is below 28.0 m (1/133); run-up 24.0 m is below 28.0 m (8/133); run-up 26.0 m is below 28.0 m (3/133); run-up 27.9 m is below 28.0 m (2/133); run-up 28.0 m is below 28.0 m (7/133); run-up 4.0 m is below 28.0 m (2/133); run-up 6.0 m is below 28.0 m (2/133)"
+  },
+  "emergency_scene_blocking": {
+    "feasible": false,
+    "reason": "no candidate satisfies all requirements: detour clearance 0.0 m is below 1.5 m (1/133); detour clearance 0.5 m is below 1.5 m (1/133); forward traffic light within 75 m required (91/133); junction-free straight detour run-out 0.0 m is below 48.4 m (2/133); junction-free straight detour run-out 10.0 m is below 48.4 m (4/133); junction-free straight detour run-out 12.0 m is below 48.4 m (10/133); junction-free straight detour run-out 16.0 m is below 48.4 m (2/133); junction-free straight detour run-out 18.0 m is below 48.4 m (2/133); junction-free straight detour run-out 2.0 m is below 48.4 m (5/133); junction-free straight detour run-out 20.0 m is below 48.4 m (1/133); junction-free straight detour run-out 22.0 m is below 48.4 m (1/133); junction-free straight detour run-out 24.0 m is below 48.4 m (1/133); junction-free straight detour run-out 26.0 m is below 48.4 m (1/133); junction-free straight detour run-out 30.0 m is below 48.4 m (2/133); junction-free straight detour run-out 32.0 m is below 48.4 m (5/133); junction-free straight detour run-out 34.0 m is below 48.4 m (3/133); junction-free straight detour run-out 36.0 m is below 48.4 m (2/133); junction-free straight detour run-out 38.0 m is below 48.4 m (2/133); junction-free straight detour run-out 4.0 m is below 48.4 m (19/133); junction-free straight detour run-out 40.0 m is below 48.4 m (11/133); junction-free straight detour run-out 42.0 m is below 48.4 m (5/133); junction-free straight detour run-out 44.0 m is below 48.4 m (2/133); junction-free straight detour run-out 46.0 m is below 48.4 m (3/133); junction-free straight detour run-out 48.0 m is below 48.4 m (3/133); junction-free straight detour run-out 6.0 m is below 48.4 m (7/133); junction-free straight detour run-out 8.0 m is below 48.4 m (4/133); run-up 0.0 m is below 28.0 m (26/133); run-up 10.0 m is below 28.0 m (2/133); run-up 12.0 m is below 28.0 m (2/133); run-up 14.0 m is below 28.0 m (1/133); run-up 18.0 m is below 28.0 m (1/133); run-up 2.0 m is below 28.0 m (5/133); run-up 20.0 m is below 28.0 m (1/133); run-up 22.0 m is below 28.0 m (1/133); run-up 24.0 m is below 28.0 m (8/133); run-up 26.0 m is below 28.0 m (3/133); run-up 27.9 m is below 28.0 m (2/133); run-up 28.0 m is below 28.0 m (7/133); run-up 4.0 m is below 28.0 m (2/133); run-up 6.0 m is below 28.0 m (2/133)"
+  },
+  "two_civilians_disagree": {
+    "feasible": true,
+    "reason": "selected tl9699-r23-l-1-s22.5 from 6/15 satisfying candidates; reuse count 3, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference unavailable; used hard-feasible fallback; spawn clear; initial stopline distance 28.0 m; officer surface road_or_unmapped; junction-free forward 32.0 m; required scene actors spawn clear: second civilian x1"
+  },
+  "flagger_slow_then_stop": {
+    "feasible": true,
+    "reason": "selected tl9702-r11-l1-s6.1 from 6/15 satisfying candidates; reuse count 4, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference unavailable; used hard-feasible fallback; spawn clear; initial stopline distance 28.0 m; officer surface road_or_unmapped; junction-free forward 34.0 m; required scene actors spawn clear: barricade x3, works vehicle x1"
+  },
+  "school_crossing_guard": {
+    "feasible": true,
+    "reason": "selected tl9692-r45-l1-s6.9 from 5/15 satisfying candidates; reuse count 4, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference unavailable; used hard-feasible fallback; spawn clear; initial stopline distance 28.1 m; officer surface road_or_unmapped; junction-free forward 34.0 m; required scene actors spawn clear: crossing pedestrian x2"
+  },
+  "fake_vest_director": {
+    "feasible": true,
+    "reason": "selected tl9699-r23-l-1-s22.5 from 6/15 satisfying candidates; reuse count 4, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference unavailable; used hard-feasible fallback; spawn clear; initial stopline distance 28.0 m; officer surface road_or_unmapped; junction-free forward 32.0 m"
+  },
+  "barricade_self_detour": {
+    "feasible": false,
+    "reason": "no candidate satisfies all requirements: detour clearance 0.0 m is below 1.5 m (1/133); detour clearance 0.5 m is below 1.5 m (1/133); forward traffic light within 75 m required (91/133); junction-free straight detour run-out 0.0 m is below 51.2 m (2/133); junction-free straight detour run-out 10.0 m is below 51.2 m (4/133); junction-free straight detour run-out 12.0 m is below 51.2 m (10/133); junction-free straight detour run-out 16.0 m is below 51.2 m (2/133); junction-free straight detour run-out 18.0 m is below 51.2 m (2/133); junction-free straight detour run-out 2.0 m is below 51.2 m (5/133); junction-free straight detour run-out 20.0 m is below 51.2 m (1/133); junction-free straight detour run-out 22.0 m is below 51.2 m (1/133); junction-free straight detour run-out 24.0 m is below 51.2 m (1/133); junction-free straight detour run-out 26.0 m is below 51.2 m (1/133); junction-free straight detour run-out 30.0 m is below 51.2 m (2/133); junction-free straight detour run-out 32.0 m is below 51.2 m (5/133); junction-free straight detour run-out 34.0 m is below 51.2 m (3/133); junction-free straight detour run-out 36.0 m is below 51.2 m (2/133); junction-free straight detour run-out 38.0 m is below 51.2 m (2/133); junction-free straight detour run-out 4.0 m is below 51.2 m (19/133); junction-free straight detour run-out 40.0 m is below 51.2 m (11/133); junction-free straight detour run-out 42.0 m is below 51.2 m (5/133); junction-free straight detour run-out 44.0 m is below 51.2 m (2/133); junction-free straight detour run-out 46.0 m is below 51.2 m (3/133); junction-free straight detour run-out 48.0 m is below 51.2 m (3/133); junction-free straight detour run-out 50.0 m is below 51.2 m (7/133); junction-free straight detour run-out 6.0 m is below 51.2 m (7/133); junction-free straight detour run-out 8.0 m is below 51.2 m (4/133); run-up 0.0 m is below 28.0 m (26/133); run-up 10.0 m is below 28.0 m (2/133); run-up 12.0 m is below 28.0 m (2/133); run-up 14.0 m is below 28.0 m (1/133); run-up 18.0 m is below 28.0 m (1/133); run-up 2.0 m is below 28.0 m (5/133); run-up 20.0 m is below 28.0 m (1/133); run-up 22.0 m is below 28.0 m (1/133); run-up 24.0 m is below 28.0 m (8/133); run-up 26.0 m is below 28.0 m (3/133); run-up 27.9 m is below 28.0 m (2/133); run-up 28.0 m is below 28.0 m (7/133); run-up 4.0 m is below 28.0 m (2/133); run-up 6.0 m is below 28.0 m (2/133)"
+  }
+}

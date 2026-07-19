@@ -97,6 +97,8 @@ def test_requirements_match_executable_stagers_and_configs():
         expected_offset = (
             3.2 if scenario in shared.AUTHORITY_FIGURE_SCENARIOS else 2.2
         ) if has_officer else 0.0
+        if scenario == "ambulance_yield":
+            expected_offset = 4.3
         assert entry["officer_lateral_offset_m"] == expected_offset, scenario
 
         assert entry["needs_adjacent_same_road_lane"] is (

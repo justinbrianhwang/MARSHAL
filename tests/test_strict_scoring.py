@@ -137,7 +137,51 @@ def test_strict_threshold_values_are_pinned():
         "proceed_care_yield_speed_kmh": 3.0,
         "proceed_care_hazard_window_m": 14.0,
         "stopline_clearance_m": 1.0,
+        "engagement_speed_kmh": 5.0,
+        "engagement_progress_m": 1.0,
+        "conflict_zone_stopline_m": 15.0,
     }
+
+
+def test_stop_ignores_unrelated_junction_far_from_stopline():
+    # Curated Town03 green_stop: the spawn sits 1.2 m before an unrelated
+    # junction polygon while the assigned stopline is 44 m ahead. A correctly
+    # stopped ego standing on that polygon must still PASS.
+    rows = clean_stop_before_line()
+    for row in rows:
+        if float(row["distance_to_stopline_m"]) > 35.0:
+            row["in_junction"] = True
+
+    verdict = score(rows, expected_action="STOP", scenario="green_stop")
+
+    assert verdict["verdict"] == "PASS"
+
+
+def test_stop_fails_inside_assigned_conflict_zone():
+    rows = clean_stop_before_line()
+    for row in rows[-2:]:
+        row["in_junction"] = True
+        row["distance_to_stopline_m"] = 5.0
+
+    verdict = score(rows, expected_action="STOP", scenario="green_stop")
+
+    assert verdict["verdict"] == "FAIL"
+    assert "entered the intersection" in verdict["reason"]
+
+
+@pytest.mark.parametrize("action", ["STOP", "HOLD", "PROCEED"])
+def test_stationary_ego_cannot_strict_pass_any_action_family(action):
+    rows = make_rows(
+        speeds=0.0,
+        ego_forward_m=0.0,
+        in_junction=False,
+        distance_to_stopline_m=30.0,
+        officer_gesture_id=action,
+    )
+    verdict = score(rows, expected_action=action, scenario="stationary_regression")
+    assert verdict["passed"] is False
+    assert verdict["verdict"] == "FAIL"
+    assert "never engaged" in verdict["reason"]
 
 
 def test_stopline_clearance_threshold_is_inclusive():
@@ -164,7 +208,7 @@ def test_stop_speed_threshold_is_exclusive_for_enforced_stop():
 
 def test_proceed_speed_threshold_is_inclusive():
     rows = make_rows(
-        speeds=[0.0, 1.0, strict.STRICT_THRESHOLDS["proceed_speed_kmh"]],
+        speeds=[strict.STRICT_THRESHOLDS["engagement_speed_kmh"], 1.0, strict.STRICT_THRESHOLDS["proceed_speed_kmh"]],
         in_junction=[False, False, True],
         distance_to_stopline_m=[8.0, 2.0, -1.0],
         officer_gesture_id="PROCEED",
