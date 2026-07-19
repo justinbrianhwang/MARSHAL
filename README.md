@@ -82,7 +82,10 @@ long-tail** — rare, high-consequence *decisions* under otherwise-ordinary perc
 > [design_principles.md](docs/design_principles.md) ·
 > [tracks.md](docs/tracks.md) (Track A / B / C taxonomy).
 
-Every scenario is a self-contained closed-loop episode on **Town03**. You plug in
+Every scenario is a self-contained closed-loop episode — **Town03** is the
+curated reference map, and the same scenarios also run on **8 CARLA towns**
+(Town01–Town07 and Town10HD) via auto-mined, physically-probed per-town
+stations, plus any **weather / time-of-day** condition. You plug in
 your model as a *controller*, and MARSHAL spawns the officer, the gestures, the
 construction flagger, the ambulance, and the scene, runs the episode, and scores
 it. Built and verified on **CARLA 0.9.16**. It is an **initial implementation** with
@@ -166,16 +169,36 @@ bring your own model via the plug-in API (`--controller module:Class`).
 
 ---
 
-## The benchmark map
+## The benchmark maps
 
-The benchmark runs on **stock CARLA Town03** — no custom map, no download. The
-21 scenarios live at 21 fixed, curated locations across the map (see
+The benchmark runs on **stock CARLA maps** — no custom map, no download. The
+reference map is **Town03**: the 21 scenarios live at 21 fixed, curated
+locations across the map (see
 [`marshal_bench/configs/stations.json`](marshal_bench/configs/stations.json)),
 each a drivable lane a short run-up before a real traffic light, where an
 officer / flagger / ambulance takes over from the signal. The scenarios are
 **defined in code and spawned at runtime** (the officer + gesture + scene actors
 for each episode) — exactly like the CARLA Leaderboard / Bench2Drive, so the
 whole benchmark ships as a Python package that drives a stock CARLA server.
+
+**Multi-town.** The same episodes also run on **Town01, Town02, Town04–Town07,
+and Town10HD** (`--town Town05`). Stations for these towns are mined
+automatically by [`scripts/find_stations.py`](scripts/find_stations.py), which
+only accepts a candidate after witness-validated topology checks, real spawn
+probes for the officer and every required scene actor, and a 0.5 m-spaced
+**ego-volume physical corridor sweep** over the full detour maneuver
+(outbound, hold, and merge-back). A scenario a town genuinely cannot host is
+**masked with a measured reason** (e.g. Town01 has no shoulder lanes for
+`ambulance_yield`) instead of silently dropped — see the per-town
+`marshal_bench/configs/stations_town*.json` + `feasibility_*.json`. Every
+town ships only after the privileged oracle passes its full calibration gate
+([`scripts/calibrate_town.py`](scripts/calibrate_town.py)) live: currently
+**8/8 towns green** (Town03 21/21 at graded 100.0; T01 20/20, T02 19/19,
+T04 19/19, T05 21/21, T06 18/18, T07 16/16, T10HD 16/16).
+
+**Conditions.** Any CARLA weather / time-of-day preset applies per run
+(`--weather HardRainNoon`, `--weather-params sun_altitude_angle=-30,...`);
+the active condition is recorded in each episode's telemetry metadata.
 
 ### The scenarios (14 core + 7 expansion)
 
@@ -357,7 +380,7 @@ flips the answer by adding a real hazard the civilian is reacting to:
 
 ## Quick start
 
-With CARLA running on Town03:
+With CARLA running:
 
 ```bash
 # Officer-blind baseline (TrafficManager autopilot, light-only) — the lower bound
@@ -365,6 +388,9 @@ python start.py --controller baseline --tag baseline
 
 # Privileged oracle (reads ground truth) — the upper bound
 python start.py --controller oracle --tag oracle
+
+# Another town and/or condition
+python start.py --controller oracle --tag oracle_t05_rain --town Town05 --weather HardRainNoon
 ```
 
 Each run prints a scoreboard and writes `outputs/benchmark/<tag>/scoreboard.json`.
