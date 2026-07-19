@@ -91,3 +91,63 @@ def test_lateral_watchdog_stands_down_if_planner_recovers():
     assert controller._ensure_lateral_response(recovered, sim_time=2.1).steer == 0.10
     assert controller._lateral_watchdog_engaged is False
     assert controller._lateral_watchdog_stood_down is True
+
+
+def test_lateral_watchdog_engages_despite_offset_spawn_projection():
+    """Engagement must measure drift from the ego's own initial projection.
+
+    The Town02 civilian_warning_accident spawn projects 0.30 m off the
+    route frame's centreline; gating on absolute |lateral| >= 0.25 made
+    watchdog engagement a millimetre-drift coin flip (straight-line crash
+    into the pileup when it lost).
+    """
+    controller = _controller(offset=-4.55)
+    controller.ego.location.y = -0.30  # spawn's own route projection
+
+    control = SimpleNamespace(steer=0.0)
+    result = controller._ensure_lateral_response(control, sim_time=2.0)
+
+    assert controller._lateral_watchdog_engaged is True
+    assert result.steer < 0.0
+
+
+def test_fallback_merge_keeps_holding_centreline_after_taper_completes():
+    """Post-merge the fallback must keep steering at offset 0.
+
+    Releasing lateral control at taper end left the ego steering straight
+    off curved roads (Town01/02/03 post-merge pole and guardrail
+    collisions ~3 s after a clean-looking 12 m taper).
+    """
+    controller = _controller(offset=-4.0)
+    controller._merge_fallback_active = True
+    controller._lateral_watchdog_engaged = True
+    controller._merge_start_offset = -4.0
+    controller._merge_blend_distance_m = 12.0
+    controller._merge_progress_distance_m = 0.0
+    controller._merge_last_location = SimpleNamespace(
+        x=0.0, y=-4.0, distance=lambda other: 0.0
+    )
+
+    # Drive 12 m of merge progress, then 10 s of continued driving.
+    class _Loc(SimpleNamespace):
+        def distance(self, other):
+            return abs(self.x - other.x)
+
+    x = 0.0
+    for _step in range(40):  # 40 x 0.6 m = 24 m >> 12 m blend
+        prev_x = x
+        x += 0.6
+        controller.ego.location = _Loc(x=x, y=0.0)
+        controller._merge_last_location = _Loc(x=prev_x, y=0.0)
+        controller._update_fallback_merge_target()
+
+    assert controller._merge_fallback_active is True
+    assert controller._route_offset == pytest.approx(0.0)
+
+    # A later drift off the route centreline must still produce corrective
+    # steering (before the fix the fallback had deactivated and steer
+    # stayed 0.0 forever).
+    controller.ego.location = _Loc(x=x, y=1.2)
+    drifting = SimpleNamespace(steer=0.0)
+    result = controller._ensure_lateral_response(drifting, sim_time=15.0)
+    assert result.steer < 0.0

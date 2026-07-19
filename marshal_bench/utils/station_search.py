@@ -61,6 +61,24 @@ def detour_runout_m(
     return sum(float(value) for value in values)
 
 
+def rotated_box_forward_extent_m(
+    longitudinal_half_extent_m: float,
+    lateral_half_extent_m: float,
+    yaw_offset_deg: float,
+) -> float:
+    """Project an oriented actor bounding-box half extent onto the route axis."""
+    values = (longitudinal_half_extent_m, lateral_half_extent_m, yaw_offset_deg)
+    if any(not _finite_number(value) for value in values):
+        raise ValueError("bounding-box projection terms must be finite numbers")
+    if float(longitudinal_half_extent_m) < 0.0 or float(lateral_half_extent_m) < 0.0:
+        raise ValueError("bounding-box half extents must be non-negative")
+    yaw = math.radians(float(yaw_offset_deg))
+    return (
+        abs(math.cos(yaw)) * float(longitudinal_half_extent_m)
+        + abs(math.sin(yaw)) * float(lateral_half_extent_m)
+    )
+
+
 def validate_requirements(requirements: Mapping[str, Any]) -> list[str]:
     """Return human-readable errors for one requirements entry."""
     errors: list[str] = []
@@ -181,6 +199,10 @@ def _requirement_violations(
             )
     if requirements.get("needs_junction_approach") and not topology_facts.get("junction_approach", False):
         reasons.append("junction approach required")
+    if topology_facts.get("spawn_in_junction", False):
+        reasons.append("ego spawn must begin outside every junction")
+    if topology_facts.get("runup_crosses_unrelated_junction", False):
+        reasons.append("ego run-up crosses an unrelated junction before its stopline")
     runup = float(topology_facts.get("runup_m", 0.0) or 0.0)
     minimum = float(requirements.get("min_runup_m", 0.0) or 0.0)
     if runup + 1e-9 < minimum:

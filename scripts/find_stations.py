@@ -372,12 +372,30 @@ def _junction_ahead(stop_waypoint: Any) -> bool:
     return False
 
 
+def _runup_crosses_unrelated_junction(spawn_waypoint: Any, stopline_m: float) -> bool:
+    """Whether the assigned run-up enters a junction before its own stopline."""
+    current = spawn_waypoint
+    travelled = 0.0
+    limit = max(0.0, float(stopline_m) - TRACE_STEP_M)
+    while travelled + TRACE_STEP_M <= limit + 1e-9:
+        try:
+            current = _best_branch(current.next(TRACE_STEP_M), current)
+        except Exception:
+            return True
+        if current is None:
+            return True
+        travelled += TRACE_STEP_M
+        if bool(getattr(current, "is_junction", False)):
+            return True
+    return False
+
+
 def _surface_facts(
     carla_map: Any, carla: Any, spawn_waypoint: Any, fallback_waypoint: Any
 ) -> dict[str, Any]:
     """Mine the route-relative officer offsets used by the scenario stagers."""
     surface_by_offset: dict[str, Any] = {}
-    for offset, officer_distance in ((2.2, 30.0), (3.2, 13.0)):
+    for offset, officer_distance in ((2.2, 30.0), (3.2, 13.0), (4.3, 30.0)):
         try:
             officer_wp = _best_branch(spawn_waypoint.next(officer_distance), spawn_waypoint)
         except Exception:
@@ -448,6 +466,11 @@ def _topology_facts_from_waypoints(
             else round(float(forward_traffic_light_distance_m), 3)
         ),
         "junction_approach": _junction_ahead(stop_wp) if signalized else False,
+        "spawn_in_junction": bool(getattr(spawn_wp, "is_junction", False)),
+        "runup_crosses_unrelated_junction": (
+            _runup_crosses_unrelated_junction(spawn_wp, stopline_route_distance_m)
+            if signalized and stopline_route_distance_m is not None else False
+        ),
         "runup_m": runup,
         "junction_free_forward_m": round(_trace_detour_runout(spawn_wp), 3),
         "initial_stopline_distance_m": (
@@ -703,6 +726,128 @@ def _probe_required_scene_actor_spawns(
     return None
 
 
+def _probe_required_officer_spawn(
+    world: Any,
+    carla: Any,
+    candidate: Mapping[str, Any],
+    config: Mapping[str, Any],
+) -> bool:
+    """Exercise the runtime officer placement and its collision-aware retries."""
+    officer_cfg = dict(config.get("officer") or {})
+    if not officer_cfg:
+        return True
+    from marshal_bench.scenarios._common import build_officer
+
+    officer = None
+    try:
+        officer = build_officer(
+            world, _candidate_transform(carla, candidate), officer_cfg,
+            officer_stopline=None,
+        )
+        return officer.get_actor() is not None
+    except Exception:
+        return False
+    finally:
+        if officer is not None:
+            try:
+                officer.destroy()
+            except Exception:
+                pass
+
+
+def _probe_lateral_corridor_clear(
+    world: Any,
+    carla: Any,
+    candidate: Mapping[str, Any],
+    blueprint: Any,
+    scenario: str,
+    config: Mapping[str, Any],
+    requirements: Mapping[str, Any],
+) -> bool:
+    """Check the oracle's ego-sized lateral path against static map bodies."""
+    hard = hard_requirements(requirements)
+    if scenario != "ambulance_yield" and not hard.get("needs_detour_room"):
+        return True
+    spawn_tf = _candidate_transform(carla, candidate)
+    try:
+        start = world.get_map().get_waypoint(
+            spawn_tf.location, project_to_road=True, lane_type=carla.LaneType.Driving
+        )
+    except TypeError:
+        start = world.get_map().get_waypoint(spawn_tf.location, True, carla.LaneType.Driving)
+    except Exception:
+        start = None
+    if start is None:
+        return False
+    if scenario == "ambulance_yield":
+        offset = 1.6
+        distance_limit = 32.0
+    else:
+        requested = str((config.get("scene") or {}).get("detour_side") or "left").lower()
+        sign = 1.0 if "right" in requested else -1.0
+        lane_width = float(getattr(start, "lane_width", 3.5) or 3.5)
+        offset = sign * (lane_width + 0.55)
+        distance_limit = float(
+            generation_requirements(requirements).get("min_detour_runout_m", 0.0) or 0.0
+        )
+    # Half-metre longitudinal spacing is smaller than an ego half-length, so
+    # no guardrail can fit between successive swept-volume poses unnoticed.
+    for distance in (0.5 * i for i in range(1, int(distance_limit // 0.5) + 1)):
+        try:
+            waypoint = _best_branch(start.next(distance), start)
+        except Exception:
+            waypoint = None
+        if waypoint is None:
+            return False
+        tf = waypoint.transform
+        right = tf.get_right_vector()
+        # Spawn overlap checks do not reliably reject foliage/terrain meshes.
+        # Horizontal volume rays catch those static bodies and poles before a
+        # candidate is declared maneuverable.
+        if hasattr(world, "cast_ray"):
+            for height in (0.6, 1.2):
+                try:
+                    hits = world.cast_ray(
+                        carla.Location(
+                            x=tf.location.x,
+                            y=tf.location.y,
+                            z=tf.location.z + height,
+                        ),
+                        carla.Location(
+                            x=tf.location.x + right.x * offset,
+                            y=tf.location.y + right.y * offset,
+                            z=tf.location.z + height,
+                        ),
+                    )
+                except Exception:
+                    hits = []
+                if hits:
+                    return False
+        for fraction in (0.25, 0.5, 0.75, 1.0):
+            probe_tf = carla.Transform(
+                carla.Location(
+                    x=tf.location.x + right.x * offset * fraction,
+                    y=tf.location.y + right.y * offset * fraction,
+                    z=tf.location.z + 0.5,
+                ),
+                tf.rotation,
+            )
+            actor = None
+            try:
+                actor = world.try_spawn_actor(blueprint, probe_tf)
+                if actor is None:
+                    return False
+            except Exception:
+                return False
+            finally:
+                if actor is not None:
+                    try:
+                        actor.destroy()
+                    except Exception:
+                        pass
+    return True
+
+
 def _select_with_validation(
     world: Any,
     carla: Any,
@@ -726,6 +871,8 @@ def _select_with_validation(
                     required_actor_failures,
                     key=lambda role: required_actor_failures[role],
                 )
+                if failed_role == "ego-sized lateral maneuver corridor":
+                    return None, f"physical feasibility probe failed: {failed_role} blocked"
                 return None, f"required scene actor spawn failed: {failed_role}"
             suffix = f"; {blocked} otherwise-suitable spawn(s) were blocked" if blocked else ""
             return None, reason + suffix
@@ -772,6 +919,25 @@ def _select_with_validation(
             required_actor_failures[failed_role] = (
                 required_actor_failures.get(failed_role, 0) + 1
             )
+            blocked += 1
+            for candidate in working:
+                if candidate.get("id") == chosen.get("id"):
+                    candidate["spawn_clear"] = False
+                    break
+            continue
+        if not _probe_required_officer_spawn(world, carla, chosen, scenario_config):
+            required_actor_failures["officer"] = required_actor_failures.get("officer", 0) + 1
+            blocked += 1
+            for candidate in working:
+                if candidate.get("id") == chosen.get("id"):
+                    candidate["spawn_clear"] = False
+                    break
+            continue
+        if not _probe_lateral_corridor_clear(
+            world, carla, chosen, blueprint, scenario, scenario_config, requirements
+        ):
+            role = "ego-sized lateral maneuver corridor"
+            required_actor_failures[role] = required_actor_failures.get(role, 0) + 1
             blocked += 1
             for candidate in working:
                 if candidate.get("id") == chosen.get("id"):

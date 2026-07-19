@@ -1,0 +1,86 @@
+{
+  "green_stop": {
+    "feasible": true,
+    "reason": "selected tl24848-r13-l-1-s36.1 from 12/14 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk; junction-free forward 38.0 m"
+  },
+  "red_proceed": {
+    "feasible": true,
+    "reason": "selected tl24847-r10-l1-s10.6 from 12/14 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk; junction-free forward 38.0 m"
+  },
+  "signal_off": {
+    "feasible": true,
+    "reason": "selected tl24836-r11-l1-s9.9 from 12/14 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk; junction-free forward 36.0 m"
+  },
+  "crash_detour": {
+    "feasible": true,
+    "reason": "selected spawn-road0-lane-1-s6.5 from 2/88 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 0.3 m; officer surface shoulder; junction-free forward 88.0 m; required scene actors spawn clear: pileup vehicle x4"
+  },
+  "fallen_person": {
+    "feasible": true,
+    "reason": "selected tl24852-r11-l-1-s61.3 from 12/14 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty; spawn clear; initial stopline distance 28.0 m; officer surface not_required; junction-free forward 36.0 m; required scene actors spawn clear: fallen person x1"
+  },
+  "unauthorized_go": {
+    "feasible": true,
+    "reason": "selected tl24837-r5-l-1-s61.4 from 12/14 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk; junction-free forward 36.0 m"
+  },
+  "adjacent_lane": {
+    "feasible": false,
+    "reason": "required scene actor spawn failed: adjacent-lane vehicle"
+  },
+  "flagger_control": {
+    "feasible": true,
+    "reason": "selected tl24839-r6-l1-s8.4 from 12/14 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk; junction-free forward 36.0 m; required scene actors spawn clear: barricade x3, works vehicle x1"
+  },
+  "ambulance_yield": {
+    "feasible": false,
+    "reason": "no candidate satisfies all requirements: junction approach required (2/14); off-road shoulder required (14/14)"
+  },
+  "occluded_officer": {
+    "feasible": true,
+    "reason": "selected tl24854-r19-l1-s11.5 from 12/14 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk; junction-free forward 38.0 m; required scene actors spawn clear: occluding vehicle x1"
+  },
+  "conflicting_authorities": {
+    "feasible": true,
+    "reason": "selected tl24857-r0-l-1-s84.8 from 12/14 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk; junction-free forward 38.0 m; required scene actors spawn clear: second authority x1"
+  },
+  "sequential_directive": {
+    "feasible": true,
+    "reason": "selected tl24851-r7-l-1-s36.8 from 12/14 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk; junction-free forward 38.0 m"
+  },
+  "rule_hierarchy": {
+    "feasible": true,
+    "reason": "selected tl24843-r15-l1-s11.7 from 12/14 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk; junction-free forward 38.0 m; required scene actors spawn clear: crossing pedestrian x1"
+  },
+  "ambiguous_gesture": {
+    "feasible": true,
+    "reason": "selected tl24850-r1-l1-s10.6 from 12/14 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk; junction-free forward 38.0 m"
+  },
+  "civilian_warning_accident": {
+    "feasible": true,
+    "reason": "selected spawn-road0-lane-1-s6.5 from 2/88 satisfying candidates; reuse count 1, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 0.3 m; officer surface sidewalk; junction-free forward 88.0 m; required scene actors spawn clear: pileup vehicle x4"
+  },
+  "emergency_scene_blocking": {
+    "feasible": true,
+    "reason": "selected spawn-road19-lane1-s83.5 from 9/88 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty; spawn clear; initial stopline distance 0.0 m; officer surface not_required; junction-free forward 82.0 m; required scene actors spawn clear: emergency vehicle x1"
+  },
+  "two_civilians_disagree": {
+    "feasible": true,
+    "reason": "selected tl24856-r18-l-1-s20.0 from 1/14 satisfying candidates; reuse count 0, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.9 m; officer surface sidewalk; junction-free forward 0.0 m; required scene actors spawn clear: second civilian x1"
+  },
+  "flagger_slow_then_stop": {
+    "feasible": true,
+    "reason": "selected tl24848-r13-l-1-s36.1 from 12/14 satisfying candidates; reuse count 1, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk; junction-free forward 38.0 m; required scene actors spawn clear: barricade x3, works vehicle x1"
+  },
+  "school_crossing_guard": {
+    "feasible": true,
+    "reason": "selected tl24847-r10-l1-s10.6 from 12/14 satisfying candidates; reuse count 1, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk; junction-free forward 38.0 m; required scene actors spawn clear: crossing pedestrian x2"
+  },
+  "fake_vest_director": {
+    "feasible": true,
+    "reason": "selected tl24836-r11-l1-s9.9 from 12/14 satisfying candidates; reuse count 1, 15% quality window, 16% reuse penalty, sidewalk/shoulder preference applied; spawn clear; initial stopline distance 28.0 m; officer surface sidewalk; junction-free forward 36.0 m"
+  },
+  "barricade_self_detour": {
+    "feasible": true,
+    "reason": "selected spawn-road19-lane1-s83.5 from 7/88 satisfying candidates; reuse count 1, 15% quality window, 16% reuse penalty; spawn clear; initial stopline distance 0.0 m; officer surface not_required; junction-free forward 82.0 m; required scene actors spawn clear: barricade x3, works vehicle x1"
+  }
+}

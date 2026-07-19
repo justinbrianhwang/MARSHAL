@@ -8,12 +8,16 @@ the scenario-level authority rule as a longitudinal/offset override.
 from __future__ import annotations
 
 import json
+import logging
 import math
 import os
 from typing import Any, Dict, Optional
 
 from marshal_bench.controllers.base import EpisodeController
 from marshal_bench.utils.carla_api_compat import ensure_agents_on_path
+
+
+log = logging.getLogger(__name__)
 
 
 class _RouteTarget:
@@ -63,9 +67,18 @@ class OracleController(EpisodeController):
         self._route_right = None
         self._lateral_watchdog_engaged = False
         self._lateral_watchdog_stood_down = False
+        self._lateral_watchdog_baseline: Optional[float] = None
         self._episode_dir: Optional[str] = None
         self._debug_file = None
         self._merge_start_forward_m: Optional[float] = None
+        self._merge_blend_distance_m = 12.0
+        self._merge_start_offset = 0.0
+        self._merge_fallback_active = False
+        self._merge_progress_distance_m = 0.0
+        self._merge_last_location = None
+        self._route_plan_failure_logged = False
+        self._route_plan_failure: Optional[str] = None
+        self._route_reference_index = 0
 
     def set_episode_dir(self, episode_dir: str) -> None:
         """Supply the runner-owned artifact directory for optional diagnostics."""
@@ -88,7 +101,16 @@ class OracleController(EpisodeController):
         self._original_route = []
         self._lateral_watchdog_engaged = False
         self._lateral_watchdog_stood_down = False
+        self._lateral_watchdog_baseline = None
         self._merge_start_forward_m = None
+        self._merge_blend_distance_m = 12.0
+        self._merge_start_offset = 0.0
+        self._merge_fallback_active = False
+        self._merge_progress_distance_m = 0.0
+        self._merge_last_location = None
+        self._route_plan_failure_logged = False
+        self._route_plan_failure = None
+        self._route_reference_index = 0
         self._pedestrian_yield_done = False
         try:
             route_tf = ego.get_transform()
@@ -120,10 +142,13 @@ class OracleController(EpisodeController):
         # compliance criterion only times a stop after upstream motion exists.
         try:
             if self._action in {"STOP", "HOLD", "YIELD"}:
-                if self._is_no_officer_stop():
-                    self._seed_initial_velocity(1.2)
+                # Establish a real rolling approach before the directive. Low
+                # throttle alone does not break static resistance on every
+                # CARLA map (notably Town10HD), which made compliant STOP/HOLD
+                # episodes indistinguishable from a frozen controller.
+                self._seed_initial_velocity(1.8)
                 ego.apply_control(
-                    carla.VehicleControl(throttle=0.45, brake=0.0, steer=0.0)
+                    carla.VehicleControl(throttle=0.70, brake=0.0, steer=0.0)
                 )
             else:
                 ego.apply_control(
@@ -203,11 +228,15 @@ class OracleController(EpisodeController):
             except Exception:
                 self._road_option = None
             return agent
-        except Exception:
+        except Exception as exc:
+            log.warning(
+                "oracle BasicAgent setup failed: %s: %s",
+                type(exc).__name__, exc, exc_info=True,
+            )
             return None
 
-    def _set_straight_plan(self, horizon_m: float = 160.0, step_m: float = 2.0) -> None:
-        if self._agent is None or self._map is None or self.ego is None:
+    def _set_straight_plan(self, horizon_m: float = 300.0, step_m: float = 2.0) -> None:
+        if self._map is None or self.ego is None:
             return
         try:
             wp = self._map.get_waypoint(
@@ -240,6 +269,7 @@ class OracleController(EpisodeController):
         try:
             if plan:
                 self._original_route = list(plan)
+            if plan and self._agent is not None:
                 self._agent.set_global_plan(
                     plan, stop_waypoint_creation=True, clean_queue=True
                 )
@@ -297,9 +327,26 @@ class OracleController(EpisodeController):
     # Action policies
     # ------------------------------------------------------------------
     def _stop_control(self, base: Any, sim_time: float, speed: float) -> Any:
+        if self._is_no_officer_stop():
+            if getattr(self, "_stop_roll_anchor", None) is None:
+                try:
+                    self._stop_roll_anchor = self.ego.get_location()
+                except Exception:
+                    self._stop_roll_anchor = None
+            advanced = 0.0
+            if self._stop_roll_anchor is not None:
+                try:
+                    advanced = float(self.ego.get_location().distance(self._stop_roll_anchor))
+                except Exception:
+                    advanced = 0.0
+            if advanced < 2.0:
+                ctrl = self._copy_control(base)
+                ctrl.throttle = 0.70
+                ctrl.brake = 0.0
+                return ctrl
         if sim_time < self._onset_time:
             ctrl = self._copy_control(base)
-            ctrl.throttle = min(max(float(getattr(base, "throttle", 0.0)), 0.30), 0.38)
+            ctrl.throttle = min(max(float(getattr(base, "throttle", 0.0)), 0.65), 0.75)
             ctrl.brake = 0.0
             return ctrl
 
@@ -370,6 +417,8 @@ class OracleController(EpisodeController):
         if self._detour_committed and not self._detour_merge_started:
             if self._hazard_cleared(obs):
                 self._start_detour_merge()
+        if self._merge_fallback_active:
+            self._update_fallback_merge_target()
         ctrl = self._copy_control(base)
         if sim_time >= self._onset_time:
             if speed > 7.0:
@@ -486,18 +535,59 @@ class OracleController(EpisodeController):
             return 0.0, 0.0
 
     def _route_heading_error(self) -> float:
-        if self.ego is None or self._route_forward is None or self._route_right is None:
+        reference = self._nearest_original_route_waypoint()
+        if self.ego is None or reference is None:
             return 0.0
         try:
             fwd = self.ego.get_transform().get_forward_vector()
+            route_tf = reference.transform
+            route_forward = route_tf.get_forward_vector()
+            route_right = route_tf.get_right_vector()
             return math.atan2(
-                float(fwd.x) * float(self._route_right.x)
-                + float(fwd.y) * float(self._route_right.y),
-                float(fwd.x) * float(self._route_forward.x)
-                + float(fwd.y) * float(self._route_forward.y),
+                float(fwd.x) * float(route_right.x)
+                + float(fwd.y) * float(route_right.y),
+                float(fwd.x) * float(route_forward.x)
+                + float(fwd.y) * float(route_forward.y),
             )
         except Exception:
             return 0.0
+
+    def _nearest_original_route_waypoint(self) -> Any:
+        if not self._original_route or self.ego is None:
+            return None
+        try:
+            location = self.ego.get_location()
+            start = max(0, self._route_reference_index - 3)
+            end = min(len(self._original_route), self._route_reference_index + 11)
+            index = min(
+                range(start, end),
+                key=lambda candidate: (
+                    float(self._original_route[candidate][0].transform.location.x)
+                    - float(location.x)
+                ) ** 2 + (
+                    float(self._original_route[candidate][0].transform.location.y)
+                    - float(location.y)
+                ) ** 2,
+            )
+            self._route_reference_index = max(self._route_reference_index, index)
+            return self._original_route[self._route_reference_index][0]
+        except Exception:
+            return None
+
+    def _route_lateral_offset(self) -> float:
+        reference = self._nearest_original_route_waypoint()
+        if reference is None or self.ego is None:
+            return self._route_displacement()[1]
+        try:
+            location = self.ego.get_location()
+            route_tf = reference.transform
+            right = route_tf.get_right_vector()
+            return (
+                (float(location.x) - float(route_tf.location.x)) * float(right.x)
+                + (float(location.y) - float(route_tf.location.y)) * float(right.y)
+            )
+        except Exception:
+            return self._route_displacement()[1]
 
     def _ensure_lateral_response(self, ctrl: Any, sim_time: float) -> Any:
         """Dead-man fallback for a lateral plan that produces no response.
@@ -508,11 +598,12 @@ class OracleController(EpisodeController):
         """
         if (
             sim_time < self._onset_time
-            or abs(self._route_offset) < 1.0
+            or (abs(self._route_offset) < 1.0 and not self._merge_fallback_active)
             or self._lateral_watchdog_stood_down
         ):
             return ctrl
-        forward, lateral = self._route_displacement()
+        forward, _spawn_lateral = self._route_displacement()
+        lateral = self._route_lateral_offset()
         base_steer = float(getattr(ctrl, "steer", 0.0) or 0.0)
         if abs(base_steer) >= 0.05:
             # A planner response is conclusive: never let the fallback replace
@@ -521,15 +612,44 @@ class OracleController(EpisodeController):
             self._lateral_watchdog_stood_down = True
             return ctrl
         if not self._lateral_watchdog_engaged:
-            if forward < 5.0 or abs(lateral) >= 0.25:
+            # "No lateral response" must be measured as drift from the
+            # ego's own initial route projection: a spawn can legitimately
+            # sit 0.3 m off the route frame's centreline (Town02 cwa), and
+            # gating on the absolute value made engagement a coin flip.
+            if self._lateral_watchdog_baseline is None:
+                self._lateral_watchdog_baseline = lateral
+            if forward < 5.0 or abs(lateral - self._lateral_watchdog_baseline) >= 0.25:
                 return ctrl
             self._lateral_watchdog_engaged = True
 
         error = self._route_offset - lateral
         heading_error = self._route_heading_error()
-        steer = (0.16 * error) - (0.80 * heading_error)
+        steer = (0.50 * error) - (1.00 * heading_error)
         ctrl.steer = max(-0.55, min(0.55, steer))
         return ctrl
+
+    def _update_fallback_merge_target(self) -> None:
+        """Track the same 12 m route-offset taper when BasicAgent is absent."""
+        if self.ego is None:
+            return
+        try:
+            location = self.ego.get_location()
+            if self._merge_last_location is not None:
+                self._merge_progress_distance_m += float(
+                    location.distance(self._merge_last_location)
+                )
+            self._merge_last_location = location
+        except Exception:
+            return
+        fraction = min(
+            1.0,
+            self._merge_progress_distance_m / max(0.01, self._merge_blend_distance_m),
+        )
+        self._route_offset = self._merge_start_offset * (1.0 - fraction)
+        # After the taper completes the fallback must keep holding the
+        # route centreline: with BasicAgent absent nothing else steers, and
+        # releasing lateral control here sends the ego straight off curved
+        # roads (post-merge pole/guardrail collisions on Town01/02/03).
 
     def _prepare_detour_plan(self) -> None:
         self._route_offset = self._detour_route_offset()
@@ -609,7 +729,13 @@ class OracleController(EpisodeController):
         self, offset: float, *, blend_distance_m: Optional[float] = None
     ) -> bool:
         route = self._remaining_original_route()
-        if self._agent is None or not route:
+        if self._agent is None:
+            self._report_route_plan_failure("BasicAgent is unavailable")
+            return False
+        if not route:
+            self._report_route_plan_failure(
+                f"no remaining original route (original waypoints={len(self._original_route)})"
+            )
             return False
         plan = []
         travelled = 0.0
@@ -639,8 +765,20 @@ class OracleController(EpisodeController):
                 plan, stop_waypoint_creation=True, clean_queue=True
             )
             return True
-        except Exception:
+        except Exception as exc:
+            self._report_route_plan_failure(
+                "set_global_plan rejected "
+                f"offset={float(offset):.3f}, blend_distance_m={blend_distance_m}, "
+                f"waypoints={len(plan)}: {type(exc).__name__}: {exc}",
+                exc_info=True,
+            )
             return False
+
+    def _report_route_plan_failure(self, message: str, *, exc_info: bool = False) -> None:
+        self._route_plan_failure = message
+        if not self._route_plan_failure_logged:
+            log.warning("oracle route-offset plan failure: %s", message, exc_info=exc_info)
+            self._route_plan_failure_logged = True
 
     def _hazard_cleared(self, obs: Dict[str, Any]) -> bool:
         signal = "blocking_hazard_forward_m"
@@ -671,15 +809,33 @@ class OracleController(EpisodeController):
         if self._detour_merge_started:
             return
         offset = self._route_offset
-        if self._set_route_offset_plan(offset, blend_distance_m=blend_distance_m):
-            self._detour_merge_started = True
-            forward, _lateral = self._route_displacement()
-            self._merge_start_forward_m = forward
+        installed = self._set_route_offset_plan(
+            offset, blend_distance_m=blend_distance_m
+        )
+        self._detour_merge_started = True
+        forward, _lateral = self._route_displacement()
+        self._merge_start_forward_m = forward
+        self._merge_start_offset = offset
+        self._merge_blend_distance_m = float(blend_distance_m)
+        self._merge_progress_distance_m = 0.0
+        try:
+            self._merge_last_location = self.ego.get_location()
+        except Exception:
+            self._merge_last_location = None
+        if installed:
             # The merge plan itself tapers to zero. Disable the constant-offset
             # dead-man target so it cannot fight that planned return.
             self._route_offset = 0.0
             self._lateral_watchdog_engaged = False
             self._lateral_watchdog_stood_down = True
+            self._merge_fallback_active = False
+        else:
+            # BasicAgent is optional in the CARLA wheel. The outbound watchdog
+            # already follows the route-frame displacement; continue it with
+            # the identical bounded taper instead of holding the adjacent lane.
+            self._merge_fallback_active = True
+            self._lateral_watchdog_engaged = True
+            self._lateral_watchdog_stood_down = False
 
     def _configure_debug_output(self) -> None:
         self._close_debug_output()
@@ -696,7 +852,8 @@ class OracleController(EpisodeController):
         if self._debug_file is None:
             return
         try:
-            forward, lateral = self._route_displacement()
+            forward, _spawn_lateral = self._route_displacement()
+            lateral = self._route_lateral_offset()
             if sim_time < self._onset_time:
                 phase = "pre_onset"
             elif self._action == "DETOUR" and self._detour_merge_started:
@@ -715,8 +872,11 @@ class OracleController(EpisodeController):
             except (TypeError, ValueError):
                 blocking = None
             merge_progress = 0.0
-            if self._detour_merge_started and self._merge_start_forward_m is not None:
-                merge_progress = max(0.0, forward - self._merge_start_forward_m)
+            if self._detour_merge_started:
+                if self._merge_fallback_active or self._merge_progress_distance_m > 0.0:
+                    merge_progress = self._merge_progress_distance_m
+                elif self._merge_start_forward_m is not None:
+                    merge_progress = max(0.0, forward - self._merge_start_forward_m)
             record = {
                 "sim_time": sim_time,
                 "phase": phase,
@@ -726,6 +886,8 @@ class OracleController(EpisodeController):
                 "merge_active": self._detour_merge_started,
                 "merge_progress_m": merge_progress,
             }
+            if self._route_plan_failure is not None:
+                record["route_plan_failure"] = self._route_plan_failure
             self._debug_file.write(json.dumps(record, separators=(",", ":")) + "\n")
             self._debug_file.flush()
         except Exception:

@@ -11,6 +11,7 @@ from marshal_bench.utils.station_search import (
     candidate_score,
     compare_station_tolerance,
     detour_runout_m,
+    rotated_box_forward_extent_m,
     select_best_candidate,
     validate_stations_payload,
     witness_violations,
@@ -147,10 +148,19 @@ def test_specialised_requirements_are_hard_filters():
         ((32.0, 18.0, 4.0, 12.0), 66.0),
         ((28.0, 0.0, 4.0, 12.0), 44.0),
         ((26.0, 5.0, 4.0, 12.0), 47.0),
+        ((28.0, 4.379, 4.0, 12.0), 48.379),
+        ((26.0, 9.234, 4.0, 12.0), 51.234),
     ],
 )
 def test_detour_runout_arithmetic(terms, expected):
     assert detour_runout_m(*terms) == expected
+
+
+def test_emergency_vehicle_rotated_bounding_box_projection():
+    projected = rotated_box_forward_extent_m(
+        4.234020709991455, 1.4455441236495972, 7.0
+    )
+    assert projected == pytest.approx(4.3786, abs=0.0001)
 
 
 def test_detour_runout_is_generation_only_and_has_precise_rejection():

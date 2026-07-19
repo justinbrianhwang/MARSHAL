@@ -73,8 +73,78 @@ DEFAULT_FPS = 20.0
 DEFAULT_TIMEOUT_SEC = 25.0
 OFFICER_DISTANCE_FROM_EGO = 30.0  # metres ahead of the ego (default; config-overridable)
 OFFICER_LATERAL_OFFSET = 2.2  # metres to the ego's right — lane edge, ego clears it
+YIELD_ROUTE_OFFSET_M = 1.6
+WALKER_CAPSULE_RADIUS_M = 0.30
+GESTURE_ARM_REACH_ALLOWANCE_M = 0.75
+YIELD_CLEARANCE_MARGIN_M = 0.50
 TL_SEARCH_RADIUS = 80.0  # metres
 SPAWN_TL_SEARCH_DISTANCE = 40.0  # metres of forward projection used to score spawns
+
+
+def _stop_completion_reached(
+    sim_time: float,
+    onset_time: float,
+    speed_kmh: float,
+    in_junction: bool,
+    entered_junction_after_start: bool,
+    stopline_distance_m: Optional[float] = None,
+    reaction_deadline_s: float = 3.0,
+) -> bool:
+    """Only complete STOP after a genuine post-start conflict-zone entry.
+
+    The junction must be the ASSIGNED conflict zone: an unrelated junction
+    polygon near the spawn (curated Town03 green_stop sits 1.2 m before
+    one) must not complete the episode, so entry only counts within
+    15 m of the assigned stopline. Completion must also leave the strict
+    scorer enough telemetry to verify a sustained stop, so the time floor
+    covers the reaction deadline plus a margin.
+    """
+    if stopline_distance_m is not None:
+        try:
+            if math.isfinite(float(stopline_distance_m)) and float(
+                stopline_distance_m
+            ) > 15.0:
+                return False
+        except (TypeError, ValueError):
+            pass
+    return (
+        sim_time > onset_time + max(2.0, reaction_deadline_s + 1.0)
+        and speed_kmh < 0.5
+        and in_junction
+        and entered_junction_after_start
+    )
+
+
+def _hold_ego_during_spawn_settle(ego: Any) -> None:
+    """Prevent spawn roll with service brake, avoiding CARLA handbrake latch."""
+    try:
+        carla = import_carla()
+        ego.apply_control(
+            carla.VehicleControl(
+                throttle=0.0,
+                steer=0.0,
+                brake=1.0,
+                hand_brake=False,
+            )
+        )
+    except Exception as exc:
+        log.debug("Could not hold ego during spawn settle: %s", exc)
+
+
+def _release_ego_after_spawn_settle(ego: Any) -> None:
+    """Explicitly clear CARLA's latched handbrake before controller setup."""
+    try:
+        carla = import_carla()
+        ego.apply_control(
+            carla.VehicleControl(
+                throttle=0.0,
+                steer=0.0,
+                brake=1.0,
+                hand_brake=False,
+            )
+        )
+    except Exception as exc:
+        log.warning("Could not release ego spawn-settle handbrake: %s", exc)
 
 
 # ---------------------------------------------------------------------------
@@ -104,6 +174,14 @@ class ScenarioContext:
     extra_actors: list = field(default_factory=list)  # per-scenario scene actors
     blocking_actors: list = field(default_factory=list)  # on-route obstruction
     spawned_actor_ids: list = field(default_factory=list)
+    blocking_route_samples: list = field(default_factory=list)
+    blocking_ego_route_index: int = 0
+    blocking_forward_monotonic_m: Optional[float] = None
+    blocking_clear_latched: bool = False
+    blocking_ego_odometer_m: float = 0.0
+    blocking_ego_last_location: Any = None
+    blocking_actor_route_s: dict = field(default_factory=dict)
+    blocking_actor_last_distance: dict = field(default_factory=dict)
 
 
 def _actor_id(actor: Any) -> Optional[int]:
@@ -359,6 +437,7 @@ def spawn_ego(
     """
     carla = import_carla()
     transform = ego_config.get("spawn_transform")
+    fixed_station = transform is not None
     if transform is None:
         transform = _auto_pick_ego_spawn_near_signal(world, seed=seed)
     elif isinstance(transform, dict):
@@ -404,14 +483,25 @@ def spawn_ego(
 
     ego = world.try_spawn_actor(bp, transform)
     if ego is None:
-        # Walk through every spawn point if the chosen one was blocked.
+        base = transform.location
+        for lift in (0.5, 1.0, 1.5):
+            retry = carla.Transform(
+                carla.Location(x=base.x, y=base.y, z=base.z + lift),
+                transform.rotation,
+            )
+            ego = world.try_spawn_actor(bp, retry)
+            if ego is not None:
+                transform = retry
+                break
+    if ego is None and not fixed_station:
+        # Only auto-picked episodes may fall back to another map spawn.
         for fallback in world.get_map().get_spawn_points():
             ego = world.try_spawn_actor(bp, fallback)
             if ego is not None:
                 transform = fallback
                 break
     if ego is None:
-        raise RuntimeError("Failed to spawn ego vehicle at every candidate transform.")
+        raise RuntimeError("Failed to spawn ego vehicle at the assigned station.")
     log.info("Spawned ego %s at %s", ego.type_id, _fmt_loc(transform.location))
     return ego, transform
 
@@ -443,6 +533,16 @@ def facing_ego_deg(director_transform: Any, ego_transform: Any) -> Optional[floa
         return round(math.degrees(math.acos(dot)), 6)
     except Exception:
         return None
+
+
+def yield_officer_center_clearance_m(ego_half_width_m: float) -> float:
+    """Required ego/officer center separation for an animated YIELD gesture."""
+    return (
+        float(ego_half_width_m)
+        + WALKER_CAPSULE_RADIUS_M
+        + GESTURE_ARM_REACH_ALLOWANCE_M
+        + YIELD_CLEARANCE_MARGIN_M
+    )
 
 
 def officer_transform_in_front_of(
@@ -989,7 +1089,9 @@ def _station_town_key(town: Any) -> Optional[str]:
     if not isinstance(town, str) or not town.strip():
         return None
     suffix = town.strip().replace("\\", "/").rsplit("/", 1)[-1]
-    match = re.search(r"(Town\d+(?:_[A-Za-z0-9]+)*)$", suffix, re.IGNORECASE)
+    match = re.search(
+        r"(Town\d+(?:HD)?)(?:_[A-Za-z0-9]+)*$", suffix, re.IGNORECASE
+    )
     return match.group(1).lower() if match else None
 
 
@@ -1193,9 +1295,8 @@ def _build_observation(
     v = ctx.ego.get_velocity()
     speed = math.hypot(v.x, v.y)
     image = ctx.latest_ego_frame
-    # Controller-only physical signal: signed distance to the furthest scene
-    # hazard along the ego heading. A negative value means every managed
-    # hazard actor is behind the ego; the oracle uses <-5 m to bound a detour.
+    # Controller-only physical signal. The all-hazard compatibility value is
+    # ego-heading based; the explicit blocking set is route-arc based below.
     hazard_forward_m = None
     blocking_hazard_forward_m = None
     try:
@@ -1211,17 +1312,8 @@ def _build_observation(
             )
         if relative:
             hazard_forward_m = max(relative)
-        blocking_relative = []
-        for actor in list(ctx.blocking_actors):
-            location = _location_from_transform_or_actor(actor)
-            if location is None:
-                continue
-            blocking_relative.append(
-                (float(location.x) - float(tf.location.x)) * float(forward.x)
-                + (float(location.y) - float(tf.location.y)) * float(forward.y)
-            )
-        if blocking_relative:
-            blocking_hazard_forward_m = max(blocking_relative)
+        if ctx.blocking_actors:
+            blocking_hazard_forward_m = _blocking_route_forward_m(ctx, world, tf.location)
     except Exception:
         hazard_forward_m = None
         blocking_hazard_forward_m = None
@@ -1242,6 +1334,100 @@ def _build_observation(
     if ctx.blocking_actors:
         observation["blocking_hazard_forward_m"] = blocking_hazard_forward_m
     return observation
+
+
+def _blocking_route_forward_m(
+    ctx: ScenarioContext, world: Any, ego_location: Any
+) -> Optional[float]:
+    """Furthest blocking actor minus ego progress along one sampled route.
+
+    Ego progress and the returned clearance signal are monotonic. Once every
+    blocking actor is more than 5 m behind, clearance is latched so a curved
+    road or self-near route segment cannot make a passed scene become active
+    again.
+    """
+    previous_ego = ctx.blocking_ego_last_location
+    if previous_ego is not None:
+        try:
+            ctx.blocking_ego_odometer_m += float(ego_location.distance(previous_ego))
+        except Exception:
+            ctx.blocking_ego_odometer_m += math.hypot(
+                float(ego_location.x) - float(previous_ego.x),
+                float(ego_location.y) - float(previous_ego.y),
+            )
+    ctx.blocking_ego_last_location = ego_location
+    ego_s = ctx.blocking_ego_odometer_m
+    actor_s = []
+    for actor in list(ctx.blocking_actors):
+        location = _location_from_transform_or_actor(actor)
+        if location is None:
+            continue
+        distance = math.hypot(
+            float(location.x) - float(ego_location.x),
+            float(location.y) - float(ego_location.y),
+        )
+        key = _actor_id(actor)
+        if key is None:
+            key = id(actor)
+        station = ctx.blocking_actor_route_s.get(key)
+        # Blocking actors are static. Freeze their conservative initial route
+        # station; allowing later distance noise to move the station forward
+        # recreates the Town04 "hazard un-clears" defect.
+        if station is None:
+            station = ego_s + distance
+            ctx.blocking_actor_route_s[key] = station
+        ctx.blocking_actor_last_distance[key] = distance
+        actor_s.append(float(station))
+    if not actor_s:
+        return None
+    relative = max(actor_s) - ego_s
+    previous = ctx.blocking_forward_monotonic_m
+    monotonic = relative if previous is None else min(previous, relative)
+    ctx.blocking_forward_monotonic_m = monotonic
+    if monotonic < -5.0:
+        ctx.blocking_clear_latched = True
+    if ctx.blocking_clear_latched:
+        return min(monotonic, -5.000001)
+    return monotonic
+
+
+def _sample_route_arc(
+    world: Any, origin: Any, *, step_m: float = 1.0, limit_m: float = 200.0
+) -> list[tuple[Any, float]]:
+    """Sample the least-turning driving route ahead of ``origin``."""
+    try:
+        current = world.get_map().get_waypoint(origin, project_to_road=True)
+    except Exception:
+        return []
+    if current is None:
+        return []
+    origin_waypoint = current
+    samples = [(current.transform.location, 0.0)]
+    travelled = 0.0
+    previous_yaw = float(current.transform.rotation.yaw)
+    while travelled + step_m <= limit_m + 1e-9:
+        try:
+            branches = list(origin_waypoint.next(travelled + step_m) or [])
+        except Exception:
+            break
+        if not branches:
+            break
+        # Scene actors are staged with route_waypoint(), whose executable
+        # contract is origin_wp.next(distance)[0]. Anchor every sample at that
+        # same origin; chaining next(1) selects another Town04 branch.
+        current = branches[0]
+        location = current.transform.location
+        previous = samples[-1][0]
+        try:
+            travelled += float(location.distance(previous))
+        except Exception:
+            travelled += math.hypot(
+                float(location.x) - float(previous.x),
+                float(location.y) - float(previous.y),
+            )
+        samples.append((location, travelled))
+        previous_yaw = float(current.transform.rotation.yaw)
+    return samples
 
 
 # ---------------------------------------------------------------------------
@@ -1392,6 +1578,7 @@ def run_scenario(
 
         # Let lifted fixed-station spawns settle before scenario timing,
         # sensors, and strict telemetry begin.
+        _hold_ego_during_spawn_settle(ctx.ego)
         try:
             settle_ticks = int(config.get("spawn_settle_ticks", 20))
         except Exception:
@@ -1401,6 +1588,7 @@ def run_scenario(
                 world.tick() if world.get_settings().synchronous_mode else world.wait_for_tick()
             except Exception:
                 break
+        _release_ego_after_spawn_settle(ctx.ego)
 
         # Refresh ego_transform after the tick.
         try:
@@ -1422,6 +1610,27 @@ def run_scenario(
         # own). A scenario opts out by having no `officer` block in its config.
         officer_raw = config.get("officer")
         officer_cfg = dict(officer_raw) if officer_raw else {}
+        yield_clearance_geometry = None
+        if officer_raw and str(expected_action).upper() == "YIELD":
+            try:
+                ego_half_width = float(ctx.ego.bounding_box.extent.y)
+            except Exception:
+                ego_half_width = 1.082
+            center_clearance = yield_officer_center_clearance_m(ego_half_width)
+            required_lateral = YIELD_ROUTE_OFFSET_M + center_clearance
+            officer_cfg["lateral_offset"] = max(
+                float(officer_cfg.get("lateral_offset", OFFICER_LATERAL_OFFSET)),
+                required_lateral,
+            )
+            yield_clearance_geometry = {
+                "ego_half_width_m": ego_half_width,
+                "walker_capsule_radius_m": WALKER_CAPSULE_RADIUS_M,
+                "gesture_arm_reach_allowance_m": GESTURE_ARM_REACH_ALLOWANCE_M,
+                "margin_m": YIELD_CLEARANCE_MARGIN_M,
+                "minimum_center_distance_m": center_clearance,
+                "yield_route_offset_m": YIELD_ROUTE_OFFSET_M,
+                "officer_lateral_offset_m": officer_cfg["lateral_offset"],
+            }
         if officer_raw:
             ctx.officer = build_officer(
                 world, ego_transform, officer_cfg,
@@ -1431,6 +1640,8 @@ def run_scenario(
             ctx.officer = _NullOfficer(officer_stopline or ego_transform)
             log.info("No officer configured — running with a null officer.")
         result["officer_metadata"] = ctx.officer.get_metadata()
+        if yield_clearance_geometry is not None:
+            result["officer_metadata"]["yield_clearance_geometry"] = yield_clearance_geometry
         director_facing = {
             "staging": facing_ego_deg(ctx.officer.get_transform(), ego_transform)
             if officer_raw else None,
@@ -1641,6 +1852,10 @@ def run_scenario(
                     log.error("controller.setup failed: %s", e)
             sync.tick(timeout=2.0)  # let the TM register the ego / settle
 
+            initial_in_junction = ego_in_intersection(ctx.ego, world)
+            entered_junction_after_start = False
+            detour_anchor_forward_m = None
+
             # Per-scenario hook to drive extra vehicles (ambulance, the
             # adjacent-lane car, ...) on the now-synced TrafficManager.
             if setup_after_autopilot is not None and ctx.traffic_manager is not None:
@@ -1766,6 +1981,8 @@ def run_scenario(
                         facing_onset_recorded = True
                 speed_now = ego_speed_kmh(ctx.ego)
                 in_junction_now = ego_in_intersection(ctx.ego, world)
+                if not initial_in_junction and in_junction_now:
+                    entered_junction_after_start = True
                 # R4 (planning): ego lane/road id for lane-change counting.
                 ego_lane_id = None
                 ego_road_id = None
@@ -1844,10 +2061,13 @@ def run_scenario(
                 # *after* gesture onset, for STOP scenarios.
                 onset = float(officer_cfg.get("onset_time", 0.0))
                 if expected_action_effective == "STOP":
-                    if (
-                        sim_time > onset + 2.0
-                        and speed_now < 0.5
-                        and in_junction_now
+                    if _stop_completion_reached(
+                        sim_time,
+                        onset,
+                        speed_now,
+                        in_junction_now,
+                        entered_junction_after_start,
+                        stopline_distance_m=distance_to_stopline,
                     ):
                         terminated = "ego_stopped_in_conflict_zone"
                         break
@@ -1857,6 +2077,35 @@ def run_scenario(
                         # Keep running briefly to record post-entry state.
                         if sim_time > onset + 4.0:
                             break
+                elif expected_action_effective == "DETOUR":
+                    # The validated maneuver envelope ends at
+                    # anchor + pass margin (4) + merge taper (12) + 1 m
+                    # buffer, with the merge physically complete. Running
+                    # past it re-enters unvalidated road — on small grid
+                    # towns the route can loop back through the staged
+                    # scene (Town02 esb re-met its firetruck at +47 m).
+                    if detour_anchor_forward_m is None:
+                        try:
+                            _hf = float(hazard_forward)
+                            if math.isfinite(_hf) and _hf > 0.0:
+                                detour_anchor_forward_m = _hf
+                        except (TypeError, ValueError):
+                            pass
+                    try:
+                        _fwd = float(ego_forward_m)
+                        _lat = float(ego_lateral_m)
+                    except (TypeError, ValueError):
+                        _fwd = _lat = float("nan")
+                    if (
+                        detour_anchor_forward_m is not None
+                        and sim_time > onset
+                        and math.isfinite(_fwd)
+                        and math.isfinite(_lat)
+                        and _fwd >= detour_anchor_forward_m + 17.0
+                        and abs(_lat) < 1.0
+                    ):
+                        terminated = "detour_completed"
+                        break
 
         result["terminated_reason"] = terminated
         logger.log_event("scenario_finished", reason=terminated, sim_time=sim_time)

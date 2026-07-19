@@ -26,6 +26,9 @@ STRICT_THRESHOLDS: Dict[str, float] = {
     "proceed_care_yield_speed_kmh": 3.0,
     "proceed_care_hazard_window_m": 14.0,
     "stopline_clearance_m": 1.0,
+    "engagement_speed_kmh": 5.0,
+    "engagement_progress_m": 1.0,
+    "conflict_zone_stopline_m": 15.0,
 }
 
 TELEMETRY_FIELDS: Tuple[str, ...] = (
@@ -235,9 +238,29 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
     if _collision_count(rows) > 0:
         return _fail("collision recorded during STOP/HOLD episode", evidence={"collision_count": _collision_count(rows)})
 
+    engagement = _engagement(rows)
+    if not engagement["engaged"]:
+        return _fail(
+            "stationary ego never engaged the STOP/HOLD scenario",
+            evidence=engagement,
+        )
+
     max_enforced_speed = _max(enforcement_rows, "ego_speed_kmh")
     min_stopline = _min(active_rows, "distance_to_stopline_m")
-    entered_junction = any(r.get("in_junction") is True for r in active_rows)
+    # The breach is entering the ASSIGNED conflict zone (the stopline's
+    # junction). Unrelated junction polygons along the approach — e.g. the
+    # curated Town03 green_stop spawn sits 1.2 m before one, 44 m from its
+    # stopline — must not fail a correctly stopped ego. Rows without
+    # stopline telemetry stay conservative and count as the assigned zone.
+    def _junction_row_in_conflict_zone(row: Dict[str, Any]) -> bool:
+        if row.get("in_junction") is not True:
+            return False
+        stopline = _finite_float(row.get("distance_to_stopline_m"))
+        if stopline is None:
+            return True
+        return stopline <= STRICT_THRESHOLDS["conflict_zone_stopline_m"]
+
+    entered_junction = any(_junction_row_in_conflict_zone(r) for r in active_rows)
     if entered_junction:
         return _fail(
             "ego entered the intersection/conflict zone while commanded to stop",
@@ -329,6 +352,9 @@ def _score_proceed_with_care(rows: List[Dict[str, Any]], onset: float) -> Dict[s
 
 
 def _score_proceed(rows: List[Dict[str, Any]], onset: float, scenario: str = "") -> Dict[str, Any]:
+    engagement = _engagement(rows)
+    if not engagement["engaged"]:
+        return _fail("stationary ego never engaged the PROCEED scenario", evidence=engagement)
     if "rule_hierarchy" in str(scenario):
         return _score_proceed_with_care(rows, onset)
     if _collision_count(rows) > 0:
@@ -355,6 +381,22 @@ def _score_proceed(rows: List[Dict[str, Any]], onset: float, scenario: str = "")
             "entry_speed_kmh": round(float(first["ego_speed_kmh"]), 4),
         },
     )
+
+
+def _engagement(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
+    forward = [float(r["ego_forward_m"]) for r in rows]
+    progress = max(forward) - min(forward)
+    max_speed = _max(rows, "ego_speed_kmh") or 0.0
+    return {
+        "engaged": (
+            max_speed >= STRICT_THRESHOLDS["engagement_speed_kmh"]
+            and progress >= STRICT_THRESHOLDS["engagement_progress_m"]
+        ),
+        "max_speed_kmh": round(float(max_speed), 4),
+        "forward_progress_m": round(float(progress), 4),
+        "minimum_speed_kmh": STRICT_THRESHOLDS["engagement_speed_kmh"],
+        "minimum_progress_m": STRICT_THRESHOLDS["engagement_progress_m"],
+    }
 
 
 def _score_detour(rows: List[Dict[str, Any]], onset: float) -> Dict[str, Any]:

@@ -159,8 +159,8 @@
     "needs_detour_room": false,
     "min_detour_clearance_m": 0.0,
     "needs_offroad_shoulder": true,
-    "officer_lateral_offset_m": 2.2,
-    "notes": "The ambulance is staged behind the ego and tracks it at marshal_ambulance_yield_demo.py:25-60; YIELD needs lateral clearance (strict_episode_scoring.py:20-24); default officer offset is _common.py:73-74,501-509."
+    "officer_lateral_offset_m": 4.3,
+    "notes": "The ambulance is staged behind the ego and tracks it at marshal_ambulance_yield_demo.py:25-60. The yielded route remains +1.6 m; runtime officer placement adds ego half-width + 0.30 m walker capsule + 0.75 m gesture-arm allowance + 0.50 m margin, while generation probes a conservative 4.3 m lateral point."
   },
   "occluded_officer": {
     "needs_traffic_light": true,
@@ -261,11 +261,11 @@
     "needs_offroad_shoulder": false,
     "officer_lateral_offset_m": 0.0,
     "detour_hazard_start_m": 28.0,
-    "detour_staged_span_m": 0.0,
+    "detour_staged_span_m": 4.379,
     "detour_pass_margin_m": 4.0,
     "detour_merge_taper_m": 12.0,
-    "min_detour_runout_m": 44.0,
-    "notes": "The emergency vehicle center is staged at block_distance 28 m (marshal_emergency_scene_blocking_demo.py:89-137), with no blocking center beyond it. Strict passage adds 4 m (strict_episode_scoring.py:20-25), then the oracle merge plan tapers for 12 m (oracle.py:670-681). The resulting 44 m detour run-out is generation-only."
+    "min_detour_runout_m": 48.379,
+    "notes": "The firetruck center is staged at block_distance 28 m and yaw +7 degrees (marshal_emergency_scene_blocking_demo.py:90-137); its CARLA 0.9.16 half extents are 4.234021 x 1.445544 m (PythonAPI/examples/nvidia/nurec/blueprint_sizes_vehicle.json), projecting 4.379 m beyond the center. Cones end at the same 28 m center (marshal_emergency_scene_blocking_demo.py:139-178). Strict passage adds 4 m and the oracle merge plan 12 m, for 48.379 m total."
   },
   "two_civilians_disagree": {
     "needs_traffic_light": true,
@@ -333,11 +333,11 @@
     "needs_offroad_shoulder": false,
     "officer_lateral_offset_m": 0.0,
     "detour_hazard_start_m": 26.0,
-    "detour_staged_span_m": 5.0,
+    "detour_staged_span_m": 9.234,
     "detour_pass_margin_m": 4.0,
     "detour_merge_taper_m": 12.0,
-    "min_detour_runout_m": 47.0,
-    "notes": "The barricade starts at block_distance 26 m (marshal_barricade_self_detour_demo.py:26-35), and scene_actors.py:278-292 puts its blocking works vehicle 5 m behind it. Strict passage adds 4 m (strict_episode_scoring.py:20-25), then the oracle merge plan tapers for 12 m (oracle.py:670-681). The resulting 47 m detour run-out is generation-only."
+    "min_detour_runout_m": 51.234,
+    "notes": "marshal_barricade_self_detour_demo.py supplies block_distance 26 m to the barricade row, with the works vehicle at +5 m (scene_actors.py:262-302). The selectable works-vehicle set includes the 4.234021 m-half-length firetruck, so its footprint reaches +9.234 m; the cones end at the barricade center. Strict passage adds 4 m and the oracle merge plan 12 m, for 51.234 m total."
   }
   }
 }

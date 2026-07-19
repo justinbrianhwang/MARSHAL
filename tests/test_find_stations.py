@@ -251,3 +251,33 @@ def test_required_actor_probe_failure_makes_candidate_explicitly_infeasible(
 
     assert chosen is None
     assert reason == "required scene actor spawn failed: adjacent-lane vehicle"
+
+
+def test_signal_candidate_inside_junction_is_rejected():
+    candidate = {
+        "junction_approach": True,
+        "spawn_in_junction": True,
+        "runup_m": 28.0,
+        "initial_stopline_distance_m": 28.0,
+    }
+    requirement = {"generation": {
+        "needs_junction_approach": True,
+        "min_runup_m": 28.0,
+        "min_initial_stopline_m": 20.0,
+        "max_initial_stopline_m": 40.0,
+    }}
+    assert "ego spawn must begin outside every junction" in (
+        find_stations.generation_violations(candidate, requirement)
+    )
+
+
+def test_unrelated_junction_in_runup_is_rejected_for_every_scenario():
+    candidate = {
+        "spawn_in_junction": False,
+        "runup_crosses_unrelated_junction": True,
+        "runup_m": 30.0,
+    }
+    requirement = {"generation": {"min_runup_m": 0.0}}
+    assert "ego run-up crosses an unrelated junction before its stopline" in (
+        find_stations.generation_violations(candidate, requirement)
+    )
