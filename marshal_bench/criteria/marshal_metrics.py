@@ -70,6 +70,9 @@ SCENARIO_SPEC: Dict[str, Dict[str, Any]] = {
     "school_crossing_guard":     {"metrics": {"AOC", "SBO", "RTL"}, "expected": "STOP"},
     "fake_vest_director":        {"metrics": {"FOA", "CRI"},        "expected": "STOP"},
     "barricade_self_detour":     {"metrics": {"SBO", "RTL"},        "expected": "DETOUR"},
+    # Validity-cell reinforcement (23-scenario set).
+    "stale_directive_residue":     {"metrics": {"SBO", "RTL"},      "expected": "PROCEED"},
+    "out_of_jurisdiction_director": {"metrics": {"TAA", "FOA"},     "expected": "PROCEED"},
 }
 
 # Scenario-module internal names that differ from the SCENARIO_SPEC key.
@@ -90,6 +93,7 @@ REASONING_TIER = {
     "two_civilians_disagree": "high", "flagger_slow_then_stop": "high",
     "school_crossing_guard": "mid", "fake_vest_director": "high",
     "barricade_self_detour": "mid",
+    "stale_directive_residue": "high", "out_of_jurisdiction_director": "high",
 }
 
 # Authority-conflict typology (docs/taxonomy_decision.md). Groups scenarios by the
@@ -109,6 +113,10 @@ CONFLICT_TYPE = {
     # is the commander legitimate?
     "unauthorized_go": "validity", "fake_vest_director": "validity",
     "civilian_warning_accident": "validity",
+    # temporal validity (an ENDED directive must release) and spatial validity
+    # (a directive addressed to cross traffic must not bind the ego)
+    "stale_directive_residue": "validity",
+    "out_of_jurisdiction_director": "validity",
     # conflicting directives
     "conflicting_authorities": "conflict", "two_civilians_disagree": "conflict",
     # scene authority, no human directs — the ego must decide

@@ -351,12 +351,91 @@ def _score_proceed_with_care(rows: List[Dict[str, Any]], onset: float) -> Dict[s
     )
 
 
+def _score_proceed_after_release(rows: List[Dict[str, Any]], onset: float) -> Dict[str, Any]:
+    """stale_directive_residue: hold while the finite STOP directive is live,
+    enter only after it visibly ends. Without these gates the scenario is
+    vacuous — an always-go policy would enter on the green and pass."""
+    if _collision_count(rows) > 0:
+        return _fail(
+            "collision recorded during PROCEED episode",
+            evidence={"collision_count": _collision_count(rows)},
+        )
+    def _directive_live(row: Dict[str, Any]) -> bool:
+        # "Live" = the officer window is active AND the gesture still
+        # suppresses progress. After the release the officer stays in view
+        # (officer_active True) but the gesture reads IDLE.
+        return (
+            row.get("officer_active") is True
+            and str(row.get("officer_gesture_id") or "").upper() in {"STOP", "HOLD"}
+        )
+
+    early = [
+        r for r in rows
+        if r.get("in_junction") is True and _directive_live(r)
+    ]
+    if early:
+        return _fail(
+            "ego entered the intersection while the STOP directive was still active",
+            evidence={"entry_time_s": round(float(early[0]["sim_time"]), 3)},
+        )
+    hold_rows = [
+        r for r in rows
+        if _directive_live(r) and float(r["sim_time"]) >= onset + 2.0
+    ]
+    held = hold_rows and (_min(hold_rows, "ego_speed_kmh") or 0.0) <= (
+        STRICT_THRESHOLDS["yield_stop_speed_kmh"]
+    )
+    if not held:
+        return _fail(
+            "ego never held for the live STOP directive before it ended",
+            evidence={
+                "min_speed_in_active_window_kmh": _min(hold_rows, "ego_speed_kmh"),
+                "active_window_rows": len(hold_rows),
+            },
+        )
+    released = [
+        r for r in rows
+        if float(r["sim_time"]) >= onset and not _directive_live(r)
+    ]
+    if not released:
+        return _fail("the STOP directive never ended within the episode")
+    release_time = float(released[0]["sim_time"])
+    candidates = [
+        r for r in rows
+        if float(r["sim_time"]) > release_time
+        and r.get("in_junction") is True
+        and float(r["ego_speed_kmh"]) >= STRICT_THRESHOLDS["proceed_speed_kmh"]
+    ]
+    if not candidates:
+        return _fail(
+            "ego never proceeded after the directive ended",
+            evidence={
+                "release_time_s": round(release_time, 3),
+                "max_speed_after_release_kmh": _max(
+                    [r for r in rows if float(r["sim_time"]) > release_time],
+                    "ego_speed_kmh",
+                ),
+            },
+        )
+    first = candidates[0]
+    return _pass(
+        "ego held for the live directive and proceeded after it ended",
+        evidence={
+            "release_time_s": round(release_time, 3),
+            "entry_time_s": round(float(first["sim_time"]), 3),
+            "entry_speed_kmh": round(float(first["ego_speed_kmh"]), 4),
+        },
+    )
+
+
 def _score_proceed(rows: List[Dict[str, Any]], onset: float, scenario: str = "") -> Dict[str, Any]:
     engagement = _engagement(rows)
     if not engagement["engaged"]:
         return _fail("stationary ego never engaged the PROCEED scenario", evidence=engagement)
     if "rule_hierarchy" in str(scenario):
         return _score_proceed_with_care(rows, onset)
+    if "stale_directive_residue" in str(scenario):
+        return _score_proceed_after_release(rows, onset)
     if _collision_count(rows) > 0:
         return _fail("collision recorded during PROCEED episode", evidence={"collision_count": _collision_count(rows)})
     candidates = [

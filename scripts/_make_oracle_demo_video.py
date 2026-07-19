@@ -43,7 +43,7 @@ from marshal_bench.utils.carla_api_compat import import_carla  # noqa: E402
 from marshal_bench.utils.logging_utils import EpisodeLogger  # noqa: E402
 
 MP4_DIR = os.path.join(_ROOT, "outputs", "oracle_demo")
-GIF_DIR = os.path.join(_ROOT, "MARSHAL", "Oracle_demo")
+GIF_DIR = os.path.join(_ROOT, "Oracle_demo")
 CHECK_DIR = os.path.join(MP4_DIR, "_check")
 PLAY_FPS = 20
 
@@ -98,6 +98,11 @@ SCENARIOS = [
      "Hi-vis person, no real authority  ->  oracle STOPS (cautious)", True, "fwd"),
     ("barricade_self_detour", "marshal_barricade_self_detour_demo",
      "Construction barricade closes lane  ->  oracle DETOURS", False, "fwd"),
+    # --- 2026-07 validity reinforcement (rows 22-23) ---
+    ("stale_directive_residue", "marshal_stale_directive_residue_demo",
+     "Flagger STOP ends (turns away)  ->  oracle waits, then PROCEEDS", False, "fwd"),
+    ("out_of_jurisdiction_director", "marshal_out_of_jurisdiction_director_demo",
+     "Director halts the CROSS traffic (not ego)  ->  oracle PROCEEDS", False, "fwd"),
 ]
 
 _CFG = {  # scenario key -> config yaml (relative to repo root)

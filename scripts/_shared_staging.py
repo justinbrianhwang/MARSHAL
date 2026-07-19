@@ -40,6 +40,10 @@ AUTHORITY_FIGURE_SCENARIOS = {
     "school_crossing_guard",
     "fake_vest_director",
     "civilian_warning_accident",
+    # 2026-07-19 validity-cell reinforcement. out_of_jurisdiction_director is
+    # deliberately NOT here: its director must stay at the config's 7.0 m
+    # cross-street offset, not the readable 3.2 m authority staging.
+    "stale_directive_residue",
 }
 
 VISIBLE_OFFICER_OVERRIDES: Dict[str, Dict[str, float]] = {

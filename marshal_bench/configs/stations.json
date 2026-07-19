@@ -169,6 +169,22 @@
       "yaw": -88.6,
       "tl_id": 1465,
       "lanes": 2
+    },
+    "stale_directive_residue": {
+      "x": -56.5,
+      "y": 131.7,
+      "z": 0.5,
+      "yaw": 178.7,
+      "tl_id": 68,
+      "lanes": 1
+    },
+    "out_of_jurisdiction_director": {
+      "x": -129.7,
+      "y": 0.2,
+      "z": 0.3,
+      "yaw": 0.3,
+      "tl_id": 1475,
+      "lanes": 1
     }
   }
 }
