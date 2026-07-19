@@ -98,9 +98,8 @@ SCENARIOS = [
      "Hi-vis person, no real authority  ->  oracle STOPS (cautious)", True, "fwd"),
     ("barricade_self_detour", "marshal_barricade_self_detour_demo",
      "Construction barricade closes lane  ->  oracle DETOURS", False, "fwd"),
-    # --- 2026-07 validity reinforcement (rows 22-23) ---
     ("stale_directive_residue", "marshal_stale_directive_residue_demo",
-     "Flagger STOP ends (turns away)  ->  oracle waits, then PROCEEDS", False, "fwd"),
+     "Flagger STOP ends (turns away)  ->  oracle waits, then PROCEEDS", True, "fwd"),
     ("out_of_jurisdiction_director", "marshal_out_of_jurisdiction_director_demo",
      "Director halts the CROSS traffic (not ego)  ->  oracle PROCEEDS", False, "fwd"),
 ]
@@ -198,6 +197,15 @@ OVERRIDES = {
         "camera": {"chase_back": 8.5, "chase_height": 3.0, "chase_pitch": -7.0,
                    "chase_side": 3.2, "chase_yaw": -8.0},
     },
+    # The out-of-jurisdiction director stands off the ego corridor to the LEFT
+    # — that placement IS the premise, so keep them left of the lane but pull
+    # close enough to read (at the scored -7.0 they are a few pixels at 320px);
+    # bias the chase view left so they stay in frame during the approach.
+    "out_of_jurisdiction_director": {
+        "officer": {"lateral_offset": -2.8},
+        "camera": {"chase_back": 8.5, "chase_height": 3.0, "chase_pitch": -7.0,
+                   "chase_side": 3.2, "chase_yaw": -10.0},
+    },
 }
 
 
@@ -251,7 +259,11 @@ def _write_gif(frames, out_path, width=320, fps=10, max_frames=60, colors=80):
     from PIL import Image
     if not frames:
         return
-    step = max(1, int(round(PLAY_FPS / fps)))
+    # Subsample so the GIF covers the WHOLE clip: widen the stride when the
+    # clip is long instead of truncating (frames[::step][:max] used to cut
+    # everything after ~6s — the payoff of every long scenario).
+    step = max(1, int(round(PLAY_FPS / fps)),
+               -(-len(frames) // max_frames))
     sel = frames[::step][:max_frames]
     h, w = sel[0].shape[:2]
     new_h = int(round(width * h / w))

@@ -341,15 +341,15 @@ are in [`Oracle_demo/`](Oracle_demo/).)
 | ![school_crossing_guard](Oracle_demo/school_crossing_guard.gif) | ![fake_vest_director](Oracle_demo/fake_vest_director.gif) |
 | crossing guard halts traffic → **stop** | hi-vis person, no real authority → **cautious stop** |
 
-| 21 · `barricade_self_detour` | |
+| 21 · `barricade_self_detour` | 22 · `stale_directive_residue` |
 |:---:|:---:|
-| ![barricade_self_detour](Oracle_demo/barricade_self_detour.gif) | |
-| construction barricade closes lane → **self-detour** | |
+| ![barricade_self_detour](Oracle_demo/barricade_self_detour.gif) | ![stale_directive_residue](Oracle_demo/stale_directive_residue.gif) |
+| construction barricade closes lane → **self-detour** | flagger's STOP ends (turns away) → **proceed after release** |
 
-| 22 · `stale_directive_residue` | 23 · `out_of_jurisdiction_director` |
+| 23 · `out_of_jurisdiction_director` | |
 |:---:|:---:|
-| ![stale_directive_residue](Oracle_demo/stale_directive_residue.gif) | ![out_of_jurisdiction_director](Oracle_demo/out_of_jurisdiction_director.gif) |
-| flagger's STOP ends (turns away) → **proceed after release** | director halts the *cross* traffic → **proceed on own green** |
+| ![out_of_jurisdiction_director](Oracle_demo/out_of_jurisdiction_director.gif) | |
+| director halts the *cross* traffic → **proceed on own green** | |
 
 ## Officer hand signals
 
