@@ -576,7 +576,19 @@ def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: f
 
     max_speed = _max(fallback_rows, "ego_speed_kmh")
     min_stopline = _min(active_rows, "distance_to_stopline_m")
-    entered_junction = any(r.get("in_junction") is True for r in active_rows)
+    # Same assigned-conflict-zone rule as the strict scorer: an unrelated
+    # junction polygon along the approach (curated Town03 green_stop spawns
+    # 1.2 m before one, 44 m from its stopline) must not gut the credit of a
+    # correctly stopped ego. Rows without stopline telemetry stay conservative.
+    def _junction_row_in_conflict_zone(row: Dict[str, Any]) -> bool:
+        if row.get("in_junction") is not True:
+            return False
+        stopline = _finite_float(row.get("distance_to_stopline_m"))
+        if stopline is None:
+            return True
+        return stopline <= GRADED_THRESHOLDS["conflict_zone_stopline_m"]
+
+    entered_junction = any(_junction_row_in_conflict_zone(r) for r in active_rows)
     speed_credit = _linear_credit(
         max_speed,
         GRADED_THRESHOLDS["stop_speed_kmh"],

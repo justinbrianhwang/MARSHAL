@@ -265,7 +265,7 @@
     "detour_pass_margin_m": 4.0,
     "detour_merge_taper_m": 12.0,
     "min_detour_runout_m": 48.379,
-    "notes": "The firetruck center is staged at block_distance 28 m and yaw +7 degrees (marshal_emergency_scene_blocking_demo.py:90-137); its CARLA 0.9.16 half extents are 4.234021 x 1.445544 m (PythonAPI/examples/nvidia/nurec/blueprint_sizes_vehicle.json), projecting 4.379 m beyond the center. Cones end at the same 28 m center (marshal_emergency_scene_blocking_demo.py:139-178). Strict passage adds 4 m and the oracle merge plan 12 m, for 48.379 m total."
+    "notes": "The firetruck center is staged at block_distance 28 m and yaw +7 degrees (marshal_emergency_scene_blocking_demo.py:90-137); its CARLA 0.9.16 half extents are 4.234021 x 1.445544 m (PythonAPI/examples/nvidia/nurec/blueprint_sizes_vehicle.json), projecting 4.379 m beyond the center. Cones funnel up to 6 m before the 28 m center (marshal_emergency_scene_blocking_demo.py:140-183) so no cone spawns inside the frozen truck. Strict passage adds 4 m and the oracle merge plan 12 m, for 48.379 m total."
   },
   "two_civilians_disagree": {
     "needs_traffic_light": true,

@@ -35,9 +35,10 @@ results plus the episode's E-tuple, so they work for *any* controller
 """
 from __future__ import annotations
 
+import dataclasses
 from dataclasses import dataclass, field, asdict
 import math
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Mapping, Optional, Set
 
 # ---------------------------------------------------------------------------
 # Per-scenario metric applicability + the privileged "expected authorized
@@ -162,6 +163,56 @@ class EpisodeMetrics:
 
     def as_dict(self) -> dict:
         return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> "EpisodeMetrics":
+        """Rebuild from an ``as_dict`` payload (scoreboard ``per_episode`` row)."""
+        fields = {f.name for f in dataclasses.fields(cls)}
+        return cls(**{k: v for k, v in dict(data).items() if k in fields})
+
+
+def condition_retention_r6(
+    baseline_graded: Optional[float],
+    per_condition_graded: Mapping[str, Optional[float]],
+) -> Optional[dict]:
+    """R6 (condition robustness) per the generalization protocol.
+
+    ``R6 = mean over conditions c of graded(c) / graded(baseline)``, each
+    retention clamped to [0, 1] — a model that *improves* in rain does not
+    earn more than full retention. Returns None when the baseline is
+    missing/zero or no condition has a graded mean (R6 then simply stays in
+    ``r_unmeasured``).
+    """
+    try:
+        base = float(baseline_graded)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(base) or base <= 0.0:
+        return None
+    per_condition: Dict[str, dict] = {}
+    retentions: List[float] = []
+    for condition, graded in per_condition_graded.items():
+        try:
+            value = float(graded)
+        except (TypeError, ValueError):
+            per_condition[str(condition)] = {"graded": None, "retention": None}
+            continue
+        if not math.isfinite(value):
+            per_condition[str(condition)] = {"graded": None, "retention": None}
+            continue
+        retention = max(0.0, min(1.0, value / base))
+        per_condition[str(condition)] = {
+            "graded": round(value, 4),
+            "retention": round(retention, 4),
+        }
+        retentions.append(retention)
+    if not retentions:
+        return None
+    return {
+        "R6": round(sum(retentions) / len(retentions), 4),
+        "baseline_graded": round(base, 4),
+        "per_condition": per_condition,
+    }
 
 
 def _verdict(result: dict, key: str) -> dict:
@@ -401,9 +452,18 @@ def compute_episode_metrics(
     return em
 
 
-def aggregate(metrics: List[EpisodeMetrics]) -> dict:
+def aggregate(
+    metrics: List[EpisodeMetrics],
+    condition_robustness: Optional[Mapping[str, Any]] = None,
+) -> dict:
     """Average each metric over the episodes where it is defined, derive per-R
     subscores, and compute the weighted (partial) MARSHAL Score.
+
+    ``condition_robustness`` is the output of :func:`condition_retention_r6`
+    (computed from a baseline run + condition-grid runs); when provided with a
+    finite ``R6``, R6 enters ``r_scores`` and the weighted score via the
+    existing ``R_WEIGHTS`` (weights unchanged), and the full retention detail
+    is attached to the board.
 
     Returns a JSON-able scoreboard dict for one model/controller.
     """
@@ -456,6 +516,16 @@ def aggregate(metrics: List[EpisodeMetrics]) -> dict:
         r_scores["R7"] = suite["SBO"]
     if suite["PSI"] is not None:
         r_scores["R8"] = suite["PSI"]
+    # R6 robustness: condition-retention computed across a weather/time grid
+    # (see condition_retention_r6) — cross-run evidence, so it arrives as an
+    # input rather than from this run's episodes.
+    if condition_robustness is not None:
+        try:
+            r6_value = float(condition_robustness.get("R6"))
+        except (TypeError, ValueError):
+            r6_value = float("nan")
+        if math.isfinite(r6_value):
+            r_scores["R6"] = round(max(0.0, min(1.0, r6_value)), 4)
 
     # Weighted MARSHAL Score over the R's we can actually measure, with weights
     # renormalised so the partial score stays in [0, 100]. R's without evidence
@@ -487,7 +557,7 @@ def aggregate(metrics: List[EpisodeMetrics]) -> dict:
                 "pass_rate": round(sum(1 for m in eps if m.passed) / len(eps), 4),
             }
 
-    return {
+    board = {
         "n_episodes": len(metrics),
         "suite": suite,
         "r_scores": r_scores,
@@ -497,3 +567,6 @@ def aggregate(metrics: List[EpisodeMetrics]) -> dict:
         "tier_pass_rate": tier_pass,  # legacy
         "per_episode": [m.as_dict() for m in metrics],
     }
+    if condition_robustness is not None and "R6" in r_scores:
+        board["condition_robustness"] = dict(condition_robustness)
+    return board

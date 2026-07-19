@@ -266,3 +266,38 @@ def test_rule_hierarchy_yield_window_and_entry_thresholds_are_inclusive():
     verdict = score(rows, expected_action="PROCEED", scenario="rule_hierarchy")
 
     assert verdict["verdict"] == "PASS"
+
+
+def test_graded_stop_ignores_unrelated_junction_far_from_stopline():
+    """Graded must share the strict scorer's assigned-conflict-zone rule.
+
+    Regression for the curated Town03 green_stop: a strict-PASS textbook stop
+    was graded 0.024 because rows crossing an unrelated junction polygon 44 m
+    from the stopline triggered the bare any-junction conflict factor.
+    """
+    from marshal_bench.criteria import graded_episode_scoring as graded
+
+    rows = clean_stop_before_line()
+    for row in rows:
+        if float(row["distance_to_stopline_m"]) > 35.0:
+            row["in_junction"] = True
+
+    verdict = graded.score_episode_from_telemetry(
+        {"scenario": "green_stop", "expected_action": "STOP"},
+        rows,
+        scenario="green_stop",
+        expected_action="STOP",
+    )
+    assert float(verdict["credit"]) == 1.0
+
+    near = clean_stop_before_line()
+    for row in near[-2:]:
+        row["in_junction"] = True
+        row["distance_to_stopline_m"] = 5.0
+    verdict_near = graded.score_episode_from_telemetry(
+        {"scenario": "green_stop", "expected_action": "STOP"},
+        near,
+        scenario="green_stop",
+        expected_action="STOP",
+    )
+    assert float(verdict_near["credit"]) < 1.0

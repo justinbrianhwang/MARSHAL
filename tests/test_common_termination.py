@@ -1,7 +1,12 @@
+import math
 from types import SimpleNamespace
 
 from marshal_bench.scenarios import _common
-from marshal_bench.scenarios._common import _stop_completion_reached
+from marshal_bench.scenarios._common import (
+    _detour_completion_reached,
+    _station_town_key,
+    _stop_completion_reached,
+)
 
 
 def test_stop_completion_does_not_fire_for_station_already_in_junction():
@@ -75,3 +80,29 @@ def test_spawn_settle_handbrake_is_explicitly_released(monkeypatch):
         "brake": 1.0,
         "hand_brake": False,
     }]
+
+
+def test_detour_completion_requires_envelope_and_merge():
+    # anchor 28: envelope end = 28 + 17 = 45 m
+    assert not _detour_completion_reached(28.0, 40.0, 0.1, 10.0, 1.0)   # short
+    assert not _detour_completion_reached(28.0, 46.0, -2.5, 10.0, 1.0)  # unmerged
+    assert _detour_completion_reached(28.0, 45.0, 0.2, 10.0, 1.0)
+
+
+def test_detour_completion_is_safe_on_missing_or_bad_signals():
+    assert not _detour_completion_reached(None, 60.0, 0.0, 10.0, 1.0)
+    assert not _detour_completion_reached(28.0, None, 0.0, 10.0, 1.0)
+    assert not _detour_completion_reached(28.0, float("nan"), 0.0, 10.0, 1.0)
+    assert not _detour_completion_reached(28.0, 60.0, math.nan, 10.0, 1.0)
+    assert not _detour_completion_reached(28.0, 60.0, 0.0, 0.5, 1.0)  # pre-onset
+
+
+def test_station_town_key_recognises_carla_suffixes():
+    # The Town10HD miss made the runtime fall back to Town03 stations.
+    assert _station_town_key("Town10HD") == "town10hd"
+    assert _station_town_key("Town10HD_Opt") == "town10hd"
+    assert _station_town_key("/Game/Carla/Maps/Town03") == "town03"
+    assert _station_town_key("Town05") == "town05"
+    assert _station_town_key("") is None
+    assert _station_town_key(None) is None
+    assert _station_town_key("NotATown") is None
