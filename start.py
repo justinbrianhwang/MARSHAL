@@ -99,6 +99,12 @@ def _run_episode(controller: str, scenario: str, args, out_root: str) -> dict | 
     if args.debug:
         cmd.append("--debug")
 
+    # Episode dir names are deterministic, so re-running an already-used
+    # --tag leaves stale result.json files behind. Only a result written
+    # AFTER this invocation started may count — otherwise a double-crash
+    # would silently score the previous run's (possibly luckier) verdict.
+    run_started = time.time()
+
     def _collect_result() -> dict | None:
         if not os.path.isdir(out_root):
             return None
@@ -107,6 +113,8 @@ def _run_episode(controller: str, scenario: str, args, out_root: str) -> dict | 
                 rj = os.path.join(out_root, d, "result.json")
                 if os.path.isfile(rj):
                     try:
+                        if os.path.getmtime(rj) < run_started - 2.0:
+                            continue  # stale artifact from a previous run
                         blob = json.load(open(rj, encoding="utf-8"))
                         return blob.get("result", blob)
                     except Exception:  # noqa: BLE001

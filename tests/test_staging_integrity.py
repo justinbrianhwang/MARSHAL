@@ -201,3 +201,39 @@ def test_construction_works_vehicle_is_frozen_at_spawn(monkeypatch):
         "crash-pileup vehicles — physics-on parking can launch it"
     )
     assert list(out) == spawned
+
+
+# ---------------------------------------------------------------------------
+# Adjacent-lane car: frozen at spawn, not only in the scenario's late hook
+# ---------------------------------------------------------------------------
+def test_adjacent_vehicle_is_frozen_at_spawn(monkeypatch):
+    spawned = []
+
+    def try_spawn_actor(_bp, _tf):
+        actor = _FakeActor("vehicle.tesla.model3")
+        spawned.append(actor)
+        return actor
+
+    world = SimpleNamespace(
+        try_spawn_actor=try_spawn_actor,
+        get_blueprint_library=lambda: None,
+    )
+    monkeypatch.setattr(scene_actors, "import_carla", _FakeCarla)
+    monkeypatch.setattr(
+        scene_actors, "route_waypoint", lambda *_a: _fake_waypoint(26.0)
+    )
+    monkeypatch.setattr(
+        scene_actors, "_four_wheelers",
+        lambda _lib: [_FakeBlueprint("vehicle.tesla.model3")],
+    )
+
+    out = scene_actors.spawn_adjacent_vehicle(
+        world, SimpleNamespace(location=SimpleNamespace(x=0, y=0, z=0))
+    )
+
+    assert len(out) == 1
+    assert False in spawned[0].physics_calls, (
+        "the adjacent-lane car must be frozen AT SPAWN — the async window "
+        "before the scenario's late freeze is the same depenetration-launch "
+        "window that ejected the esb firetruck"
+    )

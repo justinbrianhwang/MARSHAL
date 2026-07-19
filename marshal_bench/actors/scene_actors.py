@@ -235,6 +235,10 @@ def spawn_adjacent_vehicle(
     if actor is None:
         log.warning("adjacent vehicle: spawn returned None")
         return []
+    # Physics OFF at spawn like every other staged stationary vehicle: the
+    # window before the scenario's own late freeze is the same
+    # depenetration-launch window that ejected the esb firetruck.
+    _freeze(actor)
     log.info("adjacent vehicle: spawned in %s lane at %.0f m", side, distance)
     return [actor]
 
