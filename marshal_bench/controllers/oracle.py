@@ -402,7 +402,11 @@ class OracleController(EpisodeController):
                     self.ego.get_location().distance(self._stop_roll_anchor))
             except Exception:
                 advanced = 0.0
-        if advanced < float(self._approach_stop_gap_m or 0.0):
+        # Start braking ~2 m short of the roll target: braking from the
+        # ~14 km/h creep carries ~1.8 m, so the actual stop lands ON the
+        # target instead of overshooting past it (review round 4 measured a
+        # 20.76 m stop against a 19.0 m target with brake-at-target logic).
+        if advanced < float(self._approach_stop_gap_m or 0.0) - 2.0:
             ctrl = self._copy_control(base)
             # Creep cap ~14 km/h: well under the strict 18 km/h zone cap and
             # slow enough to read as obeying the flagger's SLOW.

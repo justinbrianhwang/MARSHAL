@@ -55,6 +55,30 @@ def scenarios(taxonomy):
     return taxonomy["scenarios"]
 
 
+def test_registry_tables_match_runner_suite_exactly():
+    """Both directions: a scenario missing from a registry table AND a typo'd
+    extra key in a registry table are caught (round-4 LOW: extras escaped)."""
+    assert set(mm.SCENARIO_SPEC) == IMPLEMENTED_SCENARIOS
+    assert set(mm.SECONDARY_ATTRIBUTES) == IMPLEMENTED_SCENARIOS
+    assert set(mm.CONFLICT_TYPE) == IMPLEMENTED_SCENARIOS
+    assert set(mm.REASONING_TIER) == IMPLEMENTED_SCENARIOS
+
+
+def test_docs_scenarios_reference_every_scenario_and_attribute():
+    """Light drift guard for docs/scenarios.md (round-4 LOW: no docs guard):
+    the reference doc must mention every scenario id and every secondary
+    attribute tag. Content-level drift is still reviewed by hand."""
+    doc = (_REPO_ROOT / "docs" / "scenarios.md").read_text(encoding="utf-8")
+    missing = [name for name in IMPLEMENTED_SCENARIOS if f"`{name}`" not in doc]
+    assert not missing, f"docs/scenarios.md is missing scenario ids: {sorted(missing)}"
+    missing_tags = [
+        tag for tag in mm.SECONDARY_ATTRIBUTE_VOCABULARY if f"`{tag}`" not in doc
+    ]
+    assert not missing_tags, (
+        f"docs/scenarios.md is missing secondary attributes: {missing_tags}"
+    )
+
+
 def test_all_implemented_scenarios_present(scenarios):
     missing = IMPLEMENTED_SCENARIOS - set(scenarios)
     assert not missing, f"missing implemented scenarios in taxonomy: {sorted(missing)}"

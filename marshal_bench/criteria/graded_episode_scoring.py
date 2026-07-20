@@ -25,7 +25,7 @@ from __future__ import annotations
 import math
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
-from .strict_episode_scoring import STOP_APPROACH_REQUIREMENTS, STRICT_THRESHOLDS
+from .strict_episode_scoring import STRICT_THRESHOLDS, _approach_requirement_for
 
 
 GRADED_THRESHOLDS: Dict[str, float] = {
@@ -588,24 +588,50 @@ def _stop_hold_approach_factor(
 ) -> Tuple[float, Optional[Dict[str, Any]]]:
     """Scenario-specific approach requirement, mirrored from the strict scorer.
 
-    dual_authority_handoff stages a near-zone flagger whose body feeds
-    distance_to_hazard_m; a stop that never transits that zone (blip-then-park)
-    must not earn stop credit. Credit ramps from 1.0 at a real transit down to
-    0.0 when the ego parked the full zone distance short.
+    dual_authority_handoff stages a near-zone flagger (feeds
+    distance_to_hazard_m) and a junction officer beyond it. The factor is the
+    product of three credits so no degenerate policy earns stop credit:
+
+    - transit: min hazard distance ramps from 1.0 at a real flagger pass down
+      to 0.0 at the episode's OWN initial flagger distance (never-move = 0
+      regardless of staged geometry — the previous fixed 16 m zero point gave
+      a parked policy 0.58 under the staged 8.5 m flagger).
+    - officer proximity: the ego must come near the junction officer.
+    - stop band: the FINAL position must hold just past the flagger.
     """
-    requirement = STOP_APPROACH_REQUIREMENTS.get(
-        str(scenario or "").removeprefix("marshal_"))
+    requirement = _approach_requirement_for(scenario)
     if requirement is None:
         return 1.0, None
     min_hazard = _min(rows, "distance_to_hazard_m")
-    credit = _linear_credit(
-        min_hazard,
-        requirement["hazard_pass_m"],
-        requirement["hazard_pass_m"] + 12.0,
+    initial_hazard = _finite_float(rows[0].get("distance_to_hazard_m")) if rows else None
+    zero_at = max(
+        requirement["hazard_pass_m"] + 2.0,
+        initial_hazard if initial_hazard is not None else 0.0,
     )
+    transit_credit = _linear_credit(min_hazard, requirement["hazard_pass_m"], zero_at)
+    min_officer = _min(rows, "distance_to_officer_m")
+    officer_credit = _linear_credit(min_officer, requirement["officer_pass_m"], 20.0)
+    hazard_forward = _finite_float(rows[0].get("hazard_forward_m")) if rows else None
+    final_forward = _finite_float(rows[-1].get("ego_forward_m")) if rows else None
+    if hazard_forward is None or final_forward is None:
+        band_credit = 0.0
+    else:
+        band_min = hazard_forward + requirement["stop_band_past_hazard_min_m"]
+        band_max = hazard_forward + requirement["stop_band_past_hazard_max_m"]
+        if band_min <= final_forward <= band_max:
+            band_credit = 1.0
+        else:
+            outside = band_min - final_forward if final_forward < band_min else final_forward - band_max
+            band_credit = _clamp(1.0 - outside / 6.0)
+    credit = _clamp(transit_credit * officer_credit * band_credit)
     return credit, {
         "factor": _round(credit),
+        "transit_credit": _round(transit_credit),
+        "officer_credit": _round(officer_credit),
+        "band_credit": _round(band_credit),
         "min_distance_to_hazard_m": _round(min_hazard),
+        "min_distance_to_officer_m": _round(min_officer),
+        "final_ego_forward_m": _round(final_forward),
         "required_hazard_pass_m": requirement["hazard_pass_m"],
     }
 

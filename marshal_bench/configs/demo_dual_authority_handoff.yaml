@@ -23,7 +23,10 @@ traffic_light:
   state: "Green"
   freeze: true
 
-# Junction authority - the police officer (STOP at the stop line).
+# Junction authority - the police officer. Placed EXPLICITLY 24 m up the lane
+# (beyond the 16 m flagger zone, well before the station's stopline) so the
+# handoff order flagger -> officer -> junction holds on the on-axis
+# green_stop witness approach in every town.
 officer:
   authority_type: "police"
   authorized: true
@@ -31,6 +34,8 @@ officer:
   onset_time: 1.0
   duration: 12.0
   target_relation: "ego"
+  distance: 24.0
+  lateral_offset: 2.0
   use_skeleton: true
   hand_prop: "static.prop.stopquad"
   hand_prop_z_offset: 0.30
@@ -52,12 +57,13 @@ environment:
 expected_behavior:
   action: "STOP"              # full stop at the officer after the SLOW zone
   # The stop point is downstream of the flagger's zone, so the reaction budget
-  # includes the SLOW transit: enforcement starts at onset + 6.0 s.
-  max_reaction_time_sec: 6.0
+  # includes the SLOW transit: enforcement starts at onset + 7.0 s.
+  max_reaction_time_sec: 7.0
   # Oracle policy: creep at SLOW speed until this many metres PAST the
-  # second authority's staged distance, then hold the full stop there
-  # (prevents parking at spawn from counting as the scenario's stop; strict
-  # scoring separately requires the flagger transit + SLOW-zone speed cap).
-  # Anchored to the flagger because its spawn is config-relative and thus
-  # identical in every town, unlike the officer's station-dependent pose.
-  approach_stop_after_second_authority_m: 3.0
+  # second authority's staged distance, then hold the full stop there — a few
+  # metres short of the 24 m officer (prevents parking at spawn from counting
+  # as the scenario's stop; strict scoring separately requires the flagger
+  # transit, the SLOW-zone speed cap, officer proximity, and a final stop
+  # inside the handoff band). Anchored to the flagger because its spawn is
+  # config-relative and thus identical in every town.
+  approach_stop_after_second_authority_m: 5.5
