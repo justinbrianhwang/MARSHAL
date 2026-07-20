@@ -212,7 +212,7 @@ def _build_parser() -> argparse.ArgumentParser:
                    help="Label for this run's output folder + scoreboard "
                         "(default: derived from --controller).")
     p.add_argument("--scenarios", nargs="*", default=None,
-                   help="Subset of scenarios to run (default: all 14).")
+                   help=f"Subset of scenarios to run (default: all {len(ALL_SCENARIOS)}).")
     p.add_argument("--town", default="Town03",
                    help="Benchmark map. Use 'Town03_MARSHAL' once the logo-baked "
                         "map is packaged.")

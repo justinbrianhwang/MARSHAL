@@ -3,7 +3,7 @@ locations (configs/stations.json). Runs each with the oracle controller and
 reports: did it play, did the officer + scene actors spawn, the marshal_metrics,
 and any fatal. Flags scenarios that need station/scene fixes.
 
-    C:/.../envs/marshal/python.exe scripts/_verify_stations.py
+    C:/.../envs/marshal/python.exe tools/verify_stations.py
 """
 from __future__ import annotations
 
@@ -15,10 +15,16 @@ import sys
 _THIS = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.abspath(os.path.join(_THIS, os.pardir))
 sys.path.insert(0, _ROOT)
-sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 
 PY = sys.executable
-RUNNER = os.path.join(_THIS, "run_marshal_officer_demo.py")
+# The episode runner lives under scripts/, not next to this tool.
+RUNNER = os.path.join(_ROOT, "scripts", "run_marshal_officer_demo.py")
+if not os.path.isfile(RUNNER):
+    sys.exit(f"episode runner not found: {RUNNER}")
 OUT = os.path.join(_ROOT, "outputs", "verify_stations")
 # Derive from the benchmark registry so this tool can never drift from the
 # real suite again (it was stuck at the original 14 while the suite grew).

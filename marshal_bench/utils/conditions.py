@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Any, Dict, Mapping, Optional
+
+log = logging.getLogger(__name__)
 
 
 REPORTED_GRID = [
@@ -107,8 +110,22 @@ def merge_condition_config(
     weather_preset: Optional[str] = None,
     weather_params: Optional[Mapping[str, float]] = None,
 ) -> Dict[str, Any]:
-    """Add the first-class weather key only when a condition was requested."""
+    """Add the first-class weather key only when a condition was requested.
+
+    A config that already carries a top-level ``weather`` key is an INTRINSIC
+    scenario condition (e.g. night_signal_officer_conflict pins ClearNight as
+    part of what the scenario tests). The sweep-wide CLI/env condition must
+    never silently replace it: the pin wins and the requested condition is
+    ignored for that episode, with a log line making the precedence visible.
+    """
     if weather_preset is None and weather_params is None:
+        return cfg
+    if cfg.get("weather") is not None:
+        log.info(
+            "config pins an intrinsic weather condition (%r); ignoring the "
+            "requested sweep condition (preset=%r, params=%r) for this episode",
+            cfg.get("weather"), weather_preset, dict(weather_params or {}),
+        )
         return cfg
     weather: Dict[str, Any] = {}
     if weather_preset is not None:

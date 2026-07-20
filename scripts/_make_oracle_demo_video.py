@@ -104,8 +104,11 @@ SCENARIOS = [
      "Director halts the CROSS traffic (not ego)  ->  oracle PROCEEDS", False, "fwd"),
     ("night_signal_officer_conflict", "marshal_night_signal_officer_conflict_demo",
      "NIGHT: RED light + police GO  ->  oracle PROCEEDS", True, "fwd"),
+    # No frontal pull: the zone ORDER is the scenario (flagger 16 m, officer
+    # ~20.7 m); pulling the officer to 15 m would invert the handoff on camera
+    # and break the oracle's transit-then-stop drive.
     ("dual_authority_handoff", "marshal_dual_authority_handoff_demo",
-     "Flagger SLOW zone, then police STOP  ->  oracle STOPS at the officer", True, "fwd"),
+     "Flagger SLOW zone, then police STOP  ->  oracle STOPS at the officer", False, "fwd"),
 ]
 
 _CFG = {  # scenario key -> config yaml (relative to repo root)

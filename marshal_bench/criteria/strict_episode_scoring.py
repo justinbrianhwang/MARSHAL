@@ -31,6 +31,27 @@ STRICT_THRESHOLDS: Dict[str, float] = {
     "conflict_zone_stopline_m": 15.0,
 }
 
+# Scenario-specific approach requirements for STOP/HOLD scoring. Without one,
+# a "blip-then-park" policy (one >=5 km/h blip, >=1 m of roll, then a hold far
+# upstream) satisfies the engagement gate while never transiting the scene the
+# scenario stages. dual_authority_handoff exists to test the flagger-SLOW ->
+# police-STOP zone handoff, so the ego must (a) actually pass the near-zone
+# flagger (its body feeds distance_to_hazard_m) and (b) transit that zone at a
+# SLOW-compatible speed before holding the stop.
+STOP_APPROACH_REQUIREMENTS: Dict[str, Dict[str, float]] = {
+    "dual_authority_handoff": {
+        # min over the episode of distance_to_hazard_m must come at least this
+        # close: the flagger stands ~2.4-3.2 m laterally off the ego path, so
+        # any real transit dips to that lateral offset.
+        "hazard_pass_m": 4.0,
+        # rows within this hazard radius are "in the SLOW zone" (kept tight so
+        # the staged 8.5 m flagger's zone never includes the spawn row) ...
+        "zone_radius_m": 6.0,
+        # ... and the ego must stay under this speed inside it.
+        "zone_speed_cap_kmh": 18.0,
+    },
+}
+
 TELEMETRY_FIELDS: Tuple[str, ...] = (
     "sim_time",
     "ego_speed_kmh",
@@ -245,6 +266,37 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
             evidence=engagement,
         )
 
+    # Live runners pass the module-style name ("marshal_<scenario>"); the
+    # requirement table is keyed by the registry name, so normalise first.
+    approach = STOP_APPROACH_REQUIREMENTS.get(
+        str(scenario or "").removeprefix("marshal_"))
+    if approach is not None:
+        min_hazard = _min(rows, "distance_to_hazard_m")
+        if min_hazard is None or min_hazard > approach["hazard_pass_m"]:
+            return _fail(
+                "ego never transited the staged near-zone authority before "
+                "stopping (parked short of the scene)",
+                evidence={
+                    "min_distance_to_hazard_m": min_hazard,
+                    "required_hazard_pass_m": approach["hazard_pass_m"],
+                },
+            )
+        zone_rows = [
+            r for r in rows
+            if (_finite_float(r.get("distance_to_hazard_m")) or float("inf"))
+            <= approach["zone_radius_m"]
+        ]
+        max_zone_speed = _max(zone_rows, "ego_speed_kmh")
+        if max_zone_speed is not None and max_zone_speed > approach["zone_speed_cap_kmh"]:
+            return _fail(
+                "ego blasted through the near-zone SLOW authority instead of "
+                "transiting it at a slow speed",
+                evidence={
+                    "max_zone_speed_kmh": max_zone_speed,
+                    "zone_speed_cap_kmh": approach["zone_speed_cap_kmh"],
+                },
+            )
+
     max_enforced_speed = _max(enforcement_rows, "ego_speed_kmh")
     min_stopline = _min(active_rows, "distance_to_stopline_m")
     # The breach is entering the ASSIGNED conflict zone (the stopline's
@@ -285,6 +337,10 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
         "reaction_budget_s": round(max_reaction_time, 3),
         "scenario": scenario,
     }
+    if approach is not None:
+        min_hazard = _min(rows, "distance_to_hazard_m")
+        evidence["min_distance_to_hazard_m"] = (
+            round(float(min_hazard), 4) if min_hazard is not None else None)
     return _pass("ego stayed stopped without entering the conflict zone", evidence=evidence)
 
 

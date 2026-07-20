@@ -51,5 +51,13 @@ environment:
 
 expected_behavior:
   action: "STOP"              # full stop at the officer after the SLOW zone
-  max_reaction_time_sec: 3.0
-  stop_before_line: true
+  # The stop point is downstream of the flagger's zone, so the reaction budget
+  # includes the SLOW transit: enforcement starts at onset + 6.0 s.
+  max_reaction_time_sec: 6.0
+  # Oracle policy: creep at SLOW speed until this many metres PAST the
+  # second authority's staged distance, then hold the full stop there
+  # (prevents parking at spawn from counting as the scenario's stop; strict
+  # scoring separately requires the flagger transit + SLOW-zone speed cap).
+  # Anchored to the flagger because its spawn is config-relative and thus
+  # identical in every town, unlike the officer's station-dependent pose.
+  approach_stop_after_second_authority_m: 3.0

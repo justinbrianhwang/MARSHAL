@@ -294,7 +294,7 @@ these scenarios at all:
 ### Watch the oracle handle each scenario
 
 The clips below are the privileged **oracle** (Track A — the expected-behaviour
-reference) driving each of the **23** scenarios end to end
+reference) driving each of the **25** scenarios end to end
 on stock Town03. Every
 clip shows the officer / flagger / hazard in front of the ego and the correct
 authority-aware response. (Numbers match the table above; full-resolution MP4s
@@ -949,7 +949,7 @@ scope so it can be cited without over-reach.
 ## Repository layout
 
 ```
-start.py                     # one entry point: score a model on all 21 scenarios
+start.py                     # one entry point: score a model on all 25 scenarios
 marshal_bench/
   controllers/               # the agents under test
     base.py                  #   EpisodeController interface (setup/step/teardown)

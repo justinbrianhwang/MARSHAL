@@ -1,4 +1,5 @@
-"""Render a top-down Town03 map annotated with the 14 MARSHAL scenario stations.
+"""Render a top-down Town03 map annotated with every MARSHAL scenario station
+(the suite is derived from start.ALL_SCENARIOS, currently 25).
 
 Works OFFLINE — no CARLA server needed. It parses the Town03 OpenDRIVE (.xodr)
 into a ``carla.Map`` client-side, scatters the road network, and overlays each
@@ -95,7 +96,7 @@ def main() -> int:
 
     ax.set_aspect("equal")
     ax.invert_yaxis()  # CARLA top-down convention
-    ax.set_title("MARSHAL benchmark — 14 scenario stations on Town03",
+    ax.set_title(f"MARSHAL benchmark — {len(ORDER)} scenario stations on Town03",
                  fontsize=15, fontweight="bold", pad=14)
     ax.set_xlabel("x (m)"); ax.set_ylabel("y (m)")
     ax.grid(True, alpha=0.25)
