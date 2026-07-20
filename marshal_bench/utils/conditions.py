@@ -83,6 +83,10 @@ def condition_from_config(value: Any) -> EpisodeCondition:
         return EpisodeCondition(weather_preset=name)
     if not isinstance(value, Mapping):
         raise ValueError("weather must be a preset string or a mapping")
+    if not value:
+        raise ValueError(
+            "weather mapping must not be empty (a bare 'weather: {}' would "
+            "silently apply default-constructed weather)")
 
     raw = dict(value)
     if "preset" in raw or "params" in raw:
@@ -120,7 +124,10 @@ def merge_condition_config(
     """
     if weather_preset is None and weather_params is None:
         return cfg
-    if cfg.get("weather") is not None:
+    # Truthiness, not mere presence: a degenerate 'weather: {}' / '' must not
+    # silently veto a requested sweep condition (it still fails loudly on its
+    # own via condition_from_config when no CLI condition is given).
+    if cfg.get("weather"):
         log.info(
             "config pins an intrinsic weather condition (%r); ignoring the "
             "requested sweep condition (preset=%r, params=%r) for this episode",

@@ -60,10 +60,12 @@ def _load_town_inputs(
 
 
 def _station_entry_usable(entry: Any) -> bool:
-    """True when a station entry can actually spawn an episode (finite x/y/yaw)."""
+    """True when a station entry can actually spawn an episode (finite x/y/yaw,
+    plus a finite z when one is present — the runtime coerces z with float())."""
     if not isinstance(entry, Mapping):
         return False
-    for key in ("x", "y", "yaw"):
+    keys = ["x", "y", "yaw"] + (["z"] if "z" in entry else [])
+    for key in keys:
         value = entry.get(key)
         if not isinstance(value, (int, float)) or isinstance(value, bool):
             return False
@@ -256,7 +258,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--town", required=True, help="CARLA town, e.g. Town05")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=2000)
-    parser.add_argument("--scenarios", help="comma-separated scenario names (default: all 21)")
+    parser.add_argument("--scenarios", help="comma-separated scenario names (default: the full registered suite)")
     parser.add_argument("--out", default=str(ROOT / "outputs" / "calibration"), help="calibration output root")
     parser.add_argument("--fps", type=float, default=20.0)
     parser.add_argument("--episode-timeout", type=float, default=300.0)

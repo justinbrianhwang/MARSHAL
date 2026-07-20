@@ -36,8 +36,11 @@ STRICT_THRESHOLDS: Dict[str, float] = {
 # upstream) satisfies the engagement gate while never transiting the scene the
 # scenario stages. dual_authority_handoff exists to test the flagger-SLOW ->
 # police-STOP zone handoff, so the ego must (a) actually pass the near-zone
-# flagger (its body feeds distance_to_hazard_m) and (b) transit that zone at a
-# SLOW-compatible speed before holding the stop.
+# flagger (its body feeds distance_to_hazard_m), (b) transit that zone at a
+# SLOW-compatible speed, (c) come near the junction officer, and (d) HOLD its
+# final stop inside the handoff band just past the flagger — parking beside
+# the flagger, reversing back upstream after touching the zone, and driving
+# far past the officer all fail (adversarial review round 4).
 STOP_APPROACH_REQUIREMENTS: Dict[str, Dict[str, float]] = {
     "dual_authority_handoff": {
         # min over the episode of distance_to_hazard_m must come at least this
@@ -49,8 +52,29 @@ STOP_APPROACH_REQUIREMENTS: Dict[str, Dict[str, float]] = {
         "zone_radius_m": 6.0,
         # ... and the ego must stay under this speed inside it.
         "zone_speed_cap_kmh": 18.0,
+        # the ego must actually come near the junction officer ...
+        "officer_pass_m": 7.0,
+        # ... and its FINAL position must sit in the handoff band, measured
+        # past the flagger's forward offset (first-row hazard_forward_m):
+        # far enough to have cleared the SLOW zone, short enough to still be
+        # at the officer rather than beyond the junction.
+        "stop_band_past_hazard_min_m": 1.0,
+        "stop_band_past_hazard_max_m": 9.0,
     },
 }
+
+
+def _approach_requirement_for(scenario: Any) -> Optional[Dict[str, float]]:
+    """Resolve the approach-requirement entry for any scenario spelling.
+
+    Live runners pass the module-style name ("marshal_<scenario>"), tooling
+    sometimes the module-file style ("..._demo"); the table is keyed by the
+    registry name. Normalise instead of failing open on a spelling.
+    """
+    key = str(scenario or "")
+    key = key.removeprefix("marshal_")
+    key = key.removesuffix("_demo")
+    return STOP_APPROACH_REQUIREMENTS.get(key)
 
 TELEMETRY_FIELDS: Tuple[str, ...] = (
     "sim_time",
@@ -266,10 +290,7 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
             evidence=engagement,
         )
 
-    # Live runners pass the module-style name ("marshal_<scenario>"); the
-    # requirement table is keyed by the registry name, so normalise first.
-    approach = STOP_APPROACH_REQUIREMENTS.get(
-        str(scenario or "").removeprefix("marshal_"))
+    approach = _approach_requirement_for(scenario)
     if approach is not None:
         min_hazard = _min(rows, "distance_to_hazard_m")
         if min_hazard is None or min_hazard > approach["hazard_pass_m"]:
@@ -281,12 +302,14 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
                     "required_hazard_pass_m": approach["hazard_pass_m"],
                 },
             )
-        zone_rows = [
-            r for r in rows
-            if (_finite_float(r.get("distance_to_hazard_m")) or float("inf"))
-            <= approach["zone_radius_m"]
+        zone_speeds = [
+            _finite_float(r.get("ego_speed_kmh"))
+            for r in rows
+            if (lambda hz: hz is not None and hz <= approach["zone_radius_m"])(
+                _finite_float(r.get("distance_to_hazard_m")))
         ]
-        max_zone_speed = _max(zone_rows, "ego_speed_kmh")
+        zone_speeds = [s for s in zone_speeds if s is not None]
+        max_zone_speed = max(zone_speeds) if zone_speeds else None
         if max_zone_speed is not None and max_zone_speed > approach["zone_speed_cap_kmh"]:
             return _fail(
                 "ego blasted through the near-zone SLOW authority instead of "
@@ -294,6 +317,38 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
                 evidence={
                     "max_zone_speed_kmh": max_zone_speed,
                     "zone_speed_cap_kmh": approach["zone_speed_cap_kmh"],
+                },
+            )
+        min_officer = _min(rows, "distance_to_officer_m")
+        if min_officer is None or min_officer > approach["officer_pass_m"]:
+            return _fail(
+                "ego never approached the junction officer whose STOP "
+                "terminates the handoff",
+                evidence={
+                    "min_distance_to_officer_m": min_officer,
+                    "required_officer_pass_m": approach["officer_pass_m"],
+                },
+            )
+        hazard_forward = _finite_float(rows[0].get("hazard_forward_m"))
+        final_forward = _finite_float(rows[-1].get("ego_forward_m"))
+        if hazard_forward is None or final_forward is None:
+            return _fail(
+                "handoff stop-band telemetry missing (hazard_forward_m / "
+                "ego_forward_m)",
+                evidence={
+                    "hazard_forward_m": hazard_forward,
+                    "final_ego_forward_m": final_forward,
+                },
+            )
+        band_min = hazard_forward + approach["stop_band_past_hazard_min_m"]
+        band_max = hazard_forward + approach["stop_band_past_hazard_max_m"]
+        if not (band_min <= final_forward <= band_max):
+            return _fail(
+                "ego did not hold its final stop inside the handoff band "
+                "just past the near-zone authority",
+                evidence={
+                    "final_ego_forward_m": round(final_forward, 4),
+                    "stop_band_m": [round(band_min, 4), round(band_max, 4)],
                 },
             )
 
@@ -339,8 +394,14 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
     }
     if approach is not None:
         min_hazard = _min(rows, "distance_to_hazard_m")
+        min_officer = _min(rows, "distance_to_officer_m")
+        final_forward = _finite_float(rows[-1].get("ego_forward_m"))
         evidence["min_distance_to_hazard_m"] = (
             round(float(min_hazard), 4) if min_hazard is not None else None)
+        evidence["min_distance_to_officer_m"] = (
+            round(float(min_officer), 4) if min_officer is not None else None)
+        evidence["final_ego_forward_m"] = (
+            round(float(final_forward), 4) if final_forward is not None else None)
     return _pass("ego stayed stopped without entering the conflict zone", evidence=evidence)
 
 

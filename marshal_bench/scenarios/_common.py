@@ -1118,7 +1118,14 @@ STATION_ALIASES = {
     "stale_directive_residue": "flagger_control",
     "out_of_jurisdiction_director": "fake_vest_director",
     "night_signal_officer_conflict": "red_proceed",
-    "dual_authority_handoff": "conflicting_authorities",
+    # dual_authority_handoff needs a LONG on-axis signal approach: the ego
+    # transits the flagger zone (~16 m) and stops near the officer (~24 m)
+    # BEFORE the junction, with the stopline on the driving axis so the
+    # conflict-zone / clearance checks are meaningful. green_stop's witness is
+    # exactly that geometry; the conflicting_authorities pose (previous alias)
+    # has its stopline ~28 m off the ego axis and its junction begins ~8 m in,
+    # which made those checks vacuous there (adversarial review round 4).
+    "dual_authority_handoff": "green_stop",
 }
 
 
