@@ -616,9 +616,10 @@ def _stop_hold_approach_factor(
         initial_hazard if initial_hazard is not None else 0.0,
     )
     transit_credit = _linear_credit(min_hazard, requirement["hazard_pass_m"], zero_at)
-    min_officer = _min(rows, "distance_to_officer_m")
-    # Steep officer ramp: parking short of the officer is the scenario's core
-    # over-obedience failure mode and must not keep near-full credit.
+    # Active-window minimum, mirroring strict (an approach after the directive
+    # expires must not earn officer credit). Steep ramp: parking short of the
+    # officer is the scenario's core over-obedience failure mode.
+    min_officer = _min(active_rows, "distance_to_officer_m")
     officer_credit = _linear_credit(min_officer, requirement["officer_pass_m"], 12.0)
     hazard_forward = next(
         (v for v in (_finite_float(r.get("hazard_forward_m")) for r in rows)
@@ -649,7 +650,12 @@ def _stop_hold_approach_factor(
         )
         # Driving past the officer's stop point while the directive is live is
         # the violation itself, even when the ego reverses back afterwards.
-        overshoot = max(0.0, max(active_fwd) - band_max)
+        # Anchored at band_max + the strict overshoot grace so a strict-PASS
+        # run always keeps 1.0 here (the strict-pass => full-credit invariant).
+        overshoot = max(
+            0.0,
+            max(active_fwd) - (band_max + requirement["overshoot_grace_m"]),
+        )
         overshoot_credit = _clamp(1.0 - overshoot / 2.0)
     credit = _clamp(
         transit_credit * officer_credit * band_credit * hold_credit * overshoot_credit)

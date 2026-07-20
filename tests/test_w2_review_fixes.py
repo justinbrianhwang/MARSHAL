@@ -288,6 +288,30 @@ def test_strict_rejects_sub_threshold_rolling_creep():
     assert "creeping" in verdict["reason"]
 
 
+def test_strict_rejects_bounded_rocking_creep():
+    """Round-6 attack: never-stationary +/-0.9 km/h rocking inside a ~0.375 m
+    envelope stays under the old 0.5 m displacement bound; the 0.3 m bound
+    (operational definition of stationary) kills it."""
+    speeds, forwards = [], []
+    forward = 0.0
+    for t in _TIMES:
+        if t < 1.0:
+            speed = 10.0 * t
+            forward += (speed / 3.6) * 0.5
+        elif t <= 5.0:
+            speed = 14.0
+            forward += (speed / 3.6) * 0.5
+        else:
+            speed = 0.9  # rocking: alternate direction every 1.5 s
+            phase = int((t - 5.0) / 1.5) % 2
+            forward += ((speed / 3.6) * 0.5) * (1 if phase == 0 else -1)
+        speeds.append(speed)
+        forwards.append(round(forward, 3))
+    verdict = _strict_score(_rows_from_profile(_TIMES, speeds, forwards))
+    assert verdict["passed"] is False
+    assert "creeping" in verdict["reason"]
+
+
 def test_strict_allows_rolling_away_after_the_directive_expires():
     verdict = _strict_score(_rolls_away_after_directive_rows())
     assert verdict["passed"] is True, verdict["reason"]

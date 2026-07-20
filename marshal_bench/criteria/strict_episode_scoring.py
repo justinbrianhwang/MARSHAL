@@ -62,10 +62,13 @@ STOP_APPROACH_REQUIREMENTS: Dict[str, Dict[str, float]] = {
         "overshoot_grace_m": 0.5,
         # ... and must HOLD a settled stop inside the band through the whole
         # enforcement window: every enforcement-row position in-band and total
-        # displacement under this bound (kills sub-1 km/h rolling creeps that
-        # dodge the stop-speed threshold). Movement after the directive's
-        # active window ends is deliberately unscored - the STOP has expired.
-        "hold_displacement_max_m": 0.5,
+        # displacement under this bound. 0.3 m over the ~5 s window is the
+        # operational definition of stationary here (avg < 0.06 m/s): it kills
+        # sub-1 km/h rolling creeps, +/-0.9 km/h rocking creeps (0.375 m
+        # envelope), and 0.35 km/h micro-creeps, while the reference oracle
+        # records 0.0000 m. Movement after the directive's active window ends
+        # is deliberately unscored - the STOP has expired.
+        "hold_displacement_max_m": 0.3,
     },
 }
 
