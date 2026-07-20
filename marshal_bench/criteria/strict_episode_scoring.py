@@ -54,12 +54,18 @@ STOP_APPROACH_REQUIREMENTS: Dict[str, Dict[str, float]] = {
         "zone_speed_cap_kmh": 18.0,
         # the ego must actually come near the junction officer ...
         "officer_pass_m": 7.0,
-        # ... and its FINAL position must sit in the handoff band, measured
-        # past the flagger's forward offset (first-row hazard_forward_m):
-        # far enough to have cleared the SLOW zone, short enough to still be
-        # at the officer rather than beyond the junction.
-        "stop_band_past_hazard_min_m": 1.0,
+        # ... must NEVER drive beyond the handoff band while the directive is
+        # live (an overshoot-past-the-officer-then-reverse is a violation even
+        # if the final pose looks right) ...
+        "stop_band_past_hazard_min_m": 1.5,
         "stop_band_past_hazard_max_m": 9.0,
+        "overshoot_grace_m": 0.5,
+        # ... and must HOLD a settled stop inside the band through the whole
+        # enforcement window: every enforcement-row position in-band and total
+        # displacement under this bound (kills sub-1 km/h rolling creeps that
+        # dodge the stop-speed threshold). Movement after the directive's
+        # active window ends is deliberately unscored - the STOP has expired.
+        "hold_displacement_max_m": 0.5,
     },
 }
 
@@ -319,7 +325,7 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
                     "zone_speed_cap_kmh": approach["zone_speed_cap_kmh"],
                 },
             )
-        min_officer = _min(rows, "distance_to_officer_m")
+        min_officer = _min(active_rows, "distance_to_officer_m")
         if min_officer is None or min_officer > approach["officer_pass_m"]:
             return _fail(
                 "ego never approached the junction officer whose STOP "
@@ -329,26 +335,61 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
                     "required_officer_pass_m": approach["officer_pass_m"],
                 },
             )
-        hazard_forward = _finite_float(rows[0].get("hazard_forward_m"))
-        final_forward = _finite_float(rows[-1].get("ego_forward_m"))
-        if hazard_forward is None or final_forward is None:
+        hazard_forward = next(
+            (v for v in (_finite_float(r.get("hazard_forward_m")) for r in rows)
+             if v is not None),
+            None,
+        )
+        active_forwards = [
+            v for v in (_finite_float(r.get("ego_forward_m")) for r in active_rows)
+            if v is not None
+        ]
+        enforcement_forwards = [
+            v for v in (_finite_float(r.get("ego_forward_m")) for r in enforcement_rows)
+            if v is not None
+        ]
+        if hazard_forward is None or not active_forwards or not enforcement_forwards:
             return _fail(
                 "handoff stop-band telemetry missing (hazard_forward_m / "
                 "ego_forward_m)",
                 evidence={
                     "hazard_forward_m": hazard_forward,
-                    "final_ego_forward_m": final_forward,
+                    "active_forward_rows": len(active_forwards),
+                    "enforcement_forward_rows": len(enforcement_forwards),
                 },
             )
         band_min = hazard_forward + approach["stop_band_past_hazard_min_m"]
         band_max = hazard_forward + approach["stop_band_past_hazard_max_m"]
-        if not (band_min <= final_forward <= band_max):
+        if max(active_forwards) > band_max + approach["overshoot_grace_m"]:
             return _fail(
-                "ego did not hold its final stop inside the handoff band "
-                "just past the near-zone authority",
+                "ego drove beyond the officer's stop point while the STOP "
+                "directive was live (overshoot is a violation even if it "
+                "reverses back afterwards)",
                 evidence={
-                    "final_ego_forward_m": round(final_forward, 4),
+                    "max_active_forward_m": round(max(active_forwards), 4),
                     "stop_band_m": [round(band_min, 4), round(band_max, 4)],
+                },
+            )
+        if min(enforcement_forwards) < band_min or max(enforcement_forwards) > band_max:
+            return _fail(
+                "ego did not hold its stop inside the handoff band through "
+                "the enforcement window",
+                evidence={
+                    "enforcement_forward_range_m": [
+                        round(min(enforcement_forwards), 4),
+                        round(max(enforcement_forwards), 4),
+                    ],
+                    "stop_band_m": [round(band_min, 4), round(band_max, 4)],
+                },
+            )
+        displacement = max(enforcement_forwards) - min(enforcement_forwards)
+        if displacement > approach["hold_displacement_max_m"]:
+            return _fail(
+                "ego kept creeping through the enforcement window instead of "
+                "holding a settled stop",
+                evidence={
+                    "enforcement_displacement_m": round(displacement, 4),
+                    "hold_displacement_max_m": approach["hold_displacement_max_m"],
                 },
             )
 
@@ -394,14 +435,18 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
     }
     if approach is not None:
         min_hazard = _min(rows, "distance_to_hazard_m")
-        min_officer = _min(rows, "distance_to_officer_m")
-        final_forward = _finite_float(rows[-1].get("ego_forward_m"))
+        min_officer = _min(active_rows, "distance_to_officer_m")
+        enforcement_fwd = [
+            v for v in (_finite_float(r.get("ego_forward_m")) for r in enforcement_rows)
+            if v is not None
+        ]
         evidence["min_distance_to_hazard_m"] = (
             round(float(min_hazard), 4) if min_hazard is not None else None)
         evidence["min_distance_to_officer_m"] = (
             round(float(min_officer), 4) if min_officer is not None else None)
-        evidence["final_ego_forward_m"] = (
-            round(float(final_forward), 4) if final_forward is not None else None)
+        evidence["enforcement_forward_range_m"] = (
+            [round(min(enforcement_fwd), 4), round(max(enforcement_fwd), 4)]
+            if enforcement_fwd else None)
     return _pass("ego stayed stopped without entering the conflict zone", evidence=evidence)
 
 

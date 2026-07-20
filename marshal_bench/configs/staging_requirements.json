@@ -389,7 +389,7 @@
       "min_detour_clearance_m": 0.0,
       "needs_offroad_shoulder": false,
       "officer_lateral_offset_m": 3.2,
-      "notes": "Two adjacent-zone authorities: junction police officer (STOP, config-placed 24 m / lateral 2.0 up the lane) plus a nearer construction flagger (SLOW, 16 m) placed by marshal_dual_authority_handoff_demo.py:34-45; staged sweep offsets keep the zone order (flagger 8.5 m nearer than the 13.0 m officer) in _shared_staging.py. Station lookup aliases to the green_stop witness pose (long on-axis signal approach so the stopline/conflict-zone checks are meaningful) via STATION_ALIASES in _common.py. A longer two-zone run-up (min_initial_stopline_m ~30) is generation-class for multi-town mining (docs/scenario_expansion.md A2)."
+      "notes": "Two adjacent-zone authorities: junction police officer (STOP, config-placed 24 m / lateral 2.0 up the lane) plus a nearer construction flagger (SLOW, 16 m) placed by marshal_dual_authority_handoff_demo.py:34-45; staged sweep offsets keep the zone order (flagger 8.5 m nearer than the 13.0 m officer) in _shared_staging.py. Station lookup aliases to the green_stop witness pose (long straight approach with clearance to the junction; the flagger/officer/band checks in strict_episode_scoring.py carry the positional scoring) via STATION_ALIASES in _common.py. A longer two-zone run-up (min_initial_stopline_m ~30) is generation-class for multi-town mining (docs/scenario_expansion.md A2)."
     }
   }
 }

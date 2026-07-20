@@ -58,9 +58,9 @@ def test_dual_authority_handoff_registered_as_conflict():
     assert name in mm.REASONING_TIER
     assert SCENARIO_AUTHORITY_WEIGHTS[name] == 2.00
     # Reuses the green_stop witness pose via the station alias: the handoff
-    # needs a long ON-AXIS signal approach (flagger 16 m -> officer 24 m ->
-    # stopline) so the conflict-zone/clearance checks are meaningful; the
-    # conflicting_authorities pose has its stopline ~28 m off the ego axis.
+    # needs a long straight approach (flagger 16 m -> officer 24 m) with
+    # clearance to the junction; the conflicting_authorities pose has its
+    # junction begin ~8 m in, which put the oracle's stop inside it.
     assert _load_station(f"marshal_{name}") == _load_station("marshal_green_stop")
 
 

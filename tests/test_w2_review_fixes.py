@@ -166,6 +166,59 @@ def _past_the_officer_rows():
     return _rows_from_profile(_TIMES, *_integrate(_TIMES, speed))
 
 
+def _overshoot_then_reverse_rows():
+    """Round-5 attack A: drive past the officer's stop point at zone-legal
+    speed, then reverse back into the band and hold — the final pose looks
+    right, the trajectory is the violation."""
+    speeds, forwards = [], []
+    forward = 0.0
+    for t in _TIMES:
+        if t < 1.0:
+            speed = 17.9 * t
+            forward += (speed / 3.6) * 0.5
+        elif t <= 6.0:
+            speed = 17.9
+            forward += (speed / 3.6) * 0.5
+        elif t <= 7.5:
+            speed = 13.0  # reversing
+            forward -= (speed / 3.6) * 0.5
+        else:
+            speed = 0.0
+        speeds.append(speed)
+        forwards.append(round(forward, 3))
+    return _rows_from_profile(_TIMES, speeds, forwards)
+
+
+def _rolling_creep_rows():
+    """Round-5 attack B: transit, then a perpetual 0.9 km/h creep that stays
+    under the 1.0 km/h stop-speed threshold while never actually stopping."""
+    def speed(t):
+        if t < 1.0:
+            return 10.0 * t
+        if t <= 5.0:
+            return 14.0
+        return 0.9
+    return _rows_from_profile(_TIMES, *_integrate(_TIMES, speed))
+
+
+def _rolls_away_after_directive_rows():
+    """NOT an attack: a compliant hold through the directive's active window
+    that starts moving after the STOP expires (green light, officer done).
+    Post-directive motion is lawful and must stay unscored."""
+    long_times = [i * 0.5 for i in range(29)]  # 0.0 .. 14.0
+    def speed(t):
+        if t < 1.0:
+            return 10.0 * t
+        if t <= 5.5:
+            return 14.0
+        if t <= 6.5:
+            return 14.0 * (6.5 - t)
+        if t <= 13.0:
+            return 0.0
+        return 8.0  # rolls away after active_end
+    return _rows_from_profile(long_times, *_integrate(long_times, speed))
+
+
 def _strict_score(rows, scenario=SCENARIO):
     return strict.score_episode_from_telemetry(
         {"scenario": scenario},
@@ -220,7 +273,24 @@ def test_strict_rejects_touch_then_reverse():
 def test_strict_rejects_stopping_past_the_officer():
     verdict = _strict_score(_past_the_officer_rows())
     assert verdict["passed"] is False
-    assert "handoff band" in verdict["reason"]
+    assert "beyond the officer" in verdict["reason"]
+
+
+def test_strict_rejects_overshoot_then_reverse():
+    verdict = _strict_score(_overshoot_then_reverse_rows())
+    assert verdict["passed"] is False
+    assert "beyond the officer" in verdict["reason"]
+
+
+def test_strict_rejects_sub_threshold_rolling_creep():
+    verdict = _strict_score(_rolling_creep_rows())
+    assert verdict["passed"] is False
+    assert "creeping" in verdict["reason"]
+
+
+def test_strict_allows_rolling_away_after_the_directive_expires():
+    verdict = _strict_score(_rolls_away_after_directive_rows())
+    assert verdict["passed"] is True, verdict["reason"]
 
 
 @pytest.mark.parametrize(
@@ -253,17 +323,21 @@ def test_strict_other_stop_scenarios_have_no_approach_requirement():
 def test_graded_collapses_degenerate_policies_but_rewards_transit():
     transit = _graded_score(_compliant_transit_rows(), max_reaction_time=BUDGET_S)
     assert transit["credit"] >= 0.9, transit
-    # Policies that never reach the officer's area collapse hard; the
-    # park-at-the-flagger shape keeps some partial credit (it did transit the
-    # SLOW zone and stopped only metres short of the band) but stays clearly
-    # below a genuine handoff — strict FAIL is the certification either way.
-    hard = [_blip_then_park_rows(), _touch_then_reverse_rows(), _past_the_officer_rows()]
+    hard = [
+        _blip_then_park_rows(),
+        _touch_then_reverse_rows(),
+        _past_the_officer_rows(),
+        _park_at_flagger_rows(),
+    ]
     for rows in hard:
         verdict = _graded_score(rows, max_reaction_time=BUDGET_S)
         assert verdict["credit"] <= 0.15, verdict
-    parked = _graded_score(_park_at_flagger_rows(), max_reaction_time=BUDGET_S)
-    assert parked["credit"] <= 0.7, parked
-    assert parked["credit"] < transit["credit"]
+    # Trajectory-shape violations keep a visible dent even where the final
+    # pose looks right; strict FAIL is the certification either way.
+    for rows in (_overshoot_then_reverse_rows(), _rolling_creep_rows()):
+        verdict = _graded_score(rows, max_reaction_time=BUDGET_S)
+        assert verdict["credit"] <= 0.65, verdict
+        assert verdict["credit"] < transit["credit"]
 
 
 def test_graded_transit_zero_point_tracks_staged_flagger_distance():
