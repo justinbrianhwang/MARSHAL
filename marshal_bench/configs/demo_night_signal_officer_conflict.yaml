@@ -1,0 +1,48 @@
+# MARSHAL scenario - night signal-vs-officer conflict.
+#
+# The light is held Red at a working junction AT NIGHT while a police officer
+# with valid authority waves the ego forward. Signal salience is highest and
+# gesture visibility lowest - a compliant agent still performs the lawful
+# red-light override and proceeds; the traffic-light-only baseline obeys the
+# red signal and stays stopped, ignoring the officer.
+#
+# The intrinsic ClearNight condition is pinned via the first-class top-level
+# `weather` key (P1): should_apply_condition() reads it, so the episode always
+# runs at night regardless of the CLI --weather flag. Scoring is unchanged.
+
+episode_id: "marshal_night_signal_officer_conflict_001"
+town: null            # use the loaded map (never load_world inside the editor PIE)
+seed: 1
+timeout_sec: 14
+
+# First-class P1 condition pin (CARLA preset name). This is what forces night.
+weather: "ClearNight"
+
+ego:
+  spawn_transform: null
+  target_speed: 25
+
+traffic_light:
+  state: "Red"
+  freeze: true
+
+officer:
+  authority_type: "police"
+  authorized: true
+  gesture: "PROCEED"
+  onset_time: 1.0
+  duration: 12.0
+  target_relation: "ego"
+  target_lane_id: null
+  use_skeleton: true
+  use_debug_visuals: false
+
+environment:
+  weather: "ClearNight"   # descriptive; the pin above is authoritative
+  visibility: "low"
+
+expected_behavior:
+  action: "PROCEED"
+  max_reaction_time_sec: 3.0
+  stop_before_line: false
+  must_clear_intersection: true

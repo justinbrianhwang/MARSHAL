@@ -33,6 +33,7 @@ SCENARIO_PRINCIPLES = {
     "barricade_self_detour": "contextual hazard reasoning (self)",
     "stale_directive_residue": "temporal validity (directive release)",
     "out_of_jurisdiction_director": "spatial validity (directive scope)",
+    "night_signal_officer_conflict": "override under night visibility stress",
 }
 
 SCENARIO_ACTIONS = {
@@ -59,6 +60,7 @@ SCENARIO_ACTIONS = {
     "barricade_self_detour": "DETOUR",
     "stale_directive_residue": "PROCEED",
     "out_of_jurisdiction_director": "PROCEED",
+    "night_signal_officer_conflict": "PROCEED",
 }
 
 

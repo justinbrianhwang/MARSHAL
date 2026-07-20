@@ -73,6 +73,8 @@ SCENARIO_SPEC: Dict[str, Dict[str, Any]] = {
     # Validity-cell reinforcement (23-scenario set).
     "stale_directive_residue":     {"metrics": {"SBO", "RTL"},      "expected": "PROCEED"},
     "out_of_jurisdiction_director": {"metrics": {"TAA", "FOA"},     "expected": "PROCEED"},
+    # Stressed-override under a night-visibility stressor (24-scenario set).
+    "night_signal_officer_conflict": {"metrics": {"AOC", "CRI", "SBO", "RTL"}, "expected": "PROCEED"},
 }
 
 # Scenario-module internal names that differ from the SCENARIO_SPEC key.
@@ -94,6 +96,7 @@ REASONING_TIER = {
     "school_crossing_guard": "mid", "fake_vest_director": "high",
     "barricade_self_detour": "mid",
     "stale_directive_residue": "high", "out_of_jurisdiction_director": "high",
+    "night_signal_officer_conflict": "high",
 }
 
 # Authority-conflict typology (docs/taxonomy_decision.md). Groups scenarios by the
@@ -110,6 +113,7 @@ CONFLICT_TYPE = {
     "adjacent_lane": "stressed-override",         # target attribution
     "sequential_directive": "stressed-override",  # temporal memory
     "flagger_slow_then_stop": "stressed-override",# temporal escalation
+    "night_signal_officer_conflict": "stressed-override",  # night / low gesture visibility
     # is the commander legitimate?
     "unauthorized_go": "validity", "fake_vest_director": "validity",
     "civilian_warning_accident": "validity",

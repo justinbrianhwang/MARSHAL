@@ -62,7 +62,7 @@ def test_staging_requirements_cover_exact_canonical_scenarios():
     )
     requirements = payload["scenarios"]
     assert set(requirements) == set(SCENARIO_SPEC)
-    assert len(requirements) == 23
+    assert len(requirements) == 24
     for scenario, entry in requirements.items():
         classified = classify_requirements(
             entry, payload["criterion_classes"], payload["criterion_defaults"]

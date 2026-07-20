@@ -185,6 +185,14 @@
       "yaw": 0.3,
       "tl_id": 1475,
       "lanes": 1
+    },
+    "night_signal_officer_conflict": {
+      "x": -99.5,
+      "y": 0.4,
+      "z": 0.5,
+      "yaw": 0.3,
+      "tl_id": 77,
+      "lanes": 1
     }
   }
 }
