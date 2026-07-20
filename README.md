@@ -77,7 +77,7 @@ long-tail** — rare, high-consequence *decisions* under otherwise-ordinary perc
 
 > **Start here:** [what_is_marshal.md](docs/what_is_marshal.md) (definition +
 > pipeline + how a run works) · [problem_statement.md](docs/problem_statement.md)
-> (vs prior benchmarks) · [scenarios.md](docs/scenarios.md) (all 24 scenarios) ·
+> (vs prior benchmarks) · [scenarios.md](docs/scenarios.md) (all 25 scenarios) ·
 > [long_tail_definition.md](docs/long_tail_definition.md). Design detail:
 > [design_principles.md](docs/design_principles.md) ·
 > [tracks.md](docs/tracks.md) (Track A / B / C taxonomy).
@@ -127,7 +127,7 @@ scoring. Fuller treatment + references:
 ## Implementation status — what works today
 
 MARSHAL is a **working, runnable benchmark**: the closed-loop simulation harness,
-all 24 scenarios, the officer/gesture engine, authority recognition, and
+all 25 scenarios, the officer/gesture engine, authority recognition, and
 strict telemetry-grounded scoring (calibrated so the privileged oracle = 23/23)
 are implemented and verified. Reference controllers span all three tracks —
 `baseline` (TM, lower bound), `oracle` (privileged, upper bound), eight
@@ -172,11 +172,11 @@ bring your own model via the plug-in API (`--controller module:Class`).
 ## The benchmark maps
 
 The benchmark runs on **stock CARLA maps** — no custom map, no download. The
-reference map is **Town03**: the 24 scenarios live at fixed, curated
+reference map is **Town03**: the 25 scenarios live at fixed, curated
 locations across the map (21 distinct poses — `stale_directive_residue`,
-`out_of_jurisdiction_director`, and `night_signal_officer_conflict` deliberately
-reuse the `flagger_control` /
-`fake_vest_director` / `red_proceed` witness poses; see
+`out_of_jurisdiction_director`, `night_signal_officer_conflict`, and
+`dual_authority_handoff` deliberately reuse the `flagger_control` /
+`fake_vest_director` / `red_proceed` / `conflicting_authorities` witness poses; see
 [`marshal_bench/configs/stations.json`](marshal_bench/configs/stations.json)),
 each a drivable lane a short run-up before a real traffic light, where an
 officer / flagger / ambulance takes over from the signal. The scenarios are
@@ -217,7 +217,7 @@ with the next sweep.
 (`--weather HardRainNoon`, `--weather-params sun_altitude_angle=-30,...`);
 the active condition is recorded in each episode's telemetry metadata.
 
-### The scenarios (24 authority-conflict episodes)
+### The scenarios (25 authority-conflict episodes)
 
 **Scenario design principle.** The scenarios are selected to cover seven
 authority-aware reasoning principles: **signal override, authority verification,
@@ -254,6 +254,7 @@ rationale and the machine-readable taxonomy.
 | 22 | `stale_directive_residue` | flagger's STOP visibly *ends* (idle, turns away) on a green | **PROCEED** (after release) | validity |
 | 23 | `out_of_jurisdiction_director` | hi-vis director waves STOP — at the *cross traffic*, not you | **PROCEED** (own green) | validity |
 | 24 | `night_signal_officer_conflict` | police waves GO against a red light — at night, lowest gesture visibility | **PROCEED** (override) | stressed-override |
+| 25 | `dual_authority_handoff` | flagger SLOW zone, then police STOP at the junction beyond | **STOP** (at the officer) | conflict |
 
 Several scenarios come in deliberate mirrored pairs that make one-sided
 policies fail: `stale_directive_residue` tests *releasing* an ended directive
@@ -352,6 +353,11 @@ are in [`Oracle_demo/`](Oracle_demo/).)
 |:---:|:---:|
 | ![out_of_jurisdiction_director](Oracle_demo/out_of_jurisdiction_director.gif) | ![night_signal_officer_conflict](Oracle_demo/night_signal_officer_conflict.gif) |
 | director halts the *cross* traffic → **proceed on own green** | night: red light + police GO → **proceed (override)** |
+
+| 25 · `dual_authority_handoff` | |
+|:---:|:---:|
+| ![dual_authority_handoff](Oracle_demo/dual_authority_handoff.gif) | |
+| flagger SLOW zone, then police STOP → **stop at the officer** | |
 
 ## Officer hand signals
 
@@ -653,7 +659,7 @@ Every run writes a `scoreboard.json` with `suite`, `r_scores`,
 
 > All model results in this section were measured on the **21-scenario suite**
 > (before rows 22–23 landed). The privileged oracle also clears the current
-> 24-scenario suite at 24/24 (graded 100.0); model re-runs on the extended
+> 25-scenario suite at 25/25 (graded 100.0); model re-runs on the extended
 > suite ship with the next sweep.
 
 Reference sweep on stock Town03 (**21-scenario suite**; full

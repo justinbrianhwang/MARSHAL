@@ -146,6 +146,10 @@ _SCENARIO_MAP: dict[str, tuple[str, str]] = {
         "marshal_bench.scenarios.marshal_night_signal_officer_conflict_demo",
         "marshal_bench/configs/demo_night_signal_officer_conflict.yaml",
     ),
+    "dual_authority_handoff": (
+        "marshal_bench.scenarios.marshal_dual_authority_handoff_demo",
+        "marshal_bench/configs/demo_dual_authority_handoff.yaml",
+    ),
 }
 
 

@@ -1,4 +1,4 @@
-"""Full verification of all 14 MARSHAL scenarios at their curated fixed
+"""Full verification of ALL registered MARSHAL scenarios at their curated fixed
 locations (configs/stations.json). Runs each with the oracle controller and
 reports: did it play, did the officer + scene actors spawn, the marshal_metrics,
 and any fatal. Flags scenarios that need station/scene fixes.
@@ -20,10 +20,9 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 PY = sys.executable
 RUNNER = os.path.join(_THIS, "run_marshal_officer_demo.py")
 OUT = os.path.join(_ROOT, "outputs", "verify_stations")
-SCEN = ["green_stop", "red_proceed", "signal_off", "crash_detour",
-        "fallen_person", "unauthorized_go", "adjacent_lane", "flagger_control",
-        "ambulance_yield", "occluded_officer", "conflicting_authorities",
-        "sequential_directive", "rule_hierarchy", "ambiguous_gesture"]
+# Derive from the benchmark registry so this tool can never drift from the
+# real suite again (it was stuck at the original 14 while the suite grew).
+from start import ALL_SCENARIOS as SCEN  # noqa: E402
 
 
 def events_summary(run_dir):

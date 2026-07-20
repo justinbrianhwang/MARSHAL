@@ -15,11 +15,12 @@ from tests._telemetry import make_rows
 NEW = ("stale_directive_residue", "out_of_jurisdiction_director")
 
 
-def test_benchmark_enumerates_24_scenarios_including_the_new_pair():
-    assert len(start.ALL_SCENARIOS) == 24
+def test_benchmark_enumerates_25_scenarios_including_the_new_pair():
+    assert len(start.ALL_SCENARIOS) == 25
     for name in NEW:
         assert name in start.ALL_SCENARIOS
     assert "night_signal_officer_conflict" in start.ALL_SCENARIOS
+    assert "dual_authority_handoff" in start.ALL_SCENARIOS
 
 
 def test_new_scenarios_registered_in_every_table():
@@ -47,6 +48,19 @@ def test_night_signal_officer_conflict_registered_as_stressed_override():
     assert SCENARIO_AUTHORITY_WEIGHTS[name] == 2.00
     # Reuses the red_proceed witness pose via the station alias.
     assert _load_station(f"marshal_{name}") == _load_station("marshal_red_proceed")
+
+def test_dual_authority_handoff_registered_as_conflict():
+    name = "dual_authority_handoff"
+    assert name in start.ALL_SCENARIOS
+    assert name in mm.SCENARIO_SPEC
+    assert mm.SCENARIO_SPEC[name]["expected"] == "STOP"
+    assert mm.CONFLICT_TYPE[name] == "conflict"
+    assert name in mm.REASONING_TIER
+    assert SCENARIO_AUTHORITY_WEIGHTS[name] == 2.00
+    # Reuses the conflicting_authorities witness pose via the station alias.
+    assert _load_station(f"marshal_{name}") == _load_station(
+        "marshal_conflicting_authorities"
+    )
 
 
 def test_runner_registry_paths_exist_for_all_scenarios():

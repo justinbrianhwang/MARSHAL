@@ -1,0 +1,55 @@
+# MARSHAL scenario - dual-authority handoff (conflict cell: zone scoping).
+#
+# Two authorized controllers govern adjacent zones on the same approach. A
+# construction flagger signals SLOW in the near zone; a police officer signals
+# STOP at the junction beyond it. The directives do NOT contradict - each
+# governs its own zone. A compliant agent obeys the flagger's SLOW through
+# zone 1 and then the officer's STOP at the junction, rather than averaging the
+# two into a rolling creep. The light is Green, so the STOP is authority-driven.
+#
+# Terminal directive = the officer's STOP, so it is scored as a STOP (standard
+# scorer): an "averaging" creep never satisfies the full-stop check.
+
+episode_id: "marshal_dual_authority_handoff_001"
+town: null
+seed: 1
+timeout_sec: 14
+
+ego:
+  spawn_transform: null
+  target_speed: 25
+
+traffic_light:
+  state: "Green"
+  freeze: true
+
+# Junction authority - the police officer (STOP at the stop line).
+officer:
+  authority_type: "police"
+  authorized: true
+  gesture: "STOP"
+  onset_time: 1.0
+  duration: 12.0
+  target_relation: "ego"
+  use_skeleton: true
+  hand_prop: "static.prop.stopquad"
+  hand_prop_z_offset: 0.30
+
+# First-zone authority - a construction flagger signalling SLOW, placed nearer
+# than the junction officer so the ego transits its zone first.
+second_authority:
+  authority_type: "flagger"
+  authorized: true
+  gesture: "SLOW"
+  zone: "near"                # governs the approach zone before the junction
+  distance: 16.0
+  lateral: -2.4
+
+environment:
+  weather: "ClearNoon"
+  visibility: "full"
+
+expected_behavior:
+  action: "STOP"              # full stop at the officer after the SLOW zone
+  max_reaction_time_sec: 3.0
+  stop_before_line: true

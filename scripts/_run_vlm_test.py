@@ -152,6 +152,26 @@ SCENARIOS: Dict[str, Dict[str, str]] = {
         "config": "marshal_bench/configs/demo_barricade_self_detour.yaml",
         "expect": "DETOUR",
     },
+    "stale_directive_residue": {
+        "module": "marshal_stale_directive_residue_demo",
+        "config": "marshal_bench/configs/demo_stale_directive_residue.yaml",
+        "expect": "PROCEED",
+    },
+    "out_of_jurisdiction_director": {
+        "module": "marshal_out_of_jurisdiction_director_demo",
+        "config": "marshal_bench/configs/demo_out_of_jurisdiction_director.yaml",
+        "expect": "PROCEED",
+    },
+    "night_signal_officer_conflict": {
+        "module": "marshal_night_signal_officer_conflict_demo",
+        "config": "marshal_bench/configs/demo_night_signal_officer_conflict.yaml",
+        "expect": "PROCEED",
+    },
+    "dual_authority_handoff": {
+        "module": "marshal_dual_authority_handoff_demo",
+        "config": "marshal_bench/configs/demo_dual_authority_handoff.yaml",
+        "expect": "STOP",
+    },
 }
 
 SCENARIO_ORDER = [
@@ -176,6 +196,10 @@ SCENARIO_ORDER = [
     "school_crossing_guard",
     "fake_vest_director",
     "barricade_self_detour",
+    "stale_directive_residue",
+    "out_of_jurisdiction_director",
+    "night_signal_officer_conflict",
+    "dual_authority_handoff",
 ]
 SMOKE_SCENARIOS = ["signal_off", "red_proceed", "unauthorized_go", "green_stop"]
 DEFAULT_SCENARIOS = SCENARIO_ORDER
