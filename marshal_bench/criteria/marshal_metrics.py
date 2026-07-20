@@ -75,6 +75,8 @@ SCENARIO_SPEC: Dict[str, Dict[str, Any]] = {
     "out_of_jurisdiction_director": {"metrics": {"TAA", "FOA"},     "expected": "PROCEED"},
     # Stressed-override under a night-visibility stressor (24-scenario set).
     "night_signal_officer_conflict": {"metrics": {"AOC", "CRI", "SBO", "RTL"}, "expected": "PROCEED"},
+    # Conflict cell: two authorities govern adjacent zones (25-scenario set).
+    "dual_authority_handoff": {"metrics": {"APR", "AOC", "SBO"}, "expected": "STOP"},
 }
 
 # Scenario-module internal names that differ from the SCENARIO_SPEC key.
@@ -97,6 +99,7 @@ REASONING_TIER = {
     "barricade_self_detour": "mid",
     "stale_directive_residue": "high", "out_of_jurisdiction_director": "high",
     "night_signal_officer_conflict": "high",
+    "dual_authority_handoff": "high",
 }
 
 # Authority-conflict typology (docs/taxonomy_decision.md). Groups scenarios by the
@@ -123,6 +126,7 @@ CONFLICT_TYPE = {
     "out_of_jurisdiction_director": "validity",
     # conflicting directives
     "conflicting_authorities": "conflict", "two_civilians_disagree": "conflict",
+    "dual_authority_handoff": "conflict",  # two authorities, adjacent zones (handoff)
     # scene authority, no human directs — the ego must decide
     "emergency_scene_blocking": "scene", "barricade_self_detour": "scene",
     # safety outranks everything

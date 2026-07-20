@@ -27,11 +27,9 @@ from marshal_bench.criteria.marshal_metrics import (  # noqa: E402
 
 PY = sys.executable
 RUNNER = os.path.join(_THIS, "run_marshal_officer_demo.py")
-SCENARIOS = ["green_stop", "red_proceed", "signal_off", "crash_detour",
-             "fallen_person", "unauthorized_go", "adjacent_lane",
-             "flagger_control", "ambulance_yield",
-             "occluded_officer", "conflicting_authorities",
-             "sequential_directive", "rule_hierarchy", "ambiguous_gesture"]
+# Derive from the benchmark registry so the sweep always covers the full
+# registered suite (the old hardcoded list silently stuck at the original 14).
+from start import ALL_SCENARIOS as SCENARIOS  # noqa: E402
 CONTROLLERS = ["baseline", "oracle"]
 
 

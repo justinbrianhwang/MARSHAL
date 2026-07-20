@@ -35,13 +35,9 @@ XODR_CANDIDATES = [
     os.path.join(_ROOT, "assets", "maps", "Town03.xodr"),
 ]
 
-# Benchmark order (matches start.py / the README scenario table).
-ORDER = [
-    "green_stop", "red_proceed", "signal_off", "crash_detour", "fallen_person",
-    "unauthorized_go", "adjacent_lane", "flagger_control", "ambulance_yield",
-    "occluded_officer", "conflicting_authorities", "sequential_directive",
-    "rule_hierarchy", "ambiguous_gesture",
-]
+# Benchmark order — derived from start.py so the map always covers the full
+# registered suite (the old hardcoded list silently stuck at the original 14).
+from start import ALL_SCENARIOS as ORDER  # noqa: E402
 TIER_COLOR = {"low": "#2e7d32", "mid": "#ef6c00", "high": "#c62828"}
 TIER_LABEL = {"low": "low (perception/rule-engine)",
               "mid": "mid", "high": "high (LLM-required)"}

@@ -64,7 +64,7 @@ PY = sys.executable
 RUNNER = os.path.join(_THIS, "scripts", "run_marshal_officer_demo.py")
 CONFIGS_DIR = os.path.join(_THIS, "marshal_bench", "configs")
 
-# The 24 MARSHAL scenarios (authority-axis coverage).
+# The 25 MARSHAL scenarios (authority-axis coverage).
 ALL_SCENARIOS = [
     "green_stop", "red_proceed", "signal_off", "crash_detour", "fallen_person",
     "unauthorized_go", "adjacent_lane", "flagger_control", "ambulance_yield",
@@ -75,6 +75,7 @@ ALL_SCENARIOS = [
     "fake_vest_director", "barricade_self_detour",
     "stale_directive_residue", "out_of_jurisdiction_director",
     "night_signal_officer_conflict",
+    "dual_authority_handoff",
 ]
 
 

@@ -466,7 +466,8 @@ def test_metric_and_scenario_tables_are_internally_consistent():
         # W1 validity-cell reinforcement: stale_directive_residue (temporal)
         # + out_of_jurisdiction_director (spatial).
         "validity": 5,
-        "conflict": 2,
+        # +dual_authority_handoff (two authorities, adjacent zones).
+        "conflict": 3,
         "scene": 2,
         "safety": 3,
     }

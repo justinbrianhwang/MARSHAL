@@ -193,6 +193,14 @@
       "yaw": 0.3,
       "tl_id": 77,
       "lanes": 1
+    },
+    "dual_authority_handoff": {
+      "x": -88.1,
+      "y": 112.8,
+      "z": 0.5,
+      "yaw": 89.8,
+      "tl_id": 70,
+      "lanes": 2
     }
   }
 }

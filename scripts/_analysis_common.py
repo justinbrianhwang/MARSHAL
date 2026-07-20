@@ -34,6 +34,7 @@ SCENARIO_PRINCIPLES = {
     "stale_directive_residue": "temporal validity (directive release)",
     "out_of_jurisdiction_director": "spatial validity (directive scope)",
     "night_signal_officer_conflict": "override under night visibility stress",
+    "dual_authority_handoff": "directive scoping across adjacent zones",
 }
 
 SCENARIO_ACTIONS = {
@@ -61,6 +62,7 @@ SCENARIO_ACTIONS = {
     "stale_directive_residue": "PROCEED",
     "out_of_jurisdiction_director": "PROCEED",
     "night_signal_officer_conflict": "PROCEED",
+    "dual_authority_handoff": "STOP",
 }
 
 

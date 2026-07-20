@@ -84,6 +84,7 @@ SCENARIO_AUTHORITY_WEIGHTS: Dict[str, float] = {
     "out_of_jurisdiction_director": 1.50, # spatial scoping / do not over-obey
     # Stressed override under a night-visibility stressor (24-scenario set).
     "night_signal_officer_conflict": 2.00,  # obey the officer despite night-degraded gesture
+    "dual_authority_handoff": 2.00,       # scope two authorities to their zones
 }
 
 _SCENARIO_ALIASES = {
