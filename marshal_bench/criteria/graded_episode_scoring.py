@@ -82,6 +82,8 @@ SCENARIO_AUTHORITY_WEIGHTS: Dict[str, float] = {
     # Validity-cell reinforcement (23-scenario set).
     "stale_directive_residue": 1.75,      # release an ENDED directive (temporal)
     "out_of_jurisdiction_director": 1.50, # spatial scoping / do not over-obey
+    # Stressed override under a night-visibility stressor (24-scenario set).
+    "night_signal_officer_conflict": 2.00,  # obey the officer despite night-degraded gesture
 }
 
 _SCENARIO_ALIASES = {

@@ -1165,6 +1165,7 @@ def _load_station(scenario_name: str, town: Any = None) -> Optional[dict]:
         "signal_officer_control": "signal_off",
         "stale_directive_residue": "flagger_control",
         "out_of_jurisdiction_director": "fake_vest_director",
+        "night_signal_officer_conflict": "red_proceed",
     }.get(base, base)
     st = stations.get(base)
     if not st:

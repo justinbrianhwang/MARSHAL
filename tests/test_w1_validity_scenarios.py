@@ -15,10 +15,11 @@ from tests._telemetry import make_rows
 NEW = ("stale_directive_residue", "out_of_jurisdiction_director")
 
 
-def test_benchmark_enumerates_23_scenarios_including_the_new_pair():
-    assert len(start.ALL_SCENARIOS) == 23
+def test_benchmark_enumerates_24_scenarios_including_the_new_pair():
+    assert len(start.ALL_SCENARIOS) == 24
     for name in NEW:
         assert name in start.ALL_SCENARIOS
+    assert "night_signal_officer_conflict" in start.ALL_SCENARIOS
 
 
 def test_new_scenarios_registered_in_every_table():
@@ -34,6 +35,18 @@ def test_new_scenarios_registered_in_every_table():
 def test_validity_cell_reaches_five():
     validity = [s for s, c in mm.CONFLICT_TYPE.items() if c == "validity"]
     assert len(validity) == 5
+
+
+def test_night_signal_officer_conflict_registered_as_stressed_override():
+    name = "night_signal_officer_conflict"
+    assert name in start.ALL_SCENARIOS
+    assert name in mm.SCENARIO_SPEC
+    assert mm.SCENARIO_SPEC[name]["expected"] == "PROCEED"
+    assert mm.CONFLICT_TYPE[name] == "stressed-override"
+    assert name in mm.REASONING_TIER
+    assert SCENARIO_AUTHORITY_WEIGHTS[name] == 2.00
+    # Reuses the red_proceed witness pose via the station alias.
+    assert _load_station(f"marshal_{name}") == _load_station("marshal_red_proceed")
 
 
 def test_runner_registry_paths_exist_for_all_scenarios():

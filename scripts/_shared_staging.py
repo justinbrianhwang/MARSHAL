@@ -24,6 +24,7 @@ STAGING_SOURCE = "scripts/_shared_staging.py"
 AUTHORITY_FIGURE_SCENARIOS = {
     "green_stop",
     "red_proceed",
+    "night_signal_officer_conflict",
     "signal_off",
     "unauthorized_go",
     "adjacent_lane",
@@ -76,6 +77,7 @@ SECOND_AUTHORITY_OVERRIDES: Dict[str, Dict[str, Any]] = {
 VISIBILITY_NOTES = {
     "green_stop": "officer STOP is expected on the shoulder/lane edge; ego lane ahead should be clear.",
     "red_proceed": "officer PROCEED is expected on the shoulder/lane edge; ego lane ahead should be clear.",
+    "night_signal_officer_conflict": "night officer PROCEED is expected on the shoulder/lane edge; ego lane ahead should be clear.",
     "signal_off": "police STOP sign/gesture is expected off the ego path and readable.",
     "unauthorized_go": "civilian GO gesture is expected off the ego path and readable.",
     "crash_detour": "lane-blocking crash pileup remains the intended in-path hazard.",

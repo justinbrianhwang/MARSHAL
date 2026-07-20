@@ -308,7 +308,7 @@
     <ul class="meta">
       <li>CARLA 0.9.16</li>
       <li>Town03</li>
-      <li>23 scenarios</li>
+      <li>24 scenarios</li>
       <li>14 models</li>
       <li>Tracks A / B / C</li>
       <li>Apache-2.0</li>
@@ -323,7 +323,7 @@
     <section>
       <h2>What it is</h2>
       <p class="lead">MARSHAL is <b>not</b> a driving model, planner, or LLM — it is the evaluation harness. You plug any of those in as a <em>controller</em>; MARSHAL generates the scene, runs the closed-loop episode, and returns authority-aware reliability metrics.</p>
-      <p>It stages 23 authority-conflict episodes in CARLA Town03 — an officer directing traffic, a construction flagger, an ambulance, a school crossing guard — where the correct action depends on obeying a human whose command <em>overrides</em> the ordinary road signal. The premise reflects long-standing US traffic law: the precedence is <b>safety&nbsp;&gt;&nbsp;authorized human command&nbsp;&gt;&nbsp;traffic device</b>.</p>
+      <p>It stages 24 authority-conflict episodes in CARLA Town03 — an officer directing traffic, a construction flagger, an ambulance, a school crossing guard — where the correct action depends on obeying a human whose command <em>overrides</em> the ordinary road signal. The premise reflects long-standing US traffic law: the precedence is <b>safety&nbsp;&gt;&nbsp;authorized human command&nbsp;&gt;&nbsp;traffic device</b>.</p>
       <figure class="diagram" style="max-width:380px;margin:22px auto 0;">
         <div class="frame">
           <img src="assets/figures/authority-precedence.png" alt="Authority precedence ladder: Safety (e.g. pedestrian crossing) overrides Authorized human command (e.g. police officer / flagger) which overrides Traffic control device (e.g. traffic light or sign). MARSHAL focuses on the middle tier.">
@@ -475,8 +475,12 @@
           <img loading="lazy" src="Oracle_demo/out_of_jurisdiction_director.gif" alt="Oracle handling the Out of jurisdiction director scenario" width="320" height="180">
           <figcaption><span class="shot-name">Out of jurisdiction director</span><span class="shot-act act-PROCEED">PROCEED</span></figcaption>
         </figure>
+        <figure class="shot">
+          <img loading="lazy" src="Oracle_demo/night_signal_officer_conflict.gif" alt="Oracle handling the Night signal-vs-officer conflict scenario" width="320" height="180">
+          <figcaption><span class="shot-name">Night signal-officer conflict</span><span class="shot-act act-PROCEED">PROCEED</span></figcaption>
+        </figure>
       </div>
-      <p class="note">All 23 scenarios, rendered closed-loop in CARLA Town03; clips loop.</p>
+      <p class="note">All 24 scenarios, rendered closed-loop in CARLA Town03; clips loop.</p>
     </section>
 
     <section>

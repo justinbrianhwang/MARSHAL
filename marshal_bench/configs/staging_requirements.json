@@ -345,6 +345,19 @@
     "officer_lateral_offset_m": -7.0,
     "notes": "Common signal criteria; the director stands at lateral -7.0 m (left-corner plaza, dashcam-visible; the right side is hedge-occluded at the witness station - demo_out_of_jurisdiction_director.yaml) and is turned toward the cross street by the tick hook at marshal_out_of_jurisdiction_director_demo.py:27-53; station lookup aliases to the fake_vest_director witness pose at _common.py:1160-1172. A true cross-street officer point is generation-class until a mined witness exists (docs/scenario_expansion.md C2)."
   },
+  "night_signal_officer_conflict": {
+    "needs_traffic_light": true,
+    "needs_junction_approach": true,
+    "min_runup_m": 28.0,
+    "needs_sidewalk_point": false,
+    "prefers_sidewalk_point": true,
+    "needs_adjacent_same_road_lane": false,
+    "needs_detour_room": false,
+    "min_detour_clearance_m": 0.0,
+    "needs_offroad_shoulder": false,
+    "officer_lateral_offset_m": 3.2,
+    "notes": "Requirements identical to red_proceed (docs/scenario_expansion.md A1); this is the night variant with the same signal + officer-PROCEED staging. Signal setup is marshal_night_signal_officer_conflict_demo.py:50-73; the signal approach is _common.py:240-292; runner officer offset is _shared_staging.py:24-48. The intrinsic ClearNight condition is pinned from the config weather key; station lookup aliases to the red_proceed witness pose at _common.py:1160-1172."
+  },
   "barricade_self_detour": {
     "needs_traffic_light": true,
     "needs_junction_approach": false,

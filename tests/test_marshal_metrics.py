@@ -461,7 +461,8 @@ def test_metric_and_scenario_tables_are_internally_consistent():
         for conflict_type in mm.CONFLICT_TYPE_ORDER
     } == {
         "override": 6,
-        "stressed-override": 5,
+        # +night_signal_officer_conflict (night / low gesture visibility).
+        "stressed-override": 6,
         # W1 validity-cell reinforcement: stale_directive_residue (temporal)
         # + out_of_jurisdiction_director (spatial).
         "validity": 5,

@@ -102,6 +102,8 @@ SCENARIOS = [
      "Flagger STOP ends (turns away)  ->  oracle waits, then PROCEEDS", True, "fwd"),
     ("out_of_jurisdiction_director", "marshal_out_of_jurisdiction_director_demo",
      "Director halts the CROSS traffic (not ego)  ->  oracle PROCEEDS", False, "fwd"),
+    ("night_signal_officer_conflict", "marshal_night_signal_officer_conflict_demo",
+     "NIGHT: RED light + police GO  ->  oracle PROCEEDS", True, "fwd"),
 ]
 
 _CFG = {  # scenario key -> config yaml (relative to repo root)
