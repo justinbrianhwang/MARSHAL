@@ -102,9 +102,17 @@ def condition_from_config(value: Any) -> EpisodeCondition:
         params = raw.get("params")
         if params is not None and not isinstance(params, Mapping):
             raise ValueError("weather params must be a mapping")
+        clean_preset = preset.strip() if isinstance(preset, str) else None
+        clean_params = _float_params(params)
+        if clean_preset is None and not clean_params:
+            # {'params': {}} / {'preset': null} would otherwise veto a CLI
+            # condition while pinning nothing (or silently apply
+            # default-constructed weather) - same hole as a bare {}.
+            raise ValueError(
+                "weather mapping pins nothing (empty preset and params)")
         return EpisodeCondition(
-            weather_preset=preset.strip() if isinstance(preset, str) else None,
-            weather_params=_float_params(params),
+            weather_preset=clean_preset,
+            weather_params=clean_params,
         )
     return EpisodeCondition(weather_params=_float_params(raw))
 

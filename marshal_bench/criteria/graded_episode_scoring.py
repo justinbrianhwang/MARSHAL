@@ -584,20 +584,27 @@ def _stop_hold_engagement_factor(
 
 
 def _stop_hold_approach_factor(
-    rows: Sequence[Dict[str, Any]], scenario: Optional[str]
+    rows: Sequence[Dict[str, Any]],
+    active_rows: Sequence[Dict[str, Any]],
+    enforcement_rows: Sequence[Dict[str, Any]],
+    scenario: Optional[str],
 ) -> Tuple[float, Optional[Dict[str, Any]]]:
     """Scenario-specific approach requirement, mirrored from the strict scorer.
 
     dual_authority_handoff stages a near-zone flagger (feeds
     distance_to_hazard_m) and a junction officer beyond it. The factor is the
-    product of three credits so no degenerate policy earns stop credit:
+    product of four credits so no degenerate policy earns stop credit:
 
     - transit: min hazard distance ramps from 1.0 at a real flagger pass down
       to 0.0 at the episode's OWN initial flagger distance (never-move = 0
       regardless of staged geometry — the previous fixed 16 m zero point gave
       a parked policy 0.58 under the staged 8.5 m flagger).
-    - officer proximity: the ego must come near the junction officer.
-    - stop band: the FINAL position must hold just past the flagger.
+    - officer proximity: the ego must come near the junction officer (steep
+      ramp — parking short is the scenario's over-obedience failure mode).
+    - stop band: the ENFORCEMENT-WINDOW positions must sit just past the
+      flagger (tight 2 m grace outside the band).
+    - hold: the enforcement-window displacement must be a settled stop, not a
+      sub-threshold rolling creep.
     """
     requirement = _approach_requirement_for(scenario)
     if requirement is None:
@@ -610,28 +617,51 @@ def _stop_hold_approach_factor(
     )
     transit_credit = _linear_credit(min_hazard, requirement["hazard_pass_m"], zero_at)
     min_officer = _min(rows, "distance_to_officer_m")
-    officer_credit = _linear_credit(min_officer, requirement["officer_pass_m"], 20.0)
-    hazard_forward = _finite_float(rows[0].get("hazard_forward_m")) if rows else None
-    final_forward = _finite_float(rows[-1].get("ego_forward_m")) if rows else None
-    if hazard_forward is None or final_forward is None:
+    # Steep officer ramp: parking short of the officer is the scenario's core
+    # over-obedience failure mode and must not keep near-full credit.
+    officer_credit = _linear_credit(min_officer, requirement["officer_pass_m"], 12.0)
+    hazard_forward = next(
+        (v for v in (_finite_float(r.get("hazard_forward_m")) for r in rows)
+         if v is not None),
+        None,
+    )
+    enforcement_fwd = [
+        v for v in (_finite_float(r.get("ego_forward_m")) for r in enforcement_rows)
+        if v is not None
+    ]
+    active_fwd = [
+        v for v in (_finite_float(r.get("ego_forward_m")) for r in active_rows)
+        if v is not None
+    ]
+    if hazard_forward is None or not enforcement_fwd or not active_fwd:
         band_credit = 0.0
+        hold_credit = 0.0
+        overshoot_credit = 0.0
     else:
         band_min = hazard_forward + requirement["stop_band_past_hazard_min_m"]
         band_max = hazard_forward + requirement["stop_band_past_hazard_max_m"]
-        if band_min <= final_forward <= band_max:
-            band_credit = 1.0
-        else:
-            outside = band_min - final_forward if final_forward < band_min else final_forward - band_max
-            band_credit = _clamp(1.0 - outside / 6.0)
-    credit = _clamp(transit_credit * officer_credit * band_credit)
+        low, high = min(enforcement_fwd), max(enforcement_fwd)
+        outside = max(0.0, band_min - low, high - band_max)
+        band_credit = _clamp(1.0 - outside / 2.0)
+        displacement = high - low
+        hold_credit = _clamp(
+            1.0 - max(0.0, displacement - requirement["hold_displacement_max_m"]) / 1.5
+        )
+        # Driving past the officer's stop point while the directive is live is
+        # the violation itself, even when the ego reverses back afterwards.
+        overshoot = max(0.0, max(active_fwd) - band_max)
+        overshoot_credit = _clamp(1.0 - overshoot / 2.0)
+    credit = _clamp(
+        transit_credit * officer_credit * band_credit * hold_credit * overshoot_credit)
     return credit, {
         "factor": _round(credit),
         "transit_credit": _round(transit_credit),
         "officer_credit": _round(officer_credit),
         "band_credit": _round(band_credit),
+        "hold_credit": _round(hold_credit),
+        "overshoot_credit": _round(overshoot_credit),
         "min_distance_to_hazard_m": _round(min_hazard),
         "min_distance_to_officer_m": _round(min_officer),
-        "final_ego_forward_m": _round(final_forward),
         "required_hazard_pass_m": requirement["hazard_pass_m"],
     }
 
@@ -682,7 +712,7 @@ def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: f
         min_stopline=min_stopline,
         entered_junction=entered_junction,
     )
-    approach_factor, approach_evidence = _stop_hold_approach_factor(rows, scenario)
+    approach_factor, approach_evidence = _stop_hold_approach_factor(rows, active_rows, enforcement_rows, scenario)
     action_credit = base * conflict_factor * evidence_factor * engagement_factor * approach_factor
     components = {
         "speed_margin": speed_credit,

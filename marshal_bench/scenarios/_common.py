@@ -1118,13 +1118,15 @@ STATION_ALIASES = {
     "stale_directive_residue": "flagger_control",
     "out_of_jurisdiction_director": "fake_vest_director",
     "night_signal_officer_conflict": "red_proceed",
-    # dual_authority_handoff needs a LONG on-axis signal approach: the ego
-    # transits the flagger zone (~16 m) and stops near the officer (~24 m)
-    # BEFORE the junction, with the stopline on the driving axis so the
-    # conflict-zone / clearance checks are meaningful. green_stop's witness is
-    # exactly that geometry; the conflicting_authorities pose (previous alias)
-    # has its stopline ~28 m off the ego axis and its junction begins ~8 m in,
-    # which made those checks vacuous there (adversarial review round 4).
+    # dual_authority_handoff needs a LONG straight signal approach: the ego
+    # transits the flagger zone (~16 m) and stops near the config-placed
+    # officer (~24 m) with generous clearance to the junction. green_stop's
+    # witness is that geometry; the conflicting_authorities pose (previous
+    # alias) had its junction begin ~8 m in, so the oracle's stop landed
+    # inside the intersection (adversarial review round 4). NOTE: the
+    # stopline telemetry references the assigned TL pole, which sits off the
+    # driving axis at most stations - the scenario's flagger/officer/band
+    # checks are the binding positional constraints, not stopline clearance.
     "dual_authority_handoff": "green_stop",
 }
 
@@ -1183,11 +1185,16 @@ def _load_station(scenario_name: str, town: Any = None) -> Optional[dict]:
         log.warning("Station key %r is missing from %s", base, path)
         return None
     try:
-        return {"x": float(st["x"]), "y": float(st["y"]),
-                "z": float(st.get("z", 0.5)), "yaw": float(st["yaw"])}
+        station = {"x": float(st["x"]), "y": float(st["y"]),
+                   "z": float(st.get("z", 0.5)), "yaw": float(st["yaw"])}
     except (KeyError, TypeError, ValueError) as e:
         log.warning("Station entry %r in %s is degenerate: %s", base, path, e)
         return None
+    if not all(math.isfinite(v) for v in station.values()):
+        log.warning("Station entry %r in %s has non-finite coordinates: %s",
+                    base, path, station)
+        return None
+    return station
 
 
 # ---------------------------------------------------------------------------
