@@ -102,9 +102,13 @@ REASONING_TIER = {
     "dual_authority_handoff": "high",
 }
 
-# Authority-conflict typology (docs/taxonomy_decision.md). Groups scenarios by the
-# structure of the conflict, not by designed difficulty. Crosscutting stressors
-# (occlusion / ambiguity / attribution / temporal) live inside "stressed-override".
+# Authority-conflict typology (docs/taxonomy_decision.md). This is the PRIMARY
+# scenario-family assignment: it groups scenarios by the dominant structure of the
+# conflict, not by designed difficulty, and is what the scoreboard aggregates by.
+# The families are an analysis grouping, not mutually exclusive difficulty bins:
+# crosscutting properties a single label cannot carry live in SECONDARY_ATTRIBUTES
+# below (e.g. a night override is both stressed and an override; a stale directive
+# is a validity case with temporal state).
 CONFLICT_TYPE = {
     # plain authority-over-device: a valid human authority contradicts/replaces the device
     "green_stop": "override", "red_proceed": "override", "signal_off": "override",
@@ -133,6 +137,55 @@ CONFLICT_TYPE = {
     "fallen_person": "safety", "ambulance_yield": "safety", "rule_hierarchy": "safety",
 }
 CONFLICT_TYPE_ORDER = ["override", "stressed-override", "validity", "conflict", "scene", "safety"]
+
+# Secondary (crosscutting) attributes. CONFLICT_TYPE is the primary family used
+# for aggregation; these tags record the crosscutting properties that span
+# families, so a scenario is never forced into a single label that hides part of
+# what it tests. Controlled vocabulary:
+#   device_contradiction - a valid human directive contradicts a live signal
+#   perception_stress    - occlusion / ambiguity / night degrades the authority percept
+#   temporal_persistence - the directive must be held or updated across time
+#   authority_expiration - a directive's lifetime ends and must release
+#   target_attribution   - must resolve WHOM the directive addresses (lane / zone)
+#   authority_validation - must judge whether the source is legitimate
+#   multi_authority      - more than one directive source is present
+#   over_obedience_risk  - unconditional stopping / compliance FAILS the episode
+#   vulnerable_road_user - a vulnerable road user is part of the decision
+#   emergency_vehicle    - an emergency vehicle is part of the decision
+#   self_decision        - no human directive; scene semantics alone must drive the action
+SECONDARY_ATTRIBUTE_VOCABULARY = (
+    "device_contradiction", "perception_stress", "temporal_persistence",
+    "authority_expiration", "target_attribution", "authority_validation",
+    "multi_authority", "over_obedience_risk", "vulnerable_road_user",
+    "emergency_vehicle", "self_decision",
+)
+SECONDARY_ATTRIBUTES = {
+    "green_stop": ("device_contradiction",),
+    "red_proceed": ("device_contradiction", "over_obedience_risk"),
+    "signal_off": (),
+    "crash_detour": ("device_contradiction", "over_obedience_risk"),
+    "fallen_person": ("vulnerable_road_user",),
+    "unauthorized_go": ("authority_validation",),
+    "adjacent_lane": ("target_attribution",),
+    "flagger_control": (),
+    "ambulance_yield": ("emergency_vehicle", "multi_authority"),
+    "occluded_officer": ("perception_stress",),
+    "conflicting_authorities": ("multi_authority",),
+    "sequential_directive": ("temporal_persistence",),
+    "rule_hierarchy": ("device_contradiction", "vulnerable_road_user", "over_obedience_risk"),
+    "ambiguous_gesture": ("perception_stress",),
+    "civilian_warning_accident": ("authority_validation",),
+    "emergency_scene_blocking": ("self_decision", "emergency_vehicle", "over_obedience_risk"),
+    "two_civilians_disagree": ("authority_validation", "multi_authority"),
+    "flagger_slow_then_stop": ("temporal_persistence",),
+    "school_crossing_guard": ("vulnerable_road_user",),
+    "fake_vest_director": ("authority_validation",),
+    "barricade_self_detour": ("self_decision", "over_obedience_risk"),
+    "stale_directive_residue": ("temporal_persistence", "authority_expiration", "over_obedience_risk"),
+    "out_of_jurisdiction_director": ("target_attribution", "over_obedience_risk"),
+    "night_signal_officer_conflict": ("device_contradiction", "perception_stress", "over_obedience_risk"),
+    "dual_authority_handoff": ("multi_authority", "target_attribution"),
+}
 
 # Map each metric to the R1-R9 requirement it primarily evidences (PPTX Slide 7).
 METRIC_TO_R = {"AOC": "R3", "FOA": "R3", "TAA": "R2",

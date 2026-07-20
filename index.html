@@ -523,12 +523,12 @@
         <div class="frame">
           <img src="assets/figures/authority-gap.png" alt="Two panels at the same intersection (green light, officer signaling STOP). Left, officer-blind baseline: the car drives through the green light past the officer — obeys the signal, ignores the human. Right, MARSHAL oracle: the car stops at the line before the officer — obeys the human over the signal.">
         </div>
-        <figcaption>The officer-blind baseline obeys the signal; the authority-aware oracle obeys the human. That gap — not perception — is what MARSHAL measures.</figcaption>
+        <figcaption>The officer-blind baseline obeys the signal; the authority-aware oracle obeys the human. That gap — whether the system obeys the correct authority, not just whether it drives — is what MARSHAL measures.</figcaption>
       </figure>
       <div class="findings">
         <div class="finding">
           <b>Authority-aware reasoning is a separable capability that ordinary driving competence does not confer.</b>
-          <p>The oracle solves 21 / 21; the best non-privileged system reaches only ~66. A family of contextual-detour and yield cases is solved <em>only</em> by the oracle — the gap is reasoning, not perception noise.</p>
+          <p>The oracle solves 21 / 21; the best non-privileged system reaches only ~66. A family of contextual-detour and yield cases is solved <em>only</em> by the oracle — the oracle certifies the scenarios are solvable, and the remaining failures arise inside the evaluated stack: authority perception, temporal interpretation, priority reasoning, and execution.</p>
         </div>
         <div class="finding">
           <b>The “stop-bias” is systematic across architecture families, not a per-model quirk.</b>
