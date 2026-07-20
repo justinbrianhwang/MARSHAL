@@ -244,7 +244,16 @@ def main(argv: Optional[list[str]] = None) -> int:
     unknown = [scenario for scenario in scenarios if scenario not in benchmark.ALL_SCENARIOS]
     if unknown:
         parser.error(f"unknown scenario(s): {unknown}")
-    missing_stations = [scenario for scenario in scenarios if scenario not in all_masked and scenario not in stations]
+    # Alias-aware coverage check: expansion scenarios reuse an existing
+    # witness pose (marshal_bench.scenarios._common.STATION_ALIASES), and the
+    # runtime station lookup resolves the alias — so coverage must too.
+    from marshal_bench.scenarios._common import STATION_ALIASES
+
+    missing_stations = [
+        scenario for scenario in scenarios
+        if scenario not in all_masked
+        and STATION_ALIASES.get(scenario, scenario) not in stations
+    ]
     if missing_stations:
         parser.error(f"feasible scenario(s) missing station entries: {missing_stations}")
 

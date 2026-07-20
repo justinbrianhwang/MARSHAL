@@ -1109,6 +1109,18 @@ _CONFIGS_DIR = os.path.abspath(os.path.join(
 _STATIONS_CACHE: Optional[dict] = None
 _STATIONS_BY_TOWN_CACHE: dict[str, Optional[dict]] = {}
 
+# Station aliases: renamed scenarios plus expansion scenarios whose staging
+# requirements are identical to an existing witness station (the curated pose
+# is an existence proof for both). Shared with the per-town calibration gate,
+# which must resolve the alias BEFORE checking a town's station coverage.
+STATION_ALIASES = {
+    "signal_officer_control": "signal_off",
+    "stale_directive_residue": "flagger_control",
+    "out_of_jurisdiction_director": "fake_vest_director",
+    "night_signal_officer_conflict": "red_proceed",
+    "dual_authority_handoff": "conflicting_authorities",
+}
+
 
 def _station_town_key(town: Any) -> Optional[str]:
     """Return a recognised CARLA town suffix, or ``None`` for legacy lookup."""
@@ -1158,16 +1170,7 @@ def _load_station(scenario_name: str, town: Any = None) -> Optional[dict]:
             return None
 
     base = scenario_name.replace("marshal_", "")
-    # Aliases: renamed scenarios plus expansion scenarios whose staging
-    # requirements are identical to an existing witness station (the curated
-    # pose is an existence proof for both).
-    base = {
-        "signal_officer_control": "signal_off",
-        "stale_directive_residue": "flagger_control",
-        "out_of_jurisdiction_director": "fake_vest_director",
-        "night_signal_officer_conflict": "red_proceed",
-        "dual_authority_handoff": "conflicting_authorities",
-    }.get(base, base)
+    base = STATION_ALIASES.get(base, base)
     st = stations.get(base)
     if not st:
         if not legacy:
