@@ -473,3 +473,21 @@ def test_metric_and_scenario_tables_are_internally_consistent():
     }
     assert set(mm.R_WEIGHTS) == {f"R{i}" for i in range(1, 10)}
     assert sum(mm.R_WEIGHTS.values()) == pytest.approx(1.0)
+
+
+def test_secondary_attributes_cover_every_scenario_with_known_vocabulary():
+    """CONFLICT_TYPE is the primary family; SECONDARY_ATTRIBUTES records the
+    crosscutting properties. Every scenario must have an (possibly empty) entry,
+    and every tag must come from the controlled vocabulary; a typo here would
+    silently fragment any attribute-level analysis.
+    """
+    assert set(mm.SECONDARY_ATTRIBUTES) == set(mm.SCENARIO_SPEC)
+    vocabulary = set(mm.SECONDARY_ATTRIBUTE_VOCABULARY)
+    for scenario, attributes in mm.SECONDARY_ATTRIBUTES.items():
+        assert isinstance(attributes, tuple), scenario
+        unknown = set(attributes) - vocabulary
+        assert not unknown, (scenario, sorted(unknown))
+        assert len(set(attributes)) == len(attributes), (scenario, attributes)
+    # every vocabulary tag is actually used by at least one scenario
+    used = {tag for attributes in mm.SECONDARY_ATTRIBUTES.values() for tag in attributes}
+    assert used == vocabulary

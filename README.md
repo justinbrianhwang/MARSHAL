@@ -64,7 +64,7 @@ benchmarks ask *"can it drive safely?"*; MARSHAL asks *"who should it obey?"*
        alt="Two panels at the same intersection (green light, officer signaling STOP). Left, 'Officer-blind baseline': the car drives through the green light past the officer — ✗ 'obeys the signal, ignores the human'. Right, 'MARSHAL oracle': the car stops at the line before the officer — ✓ 'obeys the human over the signal'.">
 </p>
 
-<sub><p align="center"><i>The officer-blind baseline reads the green light and drives on; the authority-aware oracle reads the human and stops. That gap — not perception — is what MARSHAL measures.</i></p></sub>
+<sub><p align="center"><i>The officer-blind baseline reads the green light and drives on; the authority-aware oracle reads the human and stops. That gap — whether the system obeys the correct authority, not just whether it drives — is what MARSHAL measures.</i></p></sub>
 
 Simple STOP / GO gesture classification can be solved by vision, or by perception
 + a rule engine. The hard cases — **conflicting authorities, occluded officers,
@@ -227,6 +227,12 @@ maps to at least one principle. See
 [docs/design_principles.md](docs/design_principles.md) and
 [docs/scenario_taxonomy.md](docs/scenario_taxonomy.md) for the per-scenario
 rationale and the machine-readable taxonomy.
+
+The *conflict type* column is each scenario's **primary family** — the dominant
+structure of its authority conflict, used for aggregation. The six families are
+an analysis grouping, not mutually exclusive difficulty bins; crosscutting
+properties (temporal persistence, perception stress, over-obedience risk, ...)
+are tracked per scenario as [secondary attributes](docs/scenarios.md#secondary-crosscutting-attributes).
 
 | # | scenario | what happens | expected | conflict type |
 |---|----------|--------------|----------|------|
@@ -887,10 +893,15 @@ scope so it can be cited without over-reach.
    non-privileged system reaches only graded ~66 (VLM) / ~56 (LiDAR E2E), and a whole
    family of cases — contextual DETOUR (`crash_detour`, `civilian_warning_accident`,
    `emergency_scene_blocking`, `barricade_self_detour`) and `ambulance_yield` — is solved
-   **only by the oracle**. The gap is not perception noise; it is the specific inability to
-   let a human directive *override* the prevailing traffic rule. MARSHAL isolates that axis
-   and shows it is not measured by nominal-driving benchmarks. *(Scope: single map, staged
-   scenarios.)*
+   **only by the oracle**. The oracle result certifies that every scenario is physically
+   feasible; the remaining failures arise inside the evaluated system stack — authority
+   perception, temporal interpretation, priority reasoning, and behavioral execution.
+   Per-case evidence localizes several failures at the priority-reasoning link rather than
+   raw perception (a VLM that *describes* the officer correctly yet follows the green
+   light — see the Track-C failure analysis above); a controlled attribution across the
+   stack (oracle-perception / oracle-authority-label ablations) is planned follow-up work.
+   Either way, the capability is neither conferred by nor measured in nominal-driving
+   benchmarks. *(Scope: single map, staged scenarios.)*
 
 2. **The "stop-bias" is systematic across architecture families, not a per-model quirk.**
    Every strong controller we tested — camera-only per-tick VLM, LiDAR closed-loop

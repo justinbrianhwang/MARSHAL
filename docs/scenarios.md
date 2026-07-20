@@ -5,10 +5,18 @@ This is the flat reference table for all 25 scenarios. For the *design rationale
 [scenario_taxonomy.md](scenario_taxonomy.md) and
 [design_principles.md](design_principles.md). Each scenario's privileged
 correct-action and applicable metrics are the ground truth defined in
-`marshal_bench/criteria/marshal_metrics.py` (`SCENARIO_SPEC`, `CONFLICT_TYPE`).
+`marshal_bench/criteria/marshal_metrics.py` (`SCENARIO_SPEC`, `CONFLICT_TYPE`,
+`SECONDARY_ATTRIBUTES`).
 
-**Conflict types.** The suite is grouped by authority-conflict structure rather
-than designed difficulty; crosscutting stressors live under `stressed-override`.
+**Conflict types.** The *Conflict type* column is each scenario's **primary
+family** — the dominant structure of its authority conflict, which is what the
+scoreboard aggregates by. The six families are an analysis grouping rather than
+mutually exclusive difficulty bins: many scenarios also carry crosscutting
+properties that span families (a night override is both stressed and an
+override; a stale directive is a validity case with temporal state). Those are
+tracked separately as [secondary attributes](#secondary-crosscutting-attributes)
+below, so no scenario is forced into a single label that hides part of what it
+tests.
 
 ## The 25 scenarios
 
@@ -62,17 +70,43 @@ than designed difficulty; crosscutting stressors live under `stressed-override`.
 
 ## Coverage summary
 
-- **By correct action:** STOP ×10, DETOUR ×4, PROCEED ×2, HOLD ×2, YIELD ×1.
-- **By authority validity:** valid human authority ×11 (police / flagger / crossing
+- **By correct action:** STOP ×13, DETOUR ×4, PROCEED ×5, HOLD ×2, YIELD ×1.
+- **By authority validity:** valid human authority ×15 (police / flagger / crossing
   guard), invalid actor to ignore ×3 (unauthorized_go, two_civilians_disagree,
-  fake_vest_director), hazard-only ×3, hazard-backed-civilian ×1, mixed ×3.
-- **By conflict type:** override ×6, stressed-override ×5, validity ×5,
-  conflict ×2, scene ×2, safety ×3.
+  fake_vest_director), hazard-only ×3, hazard-backed-civilian ×1, mixed ×3
+  (crash_detour, ambulance_yield, rule_hierarchy).
+- **By primary conflict type:** override ×6, stressed-override ×6, validity ×5,
+  conflict ×3, scene ×2, safety ×3.
 
 The **valid vs invalid** split is deliberate: an agent cannot score well by simply
 obeying every gesture (that fails the invalid-authority rows) nor by ignoring humans
 (that fails the valid-authority rows). It must *verify* authority — which is the
 reasoning MARSHAL is built to measure.
+
+## Secondary (crosscutting) attributes
+
+Each scenario carries one primary conflict family (the table's last column) plus
+zero or more crosscutting attributes (`SECONDARY_ATTRIBUTES` in
+`marshal_bench/criteria/marshal_metrics.py`). These make explicit the properties
+that span families instead of forcing one label to carry them:
+
+| Attribute | Meaning | Scenarios |
+|---|---|---|
+| `device_contradiction` | a valid human directive contradicts a live signal | green_stop, red_proceed, crash_detour, rule_hierarchy, night_signal_officer_conflict |
+| `perception_stress` | occlusion / ambiguity / night degrades the authority percept | occluded_officer, ambiguous_gesture, night_signal_officer_conflict |
+| `temporal_persistence` | the directive must be held or updated across time | sequential_directive, flagger_slow_then_stop, stale_directive_residue |
+| `authority_expiration` | a directive's lifetime ends and must release | stale_directive_residue |
+| `target_attribution` | must resolve *whom* the directive addresses (lane / zone) | adjacent_lane, out_of_jurisdiction_director, dual_authority_handoff |
+| `authority_validation` | must judge whether the source is legitimate | unauthorized_go, civilian_warning_accident, two_civilians_disagree, fake_vest_director |
+| `multi_authority` | more than one directive source is present | ambulance_yield, conflicting_authorities, two_civilians_disagree, dual_authority_handoff |
+| `over_obedience_risk` | unconditional stopping / compliance **fails** the episode | red_proceed, crash_detour, rule_hierarchy, emergency_scene_blocking, barricade_self_detour, stale_directive_residue, out_of_jurisdiction_director, night_signal_officer_conflict |
+| `vulnerable_road_user` | a vulnerable road user is part of the decision | fallen_person, rule_hierarchy, school_crossing_guard |
+| `emergency_vehicle` | an emergency vehicle is part of the decision | ambulance_yield, emergency_scene_blocking |
+| `self_decision` | no human directive; scene semantics alone must drive the action | emergency_scene_blocking, barricade_self_detour |
+
+The eight `over_obedience_risk` rows are the anti-"always-stop" spine of the
+suite: a policy that halts unconditionally under any authority ambiguity fails
+all of them.
 
 ## Failure-mode taxonomy
 
