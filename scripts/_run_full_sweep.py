@@ -22,7 +22,7 @@ import _carla_manager as cm
 import _run_vlm_test as vlm
 from marshal_bench.utils.conditions import parse_weather_params
 
-SCEN = list(vlm.SCENARIO_ORDER)  # 21
+SCEN = list(vlm.SCENARIO_ORDER)  # full registered suite (derived, currently 25)
 RESTART_EVERY = 12
 PER_EP_TIMEOUT = 900  # seconds (VLM API episodes can be slow)
 ENV = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8", PYTHONPATH=ROOT)

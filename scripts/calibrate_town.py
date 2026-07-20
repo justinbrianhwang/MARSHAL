@@ -59,6 +59,42 @@ def _load_town_inputs(
     return stations, masked
 
 
+def _station_entry_usable(entry: Any) -> bool:
+    """True when a station entry can actually spawn an episode (finite x/y/yaw)."""
+    if not isinstance(entry, Mapping):
+        return False
+    for key in ("x", "y", "yaw"):
+        value = entry.get(key)
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
+            return False
+        if not math.isfinite(float(value)):
+            return False
+    return True
+
+
+def find_unusable_stations(
+    scenarios: Iterable[str],
+    stations: Mapping[str, Any],
+    masked: Mapping[str, str],
+) -> list[str]:
+    """Alias-aware coverage check for the calibration gate.
+
+    Expansion scenarios reuse an existing witness pose
+    (marshal_bench.scenarios._common.STATION_ALIASES), and the runtime station
+    lookup resolves the alias — so coverage must too. Presence alone is not
+    enough: a present-but-degenerate entry (null, {}, missing/non-numeric
+    x/y/yaw) would pass a membership check yet crash or silently random-spawn
+    at runtime, so the entry shape is validated as well.
+    """
+    from marshal_bench.scenarios._common import STATION_ALIASES
+
+    return [
+        scenario for scenario in scenarios
+        if scenario not in masked
+        and not _station_entry_usable(stations.get(STATION_ALIASES.get(scenario, scenario)))
+    ]
+
+
 def _finite_values(rows: Iterable[Mapping[str, Any]], key: str) -> list[float]:
     values: list[float] = []
     for row in rows:
@@ -244,18 +280,12 @@ def main(argv: Optional[list[str]] = None) -> int:
     unknown = [scenario for scenario in scenarios if scenario not in benchmark.ALL_SCENARIOS]
     if unknown:
         parser.error(f"unknown scenario(s): {unknown}")
-    # Alias-aware coverage check: expansion scenarios reuse an existing
-    # witness pose (marshal_bench.scenarios._common.STATION_ALIASES), and the
-    # runtime station lookup resolves the alias — so coverage must too.
-    from marshal_bench.scenarios._common import STATION_ALIASES
-
-    missing_stations = [
-        scenario for scenario in scenarios
-        if scenario not in all_masked
-        and STATION_ALIASES.get(scenario, scenario) not in stations
-    ]
+    missing_stations = find_unusable_stations(scenarios, stations, all_masked)
     if missing_stations:
-        parser.error(f"feasible scenario(s) missing station entries: {missing_stations}")
+        parser.error(
+            "feasible scenario(s) missing or degenerate station entries: "
+            f"{missing_stations}"
+        )
 
     masked = {scenario: all_masked[scenario] for scenario in scenarios if scenario in all_masked}
     feasible = [scenario for scenario in scenarios if scenario not in masked]

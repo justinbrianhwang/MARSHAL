@@ -90,6 +90,7 @@ class OracleController(EpisodeController):
         self._lateral_watchdog_stood_down = False
         self._lateral_watchdog_baseline: Optional[float] = None
         self._stop_roll_anchor = None
+        self._approach_stop_gap_m: Optional[float] = None
         self._episode_dir: Optional[str] = None
         self._debug_file = None
         self._merge_start_forward_m: Optional[float] = None
@@ -145,6 +146,18 @@ class OracleController(EpisodeController):
             self._route_forward = None
             self._route_right = None
         self._configure_debug_output()
+        expected = (self.config.get("expected_behavior") or {})
+        margin = expected.get("approach_stop_after_second_authority_m")
+        if margin is not None:
+            # Zone-handoff approach target, anchored to the SECOND authority
+            # (config-placed relative to the ego spawn, so town-independent —
+            # unlike the officer, whose lateral placement varies per station).
+            # Staged sweeps that move the flagger re-scale this automatically.
+            sa = (self.config.get("second_authority") or {})
+            self._approach_stop_gap_m = (
+                float(sa.get("distance", 16.0)) + float(margin))
+        else:
+            self._approach_stop_gap_m = None
         scene = self.gt.get("S_safety_context") or {}
         if self._action == "YIELD":
             self._yield_resume_time = self._onset_time + float(
@@ -366,7 +379,49 @@ class OracleController(EpisodeController):
     # ------------------------------------------------------------------
     # Action policies
     # ------------------------------------------------------------------
+    def _approach_stop_control(self, base: Any, speed: float) -> Any:
+        """Zone-handoff STOP (dual_authority_handoff): transit the near-zone
+        flagger at a SLOW-compatible speed, then hold a full stop a few
+        metres beyond it (just short of the junction officer) instead of
+        parking wherever the STOP is first perceived.
+
+        The roll target is anchored to the ego's own travelled distance, not
+        to the officer: the flagger's spawn is config-relative (identical in
+        every town), so the transit-then-stop timing is deterministic across
+        the whole town matrix.
+        """
+        if self._stop_roll_anchor is None:
+            try:
+                self._stop_roll_anchor = self.ego.get_location()
+            except Exception:
+                self._stop_roll_anchor = None
+        advanced = 0.0
+        if self._stop_roll_anchor is not None:
+            try:
+                advanced = float(
+                    self.ego.get_location().distance(self._stop_roll_anchor))
+            except Exception:
+                advanced = 0.0
+        if advanced < float(self._approach_stop_gap_m or 0.0):
+            ctrl = self._copy_control(base)
+            # Creep cap ~14 km/h: well under the strict 18 km/h zone cap and
+            # slow enough to read as obeying the flagger's SLOW.
+            if speed < 2.5:
+                ctrl.throttle = 0.70
+            elif speed > 3.9:
+                ctrl.throttle = 0.0
+            else:
+                ctrl.throttle = 0.50
+            ctrl.brake = 0.0
+            return ctrl
+        ctrl = self._copy_control(base)
+        ctrl.throttle = 0.0
+        ctrl.brake = 1.0 if speed > 0.25 else 0.85
+        return ctrl
+
     def _stop_control(self, base: Any, sim_time: float, speed: float) -> Any:
+        if self._approach_stop_gap_m is not None:
+            return self._approach_stop_control(base, speed)
         if self._is_no_officer_stop():
             if getattr(self, "_stop_roll_anchor", None) is None:
                 try:

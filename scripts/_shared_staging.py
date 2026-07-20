@@ -73,6 +73,13 @@ SECOND_AUTHORITY_OVERRIDES: Dict[str, Dict[str, Any]] = {
     "conflicting_authorities": {
         "second_authority": {"distance": 13.0, "lateral": -3.2}
     },
+    # dual_authority_handoff's defining premise is the ZONE ORDER: the ego
+    # transits the flagger's near SLOW zone BEFORE the officer's STOP. The
+    # authority staging above pulls the officer to 13.0 m, so the flagger must
+    # stay strictly nearer or staged sweeps invert the handoff.
+    "dual_authority_handoff": {
+        "second_authority": {"distance": 8.5, "lateral": -3.2}
+    },
 }
 
 VISIBILITY_NOTES = {
@@ -88,7 +95,7 @@ VISIBILITY_NOTES = {
     "ambulance_yield": "ambulance hazard staging remains unchanged and front-camera visible.",
     "occluded_officer": "officer is off the ego path and partially occluded by a side vehicle.",
     "conflicting_authorities": "both authority figures are staged off the ego path.",
-    "dual_authority_handoff": "junction police STOP with a nearer flagger SLOW; both off the ego path and readable.",
+    "dual_authority_handoff": "flagger SLOW staged at 8.5 m, junction police STOP at 13.0 m - the SLOW zone stays strictly nearer so the handoff order survives staging; both off the ego path and readable.",
     "sequential_directive": "officer HOLD directive is expected off the ego path before leaving view.",
     "rule_hierarchy": "officer PROCEED is off the ego path; pedestrian hazard remains in path.",
     "ambiguous_gesture": "ambiguous STOP-like officer is expected off the ego path and readable.",

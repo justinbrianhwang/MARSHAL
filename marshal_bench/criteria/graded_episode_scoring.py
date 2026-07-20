@@ -8,7 +8,8 @@ Calibration
 -----------
 The curves are hardcoded and anchored to the strict thresholds. A strict pass
 with no collision receives 1.0 action credit, and the latency factor has a full
-credit plateau through the 3 s strict reaction budget. With the v2 telemetry,
+credit plateau through the scenario's strict reaction budget (3 s default;
+scenarios that budget a staged transit before the stop extend it). With the v2 telemetry,
 the calibrated oracle therefore scores 100.0 on the authority-weighted
 MARSHAL-Graded aggregate. Non-strict STOP/HOLD partial credit is engagement
 gated: a controller must show approach speed plus forward progress, or
@@ -24,7 +25,7 @@ from __future__ import annotations
 import math
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
-from .strict_episode_scoring import STRICT_THRESHOLDS
+from .strict_episode_scoring import STOP_APPROACH_REQUIREMENTS, STRICT_THRESHOLDS
 
 
 GRADED_THRESHOLDS: Dict[str, float] = {
@@ -388,6 +389,7 @@ def _latency_factor(
     onset: float,
     *,
     action_credit: float,
+    reaction_budget: float = 3.0,
 ) -> Tuple[float, Dict[str, Any]]:
     """Map first valid response latency to [0, 1].
 
@@ -397,6 +399,11 @@ def _latency_factor(
     lateral departure when available, otherwise first forward motion beyond
     2 m. If the ego is already satisfying a STOP/HOLD low-speed state at onset,
     latency is 0.
+
+    The full-credit plateau extends to the scenario's strict reaction budget
+    when that budget exceeds the default 3 s (dual_authority_handoff budgets
+    the near-zone transit before the stop), so a compliant slow transit is not
+    docked latency credit for taking the time the scenario itself allots.
     """
     latency_s: Optional[float] = None
     trigger = "none"
@@ -456,11 +463,11 @@ def _latency_factor(
             return 1.0, {"latency_s": 0.0, "trigger": "already_compliant_hold"}
         return 0.0, {"latency_s": None, "trigger": trigger}
 
-    factor = _linear_credit(
-        latency_s,
-        GRADED_THRESHOLDS["latency_full_credit_s"],
-        GRADED_THRESHOLDS["latency_zero_credit_s"],
+    full_credit_s = max(GRADED_THRESHOLDS["latency_full_credit_s"], float(reaction_budget))
+    zero_credit_s = full_credit_s + (
+        GRADED_THRESHOLDS["latency_zero_credit_s"] - GRADED_THRESHOLDS["latency_full_credit_s"]
     )
+    factor = _linear_credit(latency_s, full_credit_s, zero_credit_s)
     return factor, {"latency_s": _round(latency_s, 4), "trigger": trigger}
 
 
@@ -576,7 +583,34 @@ def _stop_hold_engagement_factor(
     return engagement, components, evidence
 
 
-def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: float, reaction_budget: float) -> Tuple[float, Dict[str, float], Dict[str, Any], str]:
+def _stop_hold_approach_factor(
+    rows: Sequence[Dict[str, Any]], scenario: Optional[str]
+) -> Tuple[float, Optional[Dict[str, Any]]]:
+    """Scenario-specific approach requirement, mirrored from the strict scorer.
+
+    dual_authority_handoff stages a near-zone flagger whose body feeds
+    distance_to_hazard_m; a stop that never transits that zone (blip-then-park)
+    must not earn stop credit. Credit ramps from 1.0 at a real transit down to
+    0.0 when the ego parked the full zone distance short.
+    """
+    requirement = STOP_APPROACH_REQUIREMENTS.get(
+        str(scenario or "").removeprefix("marshal_"))
+    if requirement is None:
+        return 1.0, None
+    min_hazard = _min(rows, "distance_to_hazard_m")
+    credit = _linear_credit(
+        min_hazard,
+        requirement["hazard_pass_m"],
+        requirement["hazard_pass_m"] + 12.0,
+    )
+    return credit, {
+        "factor": _round(credit),
+        "min_distance_to_hazard_m": _round(min_hazard),
+        "required_hazard_pass_m": requirement["hazard_pass_m"],
+    }
+
+
+def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: float, reaction_budget: float, scenario: Optional[str] = None) -> Tuple[float, Dict[str, float], Dict[str, Any], str]:
     active_rows = _between(rows, onset, active_end)
     enforcement_rows = _between(rows, onset + reaction_budget, active_end)
     fallback_rows = enforcement_rows or active_rows
@@ -622,7 +656,8 @@ def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: f
         min_stopline=min_stopline,
         entered_junction=entered_junction,
     )
-    action_credit = base * conflict_factor * evidence_factor * engagement_factor
+    approach_factor, approach_evidence = _stop_hold_approach_factor(rows, scenario)
+    action_credit = base * conflict_factor * evidence_factor * engagement_factor * approach_factor
     components = {
         "speed_margin": speed_credit,
         "stopline_clearance": clearance_credit,
@@ -630,6 +665,8 @@ def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: f
         "evidence_window": evidence_factor,
         **engagement_components,
     }
+    if approach_evidence is not None:
+        components["approach_requirement"] = approach_factor
     evidence = {
         "curve": (
             "STOP/HOLD: 0.60*speed_margin + 0.40*stopline_clearance; "
@@ -644,6 +681,8 @@ def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: f
         "enforcement_rows": len(enforcement_rows),
         "engagement": engagement_evidence,
     }
+    if approach_evidence is not None:
+        evidence["approach_requirement"] = approach_evidence
     return action_credit, components, evidence, "graded STOP/HOLD stopline, speed, conflict-zone, and engagement margins"
 
 
@@ -960,13 +999,19 @@ def score_episode_from_telemetry(
         return verdict
 
     onset, duration, active_end = _first_meta(rows)
+    if max_reaction_time is None:
+        # Re-scoring callers (calibration, sweep collection, robustness) pass
+        # only the result payload; fall back to the episode's own recorded
+        # budget so a scenario with a non-default max_reaction_time_sec is not
+        # silently graded against the 3 s default.
+        max_reaction_time = (result.get("ground_truth") or {}).get("max_reaction_time_sec")
     try:
         reaction_budget = float(max_reaction_time if max_reaction_time is not None else 3.0)
     except Exception:
         reaction_budget = 3.0
 
     if action in {"STOP", "HOLD"}:
-        action_credit, components, evidence, reason = _score_stop_hold(rows, onset, active_end, reaction_budget)
+        action_credit, components, evidence, reason = _score_stop_hold(rows, onset, active_end, reaction_budget, scenario=scen)
     elif action == "PROCEED" and scen == "rule_hierarchy":
         action_credit, components, evidence, reason = _score_proceed_with_care(rows, onset)
     elif action == "PROCEED" and scen == "stale_directive_residue":
@@ -982,7 +1027,7 @@ def score_episode_from_telemetry(
         verdict.update({"scenario": scen, "expected_action": action})
         return verdict
 
-    latency_factor, latency_evidence = _latency_factor(rows, action, scen, onset, action_credit=action_credit)
+    latency_factor, latency_evidence = _latency_factor(rows, action, scen, onset, action_credit=action_credit, reaction_budget=reaction_budget)
     safety_factor, safety_evidence = _safety_factor(rows)
     credit = _clamp(action_credit) * latency_factor * safety_factor
     evidence.update(

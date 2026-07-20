@@ -1173,11 +1173,14 @@ def _load_station(scenario_name: str, town: Any = None) -> Optional[dict]:
     base = STATION_ALIASES.get(base, base)
     st = stations.get(base)
     if not st:
-        if not legacy:
-            log.warning("Station key %r is missing from %s", base, path)
+        log.warning("Station key %r is missing from %s", base, path)
         return None
-    return {"x": float(st["x"]), "y": float(st["y"]),
-            "z": float(st.get("z", 0.5)), "yaw": float(st["yaw"])}
+    try:
+        return {"x": float(st["x"]), "y": float(st["y"]),
+                "z": float(st.get("z", 0.5)), "yaw": float(st["yaw"])}
+    except (KeyError, TypeError, ValueError) as e:
+        log.warning("Station entry %r in %s is degenerate: %s", base, path, e)
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -1543,24 +1546,46 @@ def run_scenario(
     try:
         world = ensure_town(client, config.get("town"))
         ctx.world = world
+        # Capture the TRUE pre-episode server weather before any apply, so a
+        # conditioned episode restores the server to its pre-episode state --
+        # not to its own pin duplicated in environment.weather (which would
+        # leak e.g. ClearNight into the next episode on the same server).
+        pre_episode_weather = None
+        try:
+            pre_episode_weather = world.get_weather()
+        except Exception as e:
+            log.warning("could not capture pre-episode weather: %s", e)
         # Legacy scenario YAML behavior: all shipped configs explicitly apply
         # environment.weather=ClearNoon here.  Keep this call unchanged for I3.
         apply_weather(world, (config.get("environment") or {}).get("weather"))
 
         weather_applied = False
         if should_apply_condition(config):
-            try:
-                condition = condition_from_config(config.get("weather"))
-                requested_weather = resolve(condition, import_carla())
-                if requested_weather is not None:
+            # Resolve OUTSIDE any try: an unknown/case-mismatched preset in a
+            # scenario's intrinsic pin must fail the episode loudly (same as a
+            # malformed weather shape), never silently score at inherited
+            # weather.
+            condition = condition_from_config(config.get("weather"))
+            requested_weather = resolve(condition, import_carla())
+            if requested_weather is not None:
+                try:
                     # If the pre-condition state cannot be captured, do not
                     # apply: a conditioned episode must always be restorable.
-                    ctx.original_weather = world.get_weather()
+                    if pre_episode_weather is None:
+                        raise RuntimeError(
+                            "pre-episode weather unavailable; refusing an "
+                            "unrestorable conditioned episode")
+                    ctx.original_weather = pre_episode_weather
                     world.set_weather(requested_weather)
                     ctx.weather_applied = True
                     weather_applied = True
-            except Exception as e:
-                log.warning("Could not apply episode weather condition: %s", e)
+                except Exception as e:
+                    # A conditioned episode that runs at the WRONG weather is
+                    # not a scoreable episode: record a scene-setup error so
+                    # the result is flagged invalid downstream.
+                    scene_setup_errors.append(
+                        f"episode weather condition apply failed: {e}")
+                    log.warning("Could not apply episode weather condition: %s", e)
 
         try:
             actual_weather = world.get_weather()
@@ -1608,6 +1633,20 @@ def run_scenario(
                 ego_cfg["spawn_transform"] = st
                 log.info("Using curated station for %s: (%.1f, %.1f) yaw=%.1f",
                          name, st["x"], st["y"], st["yaw"])
+            else:
+                # A registered benchmark scenario without a usable station
+                # would silently fall back to a signal-pick/random spawn and
+                # produce an episode that LOOKS scoreable but was not run at
+                # its curated pose. Flag it as a scene-setup error so the
+                # result is invalid downstream instead of quietly counted.
+                from marshal_bench.criteria.graded_episode_scoring import (
+                    canonical_scenario_name)
+                from marshal_bench.criteria.marshal_metrics import SCENARIO_SPEC
+                if canonical_scenario_name(name) in SCENARIO_SPEC:
+                    scene_setup_errors.append(
+                        f"no usable curated station for benchmark scenario "
+                        f"{name!r} in town {active_town!r}; refusing a "
+                        f"random-spawn episode")
         # Signalised scenario: spawn the ego a fixed run-up back from a traffic
         # light's stop line, and remember that stop line for officer placement.
         officer_stopline = None

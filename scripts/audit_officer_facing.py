@@ -18,6 +18,7 @@ if str(ROOT) not in sys.path:
 
 from scripts import run_marshal_officer_demo as runner  # noqa: E402
 from marshal_bench.scenarios._common import (  # noqa: E402
+    STATION_ALIASES,
     ScenarioContext,
     build_officer,
     default_setup_traffic_light,
@@ -164,7 +165,14 @@ def main(argv: Optional[list[str]] = None) -> int:
             if scenario in masked:
                 row = {"town": town, "scenario": scenario, "status": "masked", "directors": [], "flagged": False, "masked_reason": masked[scenario]}
             else:
-                row = {"town": town, "scenario": scenario, **stage_one(client, town, scenario, stations[scenario])}
+                # Same alias resolution as the runtime station lookup and the
+                # calibration gate: expansion scenarios reuse a witness pose.
+                station_key = STATION_ALIASES.get(scenario, scenario)
+                station = stations.get(station_key)
+                if station is None:
+                    row = {"town": town, "scenario": scenario, "status": "missing_station", "directors": [], "flagged": True, "station_key": station_key}
+                else:
+                    row = {"town": town, "scenario": scenario, **stage_one(client, town, scenario, station)}
             rows.append(row)
         payload = {"town": town, "threshold_deg": THRESHOLD_DEG, "scenarios": rows}
         (out_dir / f"officer_facing_{town.lower()}.json").write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
