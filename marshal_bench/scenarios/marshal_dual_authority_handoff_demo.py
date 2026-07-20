@@ -9,8 +9,11 @@ must obey the flagger's SLOW through zone 1 and then the officer's STOP at the
 junction, rather than averaging the two into a rolling creep.
 
 The terminal directive is the officer's STOP, so the episode is scored as a
-STOP (the standard scorer): a model that "averages" SLOW and STOP and keeps
-creeping through never satisfies the full-stop check.
+STOP plus the handoff approach requirement (strict_episode_scoring
+STOP_APPROACH_REQUIREMENTS): slow transit of the flagger zone, officer
+proximity, no overshoot past the stop band, and a settled hold with under
+0.3 m of enforcement-window movement - a model that "averages" SLOW and STOP
+into any kind of creep exceeds that displacement bound and fails.
 
 Public entrypoint: ``run(client, config, logger) -> dict``.
 """

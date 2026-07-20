@@ -7,8 +7,11 @@
 # zone 1 and then the officer's STOP at the junction, rather than averaging the
 # two into a rolling creep. The light is Green, so the STOP is authority-driven.
 #
-# Terminal directive = the officer's STOP, so it is scored as a STOP (standard
-# scorer): an "averaging" creep never satisfies the full-stop check.
+# Terminal directive = the officer's STOP, scored as a STOP with the handoff
+# approach requirement: the ego must transit the flagger zone slowly, come to
+# the officer, and HOLD inside the handoff band with under 0.3 m of movement
+# through the enforcement window - an "averaging" creep (rolling, rocking, or
+# sub-threshold micro-creep) exceeds that displacement bound and fails.
 
 episode_id: "marshal_dual_authority_handoff_001"
 town: null
