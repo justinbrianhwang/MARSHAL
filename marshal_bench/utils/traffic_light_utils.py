@@ -94,19 +94,60 @@ def _ego_facing_dot(ego_transform: Any, target_location: Any) -> float:
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+def _ego_lane_chain_keys(world: Any, ego_location: Any, max_distance: float) -> set:
+    """(road_id, lane_id) keys of the ego's forward lane chain up to max_distance.
+
+    Follows every ``Waypoint.next()`` branch (bounded) so a junction split
+    cannot hide the approach lane the ego will actually take.
+    """
+    keys: set = set()
+    try:
+        start = world.get_map().get_waypoint(ego_location)
+    except Exception as e:
+        log.debug("get_waypoint(ego) failed: %s", e)
+        return keys
+    if start is None:
+        return keys
+    step = 2.0
+    frontier = [(start, 0.0)]
+    visited = 0
+    while frontier and visited < 200:
+        wp, dist = frontier.pop()
+        visited += 1
+        try:
+            keys.add((wp.road_id, wp.lane_id))
+        except Exception:
+            continue
+        if dist >= max_distance:
+            continue
+        try:
+            for nxt in (wp.next(step) or []):
+                frontier.append((nxt, dist + step))
+        except Exception:
+            break
+    return keys
+
+
 def find_relevant_traffic_light(
     world: Any,
     ego_vehicle: Any,
     distance_threshold: float = 80.0,
 ) -> Optional[Any]:
-    """Return the traffic light most relevant to ``ego_vehicle``.
+    """Return the traffic light that governs ``ego_vehicle``'s own approach.
 
-    First trusts ``ego_vehicle.get_traffic_light()`` (CARLA's own affecting-TL
-    query). If that returns None, falls back to a manual scan: collect every
-    ``traffic.traffic_light`` actor in the world, keep only those within
-    ``distance_threshold`` metres that the ego is roughly facing (dot product
-    of the ego forward vector with the vector-to-light is positive), and
-    return the nearest of those. Returns None if no candidate qualifies.
+    Selection order:
+
+    1. ``ego_vehicle.get_traffic_light()`` — CARLA's affecting-TL query
+       (authoritative, but empty until the ego is inside a trigger volume).
+    2. LANE-AWARE scan: the light whose ``get_stop_waypoints()`` lies on the
+       ego's forward lane chain (road_id/lane_id match), nearest stop waypoint
+       first. This is the one the ego will actually face at its stop line.
+    3. Legacy nearest-facing-actor fallback. This is APPROXIMATE — light poles
+       stand across the junction, so the nearest facing actor frequently
+       belongs to another approach. Kept only as a last resort and logged:
+       pinning it does NOT constrain the ego's own signal (found as a live
+       stimulus-integrity bug: episodes pinned a non-governing light while the
+       ego's real signal kept cycling).
     """
     if world is None or ego_vehicle is None:
         return None
@@ -131,6 +172,29 @@ def find_relevant_traffic_light(
         log.warning("Could not enumerate traffic lights: %s", e)
         return None
 
+    lane_keys = _ego_lane_chain_keys(world, ego_location, distance_threshold)
+    if lane_keys:
+        best = None
+        best_dist = float("inf")
+        for tl in candidates:
+            try:
+                stop_wps = list(tl.get_stop_waypoints())
+            except Exception:
+                continue
+            for swp in stop_wps:
+                try:
+                    if (swp.road_id, swp.lane_id) not in lane_keys:
+                        continue
+                    dist = _location_distance(
+                        ego_location, swp.transform.location)
+                except Exception:
+                    continue
+                if dist < best_dist and dist <= distance_threshold + 20.0:
+                    best = tl
+                    best_dist = dist
+        if best is not None:
+            return best
+
     best = None
     best_dist = distance_threshold
     for tl in candidates:
@@ -145,6 +209,13 @@ def find_relevant_traffic_light(
             continue
         best = tl
         best_dist = dist
+    if best is not None:
+        log.warning(
+            "find_relevant_traffic_light: falling back to nearest-facing "
+            "light id=%s — no lane-matched stop waypoint found; this light "
+            "may not govern the ego's approach.",
+            getattr(best, "id", "?"),
+        )
     return best
 
 

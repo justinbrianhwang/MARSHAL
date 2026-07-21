@@ -1349,7 +1349,7 @@ def _build_ground_truth(
         pass
     env = config.get("environment") or {}
     expected = config.get("expected_behavior") or {}
-    stop_line = _resolve_stop_line(ctx.traffic_light)
+    stop_line = _resolve_stop_line(ctx.traffic_light, ctx.ego, ctx.world)
     try:
         map_name = ctx.world.get_map().name
     except Exception:
@@ -1422,6 +1422,10 @@ def _build_observation(
         "ego_yaw": tf.rotation.yaw,
         "ego_speed": speed, "ego_speed_kmh": speed * 3.6,
         "tl_state": get_traffic_light_state(ctx.traffic_light),
+        "distance_to_stopline_m": (
+            _distance_between_locations(
+                tf.location, getattr(ctx, "stop_line_location", None))
+            if getattr(ctx, "stop_line_location", None) is not None else None),
         "in_junction": ego_in_intersection(ctx.ego, world),
         "hazard_forward_m": hazard_forward_m,
         "image": image,
@@ -1694,10 +1698,30 @@ def run_scenario(
 
         tl_setup = setup_traffic_light or default_setup_traffic_light
         ctx.traffic_light = tl_setup(world, ctx.ego, config)
+        # A set_state only becomes visible after a simulation tick: reading
+        # immediately records the light's PREVIOUS natural phase (this masked
+        # a wrong-light pin for months). Tick once, then read and VERIFY.
+        try:
+            world.tick() if world.get_settings().synchronous_mode else world.wait_for_tick()
+        except Exception:
+            pass
         result["traffic_light_state"] = get_traffic_light_state(ctx.traffic_light)
+        configured_tl_state = str((config.get("traffic_light") or {}).get("state") or "").capitalize()
+        if (ctx.traffic_light is not None and configured_tl_state
+                and result["traffic_light_state"] != configured_tl_state):
+            scene_setup_errors.append(
+                f"traffic light stimulus mismatch: configured "
+                f"{configured_tl_state!r} but light "
+                f"{getattr(ctx.traffic_light, 'id', '?')} reads "
+                f"{result['traffic_light_state']!r} after the pin")
+        if ctx.traffic_light is None and configured_tl_state:
+            scene_setup_errors.append(
+                "traffic light stimulus missing: config pins "
+                f"{configured_tl_state!r} but no governing light was found")
         logger.log_event(
             "traffic_light_setup",
             state=result["traffic_light_state"],
+            configured_state=configured_tl_state or None,
             light_id=getattr(ctx.traffic_light, "id", None),
         )
 
@@ -1797,7 +1821,11 @@ def run_scenario(
         expected = config.get("expected_behavior") or {}
         expected_action_effective = str(expected.get("action", expected_action)).upper()
         max_reaction_time = float(expected.get("max_reaction_time_sec", 3.0))
-        stop_line_location = _resolve_stop_line(ctx.traffic_light)
+        stop_line_location = _resolve_stop_line(ctx.traffic_light, ctx.ego, world)
+        # Expose to the per-tick observation so a light-following controller
+        # (the B0 baseline) can brake for its OWN signal without relying on
+        # CARLA trigger volumes, which miss some curated approach lanes.
+        ctx.stop_line_location = stop_line_location
         compliance = AuthorityComplianceCriterion(
             ego_vehicle=ctx.ego,
             officer=ctx.officer,
@@ -2401,16 +2429,39 @@ def teardown(ctx: ScenarioContext) -> None:
 # ---------------------------------------------------------------------------
 # Misc helpers
 # ---------------------------------------------------------------------------
-def _resolve_stop_line(light: Any) -> Optional[Any]:
-    """Best-effort: return the carla.Location of ``light``'s primary stop line."""
+def _resolve_stop_line(light: Any, ego: Any = None, world: Any = None) -> Optional[Any]:
+    """Return the carla.Location of the stop line governing the EGO's lane.
+
+    A light's ``get_stop_waypoints()`` covers every lane the light controls;
+    picking ``[0]`` blindly frequently returns another approach's stop line,
+    which can sit 10-30 m off the ego's driving axis and make every
+    stopline-anchored quantity (telemetry, clearance checks, a light-following
+    baseline's braking) reference a point the ego never reaches. When the ego
+    and world are supplied, prefer the stop waypoint on the ego's own forward
+    lane chain; fall back to the first waypoint, then the light pole.
+    """
     if light is None:
         return None
+    wps = []
     try:
-        wps = light.get_stop_waypoints()
-        if wps:
-            return wps[0].transform.location
+        wps = list(light.get_stop_waypoints() or [])
     except Exception:
-        pass
+        wps = []
+    if wps and ego is not None and world is not None:
+        try:
+            from marshal_bench.utils.traffic_light_utils import _ego_lane_chain_keys
+            keys = _ego_lane_chain_keys(
+                world, ego.get_transform().location, max_distance=90.0)
+            for wp in wps:
+                if (wp.road_id, wp.lane_id) in keys:
+                    return wp.transform.location
+        except Exception:
+            pass
+    if wps:
+        try:
+            return wps[0].transform.location
+        except Exception:
+            pass
     try:
         return light.get_transform().location
     except Exception:
