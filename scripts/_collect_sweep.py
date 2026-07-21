@@ -1,8 +1,12 @@
 """Collect the full-sweep results from per-episode artifacts.
 
-Reads each (model, scenario) episode's strict_scoring.json (PASS/FAIL/invalid)
-and re-scores MARSHAL-Graded from strict_telemetry.json, then prints a 14x21
-matrix + per-model summary and writes outputs/full_sweep_results.json.
+Both strict and MARSHAL-Graded are RE-SCORED from each episode's recorded
+strict_telemetry.json with the CURRENT scorers (the scorers are pure functions
+over telemetry), so a sweep whose episodes were recorded under different
+scorer revisions is still reported under one uniform ruleset. The stored
+run-time verdict is kept alongside for audit; episodes without telemetry fall
+back to the stored verdict. Prints a models x scenarios matrix + per-model
+summary and writes outputs/full_sweep_results.json.
 
 Run from the marshal env:  python scripts/_collect_sweep.py
 """
@@ -16,6 +20,8 @@ import _run_vlm_test as vlm
 from _run_full_sweep import MODELS, SCEN
 from marshal_bench.criteria.graded_episode_scoring import (
     score_episode_from_telemetry, aggregate_graded_scores)
+from marshal_bench.criteria.strict_episode_scoring import (
+    score_episode_from_telemetry as score_strict_episode)
 from marshal_bench.criteria.marshal_metrics import (
     CONFLICT_TYPE, CONFLICT_TYPE_ORDER, REASONING_TIER,
     compute_episode_metrics, aggregate)
@@ -93,34 +99,60 @@ def main():
                 matrix[label][sc] = {"strict": "MISSING", "credit": None}
                 nmissing += 1
                 continue
-            verdict = strict.get("verdict") or ("INVALID" if strict.get("invalid") else "?")
-            if strict.get("invalid"):
+            stored_verdict = strict.get("verdict") or ("INVALID" if strict.get("invalid") else "?")
+            rows = read_tel(epdir)
+            result_dict = result_blob
+            if not isinstance(result_dict, dict):
+                result_dict = {"scenario": sc, "strict_scoring": strict}
+            inner = result_dict.get("result", result_dict)
+            if not isinstance(inner, dict):
+                inner = {"scenario": sc}
+            inner.setdefault("scenario", sc)
+            inner.setdefault("strict_scoring", strict)
+            budget = (inner.get("ground_truth") or {}).get("max_reaction_time_sec")
+            # Re-score strict under the CURRENT scorer whenever telemetry
+            # exists, so old and new episodes are graded by one ruleset.
+            rescored = None
+            if rows:
+                try:
+                    rescored = score_strict_episode(
+                        inner, rows, scenario=sc,
+                        expected_action=vlm.SCENARIOS[sc]["expect"],
+                        max_reaction_time=budget)
+                except Exception:
+                    rescored = None
+            if rescored is not None:
+                verdict = rescored.get("verdict") or "?"
+                inner["strict_scoring"] = rescored
+            else:
+                verdict = stored_verdict
+            is_invalid = (rescored or strict).get("invalid")
+            if is_invalid:
                 ninvalid += 1
             elif verdict == "PASS":
                 npass += 1
             elif verdict == "FAIL":
                 nfail += 1
-            credit = None
-            rows = read_tel(epdir)
-            result_dict = result_blob
-            if not isinstance(result_dict, dict):
-                result_dict = {"scenario": sc, "strict_scoring": strict}
-            else:
-                result_dict.setdefault("scenario", sc)
-                result_dict.setdefault("strict_scoring", strict)
             ep_metrics.append(compute_episode_metrics(
-                result_dict, scenario=sc, telemetry_rows=rows))
+                inner, scenario=sc, telemetry_rows=rows))
+            credit = None
             if rows:
                 try:
                     gs = score_episode_from_telemetry(
-                        {"scenario": sc, "expected_action": vlm.SCENARIOS[sc]["expect"]},
-                        rows, scenario=sc,
-                        expected_action=vlm.SCENARIOS[sc]["expect"])
+                        inner, rows, scenario=sc,
+                        expected_action=vlm.SCENARIOS[sc]["expect"],
+                        max_reaction_time=budget)
                     credit = gs.get("credit")
                     ep_scores.append(gs)
-                except Exception as e:
+                except Exception:
                     credit = None
-            matrix[label][sc] = {"strict": verdict, "credit": credit}
+            matrix[label][sc] = {
+                "strict": verdict,
+                "credit": credit,
+                "stored_strict": stored_verdict,
+                "rescored": rescored is not None,
+                "changed": (rescored is not None and verdict != stored_verdict) or None,
+            }
         graded = aggregate_graded_scores(ep_scores)["marshal_graded"] if ep_scores else None
         marshal_agg = aggregate(ep_metrics)
         scored = npass + nfail + ninvalid
@@ -145,6 +177,10 @@ def main():
             "suite": marshal_agg["suite"],
             "conflict_profile": conflict_profile,
             "conditions_seen": sorted(conditions_seen),
+            # audit trail: scenarios whose verdict changed under the current
+            # scorer vs the verdict stored at run time
+            "rescored_changed": sorted(
+                sc for sc in SCEN if matrix[label][sc].get("changed")),
         }
 
     # print

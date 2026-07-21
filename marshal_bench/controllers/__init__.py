@@ -2,8 +2,12 @@
 
 ``make_controller(name, ...)`` resolves a controller by name:
 
-* ``baseline`` / ``tm`` / ``autopilot`` / ``none`` -> ``None`` — ``run_scenario``
-  drives with the TrafficManager autopilot (officer-blind, light-only baseline B0).
+* ``baseline`` -> the light-only B0 reference: obeys the scenario's pinned
+  signal from the observation, blind to every human directive. (It replaced
+  the raw TrafficManager autopilot, whose red-light compliance depends on map
+  trigger volumes that do not cover some curated approach lanes.)
+* ``tm`` / ``autopilot`` / ``none`` -> ``None`` — ``run_scenario`` drives with
+  the vanilla TrafficManager autopilot.
 * ``oracle`` -> the privileged Track-A reference controller.
 * ``pid`` / ``mpc`` -> non-learned Track-B lane-follow lower bounds.
 * **Any dotted/colon path** ``your_pkg.your_module:YourController`` (or
@@ -22,7 +26,7 @@ import importlib
 import inspect
 from typing import Any, Optional
 
-_TM_ALIASES = {"baseline", "tm", "autopilot", "none", None}
+_TM_ALIASES = {"tm", "autopilot", "none", None}
 
 
 def _instantiate(cls: Any, config: Optional[dict]) -> Any:
@@ -68,6 +72,9 @@ def make_controller(name: Optional[str], config: Optional[dict] = None) -> Any:
     key = str(name).lower()
     if key in _TM_ALIASES:
         return None
+    if key == "baseline":
+        from marshal_bench.controllers.baseline_light import LightOnlyBaselineController
+        return LightOnlyBaselineController(config=config)
     if key == "oracle":
         from marshal_bench.controllers.oracle import OracleController
         return OracleController(config=config)
