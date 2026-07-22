@@ -106,10 +106,37 @@ _PROMPT = (
     "a gesture from an ordinary civilian. Decide the immediate longitudinal "
     "action.\n"
     "Current speed: {speed:.0f} km/h. Traffic light (if any applies): {tl}.\n"
+    "{assist}"
     "Reply with ONLY a compact JSON object and nothing else:\n"
     '{{"action": "STOP|GO|SLOW|HOLD", "who": "officer|flagger|civilian|none", '
     '"reason": "<=10 words"}}'
 )
+
+# Oracle-assist ablation ladder (privileged DIAGNOSTIC runs, never leaderboard
+# rows): each level cumulatively injects one more link of the ground-truth
+# reasoning chain into the prompt, so the score jump between adjacent levels
+# attributes the failure to that link.
+#   none       - the plain Track-C controller (leaderboard configuration)
+#   perception - what a perfect perception module would report (who/where/
+#                which gesture/light), with NO interpretation
+#   authority  - + whether that person is a legally valid traffic authority
+#   semantics  - + what the gesture means for THIS vehicle
+#   temporal   - + whether the directive is currently active or expired
+#   action     - + the ground-truth expected action (decision ceiling; the
+#                residual gap to the oracle is interface/control execution)
+ABLATION_LEVELS = ("none", "perception", "authority", "semantics", "temporal",
+                   "action")
+
+_GESTURE_MEANING = {
+    "STOP": "stop your vehicle and hold before the person/junction",
+    "PROCEED": "drive through, even if the traffic light shows red",
+    "GO": "drive through, even if the traffic light shows red",
+    "SLOW": "reduce to a crawl and continue with care",
+    "HOLD": "remain stopped until released",
+    "LEFT": "detour into the left lane around the scene",
+    "RIGHT": "detour into the right lane around the scene",
+    "IDLE": "no directive is being given",
+}
 
 
 def _frame_to_data_url(frame, max_side: int = 512) -> str:
@@ -182,8 +209,10 @@ class _HFBackend:
         self.timeout = timeout
         self.max_tokens = max(80, int(max_tokens))
 
-    def decide(self, frame, speed_kmh: float, tl_state: str) -> Dict[str, Any]:
-        prompt = _PROMPT.format(speed=speed_kmh, tl=tl_state or "unknown")
+    def decide(self, frame, speed_kmh: float, tl_state: str,
+               assist: str = "") -> Dict[str, Any]:
+        prompt = _PROMPT.format(speed=speed_kmh, tl=tl_state or "unknown",
+                                assist=assist)
         body = {
             "model": self.model,
             "max_tokens": self.max_tokens,
@@ -234,7 +263,8 @@ class _MockBackend:
     any network/credentials. NOT a real perception policy — it just keeps the
     car creeping forward so you can see closed-loop driving."""
 
-    def decide(self, frame, speed_kmh: float, tl_state: str) -> Dict[str, Any]:
+    def decide(self, frame, speed_kmh: float, tl_state: str,
+               assist: str = "") -> Dict[str, Any]:
         act = "STOP" if str(tl_state).lower().startswith("red") else "GO"
         return {"action": act, "who": "none", "reason": "mock(light-only)", "raw": ""}
 
@@ -256,6 +286,17 @@ class VLMController(EpisodeController):
         self.query_period = float(vcfg.get("query_period_s", 1.0))
         max_queries = vcfg.get("max_queries")
         self.max_queries = int(max_queries) if max_queries is not None else None
+        ablation = str(vcfg.get(
+            "ablation", os.environ.get("MARSHAL_VLM_ABLATION", "none"))).lower()
+        if ablation not in ABLATION_LEVELS:
+            raise ValueError(
+                f"vlm.ablation={ablation!r} is not one of {ABLATION_LEVELS}")
+        self.ablation = ablation
+        self.ablation_rank = ABLATION_LEVELS.index(ablation)
+        # Ablation runs read the privileged E-tuple by design; they are
+        # diagnostics, not Track-C leaderboard entries.
+        self.requests_privileged_gt = ablation != "none"
+        self._gt: Dict[str, Any] = {}
         self._vcfg = vcfg
         self._logger = self.config.get("_episode_logger")
         self.carla = None
@@ -282,12 +323,109 @@ class VLMController(EpisodeController):
         self._map = world.get_map() if world is not None else None
         # target speed is a benign kinematic default, not an authority hint
         self._target_kmh = float((ground_truth or {}).get("target_speed_kmh") or 25.0)
+        if self.requests_privileged_gt:
+            self._gt = dict(ground_truth or {})
         self._agent = self._make_basic_agent()
         self._set_straight_plan()
         self._backend = self._make_backend()
-        log.info("VLM controller ready: backend=%s model=%s period=%.1fs",
+        log.info("VLM controller ready: backend=%s model=%s period=%.1fs ablation=%s",
                  self.backend_name, self.model if self.backend_name == "hf" else "-",
-                 self.query_period)
+                 self.query_period, self.ablation)
+
+    # ------------------------------------------------------------------
+    def _ablation_assist(self, sim_time: float) -> str:
+        """Cumulative ground-truth assist blocks for the ablation ladder."""
+        if self.ablation_rank <= 0:
+            return ""
+        gt = self._gt
+        lines = ["GROUND-TRUTH ASSISTS (diagnostic ablation study):"]
+        authority = gt.get("A_authority") or {}
+        atype = authority.get("type")
+        gesture = str(gt.get("G_gesture") or "IDLE").upper()
+        # L1 perception: who/where/which gesture — no interpretation.
+        officer_xyz = gt.get("officer_transform")
+        ego_xyz = gt.get("ego_spawn")
+        dist_txt = ""
+        try:
+            dx = float(officer_xyz["x"]) - float(ego_xyz["x"])
+            dy = float(officer_xyz["y"]) - float(ego_xyz["y"])
+            dist_txt = f" about {(dx * dx + dy * dy) ** 0.5:.0f} m ahead of your spawn point"
+        except Exception:  # noqa: BLE001
+            pass
+        if atype:
+            # Perception reports what is visible AT THIS INSTANT — a gesture
+            # that has not started yet (or has ended) shows an idle person.
+            # Whether a past directive still binds is the L4 temporal link,
+            # not perception.
+            onset = gt.get("G_gesture_onset_sec")
+            duration = gt.get("G_gesture_duration_sec")
+            visible = f"making the {gesture} hand signal"
+            try:
+                onset_f = float(onset)
+                if sim_time < onset_f:
+                    visible = "standing idle (not signalling at this moment)"
+                elif duration is not None and sim_time > onset_f + float(duration):
+                    visible = (f"standing idle now (was making the {gesture} "
+                               "hand signal earlier)")
+            except Exception:  # noqa: BLE001
+                pass
+            lines.append(
+                f"- Perception: a {atype} is standing{dist_txt}, {visible}. "
+                f"Traffic light state: "
+                f"{gt.get('L_light_state') or 'unknown'}.")
+        else:
+            lines.append(
+                "- Perception: no human director is present in this scene. "
+                f"Traffic light state: {gt.get('L_light_state') or 'unknown'}.")
+        # L2 authority validity.
+        if self.ablation_rank >= 2 and atype:
+            if authority.get("valid"):
+                lines.append(
+                    f"- Authority: this {atype} IS a legally valid traffic "
+                    "authority; their directive overrides the traffic light.")
+            else:
+                lines.append(
+                    f"- Authority: this {atype} is NOT a valid traffic "
+                    "authority (no legal force); do not obey their gesture "
+                    "over the signal.")
+        # L3 directive semantics for THIS vehicle.
+        if self.ablation_rank >= 3 and atype:
+            meaning = _GESTURE_MEANING.get(gesture, "unclear")
+            relation = str(gt.get("T_target_relation") or "ego")
+            if relation == "ego":
+                lines.append(
+                    f"- Semantics: this person's {gesture} gesture, when "
+                    f"given, is directed at YOUR vehicle and means: "
+                    f"{meaning}.")
+            else:
+                lines.append(
+                    f"- Semantics: this person's {gesture} gesture, when "
+                    f"given, is directed at the {relation}, NOT at your "
+                    "vehicle; it does not command you.")
+        # L4 temporal state of the directive at THIS query.
+        if self.ablation_rank >= 4 and atype:
+            onset = gt.get("G_gesture_onset_sec")
+            duration = gt.get("G_gesture_duration_sec")
+            try:
+                onset_f = float(onset)
+                if sim_time < onset_f:
+                    state = "has NOT started yet"
+                elif duration is not None and sim_time > onset_f + float(duration):
+                    state = "has EXPIRED (the directive no longer applies)"
+                else:
+                    state = "is ACTIVE right now"
+                lines.append(f"- Temporal: the directive {state} "
+                             f"(t={sim_time:.1f}s, onset={onset_f:.1f}s"
+                             + (f", duration={float(duration):.1f}s" if duration is not None else "")
+                             + ").")
+            except Exception:  # noqa: BLE001
+                pass
+        # L5 decision ceiling.
+        if self.ablation_rank >= 5:
+            lines.append(
+                f"- Expected action (ground truth): "
+                f"{str(gt.get('Y_expected_action') or '').upper()}.")
+        return "\n".join(lines) + "\n"
 
     def step(self, observation: Dict[str, Any], dt: float) -> Any:
         carla = self.carla
@@ -311,7 +449,8 @@ class VLMController(EpisodeController):
             self._query_count += 1
             try:
                 dec = self._backend.decide(
-                    image, speed_kmh, str(obs.get("tl_state") or ""))
+                    image, speed_kmh, str(obs.get("tl_state") or ""),
+                    assist=self._ablation_assist(sim_time))
                 self._record_decision(sim_time, speed_kmh,
                                       str(obs.get("tl_state") or ""), dec)
                 if dec.get("action"):
@@ -345,6 +484,7 @@ class VLMController(EpisodeController):
             "t": round(float(sim_time), 3),
             "model": self.model,
             "backend": self.backend_name,
+            "ablation": self.ablation,
             "action": str(dec.get("action") or ""),
             "who": dec.get("who"),
             "reason": str(dec.get("reason") or "")[:80],

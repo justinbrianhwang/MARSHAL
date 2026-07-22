@@ -907,10 +907,16 @@ scope so it can be cited without over-reach.
    perception, temporal interpretation, priority reasoning, and behavioral execution.
    Per-case evidence localizes several failures at the priority-reasoning link rather than
    raw perception (a VLM that *describes* the officer correctly yet follows the green
-   light — see the Track-C failure analysis above); a controlled attribution across the
-   stack (oracle-perception / oracle-authority-label ablations) is planned follow-up work.
+   light — see the Track-C failure analysis above). A controlled attribution — the
+   oracle-assist ablation ladder, which injects ground-truth perception, authority
+   validity, directive semantics, temporal state, and finally the expected action itself
+   into the per-tick VLM prompt — finds that **no amount of injected knowledge recovers
+   compliant behaviour on this wiring**: scene ground truth eliminates every
+   drive-through-the-officer failure but flips the model into never engaging the scene,
+   even when told the answer ([docs/oracle_ablation.md](docs/oracle_ablation.md)).
    Either way, the capability is neither conferred by nor measured in nominal-driving
-   benchmarks. *(Scope: single map, staged scenarios.)*
+   benchmarks. *(Scope: single map, staged scenarios; ablation on one backbone,
+   single-sample.)*
 
 2. **Models pass the cells aligned with their own directional prior — in both
    directions — and only the two-pole balance of the suite exposes it.** The clearest
