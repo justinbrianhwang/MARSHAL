@@ -1,5 +1,18 @@
 # Reproducibility and run-to-run variance of MARSHAL results
 
+> **Scope of this study.** The 3-sweep experiment below was conducted on an
+> earlier build of the benchmark (the then-current 21-scenario suite, before the
+> stimulus-integrity pass that corrected the signal-pinning pipeline and the
+> light-only baseline). Its **absolute numbers therefore do not match the
+> current leaderboard** in the README, which is measured on the 25-scenario
+> suite under the corrected stimulus. What this document establishes — and what
+> carries over — is the *variance structure*: the privileged oracle and
+> classical controllers are near-deterministic, while learned E2E controllers
+> show real run-to-run variance (graded std up to ±6.8) concentrated on
+> borderline cells. Read the current single-sweep leaderboard with that
+> variance in mind; a multi-sweep re-measurement on the current build is
+> planned before any camera-ready claim.
+
 This document reports how reproducible MARSHAL's scores are, measured empirically
 from **three independent full closed-loop sweeps** (14 models × 21 scenarios each).
 Short version: the **privileged oracle and the classical controllers are bit-stable**,

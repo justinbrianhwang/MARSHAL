@@ -113,7 +113,6 @@ _REQUIRED_NUMERIC: Tuple[str, ...] = (
     "ego_x",
     "ego_y",
     "distance_to_officer_m",
-    "distance_to_stopline_m",
     "ego_forward_m",
     "ego_lateral_m",
     "collision_count",
@@ -254,7 +253,15 @@ def _normalise_rows(rows: Iterable[Dict[str, Any]]) -> Tuple[Optional[List[Dict[
             if value is None:
                 missing.append(f"row {idx}: {key}")
             out[key] = value
-        for key in ("distance_to_hazard_m", "hazard_forward_m", "officer_duration_sec"):
+        # Optional columns: stopline distances are absent by design when the
+        # scenario has no governing light and no officer (hazard-only stops).
+        for key in (
+            "distance_to_hazard_m",
+            "hazard_forward_m",
+            "officer_duration_sec",
+            "distance_to_stopline_m",
+            "stopline_forward_m",
+        ):
             if key in out:
                 out[key] = _finite_float(out.get(key))
         normalised.append(out)
@@ -491,11 +498,17 @@ def _stop_hold_engagement_factor(
     Low-speed creep is capped so "stayed below 5 km/h far upstream" collapses
     toward zero instead of receiving clearance credit.
     """
+    # min_stopline is None only when the episode has no stop line at all (no
+    # governing light, no officer) — the clearance leg is then inapplicable,
+    # mirroring the strict scorer, not a telemetry dropout (row dropouts still
+    # produce a finite min over the remaining rows).
     strict_stop_compliant = (
         bool(enforcement_rows)
         and not entered_junction
-        and min_stopline is not None
-        and min_stopline >= GRADED_THRESHOLDS["stopline_clearance_m"]
+        and (
+            min_stopline is None
+            or min_stopline >= GRADED_THRESHOLDS["stopline_clearance_m"]
+        )
         and max_scored_speed is not None
         and max_scored_speed < GRADED_THRESHOLDS["stop_speed_kmh"]
     )
@@ -530,6 +543,17 @@ def _stop_hold_engagement_factor(
         if onset_stopline is not None and min_stopline is not None
         else None
     )
+    if approach_distance is None:
+        # No stop line to measure against: fall back to route-forward progress
+        # so hazard-only stops still earn engagement for a real approach.
+        onset_fwd = _finite_float(onset_row.get("ego_forward_m"))
+        fwd_vals = [
+            v
+            for v in (_finite_float(r.get("ego_forward_m")) for r in approach_rows)
+            if v is not None
+        ]
+        if onset_fwd is not None and fwd_vals:
+            approach_distance = max(fwd_vals) - onset_fwd
     speed_credit = _linear_credit(
         max_approach_speed,
         GRADED_THRESHOLDS["stop_engagement_speed_full_kmh"],
@@ -681,32 +705,60 @@ def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: f
 
     max_speed = _max(fallback_rows, "ego_speed_kmh")
     min_stopline = _min(active_rows, "distance_to_stopline_m")
-    # Same assigned-conflict-zone rule as the strict scorer: an unrelated
-    # junction polygon along the approach (curated Town03 green_stop spawns
-    # 1.2 m before one, 44 m from its stopline) must not gut the credit of a
-    # correctly stopped ego. Rows without stopline telemetry stay conservative.
+    min_stopline_fwd = _min(active_rows, "stopline_forward_m")
+    # Same conflict-zone rule as the strict scorer: the signed lane-correct
+    # stopline_forward_m is authoritative when present (junction polygons that
+    # start upstream of the stop line must not gut a correctly held stop, and
+    # the sign catches lateral blast-throughs); legacy rows keep the euclidean
+    # heuristic; per-row dropouts stay conservative. Episodes with no stopline
+    # telemetry at all (no light, no officer) have no assigned zone to breach.
     def _junction_row_in_conflict_zone(row: Dict[str, Any]) -> bool:
         if row.get("in_junction") is not True:
             return False
+        fwd = _finite_float(row.get("stopline_forward_m"))
+        if fwd is not None:
+            return fwd < -GRADED_THRESHOLDS["stopline_crossed_tolerance_m"]
         stopline = _finite_float(row.get("distance_to_stopline_m"))
         if stopline is None:
             return True
         return stopline <= GRADED_THRESHOLDS["conflict_zone_stopline_m"]
 
-    entered_junction = any(_junction_row_in_conflict_zone(r) for r in active_rows)
+    # Scenarios with an approach requirement (dual_authority_handoff) command
+    # their stop inside a band PAST the signal's stop line by design; the
+    # approach factor pins the stop geometry, so the line-anchored conflict
+    # and clearance terms are inapplicable there (mirrors the strict scorer).
+    approach_required = _approach_requirement_for(scenario) is not None
+    has_stopline_telemetry = any(
+        _finite_float(r.get("stopline_forward_m")) is not None
+        or _finite_float(r.get("distance_to_stopline_m")) is not None
+        for r in active_rows
+    )
+    entered_junction = (
+        not approach_required
+        and has_stopline_telemetry
+        and any(_junction_row_in_conflict_zone(r) for r in active_rows)
+    )
     speed_credit = _linear_credit(
         max_speed,
         GRADED_THRESHOLDS["stop_speed_kmh"],
         GRADED_THRESHOLDS["stop_speed_zero_kmh"],
     )
+    clearance_metric = min_stopline_fwd if min_stopline_fwd is not None else min_stopline
+    if approach_required:
+        clearance_metric = None
     clearance_credit = _linear_credit(
-        min_stopline,
+        clearance_metric,
         GRADED_THRESHOLDS["stopline_clearance_m"],
         GRADED_THRESHOLDS["stopline_zero_clearance_m"],
     )
     conflict_factor = 0.35 if entered_junction else 1.0
     evidence_factor = 1.0 if enforcement_rows else 0.75
-    base = (0.60 * speed_credit) + (0.40 * clearance_credit)
+    if clearance_metric is None:
+        # Clearance is inapplicable (no stop line exists, or the approach band
+        # supersedes it) — the speed margin carries the base alone.
+        base = speed_credit
+    else:
+        base = (0.60 * speed_credit) + (0.40 * clearance_credit)
     engagement_factor, engagement_components, engagement_evidence = _stop_hold_engagement_factor(
         rows,
         active_rows,
@@ -715,7 +767,10 @@ def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: f
         active_end,
         reaction_budget,
         max_scored_speed=max_speed,
-        min_stopline=min_stopline,
+        # Approach scenarios lawfully cross the signal's stop line on the way
+        # to the commanded band, so the stopline-anchored engagement terms are
+        # as inapplicable here as the clearance term above.
+        min_stopline=None if approach_required else min_stopline,
         entered_junction=entered_junction,
     )
     approach_factor, approach_evidence = _stop_hold_approach_factor(rows, active_rows, enforcement_rows, scenario)
@@ -738,6 +793,7 @@ def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: f
         ),
         "max_scored_speed_kmh": _round(max_speed),
         "min_distance_to_stopline_m": _round(min_stopline),
+        "min_stopline_forward_m": _round(min_stopline_fwd),
         "entered_junction": entered_junction,
         "active_rows": len(active_rows),
         "enforcement_rows": len(enforcement_rows),

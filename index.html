@@ -490,11 +490,11 @@
     <section>
       <h2>Headline results</h2>
       <p style="margin-top:-6px;margin-bottom:22px;color:var(--muted);font-size:15px;max-width:var(--measure)">
-        <b style="color:var(--ink)">MARSHAL-Graded</b> — the primary metric — is a continuous 0–100 credit from telemetry margins, authority-weighted, oracle-calibrated to 100, with an engagement gate that denies credit for un-engaged creeping. Reported as the mean&nbsp;±&nbsp;std of 3 closed-loop sweeps.
+        <b style="color:var(--ink)">MARSHAL-Graded</b> — the primary metric — is a continuous 0–100 credit from telemetry margins, authority-weighted, oracle-calibrated to 100, with an engagement gate that denies credit for un-engaged creeping. Measured on the 25-scenario suite, one full closed-loop sweep per model, under the stimulus-verified pipeline.
       </p>
       <figure class="diagram" style="max-width:720px;margin:0 auto 22px;">
         <div class="frame">
-          <img src="assets/figures/leaderboard.png" alt="Bar chart of MARSHAL-Graded (0–100) across all 14 models, sorted high to low: oracle 100.0±0.0 (calibration ceiling), Qwen2.5-VL 66.2, TransFuser 55.7±4.9, InterFuser 53.6±1.5, Qwen3-VL 45.3, OpenEMMA 39.5±1.7, NEAT 36.5±6.8, GLM-4.5V 33.9, CILRS 31.2±2.7, AIM 24.0±2.7, baseline 23.9±2.1, TCP 14.8±1.1, MPC 13.4, PID 5.8. TransFuser and InterFuser error bars overlap.">
+          <img src="assets/figures/leaderboard.png" alt="Bar chart of MARSHAL-Graded (0–100) across all 14 models, sorted high to low: oracle 100.0 (calibration ceiling), InterFuser 63.7, TransFuser 63.2, Qwen3-VL 52.7, Qwen2.5-VL 48.0, GLM-4.5V 46.2, OpenEMMA 41.3, NEAT 41.1, TCP 28.2, CILRS 27.4, AIM 24.6, baseline 13.8, MPC 13.8, PID 11.9.">
         </div>
       </figure>
       <div class="tablecard">
@@ -503,14 +503,14 @@
             <tr><th>Model</th><th>Track</th><th style="text-align:right">MARSHAL-Graded</th><th></th></tr>
           </thead>
           <tbody>
-            <tr class="oracle"><td>oracle <span class="trk">privileged</span></td><td><span class="trk">A</span></td><td class="num">100.0 ± 0.0</td><td><span class="bar" style="width:120px"></span></td></tr>
-            <tr><td>Qwen2.5-VL-72B</td><td><span class="trk">C</span></td><td class="num">66.2</td><td><span class="bar" style="width:79px"></span></td></tr>
-            <tr><td>TransFuser</td><td><span class="trk">B</span></td><td class="num">55.7 ± 4.9</td><td><span class="bar" style="width:67px"></span></td></tr>
-            <tr><td>InterFuser</td><td><span class="trk">B</span></td><td class="num">53.6 ± 1.5</td><td><span class="bar" style="width:64px"></span></td></tr>
-            <tr><td>Qwen3-VL-235B</td><td><span class="trk">C</span></td><td class="num">45.3</td><td><span class="bar" style="width:54px"></span></td></tr>
-            <tr><td>OpenEMMA</td><td><span class="trk">B</span></td><td class="num">39.5 ± 1.7</td><td><span class="bar" style="width:47px"></span></td></tr>
-            <tr><td>NEAT</td><td><span class="trk">B</span></td><td class="num">36.5 ± 6.8</td><td><span class="bar" style="width:44px"></span></td></tr>
-            <tr><td>baseline <span class="trk">light-only</span></td><td><span class="trk">—</span></td><td class="num">23.9 ± 2.1</td><td><span class="bar" style="width:29px"></span></td></tr>
+            <tr class="oracle"><td>oracle <span class="trk">privileged</span></td><td><span class="trk">A</span></td><td class="num">100.0</td><td><span class="bar" style="width:120px"></span></td></tr>
+            <tr><td>InterFuser</td><td><span class="trk">B</span></td><td class="num">63.7</td><td><span class="bar" style="width:76px"></span></td></tr>
+            <tr><td>TransFuser</td><td><span class="trk">B</span></td><td class="num">63.2</td><td><span class="bar" style="width:76px"></span></td></tr>
+            <tr><td>Qwen3-VL-235B</td><td><span class="trk">C</span></td><td class="num">52.7</td><td><span class="bar" style="width:63px"></span></td></tr>
+            <tr><td>Qwen2.5-VL-72B</td><td><span class="trk">C</span></td><td class="num">48.0</td><td><span class="bar" style="width:58px"></span></td></tr>
+            <tr><td>GLM-4.5V</td><td><span class="trk">C</span></td><td class="num">46.2</td><td><span class="bar" style="width:55px"></span></td></tr>
+            <tr><td>OpenEMMA</td><td><span class="trk">B</span></td><td class="num">41.3</td><td><span class="bar" style="width:50px"></span></td></tr>
+            <tr><td>baseline <span class="trk">light-only</span></td><td><span class="trk">—</span></td><td class="num">13.8</td><td><span class="bar" style="width:17px"></span></td></tr>
           </tbody>
         </table>
       </div>
