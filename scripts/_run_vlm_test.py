@@ -350,13 +350,19 @@ def _compliance_reason(compliance: dict) -> Any:
 def _run_one(client: Any, model: str, scenario_key: str) -> Dict[str, Any]:
     spec = SCENARIOS[scenario_key]
     cfg = staging.load_staged_config(_ROOT, scenario_key, spec, "vlm")
+    ablation = os.environ.get("MARSHAL_VLM_ABLATION", "none").strip().lower() or "none"
     cfg["vlm"] = {
         "backend": "hf",
         "model": model,
         "query_period_s": 1.5,
         "max_queries": 3,
+        "ablation": ablation,
     }
-    cfg["episode_id"] = f"vlm_{_slug(model)}_{scenario_key}"
+    # Ablation episodes are privileged diagnostics: keep their artifacts in
+    # clearly-separated episode ids so they can never be collected into the
+    # Track-C leaderboard rows.
+    prefix = f"ablate-{ablation}_" if ablation != "none" else ""
+    cfg["episode_id"] = f"vlm_{prefix}{_slug(model)}_{scenario_key}"
     _clear_episode_outputs(cfg["episode_id"])
 
     logger = EpisodeLogger(cfg["episode_id"], output_root=OUT_ROOT)
@@ -914,6 +920,14 @@ def _parse_args() -> argparse.Namespace:
         nargs="*",
         help=f"Scenario keys. Defaults to all 14. Smoke subset: {', '.join(SMOKE_SCENARIOS)}",
     )
+    parser.add_argument(
+        "--ablation",
+        choices=("none", "perception", "authority", "semantics", "temporal",
+                 "action"),
+        default=None,
+        help="Oracle-assist ablation level (privileged DIAGNOSTIC runs; "
+             "separate episode ids and results files).",
+    )
     parser.add_argument("--results-json", default=RESULTS_JSON)
     parser.add_argument("--report", default=REPORT_MD)
     parser.add_argument("--child-run-one", action="store_true", help=argparse.SUPPRESS)
@@ -951,6 +965,8 @@ def _child_main(args: argparse.Namespace) -> int:
 
 def main() -> int:
     args = _parse_args()
+    if args.ablation is not None:
+        os.environ["MARSHAL_VLM_ABLATION"] = args.ablation
     if args.child_run_one:
         return _child_main(args)
 

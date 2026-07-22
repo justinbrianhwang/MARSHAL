@@ -1320,6 +1320,10 @@ def _controller_uses_privileged_ground_truth(controller: Any) -> bool:
         return False
     return (
         str(getattr(controller, "track", "")).upper() == "A"
+        # Diagnostic ablation controllers (the oracle-assist ladder) opt in
+        # explicitly; their runs are tagged as privileged diagnostics and are
+        # never mixed into Track-B/C leaderboard rows.
+        or bool(getattr(controller, "requests_privileged_gt", False))
         or str(getattr(controller, "name", "")).lower() == "oracle"
     )
 
@@ -1364,6 +1368,8 @@ def _build_ground_truth(
             "valid": officer_meta.get("authority_valid"),
         },
         "G_gesture": officer_meta.get("gesture_id", expected_gesture.value),
+        "G_gesture_onset_sec": officer_meta.get("onset_time"),
+        "G_gesture_duration_sec": officer_meta.get("duration"),
         "T_target_relation": officer_meta.get("target_relation", "ego"),
         "S_safety_context": (config.get("scene") or {}),
         "V_visibility": env.get("visibility", "full"),
