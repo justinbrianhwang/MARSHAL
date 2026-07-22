@@ -1826,6 +1826,12 @@ def run_scenario(
         # (the B0 baseline) can brake for its OWN signal without relying on
         # CARLA trigger volumes, which miss some curated approach lanes.
         ctx.stop_line_location = stop_line_location
+        logger.log_event(
+            "stop_line_resolved",
+            x=getattr(stop_line_location, "x", None),
+            y=getattr(stop_line_location, "y", None),
+            resolved=stop_line_location is not None,
+        )
         compliance = AuthorityComplianceCriterion(
             ego_vehicle=ctx.ego,
             officer=ctx.officer,
@@ -1945,6 +1951,20 @@ def run_scenario(
             _carla_map = world.get_map()
         except Exception:
             _carla_map = None
+        # Signed stop-line coordinate along the route axis. Unlike the
+        # euclidean distance_to_stopline_m (which grows again after the ego
+        # crosses the line, and includes lateral offset), forward-projection
+        # keeps its sign, so scoring can tell "stopped short of the line" from
+        # "drove past it". Only meaningful when a real stop line exists — the
+        # officer/ego fallbacks used for the euclidean column would make the
+        # sign lie.
+        stop_line_forward_ref = None
+        if stop_line_location is not None:
+            _sf, _ = _project_from_origin(
+                stop_line_location, route_origin, route_fwd, route_right
+            )
+            if math.isfinite(_sf):
+                stop_line_forward_ref = _sf
         with SyncModeContext(world, fps=fps) as sync:
             if controller is None:
                 # Enable autopilot only AFTER the world is in synchronous mode.
@@ -2062,12 +2082,20 @@ def run_scenario(
                     officer_loc = _location_from_transform_or_actor(ctx.officer.get_transform() if ctx.officer else None)
                 except Exception:
                     officer_loc = None
-                stop_ref = stop_line_location or officer_loc or ego_loc
+                # No ego_loc fallback: a self-distance of 0 would read as
+                # "parked on the stop line" and trip every stopline-anchored
+                # gate the moment the ego is inside a junction polygon.
+                stop_ref = stop_line_location or officer_loc
                 distance_to_officer = _distance_between_locations(ego_loc, officer_loc)
-                distance_to_stopline = _distance_between_locations(ego_loc, stop_ref)
+                distance_to_stopline = (
+                    _distance_between_locations(ego_loc, stop_ref)
+                    if stop_ref is not None else None)
                 ego_forward_m, ego_lateral_m = _project_from_origin(
                     ego_loc, route_origin, route_fwd, route_right
                 )
+                stopline_forward_m = None
+                if stop_line_forward_ref is not None and math.isfinite(ego_forward_m):
+                    stopline_forward_m = stop_line_forward_ref - ego_forward_m
                 hazard_distance = None
                 hazard_forward = None
                 for actor in list(ctx.extra_actors):
@@ -2170,6 +2198,7 @@ def run_scenario(
                     "in_junction": in_junction_now,
                     "distance_to_officer_m": distance_to_officer,
                     "distance_to_stopline_m": distance_to_stopline,
+                    "stopline_forward_m": stopline_forward_m,
                     "distance_to_hazard_m": hazard_distance,
                     "ego_forward_m": ego_forward_m,
                     "ego_lateral_m": ego_lateral_m,
@@ -2197,6 +2226,7 @@ def run_scenario(
                     ego_y=telemetry_row["ego_y"],
                     distance_to_officer_m=distance_to_officer,
                     distance_to_stopline_m=distance_to_stopline,
+                    stopline_forward_m=stopline_forward_m,
                     distance_to_hazard_m=hazard_distance,
                     ego_forward_m=ego_forward_m,
                     ego_lateral_m=ego_lateral_m,

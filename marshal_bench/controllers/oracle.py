@@ -225,7 +225,7 @@ class OracleController(EpisodeController):
         elif self._action == "YIELD":
             control = self._yield_control(base, sim_time, speed)
         else:
-            control = self._stop_control(base, sim_time, speed)
+            control = self._stop_control(base, sim_time, speed, obs)
         return control
 
     def _step_with_debug(self, observation: Dict[str, Any], dt: float) -> Any:
@@ -423,9 +423,28 @@ class OracleController(EpisodeController):
         ctrl.brake = 1.0 if speed > 0.25 else 0.85
         return ctrl
 
-    def _stop_control(self, base: Any, sim_time: float, speed: float) -> Any:
+    def _stop_control(
+        self, base: Any, sim_time: float, speed: float,
+        obs: Optional[Dict[str, Any]] = None,
+    ) -> Any:
         if self._approach_stop_gap_m is not None:
             return self._approach_stop_control(base, speed)
+
+        def _stopline_envelope_hit() -> bool:
+            # Stop-line-aware braking: aim >=2.5 m short of the ego-lane stop
+            # line (strict clearance is 1.0 m; the extra 1.5 m absorbs the
+            # one-tick control latency and brake ramp, measured at ~0.5 m of
+            # roll past the trigger point at approach speeds).
+            try:
+                raw = (obs or {}).get("distance_to_stopline_m")
+                dstop = float(raw) if raw is not None else None
+            except Exception:
+                dstop = None
+            if dstop is None:
+                return False
+            stop_envelope_m = (speed * speed) / (2.0 * 3.5) + speed * 0.25
+            return dstop - 2.5 <= stop_envelope_m
+
         if self._is_no_officer_stop():
             if getattr(self, "_stop_roll_anchor", None) is None:
                 try:
@@ -438,13 +457,24 @@ class OracleController(EpisodeController):
                     advanced = float(self.ego.get_location().distance(self._stop_roll_anchor))
                 except Exception:
                     advanced = 0.0
-            if advanced < 2.0:
+            if advanced < 2.0 and not _stopline_envelope_hit():
                 ctrl = self._copy_control(base)
                 ctrl.throttle = 0.70
                 ctrl.brake = 0.0
                 return ctrl
         if sim_time < self._onset_time:
+            # Stop-line-aware cruise: several stations put the ego-lane stop
+            # line only metres past the gesture-onset point, so an unmetered
+            # 0.70-throttle approach arrives too hot and the post-onset full
+            # brake settles 0.5-3 m PAST the line (a strict conflict-zone
+            # breach). Brake pre-onset once the remaining distance no longer
+            # covers the stopping envelope; the cruise itself already
+            # satisfies the engagement gate (>=5 km/h, >=1 m progress).
             ctrl = self._copy_control(base)
+            if _stopline_envelope_hit():
+                ctrl.throttle = 0.0
+                ctrl.brake = 1.0 if speed > 0.25 else 0.85
+                return ctrl
             ctrl.throttle = min(max(float(getattr(base, "throttle", 0.0)), 0.65), 0.75)
             ctrl.brake = 0.0
             return ctrl

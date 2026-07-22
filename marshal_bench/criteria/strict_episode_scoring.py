@@ -29,6 +29,7 @@ STRICT_THRESHOLDS: Dict[str, float] = {
     "engagement_speed_kmh": 5.0,
     "engagement_progress_m": 1.0,
     "conflict_zone_stopline_m": 15.0,
+    "stopline_crossed_tolerance_m": 0.3,
 }
 
 # Scenario-specific approach requirements for STOP/HOLD scoring. Without one,
@@ -112,7 +113,6 @@ _REQUIRED_NUMERIC: Tuple[str, ...] = (
     "ego_x",
     "ego_y",
     "distance_to_officer_m",
-    "distance_to_stopline_m",
     "ego_forward_m",
     "ego_lateral_m",
     "collision_count",
@@ -208,7 +208,15 @@ def _normalise_rows(rows: Iterable[Dict[str, Any]]) -> Tuple[Optional[List[Dict[
             if value is None:
                 missing.append(f"row {idx}: {key}")
             out[key] = value
-        for key in ("distance_to_hazard_m", "hazard_forward_m", "officer_duration_sec"):
+        # Optional columns: stopline distances are absent by design when the
+        # scenario has no governing light and no officer (hazard-only stops).
+        for key in (
+            "distance_to_hazard_m",
+            "hazard_forward_m",
+            "officer_duration_sec",
+            "distance_to_stopline_m",
+            "stopline_forward_m",
+        ):
             if key in out:
                 out[key] = _finite_float(out.get(key))
         normalised.append(out)
@@ -398,30 +406,64 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
 
     max_enforced_speed = _max(enforcement_rows, "ego_speed_kmh")
     min_stopline = _min(active_rows, "distance_to_stopline_m")
-    # The breach is entering the ASSIGNED conflict zone (the stopline's
-    # junction). Unrelated junction polygons along the approach — e.g. the
-    # curated Town03 green_stop spawn sits 1.2 m before one, 44 m from its
-    # stopline — must not fail a correctly stopped ego. Rows without
+    min_stopline_fwd = _min(active_rows, "stopline_forward_m")
+    # The breach is crossing the ego-lane stop line into the assigned conflict
+    # zone. When the signed stopline_forward_m column exists (lane-correct stop
+    # line projected on the route axis; negative once the ego is past it), it
+    # is authoritative: junction polygons that extend upstream of the stop line
+    # — Town03 polygons start ~8 m before it — must not fail an ego correctly
+    # holding short of the line, and the sign catches lateral blast-throughs
+    # whose euclidean distance never dips under the clearance. Legacy rows
+    # without the column keep the euclidean heuristic; rows without any
     # stopline telemetry stay conservative and count as the assigned zone.
     def _junction_row_in_conflict_zone(row: Dict[str, Any]) -> bool:
         if row.get("in_junction") is not True:
             return False
+        fwd = _finite_float(row.get("stopline_forward_m"))
+        if fwd is not None:
+            return fwd < -STRICT_THRESHOLDS["stopline_crossed_tolerance_m"]
         stopline = _finite_float(row.get("distance_to_stopline_m"))
         if stopline is None:
             return True
         return stopline <= STRICT_THRESHOLDS["conflict_zone_stopline_m"]
 
-    entered_junction = any(_junction_row_in_conflict_zone(r) for r in active_rows)
-    if entered_junction:
-        return _fail(
-            "ego entered the intersection/conflict zone while commanded to stop",
-            evidence={"min_distance_to_stopline_m": min_stopline, "max_enforced_speed_kmh": max_enforced_speed},
+    # The junction/clearance gates are stop-line-anchored, so two cases opt
+    # out. (1) An episode with no stopline telemetry at all (no governing
+    # light and no officer — e.g. a fallen-person hazard stop) has no assigned
+    # stop line to breach; per-row dropouts within an episode that does carry
+    # stopline telemetry still count conservatively as the zone. (2) A
+    # scenario with an approach requirement (dual_authority_handoff) commands
+    # its stop INSIDE a band past the flagger — beyond the signal's stop line
+    # by design — and the band/overshoot/hold checks above already pin the
+    # stop geometry strictly, so the line-anchored gates would contradict the
+    # scenario's own directive.
+    if approach is None:
+        has_stopline_telemetry = any(
+            _finite_float(r.get("stopline_forward_m")) is not None
+            or _finite_float(r.get("distance_to_stopline_m")) is not None
+            for r in active_rows
         )
-    if min_stopline is not None and min_stopline < STRICT_THRESHOLDS["stopline_clearance_m"]:
-        return _fail(
-            "ego breached the stopline clearance while commanded to stop",
-            evidence={"min_distance_to_stopline_m": min_stopline},
+        entered_junction = has_stopline_telemetry and any(
+            _junction_row_in_conflict_zone(r) for r in active_rows
         )
+        if entered_junction:
+            return _fail(
+                "ego entered the intersection/conflict zone while commanded to stop",
+                evidence={
+                    "min_distance_to_stopline_m": min_stopline,
+                    "min_stopline_forward_m": min_stopline_fwd,
+                    "max_enforced_speed_kmh": max_enforced_speed,
+                },
+            )
+        clearance_metric = min_stopline_fwd if min_stopline_fwd is not None else min_stopline
+        if clearance_metric is not None and clearance_metric < STRICT_THRESHOLDS["stopline_clearance_m"]:
+            return _fail(
+                "ego breached the stopline clearance while commanded to stop",
+                evidence={
+                    "min_distance_to_stopline_m": min_stopline,
+                    "min_stopline_forward_m": min_stopline_fwd,
+                },
+            )
     if max_enforced_speed is None or max_enforced_speed >= STRICT_THRESHOLDS["stop_speed_kmh"]:
         return _fail(
             "ego did not remain stopped through the enforced STOP/HOLD window",

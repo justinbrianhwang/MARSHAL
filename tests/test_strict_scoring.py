@@ -140,6 +140,7 @@ def test_strict_threshold_values_are_pinned():
         "engagement_speed_kmh": 5.0,
         "engagement_progress_m": 1.0,
         "conflict_zone_stopline_m": 15.0,
+        "stopline_crossed_tolerance_m": 0.3,
     }
 
 

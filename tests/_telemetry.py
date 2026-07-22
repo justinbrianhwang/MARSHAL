@@ -44,6 +44,7 @@ def make_rows(
     control_finite: Any = True,
     distance_to_hazard_m: Any = 50.0,
     hazard_forward_m: Any = 20.0,
+    stopline_forward_m: Any | None = None,
 ) -> list[dict[str, Any]]:
     """Build rows with every strict/graded telemetry field populated."""
 
@@ -76,6 +77,7 @@ def make_rows(
         "control_finite": _series(control_finite, n),
         "distance_to_hazard_m": _series(distance_to_hazard_m, n),
         "hazard_forward_m": _series(hazard_forward_m, n),
+        "stopline_forward_m": _series(stopline_forward_m, n),
     }
 
     rows: list[dict[str, Any]] = []
@@ -99,6 +101,7 @@ def make_rows(
                 "control_finite": values["control_finite"][idx],
                 "distance_to_hazard_m": values["distance_to_hazard_m"][idx],
                 "hazard_forward_m": values["hazard_forward_m"][idx],
+                "stopline_forward_m": values["stopline_forward_m"][idx],
             }
         )
     return rows
