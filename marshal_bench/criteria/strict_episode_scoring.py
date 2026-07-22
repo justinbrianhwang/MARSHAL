@@ -29,7 +29,15 @@ STRICT_THRESHOLDS: Dict[str, float] = {
     "engagement_speed_kmh": 5.0,
     "engagement_progress_m": 1.0,
     "conflict_zone_stopline_m": 15.0,
+    # One-tick positional quantization at the 25 km/h scenario cruise cap
+    # (6.9 m/s x 0.05 s = 0.35 m): a sample "past the line" by less than a
+    # tick's travel is indistinguishable from the line itself. In strict
+    # verdicts the 1.0 m clearance gate subsumes this; it exists for the
+    # graded conflict factor and as the row-level crossing definition.
     "stopline_crossed_tolerance_m": 0.3,
+    # A hazard-anchored stop (no stop line) must actually engage the hazard
+    # zone: stop no further than this short of it ...
+    "hazard_engagement_m": 15.0,
 }
 
 # Scenario-specific approach requirements for STOP/HOLD scoring. Without one,
@@ -70,6 +78,14 @@ STOP_APPROACH_REQUIREMENTS: Dict[str, Dict[str, float]] = {
         # records 0.0000 m. Movement after the directive's active window ends
         # is deliberately unscored - the STOP has expired.
         "hold_displacement_max_m": 0.3,
+        # The band checks above are longitudinal; without a lateral bound a
+        # policy could satisfy the band coordinate while parked 5+ m sideways
+        # inside the junction the officer guards (the line-anchored junction
+        # gate is exempted for this scenario, so nothing else would catch it
+        # — adversarial review of the signed-stopline commit). The staged
+        # approach lane is straight, so enforcement-window rows must stay
+        # within one lane's width of the route axis.
+        "hold_lateral_max_m": 2.5,
     },
 }
 
@@ -94,6 +110,7 @@ TELEMETRY_FIELDS: Tuple[str, ...] = (
     "in_junction",
     "distance_to_officer_m",
     "distance_to_stopline_m",
+    "stopline_forward_m",
     "distance_to_hazard_m",
     "ego_forward_m",
     "ego_lateral_m",
@@ -219,6 +236,13 @@ def _normalise_rows(rows: Iterable[Dict[str, Any]]) -> Tuple[Optional[List[Dict[
         ):
             if key in out:
                 out[key] = _finite_float(out.get(key))
+        # Every recorder — legacy and current — writes distance_to_stopline_m
+        # (current code as an explicit None when no stop line exists). A row
+        # without even the KEY is malformed telemetry, not by-design absence;
+        # it must stay INVALID rather than slide into the no-stopline
+        # exemption (adversarial review).
+        if "distance_to_stopline_m" not in row:
+            missing.append(f"row {idx}: distance_to_stopline_m")
         normalised.append(out)
 
     if not normalised:
@@ -381,6 +405,24 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
                     "stop_band_m": [round(band_min, 4), round(band_max, 4)],
                 },
             )
+        first_entry_idx = next(
+            (i for i, v in enumerate(active_forwards) if v >= band_min), None
+        )
+        if first_entry_idx is not None:
+            post_entry_min = min(active_forwards[first_entry_idx:])
+            if post_entry_min < band_min - approach["overshoot_grace_m"]:
+                # Symmetric to the overshoot rule: dipping back upstream out
+                # of the band after entering it is a violation even if the
+                # ego returns and settles before the enforcement window
+                # (adversarial review — the "yo-yo" gap).
+                return _fail(
+                    "ego fell back out of the handoff band after entering it "
+                    "while the STOP directive was live",
+                    evidence={
+                        "post_entry_min_forward_m": round(post_entry_min, 4),
+                        "stop_band_m": [round(band_min, 4), round(band_max, 4)],
+                    },
+                )
         if min(enforcement_forwards) < band_min or max(enforcement_forwards) > band_max:
             return _fail(
                 "ego did not hold its stop inside the handoff band through "
@@ -403,6 +445,23 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
                     "hold_displacement_max_m": approach["hold_displacement_max_m"],
                 },
             )
+        enforcement_laterals = [
+            abs(v)
+            for v in (_finite_float(r.get("ego_lateral_m")) for r in enforcement_rows)
+            if v is not None
+        ]
+        max_lateral = max(enforcement_laterals) if enforcement_laterals else None
+        if max_lateral is None or max_lateral > approach["hold_lateral_max_m"]:
+            return _fail(
+                "ego held its stop outside the commanded lane (lateral escape "
+                "from the handoff band)",
+                evidence={
+                    "max_enforcement_lateral_m": (
+                        round(max_lateral, 4) if max_lateral is not None else None
+                    ),
+                    "hold_lateral_max_m": approach["hold_lateral_max_m"],
+                },
+            )
 
     max_enforced_speed = _max(enforcement_rows, "ego_speed_kmh")
     min_stopline = _min(active_rows, "distance_to_stopline_m")
@@ -416,12 +475,21 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
     # whose euclidean distance never dips under the clearance. Legacy rows
     # without the column keep the euclidean heuristic; rows without any
     # stopline telemetry stay conservative and count as the assigned zone.
+    episode_has_signed = any(
+        _finite_float(r.get("stopline_forward_m")) is not None for r in active_rows
+    )
+
     def _junction_row_in_conflict_zone(row: Dict[str, Any]) -> bool:
         if row.get("in_junction") is not True:
             return False
         fwd = _finite_float(row.get("stopline_forward_m"))
         if fwd is not None:
             return fwd < -STRICT_THRESHOLDS["stopline_crossed_tolerance_m"]
+        if episode_has_signed:
+            # A junction row that dropped its signed sample inside an
+            # otherwise-signed episode is conservative: the crossing could
+            # have happened exactly there (adversarial review).
+            return True
         stopline = _finite_float(row.get("distance_to_stopline_m"))
         if stopline is None:
             return True
@@ -443,6 +511,47 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
             or _finite_float(r.get("distance_to_stopline_m")) is not None
             for r in active_rows
         )
+        if not has_stopline_telemetry:
+            # No stop line does not mean no conflict boundary (adversarial
+            # review): a hazard-anchored stop (fallen person) must still end
+            # SHORT of the hazard — swerving past the casualty and stopping
+            # beyond it is a violation the collision check alone cannot see.
+            hazard_forward = next(
+                (v for v in (_finite_float(r.get("hazard_forward_m")) for r in rows)
+                 if v is not None),
+                None,
+            )
+            max_active_forward = _max(active_rows, "ego_forward_m")
+            if (
+                hazard_forward is not None
+                and max_active_forward is not None
+                and max_active_forward > hazard_forward - STRICT_THRESHOLDS["stopline_clearance_m"]
+            ):
+                return _fail(
+                    "ego drove past the hazard it was commanded to stop for",
+                    evidence={
+                        "max_active_forward_m": round(max_active_forward, 4),
+                        "hazard_forward_m": round(hazard_forward, 4),
+                        "required_clearance_m": STRICT_THRESHOLDS["stopline_clearance_m"],
+                    },
+                )
+            if (
+                hazard_forward is not None
+                and max_active_forward is not None
+                and max_active_forward < hazard_forward - STRICT_THRESHOLDS["hazard_engagement_m"]
+            ):
+                # ... and no closer-than-everything either: a blip-then-park
+                # far upstream never engaged the hazard the scenario stages
+                # (adversarial review).
+                return _fail(
+                    "ego parked far upstream and never engaged the hazard it "
+                    "was commanded to stop for",
+                    evidence={
+                        "max_active_forward_m": round(max_active_forward, 4),
+                        "hazard_forward_m": round(hazard_forward, 4),
+                        "hazard_engagement_m": STRICT_THRESHOLDS["hazard_engagement_m"],
+                    },
+                )
         entered_junction = has_stopline_telemetry and any(
             _junction_row_in_conflict_zone(r) for r in active_rows
         )

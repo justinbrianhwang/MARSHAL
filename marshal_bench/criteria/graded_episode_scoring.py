@@ -264,6 +264,13 @@ def _normalise_rows(rows: Iterable[Dict[str, Any]]) -> Tuple[Optional[List[Dict[
         ):
             if key in out:
                 out[key] = _finite_float(out.get(key))
+        # Every recorder — legacy and current — writes distance_to_stopline_m
+        # (current code as an explicit None when no stop line exists). A row
+        # without even the KEY is malformed telemetry, not by-design absence;
+        # it must stay INVALID rather than slide into the no-stopline
+        # exemption (adversarial review).
+        if "distance_to_stopline_m" not in row:
+            missing.append(f"row {idx}: distance_to_stopline_m")
         normalised.append(out)
 
     if not normalised:
@@ -488,6 +495,7 @@ def _stop_hold_engagement_factor(
     *,
     max_scored_speed: Optional[float],
     min_stopline: Optional[float],
+    min_stopline_fwd: Optional[float] = None,
     entered_junction: bool,
 ) -> Tuple[float, Dict[str, float], Dict[str, Any]]:
     """Gate non-strict STOP/HOLD partial credit on real scenario engagement.
@@ -502,12 +510,37 @@ def _stop_hold_engagement_factor(
     # governing light, no officer) — the clearance leg is then inapplicable,
     # mirroring the strict scorer, not a telemetry dropout (row dropouts still
     # produce a finite min over the remaining rows).
+    def _no_stopline_hazard_engaged() -> bool:
+        # Without a stop line the shortcut must not certify a park-far-
+        # upstream policy: when the scenario stages a hazard, the ego has to
+        # have actually reached its zone (adversarial review).
+        hazard_forward = next(
+            (v for v in (_finite_float(r.get("hazard_forward_m")) for r in rows)
+             if v is not None),
+            None,
+        )
+        if hazard_forward is None:
+            return True
+        max_fwd = _max(active_rows, "ego_forward_m")
+        return (
+            max_fwd is not None
+            and max_fwd >= hazard_forward - GRADED_THRESHOLDS["hazard_engagement_m"]
+        )
+
     strict_stop_compliant = (
         bool(enforcement_rows)
         and not entered_junction
         and (
             min_stopline is None
             or min_stopline >= GRADED_THRESHOLDS["stopline_clearance_m"]
+        )
+        and (min_stopline is not None or _no_stopline_hazard_engaged())
+        and (
+            # The signed column must agree: a lateral crossing keeps the
+            # euclidean minimum above the clearance while the signed value
+            # proves the line was breached (adversarial review).
+            min_stopline_fwd is None
+            or min_stopline_fwd >= GRADED_THRESHOLDS["stopline_clearance_m"]
         )
         and max_scored_speed is not None
         and max_scored_speed < GRADED_THRESHOLDS["stop_speed_kmh"]
@@ -712,12 +745,21 @@ def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: f
     # the sign catches lateral blast-throughs); legacy rows keep the euclidean
     # heuristic; per-row dropouts stay conservative. Episodes with no stopline
     # telemetry at all (no light, no officer) have no assigned zone to breach.
+    episode_has_signed = any(
+        _finite_float(r.get("stopline_forward_m")) is not None for r in active_rows
+    )
+
     def _junction_row_in_conflict_zone(row: Dict[str, Any]) -> bool:
         if row.get("in_junction") is not True:
             return False
         fwd = _finite_float(row.get("stopline_forward_m"))
         if fwd is not None:
             return fwd < -GRADED_THRESHOLDS["stopline_crossed_tolerance_m"]
+        if episode_has_signed:
+            # A junction row that dropped its signed sample inside an
+            # otherwise-signed episode is conservative: the crossing could
+            # have happened exactly there (adversarial review).
+            return True
         stopline = _finite_float(row.get("distance_to_stopline_m"))
         if stopline is None:
             return True
@@ -771,6 +813,7 @@ def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: f
         # to the commanded band, so the stopline-anchored engagement terms are
         # as inapplicable here as the clearance term above.
         min_stopline=None if approach_required else min_stopline,
+        min_stopline_fwd=None if approach_required else min_stopline_fwd,
         entered_junction=entered_junction,
     )
     approach_factor, approach_evidence = _stop_hold_approach_factor(rows, active_rows, enforcement_rows, scenario)

@@ -1958,6 +1958,11 @@ def run_scenario(
         # "drove past it". Only meaningful when a real stop line exists — the
         # officer/ego fallbacks used for the euclidean column would make the
         # sign lie.
+        # Known limitation (adversarial review): this projects ONE stop-line
+        # point onto the spawn-heading axis, so on a stop line strongly angled
+        # to the approach a laterally-offset ego can be physically past the
+        # paint while the projection still reads positive. Curated approaches
+        # are perpendicular; a full line-segment model is future work.
         stop_line_forward_ref = None
         if stop_line_location is not None:
             _sf, _ = _project_from_origin(
