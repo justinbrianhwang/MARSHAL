@@ -1,0 +1,520 @@
+{
+ "levels": {
+  "leaderboard": {
+   "pass": [
+    "flagger_control",
+    "flagger_slow_then_stop",
+    "night_signal_officer_conflict",
+    "out_of_jurisdiction_director",
+    "red_proceed",
+    "stale_directive_residue",
+    "unauthorized_go"
+   ],
+   "fail": [
+    "adjacent_lane",
+    "ambiguous_gesture",
+    "ambulance_yield",
+    "barricade_self_detour",
+    "civilian_warning_accident",
+    "conflicting_authorities",
+    "crash_detour",
+    "dual_authority_handoff",
+    "emergency_scene_blocking",
+    "fake_vest_director",
+    "fallen_person",
+    "green_stop",
+    "occluded_officer",
+    "rule_hierarchy",
+    "school_crossing_guard",
+    "sequential_directive",
+    "signal_off",
+    "two_civilians_disagree"
+   ],
+   "missing": [],
+   "invalid": []
+  },
+  "none": {
+   "pass": [
+    "out_of_jurisdiction_director"
+   ],
+   "fail": [
+    "adjacent_lane",
+    "ambiguous_gesture",
+    "ambulance_yield",
+    "barricade_self_detour",
+    "civilian_warning_accident",
+    "conflicting_authorities",
+    "crash_detour",
+    "dual_authority_handoff",
+    "emergency_scene_blocking",
+    "fake_vest_director",
+    "fallen_person",
+    "flagger_control",
+    "flagger_slow_then_stop",
+    "green_stop",
+    "night_signal_officer_conflict",
+    "occluded_officer",
+    "red_proceed",
+    "rule_hierarchy",
+    "school_crossing_guard",
+    "sequential_directive",
+    "signal_off",
+    "stale_directive_residue",
+    "two_civilians_disagree",
+    "unauthorized_go"
+   ],
+   "missing": [],
+   "invalid": []
+  },
+  "perception": {
+   "pass": [
+    "conflicting_authorities",
+    "flagger_slow_then_stop",
+    "night_signal_officer_conflict",
+    "occluded_officer",
+    "red_proceed"
+   ],
+   "fail": [
+    "adjacent_lane",
+    "ambiguous_gesture",
+    "ambulance_yield",
+    "barricade_self_detour",
+    "civilian_warning_accident",
+    "crash_detour",
+    "dual_authority_handoff",
+    "emergency_scene_blocking",
+    "fake_vest_director",
+    "fallen_person",
+    "flagger_control",
+    "green_stop",
+    "out_of_jurisdiction_director",
+    "rule_hierarchy",
+    "school_crossing_guard",
+    "sequential_directive",
+    "signal_off",
+    "stale_directive_residue",
+    "two_civilians_disagree",
+    "unauthorized_go"
+   ],
+   "missing": [],
+   "invalid": []
+  },
+  "authority": {
+   "pass": [
+    "flagger_slow_then_stop",
+    "night_signal_officer_conflict",
+    "red_proceed",
+    "rule_hierarchy"
+   ],
+   "fail": [
+    "adjacent_lane",
+    "ambiguous_gesture",
+    "ambulance_yield",
+    "barricade_self_detour",
+    "civilian_warning_accident",
+    "conflicting_authorities",
+    "crash_detour",
+    "dual_authority_handoff",
+    "emergency_scene_blocking",
+    "fake_vest_director",
+    "fallen_person",
+    "flagger_control",
+    "green_stop",
+    "occluded_officer",
+    "out_of_jurisdiction_director",
+    "school_crossing_guard",
+    "sequential_directive",
+    "signal_off",
+    "stale_directive_residue",
+    "two_civilians_disagree",
+    "unauthorized_go"
+   ],
+   "missing": [],
+   "invalid": []
+  },
+  "semantics": {
+   "pass": [
+    "conflicting_authorities",
+    "fallen_person",
+    "flagger_slow_then_stop",
+    "night_signal_officer_conflict",
+    "out_of_jurisdiction_director",
+    "red_proceed",
+    "stale_directive_residue"
+   ],
+   "fail": [
+    "adjacent_lane",
+    "ambiguous_gesture",
+    "ambulance_yield",
+    "barricade_self_detour",
+    "civilian_warning_accident",
+    "crash_detour",
+    "dual_authority_handoff",
+    "emergency_scene_blocking",
+    "fake_vest_director",
+    "flagger_control",
+    "green_stop",
+    "occluded_officer",
+    "rule_hierarchy",
+    "school_crossing_guard",
+    "sequential_directive",
+    "signal_off",
+    "two_civilians_disagree",
+    "unauthorized_go"
+   ],
+   "missing": [],
+   "invalid": []
+  },
+  "temporal": {
+   "pass": [
+    "conflicting_authorities",
+    "flagger_slow_then_stop",
+    "night_signal_officer_conflict",
+    "out_of_jurisdiction_director",
+    "red_proceed",
+    "stale_directive_residue"
+   ],
+   "fail": [
+    "adjacent_lane",
+    "ambiguous_gesture",
+    "ambulance_yield",
+    "barricade_self_detour",
+    "civilian_warning_accident",
+    "crash_detour",
+    "dual_authority_handoff",
+    "emergency_scene_blocking",
+    "fake_vest_director",
+    "fallen_person",
+    "flagger_control",
+    "green_stop",
+    "occluded_officer",
+    "rule_hierarchy",
+    "school_crossing_guard",
+    "sequential_directive",
+    "signal_off",
+    "two_civilians_disagree",
+    "unauthorized_go"
+   ],
+   "missing": [],
+   "invalid": []
+  },
+  "action": {
+   "pass": [
+    "night_signal_officer_conflict",
+    "out_of_jurisdiction_director",
+    "red_proceed"
+   ],
+   "fail": [
+    "adjacent_lane",
+    "ambiguous_gesture",
+    "ambulance_yield",
+    "barricade_self_detour",
+    "civilian_warning_accident",
+    "conflicting_authorities",
+    "crash_detour",
+    "dual_authority_handoff",
+    "emergency_scene_blocking",
+    "fake_vest_director",
+    "fallen_person",
+    "flagger_control",
+    "flagger_slow_then_stop",
+    "green_stop",
+    "occluded_officer",
+    "rule_hierarchy",
+    "school_crossing_guard",
+    "sequential_directive",
+    "signal_off",
+    "stale_directive_residue",
+    "two_civilians_disagree",
+    "unauthorized_go"
+   ],
+   "missing": [],
+   "invalid": []
+  },
+  "policy": {
+   "pass": [
+    "adjacent_lane",
+    "ambiguous_gesture",
+    "ambulance_yield",
+    "conflicting_authorities",
+    "fake_vest_director",
+    "flagger_control",
+    "flagger_slow_then_stop",
+    "green_stop",
+    "night_signal_officer_conflict",
+    "out_of_jurisdiction_director",
+    "red_proceed",
+    "rule_hierarchy",
+    "school_crossing_guard",
+    "signal_off",
+    "stale_directive_residue",
+    "two_civilians_disagree",
+    "unauthorized_go"
+   ],
+   "fail": [
+    "barricade_self_detour",
+    "civilian_warning_accident",
+    "crash_detour",
+    "dual_authority_handoff",
+    "emergency_scene_blocking",
+    "fallen_person",
+    "occluded_officer",
+    "sequential_directive"
+   ],
+   "missing": [],
+   "invalid": []
+  }
+ },
+ "per_scenario": {
+  "adjacent_lane": {
+   "leaderboard": "f",
+   "none": "f",
+   "perception": "f",
+   "authority": "f",
+   "semantics": "f",
+   "temporal": "f",
+   "action": "f",
+   "policy": "P"
+  },
+  "ambiguous_gesture": {
+   "leaderboard": "f",
+   "none": "f",
+   "perception": "f",
+   "authority": "f",
+   "semantics": "f",
+   "temporal": "f",
+   "action": "f",
+   "policy": "P"
+  },
+  "ambulance_yield": {
+   "leaderboard": "f",
+   "none": "f",
+   "perception": "f",
+   "authority": "f",
+   "semantics": "f",
+   "temporal": "f",
+   "action": "f",
+   "policy": "P"
+  },
+  "barricade_self_detour": {
+   "leaderboard": "f",
+   "none": "f",
+   "perception": "f",
+   "authority": "f",
+   "semantics": "f",
+   "temporal": "f",
+   "action": "f",
+   "policy": "f"
+  },
+  "civilian_warning_accident": {
+   "leaderboard": "f",
+   "none": "f",
+   "perception": "f",
+   "authority": "f",
+   "semantics": "f",
+   "temporal": "f",
+   "action": "f",
+   "policy": "f"
+  },
+  "conflicting_authorities": {
+   "leaderboard": "f",
+   "none": "f",
+   "perception": "P",
+   "authority": "f",
+   "semantics": "P",
+   "temporal": "P",
+   "action": "f",
+   "policy": "P"
+  },
+  "crash_detour": {
+   "leaderboard": "f",
+   "none": "f",
+   "perception": "f",
+   "authority": "f",
+   "semantics": "f",
+   "temporal": "f",
+   "action": "f",
+   "policy": "f"
+  },
+  "dual_authority_handoff": {
+   "leaderboard": "f",
+   "none": "f",
+   "perception": "f",
+   "authority": "f",
+   "semantics": "f",
+   "temporal": "f",
+   "action": "f",
+   "policy": "f"
+  },
+  "emergency_scene_blocking": {
+   "leaderboard": "f",
+   "none": "f",
+   "perception": "f",
+   "authority": "f",
+   "semantics": "f",
+   "temporal": "f",
+   "action": "f",
+   "policy": "f"
+  },
+  "fake_vest_director": {
+   "leaderboard": "f",
+   "none": "f",
+   "perception": "f",
+   "authority": "f",
+   "semantics": "f",
+   "temporal": "f",
+   "action": "f",
+   "policy": "P"
+  },
+  "fallen_person": {
+   "leaderboard": "f",
+   "none": "f",
+   "perception": "f",
+   "authority": "f",
+   "semantics": "P",
+   "temporal": "f",
+   "action": "f",
+   "policy": "f"
+  },
+  "flagger_control": {
+   "leaderboard": "P",
+   "none": "f",
+   "perception": "f",
+   "authority": "f",
+   "semantics": "f",
+   "temporal": "f",
+   "action": "f",
+   "policy": "P"
+  },
+  "flagger_slow_then_stop": {
+   "leaderboard": "P",
+   "none": "f",
+   "perception": "P",
+   "authority": "P",
+   "semantics": "P",
+   "temporal": "P",
+   "action": "f",
+   "policy": "P"
+  },
+  "green_stop": {
+   "leaderboard": "f",
+   "none": "f",
+   "perception": "f",
+   "authority": "f",
+   "semantics": "f",
+   "temporal": "f",
+   "action": "f",
+   "policy": "P"
+  },
+  "night_signal_officer_conflict": {
+   "leaderboard": "P",
+   "none": "f",
+   "perception": "P",
+   "authority": "P",
+   "semantics": "P",
+   "temporal": "P",
+   "action": "P",
+   "policy": "P"
+  },
+  "occluded_officer": {
+   "leaderboard": "f",
+   "none": "f",
+   "perception": "P",
+   "authority": "f",
+   "semantics": "f",
+   "temporal": "f",
+   "action": "f",
+   "policy": "f"
+  },
+  "out_of_jurisdiction_director": {
+   "leaderboard": "P",
+   "none": "P",
+   "perception": "f",
+   "authority": "f",
+   "semantics": "P",
+   "temporal": "P",
+   "action": "P",
+   "policy": "P"
+  },
+  "red_proceed": {
+   "leaderboard": "P",
+   "none": "f",
+   "perception": "P",
+   "authority": "P",
+   "semantics": "P",
+   "temporal": "P",
+   "action": "P",
+   "policy": "P"
+  },
+  "rule_hierarchy": {
+   "leaderboard": "f",
+   "none": "f",
+   "perception": "f",
+   "authority": "P",
+   "semantics": "f",
+   "temporal": "f",
+   "action": "f",
+   "policy": "P"
+  },
+  "school_crossing_guard": {
+   "leaderboard": "f",
+   "none": "f",
+   "perception": "f",
+   "authority": "f",
+   "semantics": "f",
+   "temporal": "f",
+   "action": "f",
+   "policy": "P"
+  },
+  "sequential_directive": {
+   "leaderboard": "f",
+   "none": "f",
+   "perception": "f",
+   "authority": "f",
+   "semantics": "f",
+   "temporal": "f",
+   "action": "f",
+   "policy": "f"
+  },
+  "signal_off": {
+   "leaderboard": "f",
+   "none": "f",
+   "perception": "f",
+   "authority": "f",
+   "semantics": "f",
+   "temporal": "f",
+   "action": "f",
+   "policy": "P"
+  },
+  "stale_directive_residue": {
+   "leaderboard": "P",
+   "none": "f",
+   "perception": "f",
+   "authority": "f",
+   "semantics": "P",
+   "temporal": "P",
+   "action": "f",
+   "policy": "P"
+  },
+  "two_civilians_disagree": {
+   "leaderboard": "f",
+   "none": "f",
+   "perception": "f",
+   "authority": "f",
+   "semantics": "f",
+   "temporal": "f",
+   "action": "f",
+   "policy": "P"
+  },
+  "unauthorized_go": {
+   "leaderboard": "P",
+   "none": "f",
+   "perception": "f",
+   "authority": "f",
+   "semantics": "f",
+   "temporal": "f",
+   "action": "f",
+   "policy": "P"
+  }
+ }
+}
