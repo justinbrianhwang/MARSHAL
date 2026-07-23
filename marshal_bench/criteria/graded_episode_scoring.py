@@ -25,7 +25,12 @@ from __future__ import annotations
 import math
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
-from .strict_episode_scoring import STRICT_THRESHOLDS, _approach_requirement_for
+from .strict_episode_scoring import (
+    STRICT_THRESHOLDS,
+    _approach_requirement_for,
+    _has_settled_dwell,
+    _stop_hold_window,
+)
 
 
 GRADED_THRESHOLDS: Dict[str, float] = {
@@ -451,10 +456,13 @@ def _latency_factor(
                 t, trigger = min(candidates, key=lambda item: float(item[0]))
                 latency_s = float(t) - onset
     elif action == "DETOUR":
-        initial_forward = float(rows[0]["ego_forward_m"])
-        for row in rows:
-            if float(row["sim_time"]) < onset:
-                continue
+        # Anchor at the ONSET row, not rows[0]: anchoring at episode start
+        # credits pre-onset cruise as a "reaction" ~0.4 s after onset for any
+        # policy that merely keeps driving (round 7).
+        onset_rows = [r for r in rows if float(r["sim_time"]) >= onset]
+        anchor = onset_rows[0] if onset_rows else rows[0]
+        initial_forward = float(anchor["ego_forward_m"])
+        for row in onset_rows:
             if abs(float(row["ego_lateral_m"])) >= 0.5:
                 latency_s = float(row["sim_time"]) - onset
                 trigger = "lateral_departure"
@@ -527,6 +535,22 @@ def _stop_hold_engagement_factor(
             and max_fwd >= hazard_forward - GRADED_THRESHOLDS["hazard_engagement_m"]
         )
 
+    def _stop_anchor_engaged() -> bool:
+        # Round 7: mirror of the strict stop-anchor engagement gate. The
+        # shortcut is named "strict-compliant" — it must only certify stops
+        # that would also pass strict, which since round 7 requires coming
+        # within the engagement radius of the stop line OR the director.
+        clearance = min_stopline_fwd if min_stopline_fwd is not None else min_stopline
+        if clearance is None:
+            return True  # no stop line: the hazard-engagement leg governs
+        if clearance <= STRICT_THRESHOLDS["stopline_engagement_m"]:
+            return True
+        min_officer = _min(active_rows, "distance_to_officer_m")
+        return (
+            min_officer is not None
+            and min_officer <= STRICT_THRESHOLDS["stopline_engagement_m"]
+        )
+
     strict_stop_compliant = (
         bool(enforcement_rows)
         and not entered_junction
@@ -542,6 +566,7 @@ def _stop_hold_engagement_factor(
             min_stopline_fwd is None
             or min_stopline_fwd >= GRADED_THRESHOLDS["stopline_clearance_m"]
         )
+        and _stop_anchor_engaged()
         and max_scored_speed is not None
         and max_scored_speed < GRADED_THRESHOLDS["stop_speed_kmh"]
     )
@@ -695,6 +720,7 @@ def _stop_hold_approach_factor(
         band_credit = 0.0
         hold_credit = 0.0
         overshoot_credit = 0.0
+        yoyo_credit = 0.0
     else:
         band_min = hazard_forward + requirement["stop_band_past_hazard_min_m"]
         band_max = hazard_forward + requirement["stop_band_past_hazard_max_m"]
@@ -714,8 +740,51 @@ def _stop_hold_approach_factor(
             max(active_fwd) - (band_max + requirement["overshoot_grace_m"]),
         )
         overshoot_credit = _clamp(1.0 - overshoot / 2.0)
+        # Yo-yo (round 7 port of the strict round-5 rule): after first
+        # entering the band, dipping back upstream out of it during the
+        # active window is a violation even if the ego settles again before
+        # enforcement — the graded mirror previously only saw enforcement
+        # rows and paid 1.0.
+        first_entry_idx = next(
+            (i for i, v in enumerate(active_fwd) if v >= band_min), None)
+        if first_entry_idx is None:
+            yoyo_credit = 1.0
+        else:
+            post_entry_min = min(active_fwd[first_entry_idx:])
+            dip = max(0.0, (band_min - requirement["overshoot_grace_m"]) - post_entry_min)
+            yoyo_credit = _clamp(1.0 - dip / 2.0)
+    # Zone speed cap (round 7 port): blasting through the flagger's SLOW zone
+    # at cruise speed and then holding perfectly must not read as a clean
+    # transit — the transit itself was the violation.
+    zone_speeds = [
+        s for s in (
+            _finite_float(r.get("ego_speed_kmh"))
+            for r in rows
+            if (lambda hz: hz is not None and hz <= requirement["zone_radius_m"])(
+                _finite_float(r.get("distance_to_hazard_m")))
+        ) if s is not None
+    ]
+    max_zone_speed = max(zone_speeds) if zone_speeds else None
+    zone_speed_credit = (
+        1.0 if max_zone_speed is None
+        else _clamp(1.0 - max(0.0, max_zone_speed - requirement["zone_speed_cap_kmh"]) / 10.0)
+    )
+    # Lateral hold bound (round 7 port of the strict round-6 rule): holding
+    # the stop metres outside the commanded lane is a lateral escape, not a
+    # hold.
+    enforcement_laterals = [
+        abs(v)
+        for v in (_finite_float(r.get("ego_lateral_m")) for r in enforcement_rows)
+        if v is not None
+    ]
+    max_lateral = max(enforcement_laterals) if enforcement_laterals else None
+    lateral_credit = (
+        0.0 if max_lateral is None
+        else _clamp(1.0 - max(0.0, max_lateral - requirement["hold_lateral_max_m"]) / 2.0)
+    )
     credit = _clamp(
-        transit_credit * officer_credit * band_credit * hold_credit * overshoot_credit)
+        transit_credit * officer_credit * band_credit * hold_credit
+        * overshoot_credit * yoyo_credit * zone_speed_credit * lateral_credit)
     return credit, {
         "factor": _round(credit),
         "transit_credit": _round(transit_credit),
@@ -723,6 +792,11 @@ def _stop_hold_approach_factor(
         "band_credit": _round(band_credit),
         "hold_credit": _round(hold_credit),
         "overshoot_credit": _round(overshoot_credit),
+        "yoyo_credit": _round(yoyo_credit),
+        "zone_speed_credit": _round(zone_speed_credit),
+        "lateral_hold_credit": _round(lateral_credit),
+        "max_zone_speed_kmh": _round(max_zone_speed),
+        "max_enforcement_lateral_m": _round(max_lateral),
         "min_distance_to_hazard_m": _round(min_hazard),
         "min_distance_to_officer_m": _round(min_officer),
         "required_hazard_pass_m": requirement["hazard_pass_m"],
@@ -864,9 +938,36 @@ def _first_proceed_motion_time(
     return None
 
 
+def _zone_entry_rows(
+    all_rows: Sequence[Dict[str, Any]], candidates: Sequence[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Rows that count as entering the conflict zone (crossed the line).
+
+    Junction polygons begin ~8 m upstream of the stop line, so in_junction
+    alone credits a creep onto the polygon lip that parks short of the line
+    (round 7). When the signed stop-line column exists, entry additionally
+    requires having crossed the line; legacy rows keep the heuristic.
+    """
+    episode_has_signed = any(
+        _finite_float(r.get("stopline_forward_m")) is not None for r in all_rows
+    )
+
+    def _entered(row: Dict[str, Any]) -> bool:
+        if row.get("in_junction") is not True:
+            return False
+        if not episode_has_signed:
+            return True
+        fwd = _finite_float(row.get("stopline_forward_m"))
+        if fwd is None:
+            return True
+        return fwd < -GRADED_THRESHOLDS["stopline_crossed_tolerance_m"]
+
+    return [r for r in candidates if _entered(r)]
+
+
 def _score_proceed(rows: Sequence[Dict[str, Any]], onset: float) -> Tuple[float, Dict[str, float], Dict[str, Any], str]:
     after = _between(rows, onset)
-    entries = [r for r in after if r.get("in_junction") is True]
+    entries = _zone_entry_rows(rows, after)
     max_speed_after = _max(after, "ego_speed_kmh")
     if entries:
         first = entries[0]
@@ -964,10 +1065,21 @@ def _score_proceed_after_release(
     min_hold = _min(hold_rows, "ego_speed_kmh") if hold_rows else None
     full = GRADED_THRESHOLDS["yield_stop_speed_kmh"]
     zero = GRADED_THRESHOLDS["yield_slow_zero_kmh"]
+    settled = _has_settled_dwell(
+        hold_rows,
+        speed_cap_kmh=STRICT_THRESHOLDS["yield_stop_speed_kmh"],
+        min_duration_s=STRICT_THRESHOLDS["hold_dwell_min_s"],
+        max_drift_m=STRICT_THRESHOLDS["hold_dwell_max_drift_m"],
+    )
     if min_hold is None:
         hold_factor = 0.0  # the directive window never appears in telemetry
-    elif min_hold <= full:
+    elif settled:
         hold_factor = 1.0
+    elif min_hold <= full:
+        # Low minimum speed WITHOUT a settled dwell is a rolling creep
+        # through the live directive — the violation this scenario stages
+        # (round 7): a strong dent, not full credit.
+        hold_factor = 0.3
     else:
         hold_factor = max(0.0, 1.0 - (float(min_hold) - full) / (zero - full))
     components = dict(components, directive_hold=round(hold_factor, 4))
@@ -1017,10 +1129,7 @@ def _score_proceed_with_care(rows: Sequence[Dict[str, Any]], onset: float) -> Tu
 
     entry_rows = []
     if first_yield_idx is not None:
-        entry_rows = [
-            r for r in rows[first_yield_idx + 1:]
-            if r.get("in_junction") is True
-        ]
+        entry_rows = _zone_entry_rows(rows, rows[first_yield_idx + 1:])
     entry_credit = 0.0
     order_credit = 1.0 if first_yield_idx is not None else 0.0
     entry_speed = None
@@ -1099,14 +1208,19 @@ def _score_yield(rows: Sequence[Dict[str, Any]], onset: float, active_end: float
         None,
     )
     after_low = rows[low_index + 1:] if low_index is not None else []
-    after_for_lateral = after_low or active
-    max_lateral_after = max((abs(float(r["ego_lateral_m"])) for r in after_for_lateral), default=0.0)
+    # Lateral clearance counts only AFTER the slowdown (strict mirror): a
+    # swerve executed before yielding is not "clearing the lane while
+    # yielding" (round 7).
+    max_lateral_after = max((abs(float(r["ego_lateral_m"])) for r in after_low), default=0.0)
     lateral_credit = _linear_credit(max_lateral_after, GRADED_THRESHOLDS["yield_lateral_m"], 0.0)
     resume_speed = _max(after_low, "ego_speed_kmh") if after_low else None
     resume_credit = _linear_credit(resume_speed, GRADED_THRESHOLDS["yield_resume_speed_kmh"], 0.0)
     action_credit = (
         (0.20 * approach_credit)
-        + (0.35 * slow_credit)
+        # A "slowdown" only exists relative to established approach motion: a
+        # parked-at-spawn ego must not bank the slow term for free (round 7 —
+        # it previously scored 0.35 while strict failed it for never moving).
+        + (0.35 * slow_credit * approach_credit)
         + (0.25 * lateral_credit)
         + (0.20 * resume_credit)
     )
@@ -1160,6 +1274,12 @@ def score_episode_from_telemetry(
         return verdict
 
     onset, duration, active_end = _first_meta(rows)
+    if action in {"STOP", "HOLD"}:
+        # Phase-aware window shared with the strict scorer: score the
+        # directive the scenario enforces, not whatever phase was live at
+        # rows[0] (round 7 — flagger_slow_then_stop was graded on its SLOW
+        # warm-up window).
+        onset, duration, active_end = _stop_hold_window(rows)
     if max_reaction_time is None:
         # Re-scoring callers (calibration, sweep collection, robustness) pass
         # only the result payload; fall back to the episode's own recorded

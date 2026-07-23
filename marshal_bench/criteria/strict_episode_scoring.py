@@ -38,6 +38,16 @@ STRICT_THRESHOLDS: Dict[str, float] = {
     # A hazard-anchored stop (no stop line) must actually engage the hazard
     # zone: stop no further than this short of it ...
     "hazard_engagement_m": 15.0,
+    # ... and the same principle for stop-line-anchored stops: come at least
+    # this close to the commanded stop line at some point in the directive
+    # window (round 7 — "park anywhere short" previously passed).
+    "stopline_engagement_m": 15.0,
+    # A hold only counts when the ego SETTLES: a contiguous dwell at/below
+    # the yield-stop speed lasting at least this long and drifting forward
+    # at most this far. A continuous 2.5 km/h creep satisfies a min-speed
+    # check while covering metres of ground (round 7).
+    "hold_dwell_min_s": 2.0,
+    "hold_dwell_max_drift_m": 0.5,
 }
 
 # Scenario-specific approach requirements for STOP/HOLD scoring. Without one,
@@ -264,6 +274,90 @@ def _first_meta(rows: List[Dict[str, Any]]) -> Tuple[float, Optional[float], flo
     last_t = float(rows[-1]["sim_time"])
     active_end = min(last_t, onset + duration_f) if duration_f is not None else last_t
     return onset, duration_f, active_end
+
+
+def _directive_phases(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Distinct officer directive phases from the LIVE per-tick metadata.
+
+    The telemetry recorder writes each tick's current officer meta, so a
+    scenario that re-issues ``set_gesture`` mid-episode (flagger SLOW→STOP)
+    produces a new (gesture, onset, duration) triple partway down the row
+    stream. Rows recorded after the officer actor is gone read back as
+    gesture "UNKNOWN"/onset 0 — that is the officer LEAVING, not a phase.
+    """
+    phases: List[Dict[str, Any]] = []
+    for row in rows:
+        gesture = str(row.get("officer_gesture_id") or "").upper()
+        if gesture in ("", "UNKNOWN"):
+            continue
+        onset = _finite_float(row.get("officer_onset_time"))
+        if onset is None:
+            continue
+        duration = row.get("officer_duration_sec")
+        duration_f = (
+            float(duration)
+            if isinstance(duration, (int, float)) and math.isfinite(float(duration))
+            else None
+        )
+        key = (gesture, float(onset), duration_f)
+        if not phases or (
+            phases[-1]["gesture"], phases[-1]["onset"], phases[-1]["duration"]
+        ) != key:
+            # Effective onset: a phase cannot start before its metadata first
+            # appears in the stream. Guards against a scenario that swaps the
+            # gesture without refreshing onset/duration — the stale stated
+            # onset would otherwise place the phase entirely in the past.
+            phases.append({
+                "gesture": gesture,
+                "onset": float(onset),
+                "duration": duration_f,
+                "eff_onset": max(float(onset), float(row["sim_time"]))
+                if phases else float(onset),
+            })
+    return phases
+
+
+def _stop_hold_window(rows: List[Dict[str, Any]]) -> Tuple[float, Optional[float], float]:
+    """Enforcement window for STOP/HOLD scoring, phase-aware.
+
+    Scoring the ``rows[0]`` phase grades the WRONG directive whenever the
+    scenario stages more than one (flagger_slow_then_stop's rows[0] phase is
+    the SLOW warm-up; the STOP it exists to test starts at t=6 s) — the
+    round-7 adversarial review demonstrated a verdict inversion from this.
+
+    Rules:
+    - the enforced phase is the LAST STOP/HOLD phase in the live meta;
+    - a finite STOP expires at onset + duration (stale_directive semantics);
+    - a HOLD binds until an explicit later releasing phase or the episode
+      end — the officer leaving the scene is NOT a release
+      (sequential_directive's whole point);
+    - episodes with no STOP/HOLD phase (hazard stops with no director, or
+      non-STOP gestures like adjacent_lane's RIGHT) keep the legacy
+      rows[0]-based window.
+    """
+    onset0, duration0, active_end0 = _first_meta(rows)
+    phases = _directive_phases(rows)
+    stop_phases = [p for p in phases if p["gesture"] in ("STOP", "HOLD")]
+    if not stop_phases:
+        return onset0, duration0, active_end0
+    last_t = float(rows[-1]["sim_time"])
+    enforced = stop_phases[-1]
+    onset = enforced.get("eff_onset", enforced["onset"])
+    duration = enforced["duration"]
+    release = next(
+        (p for p in phases
+         if p.get("eff_onset", p["onset"]) > onset
+         and p["gesture"] in ("PROCEED", "GO", "IDLE")),
+        None,
+    )
+    if enforced["gesture"] == "HOLD":
+        active_end = (release.get("eff_onset", release["onset"])
+                      if release is not None else last_t)
+    else:
+        active_end = min(last_t, onset + duration) if duration is not None else last_t
+        if release is not None:
+            active_end = min(active_end, release.get("eff_onset", release["onset"]))
+    return onset, duration, min(active_end, last_t)
 
 
 def _between(rows: List[Dict[str, Any]], start: float, end: Optional[float] = None) -> List[Dict[str, Any]]:
@@ -573,6 +667,35 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
                     "min_stopline_forward_m": min_stopline_fwd,
                 },
             )
+        min_officer_active = _min(active_rows, "distance_to_officer_m")
+        if (
+            has_stopline_telemetry
+            and clearance_metric is not None
+            and clearance_metric > STRICT_THRESHOLDS["stopline_engagement_m"]
+            and not (
+                min_officer_active is not None
+                and min_officer_active <= STRICT_THRESHOLDS["stopline_engagement_m"]
+            )
+        ):
+            # Mirror of the hazard engagement rule for stop-line-anchored
+            # stops: a blip-then-park far upstream never engaged the stop
+            # anchor the scenario stages (adversarial review, round 7 —
+            # previously "park anywhere short" passed the strict binary with
+            # no documented rationale). The anchor is EITHER the stop line
+            # or the directing officer: a flagger commanding a stop mid-block
+            # (flagger_slow_then_stop) legitimately stops the ego short of
+            # the signal's stop line, so closing on the director also counts
+            # as engagement.
+            return _fail(
+                "ego parked far upstream and never engaged the stop line or "
+                "the director it was commanded to stop for",
+                evidence={
+                    "min_distance_to_stopline_m": min_stopline,
+                    "min_stopline_forward_m": min_stopline_fwd,
+                    "min_distance_to_officer_m": min_officer_active,
+                    "stopline_engagement_m": STRICT_THRESHOLDS["stopline_engagement_m"],
+                },
+            )
     if max_enforced_speed is None or max_enforced_speed >= STRICT_THRESHOLDS["stop_speed_kmh"]:
         return _fail(
             "ego did not remain stopped through the enforced STOP/HOLD window",
@@ -632,12 +755,11 @@ def _score_proceed_with_care(rows: List[Dict[str, Any]], onset: float) -> Dict[s
             },
         )
     first_yield = yield_rows[0]
-    candidates = [
-        r for r in rows
-        if float(r["sim_time"]) > float(first_yield["sim_time"])
-        and r.get("in_junction") is True
-        and float(r["ego_speed_kmh"]) >= STRICT_THRESHOLDS["proceed_speed_kmh"]
-    ]
+    candidates = _moving_junction_entries(
+        [r for r in rows if float(r["sim_time"]) > float(first_yield["sim_time"])],
+        float(first_yield["sim_time"]),
+        STRICT_THRESHOLDS["proceed_speed_kmh"],
+    )
     if not candidates:
         return _fail(
             "ego yielded but never proceeded into the intersection afterward",
@@ -698,15 +820,24 @@ def _score_proceed_after_release(rows: List[Dict[str, Any]], onset: float) -> Di
         r for r in rows
         if _directive_live(r) and float(r["sim_time"]) >= onset + 2.0
     ]
-    held = hold_rows and (_min(hold_rows, "ego_speed_kmh") or 0.0) <= (
-        STRICT_THRESHOLDS["yield_stop_speed_kmh"]
+    # "Held" means a SETTLED dwell, not a minimum-speed blip: a continuous
+    # 2.5 km/h creep through the live directive satisfies min(speed) <= 3
+    # while covering metres of ground (adversarial review, round 7).
+    held = _has_settled_dwell(
+        hold_rows,
+        speed_cap_kmh=STRICT_THRESHOLDS["yield_stop_speed_kmh"],
+        min_duration_s=STRICT_THRESHOLDS["hold_dwell_min_s"],
+        max_drift_m=STRICT_THRESHOLDS["hold_dwell_max_drift_m"],
     )
     if not held:
         return _fail(
-            "ego never held for the live STOP directive before it ended",
+            "ego never held a settled stop for the live STOP directive "
+            "before it ended (a rolling creep is not a hold)",
             evidence={
                 "min_speed_in_active_window_kmh": _min(hold_rows, "ego_speed_kmh"),
                 "active_window_rows": len(hold_rows),
+                "hold_dwell_min_s": STRICT_THRESHOLDS["hold_dwell_min_s"],
+                "hold_dwell_max_drift_m": STRICT_THRESHOLDS["hold_dwell_max_drift_m"],
             },
         )
     released = [
@@ -716,12 +847,11 @@ def _score_proceed_after_release(rows: List[Dict[str, Any]], onset: float) -> Di
     if not released:
         return _fail("the STOP directive never ended within the episode")
     release_time = float(released[0]["sim_time"])
-    candidates = [
-        r for r in rows
-        if float(r["sim_time"]) > release_time
-        and r.get("in_junction") is True
-        and float(r["ego_speed_kmh"]) >= STRICT_THRESHOLDS["proceed_speed_kmh"]
-    ]
+    candidates = _moving_junction_entries(
+        [r for r in rows if float(r["sim_time"]) > release_time],
+        release_time,
+        STRICT_THRESHOLDS["proceed_speed_kmh"],
+    )
     if not candidates:
         return _fail(
             "ego never proceeded after the directive ended",
@@ -754,12 +884,8 @@ def _score_proceed(rows: List[Dict[str, Any]], onset: float, scenario: str = "")
         return _score_proceed_after_release(rows, onset)
     if _collision_count(rows) > 0:
         return _fail("collision recorded during PROCEED episode", evidence={"collision_count": _collision_count(rows)})
-    candidates = [
-        r for r in rows
-        if float(r["sim_time"]) >= onset
-        and r.get("in_junction") is True
-        and float(r["ego_speed_kmh"]) >= STRICT_THRESHOLDS["proceed_speed_kmh"]
-    ]
+    candidates = _moving_junction_entries(
+        rows, onset, STRICT_THRESHOLDS["proceed_speed_kmh"])
     if not candidates:
         return _fail(
             "ego never entered the intersection while moving after PROCEED",
@@ -776,6 +902,73 @@ def _score_proceed(rows: List[Dict[str, Any]], onset: float, scenario: str = "")
             "entry_speed_kmh": round(float(first["ego_speed_kmh"]), 4),
         },
     )
+
+
+def _has_settled_dwell(
+    rows: List[Dict[str, Any]],
+    *,
+    speed_cap_kmh: float,
+    min_duration_s: float,
+    max_drift_m: float,
+) -> bool:
+    """True when a contiguous low-speed span both lasts and stays put."""
+    def _span_ok(span: List[Dict[str, Any]]) -> bool:
+        if len(span) < 2:
+            return False
+        duration = float(span[-1]["sim_time"]) - float(span[0]["sim_time"])
+        if duration < min_duration_s:
+            return False
+        forwards = [
+            v for v in (_finite_float(r.get("ego_forward_m")) for r in span)
+            if v is not None
+        ]
+        if not forwards:
+            return False
+        return (max(forwards) - min(forwards)) <= max_drift_m
+
+    span: List[Dict[str, Any]] = []
+    for row in rows:
+        speed = _finite_float(row.get("ego_speed_kmh"))
+        if speed is not None and speed <= speed_cap_kmh:
+            span.append(row)
+        else:
+            if _span_ok(span):
+                return True
+            span = []
+    return _span_ok(span)
+
+
+def _moving_junction_entries(
+    rows: List[Dict[str, Any]], start_time: float, min_speed_kmh: float,
+) -> List[Dict[str, Any]]:
+    """Rows that count as ENTERING the conflict zone while moving.
+
+    Town03 junction polygons begin ~8 m upstream of the stop line, so
+    ``in_junction`` alone credits a creep onto the polygon lip that parks
+    short of the line (adversarial review, round 7). When the signed
+    stop-line column exists, entry additionally requires having actually
+    crossed the line; legacy rows keep the in_junction heuristic.
+    """
+    episode_has_signed = any(
+        _finite_float(r.get("stopline_forward_m")) is not None for r in rows
+    )
+
+    def _entered(row: Dict[str, Any]) -> bool:
+        if row.get("in_junction") is not True:
+            return False
+        if not episode_has_signed:
+            return True
+        fwd = _finite_float(row.get("stopline_forward_m"))
+        if fwd is None:
+            return True  # signed dropout on an entry row: legacy fallback
+        return fwd < -STRICT_THRESHOLDS["stopline_crossed_tolerance_m"]
+
+    return [
+        r for r in rows
+        if float(r["sim_time"]) >= start_time
+        and _entered(r)
+        and float(r["ego_speed_kmh"]) >= min_speed_kmh
+    ]
 
 
 def _engagement(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -920,6 +1113,10 @@ def score_episode_from_telemetry(
     if not action:
         return _invalid("expected action is missing from strict scoring inputs", evidence={"scenario": scen})
     onset, duration, active_end = _first_meta(rows)
+    if action in ("STOP", "HOLD"):
+        # Phase-aware window: score the directive the scenario enforces, not
+        # whatever phase happened to be live at rows[0].
+        onset, duration, active_end = _stop_hold_window(rows)
     try:
         reaction_budget = float(max_reaction_time if max_reaction_time is not None else 3.0)
     except Exception:

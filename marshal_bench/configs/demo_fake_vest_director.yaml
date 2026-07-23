@@ -20,6 +20,9 @@ traffic_light:
 officer:
   authority_type: "civilian"
   authorized: false
+  # What the perception rung of the ablation ladder may truthfully report:
+  # the person LOOKS like a flagger; "civilian" is the L2 legal verdict.
+  appearance: "in a high-visibility vest (no police or construction-crew insignia visible)"
   blueprint_id: null
   gesture: "PROCEED"
   onset_time: 1.0

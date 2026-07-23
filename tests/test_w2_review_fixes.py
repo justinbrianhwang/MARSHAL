@@ -339,9 +339,13 @@ def test_strict_other_stop_scenarios_have_no_approach_requirement():
         expected_action="STOP",
         max_reaction_time=3.0,
     )
-    # green_stop has no staged near-zone authority: the engagement gate is the
-    # only motion requirement, so this profile still scores on its own merits.
-    assert verdict["passed"] is True, verdict["reason"]
+    # green_stop has no staged near-zone authority (no handoff approach
+    # table), but since round 7 a blip-then-park far upstream FAILS the
+    # generic stop-anchor engagement gate: the ego must come within the
+    # engagement radius of the stop line OR the directing officer at some
+    # point. Parking anywhere short is no longer a strict PASS.
+    assert verdict["passed"] is False
+    assert "never engaged the stop line or the director" in verdict["reason"]
 
 
 def test_graded_collapses_degenerate_policies_but_rewards_transit():

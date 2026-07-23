@@ -69,9 +69,21 @@ handled separately by the 3-run mean ± std —
 - **Weighting cannot manufacture discrimination** — with uniform weights the
   benchmark ranks models the same; the discrimination comes from the scenarios, not
   the weights. This is the desired property.
-- **The engagement gate is part of Graded, not of Pass/Fail** — strict verdicts never
-  depend on it. See [marshal_graded_score.md](marshal_graded_score.md) for why the
-  gate is continuous (a hard binary gate broke oracle calibration).
+- **Both metrics carry an engagement requirement, in different forms.** The strict
+  binary fails an ego that never engaged the staged scene at all (speed + progress),
+  and — since the round-7 adversarial review — an ego that never came within the
+  engagement radius (15 m) of the stop line *or* the directing officer ("park
+  anywhere short" is not a compliant stop; the privileged oracle, which brakes on
+  the true stop line's envelope, is unaffected). The graded score's engagement gate
+  is continuous — see [marshal_graded_score.md](marshal_graded_score.md) for why
+  (a hard binary gate broke oracle calibration). Two further round-7 strict rules:
+  a *hold* requires a settled dwell (≥ 2 s within 0.5 m — a rolling sub-3 km/h
+  creep is not a hold), and a *PROCEED* entry requires actually crossing the stop
+  line when the signed stop-line column exists (junction polygons begin ~8 m
+  upstream of the line). STOP/HOLD windows are derived from the per-tick live
+  directive metadata, so multi-phase scenes (SLOW→STOP) are scored on the
+  directive they enforce, and a HOLD binds until an explicit release — an officer
+  leaving the scene is not a release.
 - **The Failure Profile is descriptive, not scored** — it enters no aggregate, so it
   cannot be gamed and needs no weighting defense.
 

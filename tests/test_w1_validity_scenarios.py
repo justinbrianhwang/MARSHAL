@@ -138,9 +138,12 @@ def _release_rows(**overrides):
     base = dict(
         speeds=[6.0, 3.0, 0.5, 0.5, 0.5, 5.0, 8.0, 8.0],
         officer_active=True,
-        officer_gesture_id=["STOP"] * 4 + ["IDLE"] * 4,
+        officer_gesture_id=["STOP"] * 5 + ["IDLE"] * 3,
         in_junction=[False] * 6 + [True, True],
         distance_to_stopline_m=[20.0, 14.0, 8.0, 8.0, 8.0, 4.0, -1.0, -4.0],
+        # A hold must be a SETTLED dwell (>= 2 s, <= 0.5 m of drift) — the
+        # default ego_forward ramp (3 m/row) would read as a rolling creep.
+        ego_forward_m=[0.0, 5.0, 9.0, 9.1, 9.2, 12.0, 18.0, 24.0],
     )
     base.update(overrides)
     return make_rows(**base)

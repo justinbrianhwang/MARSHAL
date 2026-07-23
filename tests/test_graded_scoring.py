@@ -190,31 +190,47 @@ def test_stop_credit_rewards_earlier_slower_stop_over_late_fast_conflict_entry()
     assert better["raw_action_credit"] >= worse["raw_action_credit"]
 
 
-def test_strict_compliant_far_upstream_low_speed_stop_receives_full_credit():
-    """Design invariant (do NOT "fix" this into a per-episode anti-creep gate).
+def test_stop_anchor_engagement_gates_the_full_credit_shortcut():
+    """Round-7 revision of the old far-upstream invariant.
 
-    A strict-compliant STOP -- physically stopped, no stop-line crossing, no
-    junction entry -- receives full action credit even when the ego halts far
-    upstream at low speed. This is exactly the privileged oracle's signature in
-    STOP scenarios: it approaches at only a few km/h and stops ~45 m short of the
-    stop-line reference. The graded scorer is calibrated so the oracle scores
-    100.0, and a per-episode gate that tried to penalise "far-upstream low-speed
-    stop" cannot distinguish the oracle from a degenerate stop -- empirically it
-    drops the oracle to ~45. Stop-bias is therefore handled cross-scenario
-    (authority weighting + the PROCEED/DETOUR scenarios), never by gating an
-    individual stop episode.
+    HISTORY: an earlier invariant here said a far-upstream low-speed stop
+    must keep full credit, because "the oracle stops ~45 m short of the
+    stop-line reference". That rationale described the PRE-geometry-fix
+    build, whose stop-line reference was wrong; since the stop-line
+    re-derivation the oracle brakes on the TRUE line's envelope and stops
+    1–3 m short, and it keeps 100.0 under the engagement gate (verified by
+    re-scoring the full stored sweep). The strict scorer now fails a stop
+    that never came within the engagement radius of the stop line OR the
+    director, and the graded shortcut must mirror that — its name is
+    "strict_stop_compliant".
+
+    A genuine engaged stop keeps 1.0; a park 80 m upstream (director also
+    far) drops out of the shortcut and earns only partial credit.
     """
     genuine = score(clean_stop_before_line(), expected_action="STOP", scenario="green_stop")
     far_upstream_rows = make_rows(
         speeds=[0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
         distance_to_stopline_m=[80.0, 79.9, 79.8, 79.7, 79.6, 79.5],
+        distance_to_officer_m=[78.0, 77.9, 77.8, 77.7, 77.6, 77.5],
         ego_forward_m=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5],
         officer_gesture_id="STOP",
     )
     far_upstream = score(far_upstream_rows, expected_action="STOP", scenario="green_stop")
 
     assert genuine["raw_action_credit"] == pytest.approx(1.0)
-    assert far_upstream["raw_action_credit"] == pytest.approx(1.0)
+    assert far_upstream["raw_action_credit"] < 0.5
+
+    # A stop short of the line but AT the director stays fully credited —
+    # mid-block flagger stops are commanded short of the signal's line.
+    at_director_rows = make_rows(
+        speeds=[15.0, 10.0, 4.0, 0.5, 0.5, 0.5, 0.5],
+        distance_to_stopline_m=[50.0, 44.0, 39.0, 36.0, 36.0, 36.0, 36.0],
+        distance_to_officer_m=[18.0, 12.0, 7.0, 4.0, 4.0, 4.0, 4.0],
+        ego_forward_m=[0.0, 6.0, 11.0, 14.0, 14.0, 14.0, 14.0],
+        officer_gesture_id="STOP",
+    )
+    at_director = score(at_director_rows, expected_action="STOP", scenario="flagger_control")
+    assert at_director["raw_action_credit"] == pytest.approx(1.0)
 
 
 def _invalid_cases():
