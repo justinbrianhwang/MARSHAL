@@ -1353,6 +1353,37 @@ def _build_ground_truth(
         pass
     env = config.get("environment") or {}
     expected = config.get("expected_behavior") or {}
+    # Second director (conflicting_authorities / dual_authority_handoff use
+    # config["second_authority"]; two_civilians_disagree spawns a static
+    # STOP-pose civilian proxy from scene config). Without this entry the
+    # E-tuple would describe a two-director scene as a one-director scene —
+    # incomplete ground truth for exactly the scenarios that test conflict
+    # resolution between directors.
+    second_authority = None
+    sa = config.get("second_authority") or {}
+    scene_cfg = config.get("scene") or {}
+    if sa:
+        sa_type = str(sa.get("authority_type") or "flagger")
+        # Configs spell the validity key "authorized" (see
+        # demo_conflicting_authorities.yaml / demo_dual_authority_handoff.yaml).
+        sa_valid = sa.get("authorized", sa.get("authority_valid"))
+        if not isinstance(sa_valid, bool):
+            # Domain default: flaggers/police are legally valid directors,
+            # civilians are not.
+            sa_valid = sa_type.lower() in {"flagger", "police", "officer"}
+        second_authority = {
+            "type": sa_type,
+            "gesture": str(sa.get("gesture") or "PROCEED").upper(),
+            "valid": sa_valid,
+        }
+    elif scene_cfg.get("second_civilian_blueprint_id"):
+        second_authority = {
+            "type": "civilian",
+            # Static STOP-pose proxy (see two_civilians_disagree scenario).
+            "gesture": str(scene_cfg.get("second_civilian_gesture")
+                           or "STOP").upper(),
+            "valid": False,
+        }
     stop_line = _resolve_stop_line(ctx.traffic_light, ctx.ego, ctx.world)
     try:
         map_name = ctx.world.get_map().name
@@ -1370,6 +1401,10 @@ def _build_ground_truth(
         "G_gesture": officer_meta.get("gesture_id", expected_gesture.value),
         "G_gesture_onset_sec": officer_meta.get("onset_time"),
         "G_gesture_duration_sec": officer_meta.get("duration"),
+        "A_second_authority": second_authority,
+        # Visual appearance override for the perception rung (e.g. the
+        # fake-vest director LOOKS like a flagger while legally a civilian).
+        "A_appearance": (config.get("officer") or {}).get("appearance"),
         "T_target_relation": officer_meta.get("target_relation", "ego"),
         "S_safety_context": (config.get("scene") or {}),
         "V_visibility": env.get("visibility", "full"),
@@ -1938,11 +1973,28 @@ def run_scenario(
         result["ground_truth"] = ground_truth
 
         carla = import_carla()
+        privileged_setup = _controller_uses_privileged_ground_truth(controller)
         setup_ground_truth = (
             ground_truth
-            if _controller_uses_privileged_ground_truth(controller)
+            if privileged_setup
             else _non_privileged_setup_context(ground_truth)
         )
+        # Durable audit flag: episode-id prefixes are metadata, not an access
+        # control boundary. Any consumer (collector, leaderboard, third-party
+        # plug-in report) can see from the artifact itself whether this run
+        # received the privileged E-tuple — including a plug-in controller
+        # that silently sets requests_privileged_gt.
+        result["privileged_ground_truth_provided"] = bool(privileged_setup)
+        result["controller_requests_privileged_gt"] = bool(
+            getattr(controller, "requests_privileged_gt", False))
+        if privileged_setup:
+            logger.log_event(
+                "privileged_ground_truth_provided",
+                controller=str(getattr(controller, "name", "?")),
+                track=str(getattr(controller, "track", "?")),
+                requests_privileged_gt=bool(
+                    getattr(controller, "requests_privileged_gt", False)),
+            )
         try:
             route_origin = ctx.ego.get_transform().location
             route_fwd = ctx.ego.get_transform().get_forward_vector()
@@ -2001,6 +2053,11 @@ def run_scenario(
                 try:
                     if hasattr(controller, "set_episode_dir"):
                         controller.set_episode_dir(logger.episode_dir)
+                    if privileged_setup and hasattr(controller, "set_officer_ref"):
+                        # Privileged diagnostics may track the LIVE director
+                        # state (phase switches, departures) — the setup-time
+                        # snapshot alone goes stale mid-episode.
+                        controller.set_officer_ref(ctx.officer)
                     controller.setup(world, ctx.ego, setup_ground_truth, carla)
                     log.info("Controller '%s' set up (track=%s)",
                              getattr(controller, "name", "?"),

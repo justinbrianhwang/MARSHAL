@@ -350,18 +350,26 @@ def _compliance_reason(compliance: dict) -> Any:
 def _run_one(client: Any, model: str, scenario_key: str) -> Dict[str, Any]:
     spec = SCENARIOS[scenario_key]
     cfg = staging.load_staged_config(_ROOT, scenario_key, spec, "vlm")
-    ablation = os.environ.get("MARSHAL_VLM_ABLATION", "none").strip().lower() or "none"
+    # MARSHAL_VLM_ABLATION unset  -> leaderboard wiring (3 queries, no assist).
+    # Set (including "none")      -> DIAGNOSTIC wiring for the ablation ladder:
+    # unbounded queries on the same cadence, so a decision made at spawn is
+    # never locked in by the query budget. "none" is the ladder's own L0
+    # baseline re-measured under the diagnostic wiring — the leaderboard rows
+    # (3-query budget) are NOT directly comparable to the assisted rungs.
+    ablation_env = os.environ.get("MARSHAL_VLM_ABLATION")
+    diagnostic = ablation_env is not None
+    ablation = (ablation_env or "none").strip().lower() or "none"
     cfg["vlm"] = {
         "backend": "hf",
         "model": model,
         "query_period_s": 1.5,
-        "max_queries": 3,
+        "max_queries": None if diagnostic else 3,
         "ablation": ablation,
     }
     # Ablation episodes are privileged diagnostics: keep their artifacts in
     # clearly-separated episode ids so they can never be collected into the
     # Track-C leaderboard rows.
-    prefix = f"ablate-{ablation}_" if ablation != "none" else ""
+    prefix = f"ablate-{ablation}_" if diagnostic else ""
     cfg["episode_id"] = f"vlm_{prefix}{_slug(model)}_{scenario_key}"
     _clear_episode_outputs(cfg["episode_id"])
 
@@ -395,6 +403,10 @@ def _run_one(client: Any, model: str, scenario_key: str) -> Dict[str, Any]:
     row = {
         "model": model,
         "scenario": scenario_key,
+        # Privileged lineage at the TOP of the row, not buried inside the
+        # decision log: consumers must be able to tell a diagnostic ablation
+        # row from a genuine Track-C row at a glance.
+        "ablation": ablation if diagnostic else None,
         "expected": spec["expect"],
         "vlm_actions": dec["actions"],
         "vlm_action": dec["last_action"],
@@ -435,9 +447,11 @@ def _run_one(client: Any, model: str, scenario_key: str) -> Dict[str, Any]:
 def _failure_row(model: str, scenario_key: str, exc: Exception) -> Dict[str, Any]:
     spec = SCENARIOS[scenario_key]
     episode_id = f"vlm_{_slug(model)}_{scenario_key}"
+    ablation_env = os.environ.get("MARSHAL_VLM_ABLATION")
     row = {
         "model": model,
         "scenario": scenario_key,
+        "ablation": (ablation_env or "none").strip().lower() if ablation_env is not None else None,
         "expected": spec["expect"],
         "vlm_actions": [],
         "vlm_action": "",
@@ -472,9 +486,11 @@ def _failure_row(model: str, scenario_key: str, exc: Exception) -> Dict[str, Any
 def _native_failure_row(model: str, scenario_key: str, message: str) -> Dict[str, Any]:
     spec = SCENARIOS[scenario_key]
     episode_id = f"vlm_{_slug(model)}_{scenario_key}"
+    ablation_env = os.environ.get("MARSHAL_VLM_ABLATION")
     row = {
         "model": model,
         "scenario": scenario_key,
+        "ablation": (ablation_env or "none").strip().lower() if ablation_env is not None else None,
         "expected": spec["expect"],
         "vlm_actions": [],
         "vlm_action": "",
@@ -506,8 +522,16 @@ def _native_failure_row(model: str, scenario_key: str, message: str) -> Dict[str
     return row
 
 
-def _row_key(row: Dict[str, Any]) -> Tuple[str, str]:
-    return str(row.get("model") or ""), str(row.get("scenario") or "")
+def _row_key(row: Dict[str, Any]) -> Tuple[str, str, str]:
+    # The ablation level is part of the identity: without it a diagnostic
+    # ablation row silently OVERWRITES the genuine Track-C row for the same
+    # (model, scenario) when both target one results file (adversarial
+    # review, round 7).
+    return (
+        str(row.get("model") or ""),
+        str(row.get("scenario") or ""),
+        str(row.get("ablation") or ""),
+    )
 
 
 def _load_existing_rows(path: str) -> List[Dict[str, Any]]:
@@ -555,10 +579,14 @@ def _carla_town03_status() -> Tuple[bool, str]:
 
 
 def _child_output_path(model: str, scenario_key: str) -> str:
+    # Ablation-suffixed so a concurrent normal + diagnostic run of the same
+    # cell cannot race on one temp file.
+    ablation_env = os.environ.get("MARSHAL_VLM_ABLATION")
+    suffix = f"_ablate-{(ablation_env or 'none').strip().lower()}" if ablation_env is not None else ""
     return os.path.join(
         _ROOT,
         "tmp",
-        f"_codex_vlm_child_{_slug(model)}_{scenario_key}.json",
+        f"_codex_vlm_child_{_slug(model)}_{scenario_key}{suffix}.json",
     )
 
 
@@ -923,10 +951,12 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--ablation",
         choices=("none", "perception", "authority", "semantics", "temporal",
-                 "action"),
+                 "action", "policy"),
         default=None,
         help="Oracle-assist ablation level (privileged DIAGNOSTIC runs; "
-             "separate episode ids and results files).",
+             "separate episode ids and results files; unbounded query "
+             "budget). 'none' = the ladder's own L0 baseline under the "
+             "diagnostic wiring.",
     )
     parser.add_argument("--results-json", default=RESULTS_JSON)
     parser.add_argument("--report", default=REPORT_MD)
@@ -967,6 +997,16 @@ def main() -> int:
     args = _parse_args()
     if args.ablation is not None:
         os.environ["MARSHAL_VLM_ABLATION"] = args.ablation
+        # Never let a diagnostic run overwrite the default (leaderboard)
+        # results/report files: auto-suffix any path the user did not
+        # explicitly redirect.
+        suffix = f"_ablate-{args.ablation}"
+        if args.results_json == RESULTS_JSON:
+            root, ext = os.path.splitext(RESULTS_JSON)
+            args.results_json = f"{root}{suffix}{ext}"
+        if args.report == REPORT_MD:
+            root, ext = os.path.splitext(REPORT_MD)
+            args.report = f"{root}{suffix}{ext}"
     if args.child_run_one:
         return _child_main(args)
 

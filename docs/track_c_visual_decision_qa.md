@@ -73,6 +73,7 @@ Track-C result should report:
 |-------|-------|
 | number of frames | per-tick single frame (the controller queries on a fixed period) |
 | frame sampling interval | query period ≈ 1.5 s (see results integrity lines) |
+| query budget | leaderboard wiring: the FIRST 3 queries only (t ≈ 0 / 1.5 / 3.0 s); the last returned decision is held for the rest of the episode. Diagnostic (oracle-ablation) runs lift this to an unbounded budget — those rows are never leaderboard rows. |
 | camera view | single forward ego RGB |
 | image resolution | 1280×720, 90° FOV |
 | frame timing vs gesture onset | live, during the episode (frames span before/through/after onset) |

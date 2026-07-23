@@ -209,7 +209,7 @@
       "missing": 0,
       "scored": 25,
       "pass_rate": 8.0,
-      "graded": 28.19,
+      "graded": 29.06,
       "marshal_score": 28.85,
       "r_scores": {
         "R3": 0.197,
@@ -276,7 +276,7 @@
       "missing": 0,
       "scored": 25,
       "pass_rate": 24.0,
-      "graded": 63.71,
+      "graded": 60.66,
       "marshal_score": 41.29,
       "r_scores": {
         "R3": 0.2606,
@@ -343,7 +343,7 @@
       "missing": 0,
       "scored": 25,
       "pass_rate": 20.0,
-      "graded": 27.41,
+      "graded": 26.38,
       "marshal_score": 36.4,
       "r_scores": {
         "R3": 0.3455,
@@ -410,7 +410,7 @@
       "missing": 0,
       "scored": 25,
       "pass_rate": 4.0,
-      "graded": 24.61,
+      "graded": 23.14,
       "marshal_score": 27.75,
       "r_scores": {
         "R3": 0.1818,
@@ -477,7 +477,7 @@
       "missing": 0,
       "scored": 25,
       "pass_rate": 20.0,
-      "graded": 41.08,
+      "graded": 39.28,
       "marshal_score": 35.87,
       "r_scores": {
         "R3": 0.2455,
@@ -611,7 +611,7 @@
       "missing": 0,
       "scored": 25,
       "pass_rate": 12.0,
-      "graded": 13.78,
+      "graded": 12.75,
       "marshal_score": 23.92,
       "r_scores": {
         "R3": 0.1636,
@@ -739,28 +739,28 @@
     },
     "glm-4.5v": {
       "track": "C",
-      "strict_pass": 7,
-      "strict_fail": 18,
+      "strict_pass": 6,
+      "strict_fail": 19,
       "invalid": 0,
       "missing": 0,
       "scored": 25,
-      "pass_rate": 28.0,
-      "graded": 46.25,
-      "marshal_score": 33.59,
+      "pass_rate": 24.0,
+      "graded": 42.34,
+      "marshal_score": 32.11,
       "r_scores": {
         "R3": 0.2939,
         "R2": 0.25,
         "R1": 0.0,
         "R4": 1.0,
         "R5": 0.5444,
-        "R7": 0.3125,
+        "R7": 0.25,
         "R8": 0.5
       },
       "suite": {
         "AOC": 0.3636,
         "FOA": 0.4,
         "TAA": 0.5,
-        "SBO": 0.3125,
+        "SBO": 0.25,
         "CRI": 0.0,
         "RTL": null,
         "CMF": 0.5444,
@@ -782,7 +782,7 @@
           "total": 6
         },
         "validity": {
-          "passed": 3,
+          "passed": 2,
           "total": 5
         },
         "conflict": {
@@ -799,7 +799,9 @@
         }
       },
       "conditions_seen": [],
-      "rescored_changed": []
+      "rescored_changed": [
+        "stale_directive_residue"
+      ]
     },
     "qwen2.5-vl": {
       "track": "C",
@@ -809,7 +811,7 @@
       "missing": 0,
       "scored": 25,
       "pass_rate": 20.0,
-      "graded": 48.01,
+      "graded": 46.98,
       "marshal_score": 40.61,
       "r_scores": {
         "R3": 0.3288,
@@ -873,7 +875,7 @@
       "missing": 0,
       "scored": 25,
       "pass_rate": 16.0,
-      "graded": 52.73,
+      "graded": 51.7,
       "marshal_score": 43.57,
       "r_scores": {
         "R3": 0.2455,
@@ -1542,7 +1544,7 @@
       },
       "sequential_directive": {
         "strict": "FAIL",
-        "credit": 0.128449,
+        "credit": 0.027049,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -1584,7 +1586,7 @@
       },
       "flagger_slow_then_stop": {
         "strict": "FAIL",
-        "credit": 0.171145,
+        "credit": 0.498502,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -1698,7 +1700,7 @@
       },
       "ambulance_yield": {
         "strict": "FAIL",
-        "credit": 0.774148,
+        "credit": 0.524148,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -1719,7 +1721,7 @@
       },
       "sequential_directive": {
         "strict": "FAIL",
-        "credit": 0.374879,
+        "credit": 0.0,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -1810,7 +1812,7 @@
       },
       "dual_authority_handoff": {
         "strict": "FAIL",
-        "credit": 0.797293,
+        "credit": 0.741357,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -1875,7 +1877,7 @@
       },
       "ambulance_yield": {
         "strict": "FAIL",
-        "credit": 0.646315,
+        "credit": 0.396315,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -2052,7 +2054,7 @@
       },
       "ambulance_yield": {
         "strict": "FAIL",
-        "credit": 0.637774,
+        "credit": 0.292758,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -2073,7 +2075,7 @@
       },
       "sequential_directive": {
         "strict": "FAIL",
-        "credit": 0.063525,
+        "credit": 0.2134,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -2143,7 +2145,7 @@
       },
       "stale_directive_residue": {
         "strict": "FAIL",
-        "credit": 0.26013,
+        "credit": 0.078039,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -2292,7 +2294,7 @@
       },
       "flagger_slow_then_stop": {
         "strict": "FAIL",
-        "credit": 0.404235,
+        "credit": 0.093581,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -2320,7 +2322,7 @@
       },
       "stale_directive_residue": {
         "strict": "FAIL",
-        "credit": 0.178719,
+        "credit": 0.053616,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -2583,7 +2585,7 @@
       },
       "ambulance_yield": {
         "strict": "FAIL",
-        "credit": 0.489113,
+        "credit": 0.239113,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -2937,7 +2939,7 @@
       },
       "ambulance_yield": {
         "strict": "FAIL",
-        "credit": 0.498764,
+        "credit": 0.248764,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -3027,11 +3029,11 @@
         "changed": null
       },
       "stale_directive_residue": {
-        "strict": "PASS",
-        "credit": 1.0,
+        "strict": "FAIL",
+        "credit": 0.3,
         "stored_strict": "PASS",
         "rescored": true,
-        "changed": null
+        "changed": true
       },
       "out_of_jurisdiction_director": {
         "strict": "PASS",
@@ -3114,7 +3116,7 @@
       },
       "ambulance_yield": {
         "strict": "FAIL",
-        "credit": 0.500709,
+        "credit": 0.250709,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -3291,7 +3293,7 @@
       },
       "ambulance_yield": {
         "strict": "FAIL",
-        "credit": 0.500427,
+        "credit": 0.250427,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null

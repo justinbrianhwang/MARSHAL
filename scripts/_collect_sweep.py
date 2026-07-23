@@ -60,6 +60,25 @@ def read_result(epdir):
         return None
 
 
+def _is_privileged(result_blob):
+    """True when the episode artifact says the controller got the E-tuple.
+
+    Checks both the top-level result and the nested ``result`` blob; either
+    the runner-recorded flag or the controller's own opt-in counts.
+    """
+    if not isinstance(result_blob, dict):
+        return False
+    blobs = [result_blob]
+    nested = result_blob.get("result")
+    if isinstance(nested, dict):
+        blobs.append(nested)
+    for blob in blobs:
+        if blob.get("privileged_ground_truth_provided") or blob.get(
+                "controller_requests_privileged_gt"):
+            return True
+    return False
+
+
 def _extract_condition(result_blob):
     if not isinstance(result_blob, dict):
         return None
@@ -94,6 +113,19 @@ def main():
             condition_key = _condition_key(_extract_condition(result_blob))
             if condition_key is not None:
                 conditions_seen.add(condition_key)
+            # Defense in depth: episode-id naming keeps privileged diagnostic
+            # runs (oracle-assist ablation) out of these paths, but the
+            # artifact itself also carries a durable flag. Refuse any
+            # NON-oracle episode that received the privileged E-tuple — a
+            # leaked env var or a plug-in controller that silently sets
+            # requests_privileged_gt must never score as Track-B/C.
+            if label != "oracle" and _is_privileged(result_blob):
+                print(f"!! {label}/{sc}: episode received privileged ground "
+                      "truth - EXCLUDED from leaderboard scoring")
+                matrix[label][sc] = {"strict": "PRIVILEGED-EXCLUDED",
+                                     "credit": None}
+                nmissing += 1
+                continue
             strict = read_strict(epdir)
             if strict is None:
                 matrix[label][sc] = {"strict": "MISSING", "credit": None}
