@@ -907,22 +907,23 @@ a capability**, not about any one checkpoint. Each is reported with its evidence
 scope so it can be cited without over-reach.
 
 1. **Authority-aware reasoning is a separable capability that ordinary driving competence
-   does not confer.** The privileged oracle solves 25/25 (graded 100), while the best
-   non-privileged system reaches only graded ~64 (LiDAR E2E) / ~53 (VLM), and a whole
-   family of cases — contextual DETOUR (`crash_detour`, `civilian_warning_accident`,
+   does not confer — and the missing link is plan synthesis, not knowledge.** The
+   privileged oracle solves 25/25 (graded 100), while the best non-privileged system
+   reaches only graded ~63 (LiDAR E2E) / ~52 (VLM), and a whole family of cases —
+   contextual DETOUR (`crash_detour`, `civilian_warning_accident`,
    `emergency_scene_blocking`, `barricade_self_detour`) and `ambulance_yield` — is solved
    **only by the oracle**. The oracle result certifies that every scenario is physically
-   feasible; the remaining failures arise inside the evaluated system stack — authority
-   perception, temporal interpretation, priority reasoning, and behavioral execution.
-   Per-case evidence localizes several failures at the priority-reasoning link rather than
-   raw perception (a VLM that *describes* the officer correctly yet follows the green
-   light — see the Track-C failure analysis above). A controlled attribution — the
-   oracle-assist ablation ladder, which injects ground-truth perception, authority
-   validity, directive semantics, temporal state, and finally the expected action itself
-   into the per-tick VLM prompt — finds that **no amount of injected knowledge recovers
-   compliant behaviour on this wiring**: scene ground truth eliminates every
-   drive-through-the-officer failure but flips the model into never engaging the scene,
-   even when told the answer ([docs/oracle_ablation.md](docs/oracle_ablation.md)).
+   feasible; the remaining failures arise inside the evaluated system stack. A controlled
+   attribution — the oracle-assist ablation ladder, which injects ground-truth
+   perception, authority validity, directive semantics, temporal state, the expected
+   action, and finally the oracle's own per-tick policy into the VLM prompt — localizes
+   the bottleneck: every knowledge rung, up to and including the episode answer key,
+   leaves the model in the 1–7/25 band (scene ground truth flips its dominant failure
+   from under-compliance to parking at spawn), yet the SAME model executes an externally
+   supplied per-tick plan at **17/25**, failing only where the token vocabulary is
+   structurally inexpressive (lane-change DETOURs) or too coarse for metre-level stop
+   geometry. Knowing everything is not the hard part; compiling knowledge into a
+   time-indexed plan is ([docs/oracle_ablation.md](docs/oracle_ablation.md)).
    Either way, the capability is neither conferred by nor measured in nominal-driving
    benchmarks. *(Scope: single map, staged scenarios; ablation on one backbone,
    single-sample.)*
