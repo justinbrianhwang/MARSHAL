@@ -19,10 +19,7 @@ from marshal_bench.controllers._trajectory_planner_common import (
     integrate_speed_curvature,
     parse_numeric_pairs,
 )
-from marshal_bench.controllers.ablation_assist import (
-    ABLATION_LEVELS,
-    AblationAssist,
-)
+from marshal_bench.controllers.ablation_assist import AblationAssist
 
 log = logging.getLogger("marshal_bench.controllers.openemma")
 
@@ -145,8 +142,9 @@ class OpenEMMAController(TrajectoryPlannerControllerBase):
             self._assist.set_ground_truth(ground_truth)
             self._assist.validate_gt()
         super().setup(world, ego, ground_truth, carla)
-        if self._assist.rank >= ABLATION_LEVELS.index("policy"):
-            # L6 shadow oracle: the verified reference policy runs alongside
+        if self._assist.arms_shadow_oracle:
+            # L6 shadow oracle (also armed by the policy_only control cell):
+            # the verified reference policy runs alongside
             # (compute-only; its control is never applied to the vehicle) and
             # its per-tick output is translated into the reply vocabulary.
             from marshal_bench.controllers.oracle import OracleController
