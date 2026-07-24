@@ -922,11 +922,19 @@ scope so it can be cited without over-reach.
    from under-compliance to parking at spawn), yet the SAME model executes an externally
    supplied per-tick plan at **17/25**, failing only where the token vocabulary is
    structurally inexpressive (lane-change DETOURs) or too coarse for metre-level stop
-   geometry. Knowing everything is not the hard part; compiling knowledge into a
-   time-indexed plan is ([docs/oracle_ablation.md](docs/oracle_ablation.md)).
+   geometry. The same ladder replicated on a planner wiring (assisted OpenEMMA,
+   byte-identical assist text injected into its trajectory-regression prompts) shows the
+   same structure more sharply: every knowledge rung scores 0–3/25 — injected scene
+   ground truth makes the planner no better, and at two of three knowledge rungs
+   strictly worse, than no assist, monotonically increasing park-at-spawn — while the
+   externally supplied plan reaches **13/25** with STOP-family freezes down to one
+   (three proceed-against-the-rule cells stay frozen: the regressor's traffic prior
+   overrides an explicit per-tick GO). Knowing everything is not the hard part; compiling
+   knowledge into a time-indexed plan is
+   ([docs/oracle_ablation.md](docs/oracle_ablation.md)).
    Either way, the capability is neither conferred by nor measured in nominal-driving
-   benchmarks. *(Scope: single map, staged scenarios; ablation on one backbone,
-   single-sample.)*
+   benchmarks. *(Scope: single map, staged scenarios; ablation on two backbones —
+   one QA wiring, one planner wiring — single-sample per cell.)*
 
 2. **Models pass the cells aligned with their own directional prior — in both
    directions — and only the two-pole balance of the suite exposes it.** The clearest
