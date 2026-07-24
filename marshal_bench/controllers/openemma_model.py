@@ -19,6 +19,10 @@ from marshal_bench.controllers._trajectory_planner_common import (
     integrate_speed_curvature,
     parse_numeric_pairs,
 )
+from marshal_bench.controllers.ablation_assist import (
+    ABLATION_LEVELS,
+    AblationAssist,
+)
 
 log = logging.getLogger("marshal_bench.controllers.openemma")
 
@@ -111,6 +115,83 @@ class OpenEMMAController(TrajectoryPlannerControllerBase):
         super().__init__(config=config)
         self.query_period_s = float(self.mcfg.get("query_period_s", 1.0))
         self.lookahead_m = float(self.mcfg.get("lookahead_m", 5.0))
+        # Oracle-assist ablation opt-in (privileged DIAGNOSTIC runs, never
+        # leaderboard rows): same config key / env var as the VLM wiring, and
+        # the injected assist text is built by the same shared helper.
+        self._assist = AblationAssist.from_config(self.mcfg)
+        self.requests_privileged_gt = self._assist.requests_privileged_gt
+        self._oracle_shadow = None
+
+    # ------------------------------------------------------------------
+    # Ablation assist (mirrors marshal_bench.controllers.vlm_model)
+    # ------------------------------------------------------------------
+    def set_officer_ref(self, officer: Any) -> None:
+        """Privileged runs only: live handle to the scene's director."""
+        self._assist.set_officer_ref(officer)
+
+    def _ablation_assist(self, sim_time: float) -> str:
+        return self._assist.assist(sim_time)
+
+    def setup(
+        self,
+        world: Any,
+        ego: Any,
+        ground_truth: dict[str, Any],
+        carla: Any,
+    ) -> None:
+        if self._assist.requests_privileged_gt:
+            # Validate BEFORE the expensive backend load: a malformed rung
+            # must fail fast, not after a 7B model is on the GPU.
+            self._assist.set_ground_truth(ground_truth)
+            self._assist.validate_gt()
+        super().setup(world, ego, ground_truth, carla)
+        if self._assist.rank >= ABLATION_LEVELS.index("policy"):
+            # L6 shadow oracle: the verified reference policy runs alongside
+            # (compute-only; its control is never applied to the vehicle) and
+            # its per-tick output is translated into the reply vocabulary.
+            from marshal_bench.controllers.oracle import OracleController
+            self._oracle_shadow = OracleController(dict(self.config))
+            self._oracle_shadow.setup(world, ego, dict(self._assist.gt), carla)
+
+    def step(self, observation: dict[str, Any], dt: float) -> Any:
+        obs = observation or {}
+        if self._oracle_shadow is not None:
+            # Advance the reference policy every tick (its internal state
+            # machine needs the full tick stream) and cache the translated
+            # token for the next planner query. Compute-only.
+            sim_time = float(obs.get("sim_time") or 0.0)
+            try:
+                shadow = self._oracle_shadow.step(obs, dt)
+                if shadow is not None:
+                    self._assist.last_policy_token = self._assist.control_to_token(
+                        float(getattr(shadow, "throttle", 0.0) or 0.0),
+                        float(getattr(shadow, "brake", 0.0) or 0.0),
+                        float(obs.get("ego_speed") or 0.0))
+            except Exception as e:  # noqa: BLE001
+                # Invalidate immediately: a stale token must not keep being
+                # asserted as "the correct action at this instant" while the
+                # shadow is unhealthy (adversarial review, round 7).
+                self._assist.last_policy_token = None
+                self._log_event(
+                    f"{self.name}_error", t=round(sim_time, 3),
+                    kind="oracle_shadow", message=str(e)[:240])
+                log.warning("oracle shadow step failed: %s", e)
+        return super().step(observation, dt)
+
+    def _build_payload(
+        self,
+        obs: dict[str, Any],
+        samples: dict[str, tuple[int, Any]],
+        frame: Optional[int],
+        sim_time: float,
+        dt: float,
+    ) -> dict[str, Any]:
+        payload = super()._build_payload(obs, samples, frame, sim_time, dt)
+        assist = self._ablation_assist(sim_time)
+        if assist:
+            payload["ablation_assist"] = assist
+            payload["ablation_level"] = self._assist.level
+        return payload
 
     def sensor_specs(self) -> tuple[SensorSpec, ...]:
         return (
@@ -210,16 +291,20 @@ class _OpenEMMAQwenBackend(BasePlannerBackend):
             self.cfg.get("target_speed_mps")
             or (float(self.cfg.get("target_speed_kmh", 25.0)) / 3.6)
         )
+        # Oracle-assist ablation: the controller hands over the shared assist
+        # block; it is prepended verbatim (clearly delimited) to every stage
+        # prompt and echoed into the metadata for the per-query audit log.
+        assist = str(payload.get("ablation_assist") or "")
 
         query_started = time.perf_counter()
         scene, scene_meta = self._vlm_query(
-            _SCENE_PROMPT,
+            self._prepend_assist(_SCENE_PROMPT, assist),
             image,
             stage="scene",
             max_new_tokens=int(self.cfg.get("scene_max_new_tokens", 160)),
         )
         objects, objects_meta = self._vlm_query(
-            _OBJECTS_PROMPT,
+            self._prepend_assist(_OBJECTS_PROMPT, assist),
             image,
             stage="objects",
             max_new_tokens=int(self.cfg.get("objects_max_new_tokens", 160)),
@@ -235,7 +320,7 @@ class _OpenEMMAQwenBackend(BasePlannerBackend):
             prev_intent_str=prev_intent_str,
         )
         intent, intent_meta = self._vlm_query(
-            intent_prompt,
+            self._prepend_assist(intent_prompt, assist),
             image,
             stage="intent",
             max_new_tokens=int(self.cfg.get("intent_max_new_tokens", 120)),
@@ -261,7 +346,7 @@ class _OpenEMMAQwenBackend(BasePlannerBackend):
             horizon_s=max_pairs * 0.5,
         )
         text, motion_meta = self._vlm_query(
-            motion_prompt,
+            self._prepend_assist(motion_prompt, assist),
             image,
             stage="motion",
             max_new_tokens=int(self.cfg.get("max_new_tokens", 128)),
@@ -274,6 +359,11 @@ class _OpenEMMAQwenBackend(BasePlannerBackend):
         return waypoints, {
             "backend": self.name,
             "prompt_family": "openemma_cot_scene_objects_intent_motion",
+            # Audit trail: the rung label and the EXACT assist text injected
+            # at this planner query, so a rung can be checked against what
+            # was actually injected (same contract as the VLM decision log).
+            "ablation": str(payload.get("ablation_level") or "none"),
+            "assist": assist,
             "text": text[:512],
             "motion_text": text[:1024],
             "scene_text": scene[:512],
@@ -356,6 +446,14 @@ class _OpenEMMAQwenBackend(BasePlannerBackend):
             "output_tokens": int(trimmed[0].shape[-1]) if trimmed else 0,
             "vision": vision,
         }
+
+    @staticmethod
+    def _prepend_assist(prompt: str, assist: str) -> str:
+        """Prepend the ablation assist block as a clearly-delimited section;
+        the underlying prompt text is otherwise unchanged."""
+        if not assist:
+            return prompt
+        return f"{assist}---\n{prompt}"
 
     @staticmethod
     def _trim_for_prompt(text: str, limit: int) -> str:

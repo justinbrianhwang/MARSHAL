@@ -1,0 +1,590 @@
+{
+  "wiring": "openemma_planner",
+  "backbone": "Qwen2-VL-7B-Instruct (OpenEMMA four-stage pipeline)",
+  "cadence_s": 3.0,
+  "note": "Assist text byte-identical to the VLM ladder (pinned by tests/test_openemma_ablation_assist.py); 'none' rung is the leaderboard wiring itself. Scored by the round-7 strict scorer.",
+  "rungs": {
+    "none": {
+      "strict_pass": 3,
+      "scored": 25,
+      "freeze_stop_family": 7,
+      "freeze_proceed_family": 0
+    },
+    "perception": {
+      "strict_pass": 0,
+      "scored": 25,
+      "freeze_stop_family": 7,
+      "freeze_proceed_family": 3
+    },
+    "semantics": {
+      "strict_pass": 0,
+      "scored": 25,
+      "freeze_stop_family": 12,
+      "freeze_proceed_family": 4
+    },
+    "action": {
+      "strict_pass": 3,
+      "scored": 25,
+      "freeze_stop_family": 15,
+      "freeze_proceed_family": 2
+    },
+    "policy": {
+      "strict_pass": 13,
+      "scored": 25,
+      "freeze_stop_family": 1,
+      "freeze_proceed_family": 3
+    }
+  },
+  "matrix": {
+    "green_stop": {
+      "none": {
+        "strict": false,
+        "reason": "ego entered the intersection/conflict zone while commanded to stop"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "ego entered the intersection/conflict zone while commanded to stop"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "action": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "policy": {
+        "strict": true,
+        "reason": null
+      }
+    },
+    "red_proceed": {
+      "none": {
+        "strict": true,
+        "reason": null
+      },
+      "perception": {
+        "strict": false,
+        "reason": "stationary ego never engaged the PROCEED scenario"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "stationary ego never engaged the PROCEED scenario"
+      },
+      "action": {
+        "strict": false,
+        "reason": "stationary ego never engaged the PROCEED scenario"
+      },
+      "policy": {
+        "strict": false,
+        "reason": "stationary ego never engaged the PROCEED scenario"
+      }
+    },
+    "signal_off": {
+      "none": {
+        "strict": false,
+        "reason": "ego did not remain stopped through the enforced STOP/HOLD window"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "action": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "policy": {
+        "strict": true,
+        "reason": null
+      }
+    },
+    "crash_detour": {
+      "none": {
+        "strict": false,
+        "reason": "collision recorded during DETOUR episode"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "ego did not both leave the blocked lane and pass the obstacle"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "ego did not both leave the blocked lane and pass the obstacle"
+      },
+      "action": {
+        "strict": false,
+        "reason": "ego did not both leave the blocked lane and pass the obstacle"
+      },
+      "policy": {
+        "strict": false,
+        "reason": "ego did not both leave the blocked lane and pass the obstacle"
+      }
+    },
+    "fallen_person": {
+      "none": {
+        "strict": false,
+        "reason": "ego entered the intersection/conflict zone while commanded to stop"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "ego entered the intersection/conflict zone while commanded to stop"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "ego entered the intersection/conflict zone while commanded to stop"
+      },
+      "action": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "policy": {
+        "strict": true,
+        "reason": null
+      }
+    },
+    "unauthorized_go": {
+      "none": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "action": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "policy": {
+        "strict": true,
+        "reason": null
+      }
+    },
+    "adjacent_lane": {
+      "none": {
+        "strict": false,
+        "reason": "ego entered the intersection/conflict zone while commanded to stop"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "action": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "policy": {
+        "strict": true,
+        "reason": null
+      }
+    },
+    "flagger_control": {
+      "none": {
+        "strict": false,
+        "reason": "collision recorded during STOP/HOLD episode"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "ego did not remain stopped through the enforced STOP/HOLD window"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "action": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "policy": {
+        "strict": true,
+        "reason": null
+      }
+    },
+    "ambulance_yield": {
+      "none": {
+        "strict": false,
+        "reason": "ego did not slow/stop for the emergency vehicle"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "ego slowed/stopped but did not resume after yielding"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "ego never established approach motion before YIELD"
+      },
+      "action": {
+        "strict": false,
+        "reason": "ego never established approach motion before YIELD"
+      },
+      "policy": {
+        "strict": false,
+        "reason": "ego did not laterally clear the lane while yielding"
+      }
+    },
+    "occluded_officer": {
+      "none": {
+        "strict": false,
+        "reason": "collision recorded during STOP/HOLD episode"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "ego entered the intersection/conflict zone while commanded to stop"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "action": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "policy": {
+        "strict": true,
+        "reason": null
+      }
+    },
+    "conflicting_authorities": {
+      "none": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "ego did not remain stopped through the enforced STOP/HOLD window"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "ego entered the intersection/conflict zone while commanded to stop"
+      },
+      "action": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "policy": {
+        "strict": true,
+        "reason": null
+      }
+    },
+    "sequential_directive": {
+      "none": {
+        "strict": false,
+        "reason": "ego entered the intersection/conflict zone while commanded to stop"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "ego entered the intersection/conflict zone while commanded to stop"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "collision recorded during STOP/HOLD episode"
+      },
+      "action": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "policy": {
+        "strict": false,
+        "reason": "ego did not remain stopped through the enforced STOP/HOLD window"
+      }
+    },
+    "rule_hierarchy": {
+      "none": {
+        "strict": false,
+        "reason": "collision recorded during PROCEED-with-care episode"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "stationary ego never engaged the PROCEED scenario"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "stationary ego never engaged the PROCEED scenario"
+      },
+      "action": {
+        "strict": false,
+        "reason": "stationary ego never engaged the PROCEED scenario"
+      },
+      "policy": {
+        "strict": false,
+        "reason": "stationary ego never engaged the PROCEED scenario"
+      }
+    },
+    "ambiguous_gesture": {
+      "none": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "ego did not remain stopped through the enforced STOP/HOLD window"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "action": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "policy": {
+        "strict": true,
+        "reason": null
+      }
+    },
+    "civilian_warning_accident": {
+      "none": {
+        "strict": false,
+        "reason": "ego did not both leave the blocked lane and pass the obstacle"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "collision recorded during DETOUR episode"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "ego did not both leave the blocked lane and pass the obstacle"
+      },
+      "action": {
+        "strict": false,
+        "reason": "ego did not both leave the blocked lane and pass the obstacle"
+      },
+      "policy": {
+        "strict": false,
+        "reason": "ego did not both leave the blocked lane and pass the obstacle"
+      }
+    },
+    "emergency_scene_blocking": {
+      "none": {
+        "strict": false,
+        "reason": "collision recorded during DETOUR episode"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "collision recorded during DETOUR episode"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "collision recorded during DETOUR episode"
+      },
+      "action": {
+        "strict": false,
+        "reason": "ego did not both leave the blocked lane and pass the obstacle"
+      },
+      "policy": {
+        "strict": false,
+        "reason": "ego did not both leave the blocked lane and pass the obstacle"
+      }
+    },
+    "two_civilians_disagree": {
+      "none": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "action": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "policy": {
+        "strict": true,
+        "reason": null
+      }
+    },
+    "flagger_slow_then_stop": {
+      "none": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "action": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "policy": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      }
+    },
+    "school_crossing_guard": {
+      "none": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "action": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "policy": {
+        "strict": true,
+        "reason": null
+      }
+    },
+    "fake_vest_director": {
+      "none": {
+        "strict": false,
+        "reason": "ego entered the intersection/conflict zone while commanded to stop"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "action": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "policy": {
+        "strict": true,
+        "reason": null
+      }
+    },
+    "barricade_self_detour": {
+      "none": {
+        "strict": false,
+        "reason": "collision recorded during DETOUR episode"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "collision recorded during DETOUR episode"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "collision recorded during DETOUR episode"
+      },
+      "action": {
+        "strict": false,
+        "reason": "ego did not both leave the blocked lane and pass the obstacle"
+      },
+      "policy": {
+        "strict": false,
+        "reason": "ego did not both leave the blocked lane and pass the obstacle"
+      }
+    },
+    "stale_directive_residue": {
+      "none": {
+        "strict": false,
+        "reason": "ego never held a settled stop for the live STOP directive before it ended (a rolling creep is not a hold)"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "ego never held a settled stop for the live STOP directive before it ended (a rolling creep is not a hold)"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "stationary ego never engaged the PROCEED scenario"
+      },
+      "action": {
+        "strict": true,
+        "reason": null
+      },
+      "policy": {
+        "strict": false,
+        "reason": "ego never proceeded after the directive ended"
+      }
+    },
+    "out_of_jurisdiction_director": {
+      "none": {
+        "strict": true,
+        "reason": null
+      },
+      "perception": {
+        "strict": false,
+        "reason": "ego never entered the intersection while moving after PROCEED"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "ego never entered the intersection while moving after PROCEED"
+      },
+      "action": {
+        "strict": true,
+        "reason": null
+      },
+      "policy": {
+        "strict": true,
+        "reason": null
+      }
+    },
+    "night_signal_officer_conflict": {
+      "none": {
+        "strict": true,
+        "reason": null
+      },
+      "perception": {
+        "strict": false,
+        "reason": "stationary ego never engaged the PROCEED scenario"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "stationary ego never engaged the PROCEED scenario"
+      },
+      "action": {
+        "strict": true,
+        "reason": null
+      },
+      "policy": {
+        "strict": false,
+        "reason": "stationary ego never engaged the PROCEED scenario"
+      }
+    },
+    "dual_authority_handoff": {
+      "none": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "perception": {
+        "strict": false,
+        "reason": "ego blasted through the near-zone SLOW authority instead of transiting it at a slow speed"
+      },
+      "semantics": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "action": {
+        "strict": false,
+        "reason": "stationary ego never engaged the STOP/HOLD scenario"
+      },
+      "policy": {
+        "strict": false,
+        "reason": "ego never transited the staged near-zone authority before stopping (parked short of the scene)"
+      }
+    }
+  }
+}

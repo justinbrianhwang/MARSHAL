@@ -146,8 +146,78 @@ Three structural facts, all visible in the per-scenario transition matrix
   wording effects between adjacent rungs are not controlled (a fixed-length
   factorial design is future work). The L0-vs-L6 contrast does not depend on
   adjacent-rung deltas.
-- The ladder attributes failure for **this per-tick QA wiring**; a planner
-  consuming the same assists (assisted OpenEMMA) is the natural follow-up.
+- The ladder attributes failure for **this per-tick QA wiring**; the section
+  below runs the same assists on a planner wiring.
+
+## Replication on a planner wiring (assisted OpenEMMA)
+
+The obvious objection to the attribution above is that it might be an
+artifact of the QA wiring: a 4-token vocabulary invites freezing, and a
+model that *plans* — regresses a trajectory instead of answering STOP/GO —
+might consume injected knowledge differently. So the same ladder was run on
+the OpenEMMA controller (Qwen2-VL-7B, four-stage prompt pipeline, waypoint
+regression at its native 3.0 s planner cadence — the leaderboard wiring
+itself, so no query-budget caveat applies and the `none` rung doubles as the
+reference row). The assist text is **byte-identical** to the VLM ladder's
+(pinned by `tests/test_openemma_ablation_assist.py`), prepended as a
+delimited section to all four stage prompts; at the policy rung the shadow
+oracle's per-tick token line is injected verbatim, which for a trajectory
+regressor is necessarily *advisory* — its outputs are waypoints, not tokens.
+Five rungs were measured (the authority and temporal rungs were skipped: on
+the VLM ladder their adjacent-rung deltas sat inside single-sample noise,
+and the load-bearing contrast is knowledge-vs-policy):
+
+| row | strict | freezes (STOP-family + PROCEED-family) |
+|---|---:|---|
+| `none` = leaderboard (3.0 s planner cadence) | 3 / 25 | 7 (7+0) |
+| `perception` | 0 / 25 | 10 (7+3) |
+| `semantics` | 0 / 25 | 16 (12+4) |
+| `action` | 3 / 25 | 17 (15+2) |
+| `policy` | **13 / 25** | 4 (1+3) |
+
+The structure replicates, and more sharply than in the QA wiring:
+
+1. **Knowledge injection makes the planner no better than no assist — and at
+   two of the three knowledge rungs, strictly worse.** Unassisted it fails in
+   mixed directions (5 drive-throughs, 7 freezes, collisions). Any scene
+   ground truth in the prompt flips it into over-compliance — parking at
+   spawn climbs monotonically to 17/25 at the answer-key rung, the perception
+   and semantics rungs score **0/25**, and the answer-key rung ties the
+   unassisted 3/25 on a different pass set. The direction flip observed in
+   the QA wiring is not a token-vocabulary artifact; it is how this
+   generation of VLM backbones responds to being told the scene is
+   authority-critical.
+2. **The externally supplied plan collapses the freeze — but does not
+   eliminate it here**: 13/25 at the policy rung, STOP-family freezes down
+   to one, while three PROCEED-family cells stay frozen (point 3). Plan
+   synthesis, not knowledge, is the binding constraint in both wirings.
+3. **Seven of the twelve residual failures separate interface ceiling from
+   prior dominance.** The four lane-change DETOUR cells fail here too — but unlike
+   the QA wiring, waypoints CAN express a lane change; the regressor simply
+   never emits one, converting what was a structural interface ceiling into
+   a behavioural prior. And the three PROCEED cells that stay frozen at the
+   policy rung (`red_proceed`, `rule_hierarchy`,
+   `night_signal_officer_conflict`) are exactly the proceed-against-the-rule
+   family: the planner refuses to enter on red even while being told GO each
+   tick — its learned traffic prior overrides the plan. The QA wiring, which
+   has no such prior over trajectories, executed those cells. Neither
+   residual is recoverable by more knowledge; both are properties of the
+   acting head. The remaining five residuals are precision/timing failures
+   (`ambulance_yield` lateral clearance, `sequential_directive` window
+   breach, `stale_directive_residue` never resuming, `dual_authority_handoff`
+   parked short) plus the one surviving STOP-family freeze
+   (`flagger_slow_then_stop`).
+
+Two fidelity caveats specific to this wiring: the `none` rung *re-measures*
+the leaderboard wiring under identical config rather than reusing its
+episodes — the equivalence is empirical (the same 3/25 on the same three
+cells), not by construction. And the shadow oracle is conditioned on the
+ego's actual trajectory (for a frozen ego its token is the oracle's reaction
+from standstill, not a replay of the oracle's own episode), while the 3.0 s
+planner cadence can sample past short phases — `flagger_slow_then_stop`'s
+1–3 s SLOW phase falls between queries. Decoding is greedy and each cell is
+a single closed-loop pass, so ±1–2 cell deltas between adjacent rungs sit
+within noise; the 13-vs-3 contrast does not.
 
 ## Reproduce
 
@@ -156,6 +226,10 @@ Three structural facts, all visible in the per-scenario transition matrix
 # to the diagnostic wiring (unbounded queries, separate episode ids/results):
 python scripts/_run_vlm_test.py --model zai-org/GLM-4.5V --ablation policy \
     --results-json tmp/_ablation_v2_policy.json --report tmp/_ablation_v2_policy.md
+
+# same rung on the planner wiring (openemma conda env):
+python scripts/_run_fullplanner_sweep.py --controller openemma --ablation policy \
+    --results-json tmp/_openemma_ablation_policy.json --report tmp/_openemma_ablation_policy.md
 ```
 
 Per-rung results (full per-decision logs including the injected assist text)

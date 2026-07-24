@@ -77,8 +77,26 @@ def _controller_key(value: str) -> str:
     return key
 
 
+def _ablation_env() -> Optional[str]:
+    """The active ablation rung, or None when MARSHAL_VLM_ABLATION is unset.
+
+    Mirrors scripts/_run_vlm_test.py: unset means a plain run; set (including
+    "none") means a privileged DIAGNOSTIC ladder rung.
+    """
+    value = os.environ.get("MARSHAL_VLM_ABLATION")
+    if value is None:
+        return None
+    return (value or "none").strip().lower() or "none"
+
+
 def _episode_id(controller: str, scenario: str, *, smoke: bool) -> str:
     prefix = "smoke_" if smoke else ""
+    # Diagnostic ablation rungs get clearly-separated episode ids (mirrors
+    # scripts/_run_vlm_test.py) so they can never be collected into the
+    # genuine planner rows.
+    ablation = _ablation_env()
+    if ablation is not None:
+        prefix += f"ablate-{ablation}_"
     return f"{prefix}{controller}_{scenario}"
 
 
@@ -331,6 +349,10 @@ def _build_config(args: argparse.Namespace, controller: str, scenario: str, out_
         )
     elif controller == "lmdrive":
         planner_cfg.update({"allow_native": True})
+    # MARSHAL_VLM_ABLATION unset -> plain planner run. Set (including "none")
+    # -> privileged DIAGNOSTIC ablation rung: the OpenEMMA controller injects
+    # the same cumulative assist block as the per-tick VLM ladder.
+    planner_cfg["ablation"] = _ablation_env() or "none"
     cfg[controller] = planner_cfg
     return cfg
 
@@ -405,6 +427,10 @@ def _run_one(client: Any, args: argparse.Namespace, controller: str, scenario: s
         "controller": controller,
         "track": "B",
         "scenario": scenario,
+        # Privileged lineage at the TOP of the row: consumers must be able to
+        # tell a diagnostic ablation row from a genuine planner row at a
+        # glance (mirrors scripts/_run_vlm_test.py).
+        "ablation": _ablation_env(),
         "expected": spec["expect"],
         "status": "ok" if result and error is None else "error",
         "passed": bool(strict.get("passed")),
@@ -454,9 +480,15 @@ def _load_rows(path: Path) -> List[Dict[str, Any]]:
 
 
 def _replace_row(rows: List[Dict[str, Any]], row: Dict[str, Any]) -> List[Dict[str, Any]]:
+    # The ablation level is part of the identity: without it a diagnostic
+    # ablation row silently OVERWRITES the genuine planner row for the same
+    # (model, scenario) when both target one results file (adversarial
+    # review, round 7).
     kept = [
         r for r in rows
-        if not (r.get("model") == row.get("model") and r.get("scenario") == row.get("scenario"))
+        if not (r.get("model") == row.get("model")
+                and r.get("scenario") == row.get("scenario")
+                and str(r.get("ablation") or "") == str(row.get("ablation") or ""))
     ]
     kept.append(row)
     order = {name: idx for idx, name in enumerate(vlm.SCENARIO_ORDER)}
@@ -572,21 +604,49 @@ def _parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     parser.add_argument("--max-debug-frames", type=int, default=4)
     parser.add_argument("--reuse-backend", action="store_true", default=True)
     parser.add_argument("--no-reuse-backend", action="store_false", dest="reuse_backend")
+    parser.add_argument(
+        "--ablation",
+        choices=("none", "perception", "authority", "semantics", "temporal",
+                 "action", "policy"),
+        default=None,
+        help="Oracle-assist ablation level (privileged DIAGNOSTIC runs; "
+             "separate episode ids and results files). OpenEMMA controller "
+             "only. 'none' = the ladder's own L0 baseline under the "
+             "diagnostic wiring.",
+    )
     return parser.parse_args(argv)
 
 
 def main(argv: Optional[List[str]] = None) -> int:
     args = _parse_args(argv)
     controller = _controller_key(args.controller)
+    if args.ablation is not None:
+        if controller != "openemma":
+            # Only the OpenEMMA controller consumes the assist ladder; running
+            # another controller under the flag would silently produce
+            # unassisted episodes with ablation labels.
+            raise SystemExit("--ablation is only wired for the openemma controller")
+        os.environ["MARSHAL_VLM_ABLATION"] = args.ablation
     scenarios = args.scenarios or (["green_stop"] if args.smoke else list(vlm.SCENARIO_ORDER))
     unknown = [s for s in scenarios if s not in vlm.SCENARIOS]
     if unknown:
         raise SystemExit(f"Unknown scenario(s): {', '.join(unknown)}")
 
-    results_json = Path(args.results_json) if args.results_json else (
+    # Never let a diagnostic run overwrite the default results/report files:
+    # auto-suffix any path the user did not explicitly redirect (mirrors
+    # scripts/_run_vlm_test.py). Episode-level isolation comes from the
+    # ablate-<level>_ episode-id prefix, so the out root stays shared.
+    suffix = f"_ablate-{args.ablation}" if args.ablation is not None else ""
+
+    def _auto_suffixed(path: Path) -> Path:
+        if not suffix:
+            return path
+        return path.with_name(path.stem + suffix + path.suffix)
+
+    results_json = Path(args.results_json) if args.results_json else _auto_suffixed(
         SMOKE_RESULTS[controller] if args.smoke else DEFAULT_RESULTS[controller]
     )
-    report_md = Path(args.report) if args.report else (
+    report_md = Path(args.report) if args.report else _auto_suffixed(
         SMOKE_REPORTS[controller] if args.smoke else DEFAULT_REPORTS[controller]
     )
     out_root = Path(args.out_root) if args.out_root else (
