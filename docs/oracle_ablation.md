@@ -142,10 +142,12 @@ Three structural facts, all visible in the per-scenario transition matrix
   design). That is what "inject perception ground truth" means, but it
   should be read as granting the cells' tested perceptual capability, not
   merely sharpening pixels.
-- Assist blocks are English prose appended cumulatively; prompt-length and
-  wording effects between adjacent rungs are not controlled (a fixed-length
-  factorial design is future work). The L0-vs-L6 contrast does not depend on
-  adjacent-rung deltas.
+- Assist blocks are English prose appended cumulatively; wording effects
+  between adjacent rungs are not controlled. The two headline confounds —
+  prompt length/presence, and knowledge-vs-plan attribution at the policy
+  rung — are controlled by the `neutral` and `policy_only` cells (see
+  "Controls" below); the L0-vs-L6 contrast never depended on adjacent-rung
+  deltas.
 - The ladder attributes failure for **this per-tick QA wiring**; the section
   below runs the same assists on a planner wiring.
 
@@ -219,6 +221,74 @@ planner cadence can sample past short phases — `flagger_slow_then_stop`'s
 a single closed-loop pass, so ±1–2 cell deltas between adjacent rungs sit
 within noise; the 13-vs-3 contrast does not.
 
+## Controls: prompt length and plan-alone (completing the 2×2)
+
+The cumulative ladder leaves two confounds a reviewer should demand
+controls for: rung score changes could come from *prompt length or the mere
+presence of injected text* rather than its content, and the policy rung is
+knowledge **plus** plan, so the plan-alone effect is not isolated. Two
+non-cumulative control cells close both, on both wirings (25 scenarios
+each, same scorer; `--ablation neutral` / `--ablation policy_only`):
+
+- **`neutral`** injects a fixed block with **zero scene content** (vehicle
+  ergonomics/maintenance prose; a banned-word test pins the absence of
+  officer/gesture/authority/signal/stop/go/... vocabulary), length-matched
+  to the strongest knowledge rung (610 chars vs the measured 604.7-char
+  mean of the injected L5 blocks, +0.9%). It requests no privileged ground
+  truth at all.
+- **`policy_only`** injects the per-tick oracle token line alone — the
+  same bytes the policy rung appends (single shared constructor) — with
+  none of the knowledge text beneath it.
+
+| cell | GLM-4.5V QA wiring | OpenEMMA planner wiring |
+|---|---:|---:|
+| `none` | 1 / 25 (15 freezes) | 3 / 25 (7 freezes) |
+| `neutral` (length, no content) | 1 / 25 (15) | 3 / 25 (10) |
+| answer-key knowledge rung (L5 `action`) | 3 / 25 (15) | 3 / 25 (17) |
+| `policy_only` (plan alone) | **16 / 25 (0)** | **15 / 25 (1)** |
+| `policy` (knowledge + plan) | 17 / 25 (0) | 13 / 25 (4) |
+
+(The 2×2's knowledge level is the answer-key rung — the maximal injection,
+and the rung `neutral` is length-matched to. On the QA wiring it is not the
+best-*scoring* knowledge rung — L3 `semantics` reached 7/25 — so the
+knowledge-main-effect statement below is scoped to the documented 1–7 band:
+no knowledge rung on either wiring leaves it.)
+
+1. **The over-compliance flip is caused by scene content, not prompt
+   length.** `neutral` reproduces `none` exactly on both wirings — the
+   same strict count *and the same pass set* (the single
+   `out_of_jurisdiction_director` cell on the QA wiring; the same three
+   cells on the planner). 610 characters of injected text with no scene
+   facts changes no pass outcome (planner freeze counts drift 7 → 10,
+   within single-pass variation); the same length of scene facts flips the
+   model into parking at spawn.
+2. **The plan alone reproduces the full policy-rung effect.** 16 vs 17 on
+   the QA wiring (−1, within single-pass noise) and 15 vs 13 on the
+   planner (+2). In 2×2 terms — {no assist, knowledge, plan,
+   knowledge+plan} — the plan main effect accounts for the entire gain;
+   knowledge never leaves the 1–7 band alone, and on top of the plan it
+   adds nothing (QA) or subtracts (planner).
+3. **On the planner, stripping the knowledge text from under the plan
+   un-freezes every prior-dominance cell**: `red_proceed` and
+   `night_signal_officer_conflict` pass at `policy_only` (with
+   `dual_authority_handoff` and `flagger_slow_then_stop` — the replication
+   section's one surviving STOP-family freeze — besides), and even
+   `rule_hierarchy`, the only proceed-against-the-rule cell still failing,
+   is no longer frozen: the planner engages, yields, creeps at 7.6 km/h,
+   and merely never enters the junction. The same audit shows the same
+   token stream (HOLD then GO at every query) in both cells — the only
+   difference is the knowledge text. The regressor's refuse-on-red prior,
+   described above for the cumulative rung, is therefore *activated by
+   scene-knowledge prose*, not by the plan: told only "the correct action
+   at this instant is GO", the planner enters on red; told the same thing
+   underneath five paragraphs about the officer and the red light, it
+   refuses. The earlier framing ("the learned traffic prior overrides the
+   plan") holds for the knowledge+plan cell it described, but the prior is
+   text-conditional, not absolute. Two precision cells move the other way
+   at `policy_only` (`fallen_person` clearance, `occluded_officer` zone
+   entry — both passed at `policy`); the ±2-cell churn is within
+   single-pass noise and the net +2 is reported above.
+
 ## Reproduce
 
 ```bash
@@ -230,6 +300,8 @@ python scripts/_run_vlm_test.py --model zai-org/GLM-4.5V --ablation policy \
 # same rung on the planner wiring (openemma conda env):
 python scripts/_run_fullplanner_sweep.py --controller openemma --ablation policy \
     --results-json tmp/_openemma_ablation_policy.json --report tmp/_openemma_ablation_policy.md
+
+# control cells: --ablation neutral / --ablation policy_only on either runner.
 ```
 
 Per-rung results (full per-decision logs including the injected assist text)

@@ -951,12 +951,13 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--ablation",
         choices=("none", "perception", "authority", "semantics", "temporal",
-                 "action", "policy"),
+                 "action", "policy", "neutral", "policy_only"),
         default=None,
         help="Oracle-assist ablation level (privileged DIAGNOSTIC runs; "
              "separate episode ids and results files; unbounded query "
              "budget). 'none' = the ladder's own L0 baseline under the "
-             "diagnostic wiring.",
+             "diagnostic wiring. 'neutral'/'policy_only' = non-cumulative "
+             "factorial control cells (neutral requests no ground truth).",
     )
     parser.add_argument("--results-json", default=RESULTS_JSON)
     parser.add_argument("--report", default=REPORT_MD)

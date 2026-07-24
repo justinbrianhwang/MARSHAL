@@ -929,7 +929,12 @@ scope so it can be cited without over-reach.
    strictly worse, than no assist, monotonically increasing park-at-spawn — while the
    externally supplied plan reaches **13/25** with STOP-family freezes down to one
    (three proceed-against-the-rule cells stay frozen: the regressor's traffic prior
-   overrides an explicit per-tick GO). Knowing everything is not the hard part; compiling
+   overrides an explicit per-tick GO). Two non-cumulative control cells complete the
+   2×2: a length-matched **zero-scene-content** block reproduces the unassisted result
+   exactly on both wirings (same counts, same pass sets — the flip is caused by scene
+   content, not prompt length), and the per-tick plan **alone** reproduces the full
+   policy-rung effect (16/25 QA, 15/25 planner) — on top of the plan, knowledge adds
+   nothing (QA) or subtracts (planner). Knowing everything is not the hard part; compiling
    knowledge into a time-indexed plan is
    ([docs/oracle_ablation.md](docs/oracle_ablation.md)).
    Either way, the capability is neither conferred by nor measured in nominal-driving

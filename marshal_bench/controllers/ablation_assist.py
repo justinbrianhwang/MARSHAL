@@ -18,11 +18,25 @@ attributes the failure to that link. The levels:
                  translated into the reply vocabulary (tests whether the
                  interface can execute when the plan is external)
 
+Two non-cumulative CONTROL cells sit outside the ladder (CONTROL_LEVELS) and
+close the two reviewer-attacked caveats on the published measurement:
+
+    neutral     - a FIXED, length-matched filler block with ZERO scene
+                  content (controls for prompt-length/wording effects: if ANY
+                  added text flips the model into park-at-spawn, this cell
+                  must show it). Needs no ground truth at all.
+    policy_only - the per-tick oracle token line ALONE, byte-identical to
+                  the line the policy rung appends, with none of the L1-L5
+                  knowledge text (isolates the plan-alone effect the
+                  cumulative ladder cannot separate from knowledge). Needs
+                  privileged GT and the shadow oracle exactly like policy.
+
 The injected text must be IDENTICAL across wirings (per-tick VLM, trajectory
 planners, ...) or the ladder is not comparable, so every controller builds it
 through :class:`AblationAssist` and nothing else. The truthfulness rules are
 pinned by ``tests/test_vlm_ablation_assist.py``; cross-wiring identity is
-pinned by ``tests/test_openemma_ablation_assist.py``.
+pinned by ``tests/test_openemma_ablation_assist.py``; the control cells are
+pinned by ``tests/test_factorial_control_cells.py``.
 """
 from __future__ import annotations
 
@@ -31,6 +45,36 @@ from typing import Any, Dict, Optional
 
 ABLATION_LEVELS = ("none", "perception", "authority", "semantics", "temporal",
                    "action", "policy")
+
+# Factorial control cells, NOT rungs of the cumulative ladder: level parsing
+# accepts them everywhere the ladder levels are accepted, but they have no
+# rank and never change the semantics/order of the ladder above.
+CONTROL_LEVELS = ("neutral", "policy_only")
+
+# The neutral cell's fixed filler block. Length-matched to the strongest
+# knowledge block of the ladder: the mean character length of the `action`
+# (L5) assist text actually injected in the committed VLM v2 run
+# (MARSHAL/outputs/oracle_ablation/_ablation_v2_action.json, per-decision
+# `assist` audit field) is 604.7 chars over 226 decisions (min 227, max 955);
+# this block is 610 chars (+0.9%, well inside the +/-10% tolerance). It
+# contains ZERO scene-specific facts and zero action guidance — generic
+# vehicle ergonomics/comfort/maintenance prose only.
+NEUTRAL_ASSIST_TEXT = (
+    "NEUTRAL CONTROL TEXT (diagnostic ablation study; no scene "
+    "information):\n"
+    "The cabin of a modern passenger vehicle is arranged around the people\n"
+    "riding in it. Seat frames are shaped so the lower back keeps its "
+    "natural\n"
+    "curve on longer journeys, and the cushion foam is tuned to spread "
+    "pressure\n"
+    "evenly across the thighs. Pedal spacing and the reach to the main "
+    "controls\n"
+    "are checked against anthropometric tables, so people of very different\n"
+    "builds can find a relaxed posture. Interior materials are picked for\n"
+    "durability, and routine care follows the owner manual: monthly tyre "
+    "checks\n"
+    "and a clean cabin air filter.\n"
+)
 
 _GESTURE_MEANING = {
     "STOP": "stop your vehicle and hold before the person/junction",
@@ -92,14 +136,27 @@ class AblationAssist:
 
     def __init__(self, level: str) -> None:
         level = str(level or "none").lower()
-        if level not in ABLATION_LEVELS:
+        valid = ABLATION_LEVELS + CONTROL_LEVELS
+        if level not in valid:
             raise ValueError(
-                f"ablation={level!r} is not one of {ABLATION_LEVELS}")
+                f"ablation={level!r} is not one of {valid}")
         self.level = level
-        self.rank = ABLATION_LEVELS.index(level)
+        # Rank is meaningful only for the cumulative ladder; the control
+        # cells are non-cumulative and carry no rank.
+        self.rank: Optional[int] = (ABLATION_LEVELS.index(level)
+                                    if level in ABLATION_LEVELS else None)
         # Ablation runs read the privileged E-tuple by design; they are
-        # diagnostics, not leaderboard entries.
-        self.requests_privileged_gt = level != "none"
+        # diagnostics, not leaderboard entries. The neutral control cell is
+        # the exception: its fixed filler block needs no ground truth at all.
+        self.requests_privileged_gt = level not in ("none", "neutral")
+        # The compute-only shadow oracle (whose translated token feeds the
+        # policy line) arms at the policy rung — and at the policy_only
+        # control cell, which injects that same line without the L1-L5
+        # knowledge rungs.
+        self.arms_shadow_oracle = (
+            level == "policy_only"
+            or (self.rank is not None
+                and self.rank >= ABLATION_LEVELS.index("policy")))
         self.gt: Dict[str, Any] = {}
         self.officer_ref: Any = None
         self.last_policy_token: Optional[str] = None
@@ -148,7 +205,11 @@ class AblationAssist:
                 problems.append(
                     f"A_second_authority.valid must be a real bool, got "
                     f"{second.get('valid')!r}")
-        if self.rank >= ABLATION_LEVELS.index("action"):
+        # The L5 answer-key check applies to ladder rungs at or above
+        # `action`; control cells (rank None) never render the answer key —
+        # policy_only consumes only the shadow oracle's per-tick token.
+        if (self.rank is not None
+                and self.rank >= ABLATION_LEVELS.index("action")):
             y = str(gt.get("Y_expected_action") or "").upper()
             if y not in _EXPECTED_ACTION_DESC:
                 problems.append(
@@ -222,8 +283,27 @@ class AblationAssist:
     # ------------------------------------------------------------------
     # Assist text
     # ------------------------------------------------------------------
+    def _policy_line(self) -> Optional[str]:
+        """The per-tick oracle token line shared by the policy rung and the
+        policy_only control cell (byte-identical by construction), or None
+        before the shadow oracle has produced a token — no token, no line."""
+        if not self.last_policy_token:
+            return None
+        return (f"- Policy (per-tick oracle): the correct action at this "
+                f"instant is {self.last_policy_token}.")
+
     def assist(self, sim_time: float) -> str:
-        """Cumulative ground-truth assist blocks for the ablation ladder."""
+        """Cumulative ground-truth assist blocks for the ablation ladder,
+        or the fixed control-cell text for the non-cumulative controls."""
+        # Factorial control cells (NOT ladder rungs).
+        if self.level == "neutral":
+            # Fixed length-matched filler, zero scene content; needs no GT,
+            # no officer state, and does not vary with sim_time.
+            return NEUTRAL_ASSIST_TEXT
+        if self.level == "policy_only":
+            # The per-tick oracle token line ALONE (plan without knowledge).
+            line = self._policy_line()
+            return f"{line}\n" if line else ""
         if self.rank <= 0:
             return ""
         gt = self.gt
@@ -367,11 +447,10 @@ class AblationAssist:
                 f"- Expected outcome for this episode (ground truth): {y} "
                 f"— {desc}.")
         # L6 per-tick oracle policy, translated into the reply vocabulary.
-        if (self.rank >= ABLATION_LEVELS.index("policy")
-                and self.last_policy_token):
-            lines.append(
-                f"- Policy (per-tick oracle): the correct action at this "
-                f"instant is {self.last_policy_token}.")
+        if self.rank >= ABLATION_LEVELS.index("policy"):
+            line = self._policy_line()
+            if line:
+                lines.append(line)
         return "\n".join(lines) + "\n"
 
     @staticmethod
@@ -385,4 +464,5 @@ class AblationAssist:
         return "GO"
 
 
-__all__ = ["ABLATION_LEVELS", "AblationAssist"]
+__all__ = ["ABLATION_LEVELS", "CONTROL_LEVELS", "NEUTRAL_ASSIST_TEXT",
+           "AblationAssist"]

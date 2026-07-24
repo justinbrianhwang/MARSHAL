@@ -309,8 +309,9 @@ class VLMController(EpisodeController):
         self._agent = self._make_basic_agent()
         self._set_straight_plan()
         self._backend = self._make_backend()
-        if self.ablation_rank >= ABLATION_LEVELS.index("policy"):
-            # L6 shadow oracle: the verified reference policy runs alongside
+        if self._assist.arms_shadow_oracle:
+            # L6 shadow oracle (also armed by the policy_only control cell):
+            # the verified reference policy runs alongside
             # (compute-only; its control is never applied to the vehicle) and
             # its per-tick output is translated into the reply vocabulary.
             from marshal_bench.controllers.oracle import OracleController
