@@ -934,7 +934,12 @@ scope so it can be cited without over-reach.
    exactly on both wirings (same counts, same pass sets — the flip is caused by scene
    content, not prompt length), and the per-tick plan **alone** reproduces the full
    policy-rung effect (16/25 QA, 15/25 planner) — on top of the plan, knowledge adds
-   nothing (QA) or subtracts (planner). Knowing everything is not the hard part; compiling
+   nothing (QA) or subtracts (planner). A query-cadence control (each wiring re-run at
+   the other's cadence) shows the freeze elimination is cadence-robust while the scores
+   themselves are not: cross-wiring comparisons are only meaningful at matched cadence,
+   where the planner's counts are at least as high (the wirings trade individual
+   cells). Knowing
+   everything is not the hard part; compiling
    knowledge into a time-indexed plan is
    ([docs/oracle_ablation.md](docs/oracle_ablation.md)).
    Either way, the capability is neither conferred by nor measured in nominal-driving

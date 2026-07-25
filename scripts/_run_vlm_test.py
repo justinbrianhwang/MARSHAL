@@ -347,6 +347,34 @@ def _compliance_reason(compliance: dict) -> Any:
     return None
 
 
+def _query_period_override(diagnostic: bool) -> Tuple[float, str]:
+    """Cadence override for the common-cadence cross-wiring control.
+
+    Returns (query_period_s, episode-id tag). MARSHAL_VLM_QUERY_PERIOD_S is
+    set by --query-period-s and inherited by the isolated child processes
+    (the child command line never carries the flag). The leaderboard wiring
+    is pinned at 1.5 s: without the diagnostic (ablation) wiring the env var
+    is ignored entirely, so it can never alter a genuine Track-C run.
+    """
+    qp_env = os.environ.get("MARSHAL_VLM_QUERY_PERIOD_S")
+    if not (diagnostic and qp_env):
+        return 1.5, ""
+    value = float(qp_env)
+    if not value > 0:
+        raise SystemExit(f"MARSHAL_VLM_QUERY_PERIOD_S must be > 0, got {qp_env!r}")
+    return value, f"qp{value!r}_"
+
+
+def _diagnostic_id_parts() -> Tuple[bool, str, str]:
+    """(diagnostic, ablation, qp_tag) as _run_one derives them — shared with
+    the failure-row helpers so crashed episodes keep the tagged episode ids."""
+    ablation_env = os.environ.get("MARSHAL_VLM_ABLATION")
+    diagnostic = ablation_env is not None
+    ablation = (ablation_env or "none").strip().lower() or "none"
+    _, qp_tag = _query_period_override(diagnostic)
+    return diagnostic, ablation, qp_tag
+
+
 def _run_one(client: Any, model: str, scenario_key: str) -> Dict[str, Any]:
     spec = SCENARIOS[scenario_key]
     cfg = staging.load_staged_config(_ROOT, scenario_key, spec, "vlm")
@@ -359,17 +387,18 @@ def _run_one(client: Any, model: str, scenario_key: str) -> Dict[str, Any]:
     ablation_env = os.environ.get("MARSHAL_VLM_ABLATION")
     diagnostic = ablation_env is not None
     ablation = (ablation_env or "none").strip().lower() or "none"
+    query_period_s, qp_tag = _query_period_override(diagnostic)
     cfg["vlm"] = {
         "backend": "hf",
         "model": model,
-        "query_period_s": 1.5,
+        "query_period_s": query_period_s,
         "max_queries": None if diagnostic else 3,
         "ablation": ablation,
     }
     # Ablation episodes are privileged diagnostics: keep their artifacts in
     # clearly-separated episode ids so they can never be collected into the
     # Track-C leaderboard rows.
-    prefix = f"ablate-{ablation}_" if diagnostic else ""
+    prefix = f"ablate-{ablation}_{qp_tag}" if diagnostic else ""
     cfg["episode_id"] = f"vlm_{prefix}{_slug(model)}_{scenario_key}"
     _clear_episode_outputs(cfg["episode_id"])
 
@@ -429,6 +458,10 @@ def _run_one(client: Any, model: str, scenario_key: str) -> Dict[str, Any]:
         "episode_dir": logger.episode_dir,
         "visibility_frame": visibility_frame,
     }
+    if diagnostic:
+        # Diagnostic-only field: keeps the leaderboard row schema unchanged
+        # across vintages while making the measured cadence a per-row record.
+        row["query_period_s"] = query_period_s
     print(
         "{model} / {scenario}: action={action} pass={passed} "
         "terminated={terminated} speed={speed}".format(
@@ -446,12 +479,13 @@ def _run_one(client: Any, model: str, scenario_key: str) -> Dict[str, Any]:
 
 def _failure_row(model: str, scenario_key: str, exc: Exception) -> Dict[str, Any]:
     spec = SCENARIOS[scenario_key]
-    episode_id = f"vlm_{_slug(model)}_{scenario_key}"
-    ablation_env = os.environ.get("MARSHAL_VLM_ABLATION")
+    diagnostic, ablation, qp_tag = _diagnostic_id_parts()
+    prefix = f"ablate-{ablation}_{qp_tag}" if diagnostic else ""
+    episode_id = f"vlm_{prefix}{_slug(model)}_{scenario_key}"
     row = {
         "model": model,
         "scenario": scenario_key,
-        "ablation": (ablation_env or "none").strip().lower() if ablation_env is not None else None,
+        "ablation": ablation if diagnostic else None,
         "expected": spec["expect"],
         "vlm_actions": [],
         "vlm_action": "",
@@ -479,18 +513,21 @@ def _failure_row(model: str, scenario_key: str, exc: Exception) -> Dict[str, Any
         "episode_dir": os.path.join(OUT_ROOT, episode_id),
         "visibility_frame": None,
     }
+    if diagnostic:
+        row["query_period_s"] = _query_period_override(diagnostic)[0]
     print(f"{model} / {scenario_key}: ERROR {row['exception']}", flush=True)
     return row
 
 
 def _native_failure_row(model: str, scenario_key: str, message: str) -> Dict[str, Any]:
     spec = SCENARIOS[scenario_key]
-    episode_id = f"vlm_{_slug(model)}_{scenario_key}"
-    ablation_env = os.environ.get("MARSHAL_VLM_ABLATION")
+    diagnostic, ablation, qp_tag = _diagnostic_id_parts()
+    prefix = f"ablate-{ablation}_{qp_tag}" if diagnostic else ""
+    episode_id = f"vlm_{prefix}{_slug(model)}_{scenario_key}"
     row = {
         "model": model,
         "scenario": scenario_key,
-        "ablation": (ablation_env or "none").strip().lower() if ablation_env is not None else None,
+        "ablation": ablation if diagnostic else None,
         "expected": spec["expect"],
         "vlm_actions": [],
         "vlm_action": "",
@@ -518,19 +555,27 @@ def _native_failure_row(model: str, scenario_key: str, message: str) -> Dict[str
         "episode_dir": os.path.join(OUT_ROOT, episode_id),
         "visibility_frame": None,
     }
+    if diagnostic:
+        row["query_period_s"] = _query_period_override(diagnostic)[0]
     print(f"{model} / {scenario_key}: NATIVE CRASH {message}", flush=True)
     return row
 
 
-def _row_key(row: Dict[str, Any]) -> Tuple[str, str, str]:
+def _row_key(row: Dict[str, Any]) -> Tuple[str, str, str, str]:
     # The ablation level is part of the identity: without it a diagnostic
     # ablation row silently OVERWRITES the genuine Track-C row for the same
     # (model, scenario) when both target one results file (adversarial
-    # review, round 7).
+    # review, round 7). Cadence likewise (cadence review): rows measured at
+    # different query periods are different cells; absent field = 1.5 s.
+    try:
+        period = float(row.get("query_period_s", 1.5))
+    except (TypeError, ValueError):
+        period = 1.5
     return (
         str(row.get("model") or ""),
         str(row.get("scenario") or ""),
         str(row.get("ablation") or ""),
+        repr(period),
     )
 
 
@@ -742,10 +787,19 @@ def _write_report(rows: List[Dict[str, Any]], report_path: str) -> None:
     mirror_diffs = _mirror_differences()
     identical = not mirror_diffs
 
+    # Report the cadence the rows were actually measured at (F1, cadence
+    # review): rows carry query_period_s under the diagnostic wiring; the
+    # leaderboard wiring is pinned at 1.5 s.
+    periods = sorted({
+        float(r["query_period_s"]) for r in rows
+        if isinstance(r.get("query_period_s"), (int, float))
+    }) or [1.5]
+    period_str = "/".join(repr(p) for p in periods)
+
     lines = [
         "# Track-C VLM Full 14-Scenario Benchmark",
         "",
-        "Live CARLA target: 127.0.0.1:2000, Town03. Controller: `vlm={\"backend\":\"hf\",\"query_period_s\":1.5}`.",
+        f"Live CARLA target: 127.0.0.1:2000, Town03. Controller: `vlm={{\"backend\":\"hf\",\"query_period_s\":{period_str}}}`.",
         "",
         "## Per-Scenario Pass Counts",
         "",
@@ -759,7 +813,7 @@ def _write_report(rows: List[Dict[str, Any]], report_path: str) -> None:
         f"- Shared runner-local staging source: `{staging.STAGING_SOURCE}`.",
         "- Authority/gesture figures are staged near 13 m forward and 3.2 m lateral, keeping the ego lane physically clear while preserving front-camera visibility.",
         "- `fallen_person`, `crash_detour`, and `ambulance_yield` hazard placement remains the existing in-path/visibility staging; scored scenario defaults are unchanged.",
-        "- VLM settings remain `fps=20`, `timeout_sec=14`, `query_period_s=1.5`, and scoring uses telemetry-grounded `strict_scoring` / `marshal_metrics`.",
+        f"- VLM settings remain `fps=20`, `timeout_sec=14`, `query_period_s={period_str}`, and scoring uses telemetry-grounded `strict_scoring` / `marshal_metrics`.",
         "",
         "## Remaining Caveats",
         "",
@@ -959,6 +1013,14 @@ def _parse_args() -> argparse.Namespace:
              "diagnostic wiring. 'neutral'/'policy_only' = non-cumulative "
              "factorial control cells (neutral requests no ground truth).",
     )
+    parser.add_argument(
+        "--query-period-s",
+        type=float,
+        default=None,
+        help="Diagnostic-only cadence override (requires --ablation); used "
+             "for the common-cadence cross-wiring control. Episode ids gain "
+             "a qp<value>_ tag; the leaderboard wiring stays at 1.5 s.",
+    )
     parser.add_argument("--results-json", default=RESULTS_JSON)
     parser.add_argument("--report", default=REPORT_MD)
     parser.add_argument("--child-run-one", action="store_true", help=argparse.SUPPRESS)
@@ -996,12 +1058,24 @@ def _child_main(args: argparse.Namespace) -> int:
 
 def main() -> int:
     args = _parse_args()
+    if args.query_period_s is not None:
+        # The --child-run-one exemption is deliberate: children never receive
+        # the flag (they inherit the env var), and _query_period_override
+        # ignores the env var outside the diagnostic wiring anyway.
+        if args.ablation is None and not args.child_run_one:
+            raise SystemExit("--query-period-s is a diagnostic override; it requires --ablation")
+        if not float(args.query_period_s) > 0:
+            raise SystemExit(f"--query-period-s must be > 0, got {args.query_period_s}")
+        os.environ["MARSHAL_VLM_QUERY_PERIOD_S"] = repr(float(args.query_period_s))
     if args.ablation is not None:
         os.environ["MARSHAL_VLM_ABLATION"] = args.ablation
         # Never let a diagnostic run overwrite the default (leaderboard)
-        # results/report files: auto-suffix any path the user did not
-        # explicitly redirect.
+        # results/report files — or a cadence-override run overwrite the
+        # native-cadence diagnostic files: auto-suffix any path the user did
+        # not explicitly redirect.
         suffix = f"_ablate-{args.ablation}"
+        if args.query_period_s is not None:
+            suffix += f"_qp{float(args.query_period_s)!r}"
         if args.results_json == RESULTS_JSON:
             root, ext = os.path.splitext(RESULTS_JSON)
             args.results_json = f"{root}{suffix}{ext}"
