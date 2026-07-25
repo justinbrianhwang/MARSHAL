@@ -289,6 +289,51 @@ no knowledge rung on either wiring leaves it.)
    entry — both passed at `policy`); the ±2-cell churn is within
    single-pass noise and the net +2 is reported above.
 
+## Control: query cadence (the last cross-wiring confound)
+
+The two wirings run at different native cadences (QA 1.5 s, planner 3.0 s),
+so any numeric comparison of their policy-rung scores was confounded by how
+often the plan token could update. The plan-alone cell was re-measured at
+the *other* wiring's cadence via `--query-period-s` (on the VLM runner a
+diagnostic-only override that tags episode ids `qp<value>_` and is inert
+without `--ablation`; the planner runner's pre-existing flag, with a
+separate `--out-root` keeping the runs apart):
+
+| `policy_only` | @ 1.5 s | @ 3.0 s |
+|---|---:|---:|
+| GLM-4.5V QA wiring | 16 / 25 (0 freezes) | 10 / 25 (0) |
+| OpenEMMA planner wiring | **18 / 25 (1)** | 15 / 25 (1) |
+
+1. **The freeze elimination — the attribution's load-bearing fact — is
+   cadence-robust**: 0–1 freezes in all four cells. Plan synthesis remains
+   the binding constraint at either cadence.
+2. **Plan-execution *scores* are strongly cadence-sensitive in the same
+   direction on both wirings** (QA 16 → 10 when slowed, Δ6; planner
+   15 → 18 when sped up, Δ3 — both outside the ±1–2 noise band).
+   Cross-wiring score comparisons are only meaningful at matched cadence —
+   and there the planner's counts are at least as high (18 vs 16 at 1.5 s,
+   a Δ2 *inside* the noise band; 15 vs 10 at 3.0 s, outside it), with the
+   wirings trading cells rather than one dominating (at 1.5 s the planner
+   wins four cells but loses `ambulance_yield` and `rule_hierarchy`).
+   The replication section's per-wiring numbers stand, but its implicit
+   "QA 17 vs planner 13" contrast should not be read as a wiring ranking —
+   the pattern is consistent with a cadence artifact (the knowledge+plan ×
+   cadence cells themselves were not re-measured; the inference rides on
+   plan-alone ≈ policy).
+3. **The planner's precision residuals dissolve at 1.5 s**: `fallen_person`,
+   `occluded_officer`, and `sequential_directive` — the clearance/zone
+   failures at 3.0 s — all pass at 1.5 s, with nothing regressing (the
+   lane-change DETOUR family still fails at any cadence, consistent with
+   its behavioural-prior reading). The QA wiring degrades in kind at
+   3.0 s: six losses, zero gains — four clearance/zone-precision cells and
+   two collisions — with freezes still at zero.
+
+One wall-clock caveat: the planner's 1.5 s cell happened to run under
+roughly doubled model latency (machine load; sim-time cadence itself is
+verified at 1.5 s in the audits), so each acted-on token was *staler* in
+wall-clock terms than in the 3.0 s cell — if anything, 18/25 understates
+that cell.
+
 ## Reproduce
 
 ```bash
@@ -302,6 +347,10 @@ python scripts/_run_fullplanner_sweep.py --controller openemma --ablation policy
     --results-json tmp/_openemma_ablation_policy.json --report tmp/_openemma_ablation_policy.md
 
 # control cells: --ablation neutral / --ablation policy_only on either runner.
+# cadence control: add --query-period-s 3.0 (VLM; episode ids gain a qp tag) /
+# --query-period-s 1.5 --out-root tmp/_openemma_qp15_runs (planner; the
+# separate out root is REQUIRED — planner episode ids carry no qp tag and the
+# runner clears each episode dir before running).
 ```
 
 Per-rung results (full per-decision logs including the injected assist text)
