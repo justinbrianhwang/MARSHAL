@@ -589,7 +589,7 @@ def _carla_town03_status(timeout_s: float = 5.0) -> tuple[bool, str]:
 
 def _parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("scenarios", nargs="*", help="Scenario keys. Defaults to all 14, or green_stop for --smoke.")
+    parser.add_argument("scenarios", nargs="*", help=f"Scenario keys. Defaults to all {len(vlm.SCENARIO_ORDER)}, or green_stop for --smoke.")
     parser.add_argument("--controller", default="openemma", choices=sorted(CONTROLLER_LABELS))
     parser.add_argument("--smoke", action="store_true")
     parser.add_argument("--results-json", default=None)

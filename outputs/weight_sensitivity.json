@@ -1,0 +1,2108 @@
+{
+  "n_runs": 1,
+  "current_ranking": [
+    "oracle",
+    "transfuser",
+    "interfuser",
+    "qwen3-vl",
+    "qwen2.5-vl",
+    "glm-4.5v",
+    "openemma",
+    "neat",
+    "tcp",
+    "cilrs",
+    "aim",
+    "baseline",
+    "mpc",
+    "pid"
+  ],
+  "uniform_ranking": [
+    "oracle",
+    "transfuser",
+    "interfuser",
+    "qwen3-vl",
+    "qwen2.5-vl",
+    "openemma",
+    "glm-4.5v",
+    "neat",
+    "tcp",
+    "cilrs",
+    "aim",
+    "baseline",
+    "mpc",
+    "pid"
+  ],
+  "current_vs_uniform": {
+    "baseline": {
+      "current": {
+        "graded": 13.828670588235292,
+        "rank": 12
+      },
+      "uniform": {
+        "graded": 13.28316,
+        "rank": 12
+      },
+      "rank_delta_uniform_minus_current": 0
+    },
+    "oracle": {
+      "current": {
+        "graded": 100.0,
+        "rank": 1
+      },
+      "uniform": {
+        "graded": 100.0,
+        "rank": 1
+      },
+      "rank_delta_uniform_minus_current": 0
+    },
+    "transfuser": {
+      "current": {
+        "graded": 63.201841764705875,
+        "rank": 2
+      },
+      "uniform": {
+        "graded": 61.395864,
+        "rank": 2
+      },
+      "rank_delta_uniform_minus_current": 0
+    },
+    "tcp": {
+      "current": {
+        "graded": 29.058897058823533,
+        "rank": 9
+      },
+      "uniform": {
+        "graded": 28.887796,
+        "rank": 9
+      },
+      "rank_delta_uniform_minus_current": 0
+    },
+    "interfuser": {
+      "current": {
+        "graded": 60.65618764705883,
+        "rank": 3
+      },
+      "uniform": {
+        "graded": 60.2149,
+        "rank": 3
+      },
+      "rank_delta_uniform_minus_current": 0
+    },
+    "cilrs": {
+      "current": {
+        "graded": 26.37762588235294,
+        "rank": 10
+      },
+      "uniform": {
+        "graded": 26.568084,
+        "rank": 10
+      },
+      "rank_delta_uniform_minus_current": 0
+    },
+    "aim": {
+      "current": {
+        "graded": 23.14396176470588,
+        "rank": 11
+      },
+      "uniform": {
+        "graded": 22.491003999999997,
+        "rank": 11
+      },
+      "rank_delta_uniform_minus_current": 0
+    },
+    "neat": {
+      "current": {
+        "graded": 39.28431058823529,
+        "rank": 8
+      },
+      "uniform": {
+        "graded": 39.18034,
+        "rank": 8
+      },
+      "rank_delta_uniform_minus_current": 0
+    },
+    "pid": {
+      "current": {
+        "graded": 11.850548235294116,
+        "rank": 14
+      },
+      "uniform": {
+        "graded": 12.097288,
+        "rank": 14
+      },
+      "rank_delta_uniform_minus_current": 0
+    },
+    "mpc": {
+      "current": {
+        "graded": 12.749288823529412,
+        "rank": 13
+      },
+      "uniform": {
+        "graded": 12.956452000000002,
+        "rank": 13
+      },
+      "rank_delta_uniform_minus_current": 0
+    },
+    "openemma": {
+      "current": {
+        "graded": 41.28709882352941,
+        "rank": 7
+      },
+      "uniform": {
+        "graded": 40.678896,
+        "rank": 6
+      },
+      "rank_delta_uniform_minus_current": -1
+    },
+    "glm-4.5v": {
+      "current": {
+        "graded": 42.33859882352941,
+        "rank": 6
+      },
+      "uniform": {
+        "graded": 40.557496,
+        "rank": 7
+      },
+      "rank_delta_uniform_minus_current": 1
+    },
+    "qwen2.5-vl": {
+      "current": {
+        "graded": 46.97967117647059,
+        "rank": 5
+      },
+      "uniform": {
+        "graded": 47.376488,
+        "rank": 5
+      },
+      "rank_delta_uniform_minus_current": 0
+    },
+    "qwen3-vl": {
+      "current": {
+        "graded": 51.695612352941176,
+        "rank": 4
+      },
+      "uniform": {
+        "graded": 51.361452,
+        "rank": 4
+      },
+      "rank_delta_uniform_minus_current": 0
+    }
+  },
+  "one_at_a_time": {
+    "schemes": [
+      {
+        "scenario": "green_stop",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "green_stop",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "red_proceed",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "red_proceed",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "signal_off",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "signal_off",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "crash_detour",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "crash_detour",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "fallen_person",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "fallen_person",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "unauthorized_go",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "mpc",
+          "baseline",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 1,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": -1,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "unauthorized_go",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "adjacent_lane",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "adjacent_lane",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "flagger_control",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "flagger_control",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "ambulance_yield",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "ambulance_yield",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "occluded_officer",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "occluded_officer",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "conflicting_authorities",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "conflicting_authorities",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "openemma",
+          "glm-4.5v",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": -1,
+          "glm-4.5v": 1,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "sequential_directive",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "sequential_directive",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "rule_hierarchy",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "rule_hierarchy",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "ambiguous_gesture",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "ambiguous_gesture",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "civilian_warning_accident",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "civilian_warning_accident",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "emergency_scene_blocking",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "emergency_scene_blocking",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "two_civilians_disagree",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "openemma",
+          "glm-4.5v",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": -1,
+          "glm-4.5v": 1,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "two_civilians_disagree",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "flagger_slow_then_stop",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "flagger_slow_then_stop",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "school_crossing_guard",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "school_crossing_guard",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "fake_vest_director",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "openemma",
+          "glm-4.5v",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": -1,
+          "glm-4.5v": 1,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "fake_vest_director",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "barricade_self_detour",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "barricade_self_detour",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "stale_directive_residue",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "stale_directive_residue",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "out_of_jurisdiction_director",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "out_of_jurisdiction_director",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "night_signal_officer_conflict",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "night_signal_officer_conflict",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "mpc",
+          "baseline",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 1,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": -1,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "dual_authority_handoff",
+        "direction": "down_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      },
+      {
+        "scenario": "dual_authority_handoff",
+        "direction": "up_25pct",
+        "ranking": [
+          "oracle",
+          "transfuser",
+          "interfuser",
+          "qwen3-vl",
+          "qwen2.5-vl",
+          "glm-4.5v",
+          "openemma",
+          "neat",
+          "tcp",
+          "cilrs",
+          "aim",
+          "baseline",
+          "mpc",
+          "pid"
+        ],
+        "rank_changes": {
+          "baseline": 0,
+          "oracle": 0,
+          "transfuser": 0,
+          "tcp": 0,
+          "interfuser": 0,
+          "cilrs": 0,
+          "aim": 0,
+          "neat": 0,
+          "pid": 0,
+          "mpc": 0,
+          "openemma": 0,
+          "glm-4.5v": 0,
+          "qwen2.5-vl": 0,
+          "qwen3-vl": 0
+        }
+      }
+    ],
+    "per_model_max_absolute_rank_change": {
+      "baseline": {
+        "absolute_rank_change": 1,
+        "scenario": "unauthorized_go",
+        "direction": "down_25pct",
+        "signed_rank_change": 1
+      },
+      "oracle": {
+        "absolute_rank_change": 0,
+        "scenario": null,
+        "direction": null
+      },
+      "transfuser": {
+        "absolute_rank_change": 0,
+        "scenario": null,
+        "direction": null
+      },
+      "tcp": {
+        "absolute_rank_change": 0,
+        "scenario": null,
+        "direction": null
+      },
+      "interfuser": {
+        "absolute_rank_change": 0,
+        "scenario": null,
+        "direction": null
+      },
+      "cilrs": {
+        "absolute_rank_change": 0,
+        "scenario": null,
+        "direction": null
+      },
+      "aim": {
+        "absolute_rank_change": 0,
+        "scenario": null,
+        "direction": null
+      },
+      "neat": {
+        "absolute_rank_change": 0,
+        "scenario": null,
+        "direction": null
+      },
+      "pid": {
+        "absolute_rank_change": 0,
+        "scenario": null,
+        "direction": null
+      },
+      "mpc": {
+        "absolute_rank_change": 1,
+        "scenario": "unauthorized_go",
+        "direction": "down_25pct",
+        "signed_rank_change": -1
+      },
+      "openemma": {
+        "absolute_rank_change": 1,
+        "scenario": "conflicting_authorities",
+        "direction": "up_25pct",
+        "signed_rank_change": -1
+      },
+      "glm-4.5v": {
+        "absolute_rank_change": 1,
+        "scenario": "conflicting_authorities",
+        "direction": "up_25pct",
+        "signed_rank_change": 1
+      },
+      "qwen2.5-vl": {
+        "absolute_rank_change": 0,
+        "scenario": null,
+        "direction": null
+      },
+      "qwen3-vl": {
+        "absolute_rank_change": 0,
+        "scenario": null,
+        "direction": null
+      }
+    },
+    "maximum_absolute_rank_change": {
+      "model": "baseline",
+      "absolute_rank_change": 1,
+      "scenario": "unauthorized_go",
+      "direction": "down_25pct",
+      "signed_rank_change": 1
+    }
+  },
+  "random": {
+    "draws": 1000,
+    "seed": 0,
+    "kendall_tau_mean": 0.9873406593406594,
+    "kendall_tau_std": 0.01747527796444996,
+    "adjacent_pair_flip_fractions": {
+      "oracle vs transfuser": 0.0,
+      "transfuser vs interfuser": 0.015,
+      "interfuser vs qwen3-vl": 0.0,
+      "qwen3-vl vs qwen2.5-vl": 0.0,
+      "qwen2.5-vl vs glm-4.5v": 0.001,
+      "glm-4.5v vs openemma": 0.263,
+      "openemma vs neat": 0.053,
+      "neat vs tcp": 0.0,
+      "tcp vs cilrs": 0.0,
+      "cilrs vs aim": 0.0,
+      "aim vs baseline": 0.0,
+      "baseline vs mpc": 0.182,
+      "mpc vs pid": 0.0
+    },
+    "transfuser_vs_interfuser_flip_fraction": 0.015,
+    "top_non_oracle_model_current": "transfuser",
+    "top_non_oracle_change_fraction": 0.015,
+    "oracle_rank_1_fraction": 1.0
+  },
+  "notes": [
+    "VLM cells are single-sample.",
+    "This analysis varies weights only, not measurement noise."
+  ],
+  "source": "outputs/full_sweep_results.json \u2014 25-scenario suite, round-7 rescored reference sweep (single run; the 3-run 21-scenario analysis this replaces lives in git history)"
+}

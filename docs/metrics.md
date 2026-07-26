@@ -192,10 +192,11 @@ subscores (`METRIC_TO_R`), and finally into a single weighted score.
 
 **Metric → requirement (`METRIC_TO_R`) and how each subscore is formed:**
 
-Weights are **re-balanced for the 21-scenario set** (the original slide-14 weights
-were set at 9 scenarios). The mass now reflects what the 21 scenarios actually stress:
-authority-conflict resolution (R3, ~15/21) and exceptional handling (R7, ~6/21) are the
-two pillars.
+Weights were **re-balanced at the 21-scenario expansion** (the original slide-14
+weights were set at 9 scenarios) and are carried unchanged by the current
+25-scenario suite. The mass reflects what the suite stresses: authority-conflict
+resolution (R3) and exceptional handling (R7) are the two pillars (~15/21 and
+~6/21 at re-balance time).
 
 | Requirement (PPT taxonomy) | Weight | Formed from | Instrumented? |
 |---|---|---|---|

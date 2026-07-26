@@ -116,7 +116,7 @@ scene-conditioned result. Single-seed (n = 1).</sub>
 
 ## Appendix — full chain-of-thought log
 
-Every planner query OpenEMMA ran during the strict 14-sweep, verbatim (`scene_text → objects_text → intent_text → motion_text`) — 67 queries across 14 scenarios. `scene_text`, `intent_text` and `motion_text` are complete; `objects_text` is stored capped at 512 characters by the run logger, so a few entries end mid-sentence (that is the limit of what was recorded, not a model truncation). Raw logs: `tmp/_codex_openemma_runs/openemma_<scenario>/events.json`.
+Every planner query OpenEMMA ran during the strict sweep of the original 14-scenario generation (the suite has since grown to 25; this appendix is that historical record), verbatim (`scene_text → objects_text → intent_text → motion_text`) — 67 queries across those 14 scenarios. `scene_text`, `intent_text` and `motion_text` are complete; `objects_text` is stored capped at 512 characters by the run logger, so a few entries end mid-sentence (that is the limit of what was recorded, not a model truncation). Raw logs: `tmp/_codex_openemma_runs/openemma_<scenario>/events.json`.
 
 
 ### `green_stop` — expected **STOP**, strict **FAIL**
