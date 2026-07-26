@@ -1,6 +1,6 @@
 # Benchmarking your model on MARSHAL
 
-This guide shows how to score *your* autonomous-driving model on the 14 MARSHAL
+This guide shows how to score *your* autonomous-driving model on the 25 MARSHAL
 scenarios. You write one small class; MARSHAL does the rest (spawns the officer,
 gestures, flagger, ambulance, scene; runs each closed-loop episode; computes the
 metric suite and the MARSHAL Score).
@@ -70,7 +70,7 @@ Useful flags:
 
 | flag | default | meaning |
 |------|---------|---------|
-| `--scenarios a b c` | all 14 | run a subset |
+| `--scenarios a b c` | all 25 | run a subset |
 | `--town` | `Town03` | benchmark map (stock Town03) |
 | `--host` / `--port` | `127.0.0.1` / `2000` | CARLA server |
 | `--fps` | `20` | fixed-delta sim rate |

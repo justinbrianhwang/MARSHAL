@@ -14,7 +14,8 @@
 > planned before any camera-ready claim.
 
 This document reports how reproducible MARSHAL's scores are, measured empirically
-from **three independent full closed-loop sweeps** (14 models × 21 scenarios each).
+from **three independent full closed-loop sweeps** (14 models × 21 scenarios each —
+the then-current suite; the suite has since grown to 25, see the note above).
 Short version: the **privileged oracle and the classical controllers are bit-stable**,
 but the **learned E2E controllers carry real run-to-run variance on near-threshold
 ("borderline") cells** — graded std ranges from ~0 up to ±6.8, and individual
@@ -140,7 +141,8 @@ its mistake, in the earlier version, was generalizing that to the learned models
 
 ## Scope and honesty
 
-- The 3-run sweep covers all 11 closed-loop models × 21 scenarios; the seed probe
+- The 3-run sweep covers all 11 closed-loop models × the 21 scenarios of that
+  generation (the current suite is 25); the seed probe
   covers 2 controllers × 3 scenarios. Three runs give a std estimate, not a tight
   confidence interval — treat per-model std as indicative (n = 3).
 - **VLM controllers (Track C)** are single-sample here; their API decoding variance is

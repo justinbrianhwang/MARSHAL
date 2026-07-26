@@ -186,9 +186,10 @@ The structure replicates, and more sharply than in the QA wiring:
    spawn climbs monotonically to 17/25 at the answer-key rung, the perception
    and semantics rungs score **0/25**, and the answer-key rung ties the
    unassisted 3/25 on a different pass set. The direction flip observed in
-   the QA wiring is not a token-vocabulary artifact; it is how this
-   generation of VLM backbones responds to being told the scene is
-   authority-critical.
+   the QA wiring is not a token-vocabulary artifact; both tested backbones
+   (GLM-4.5V and Qwen2-VL-7B) respond to being told the scene is
+   authority-critical by over-complying — whether that generalizes beyond
+   these two backbones is unmeasured.
 2. **The externally supplied plan collapses the freeze — but does not
    eliminate it here**: 13/25 at the policy rung, STOP-family freezes down
    to one, while three PROCEED-family cells stay frozen (point 3). Plan

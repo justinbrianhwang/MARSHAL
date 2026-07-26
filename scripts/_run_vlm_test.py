@@ -1000,7 +1000,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "scenarios",
         nargs="*",
-        help=f"Scenario keys. Defaults to all 14. Smoke subset: {', '.join(SMOKE_SCENARIOS)}",
+        help=f"Scenario keys. Defaults to all {len(DEFAULT_SCENARIOS)}. Smoke subset: {', '.join(SMOKE_SCENARIOS)}",
     )
     parser.add_argument(
         "--ablation",

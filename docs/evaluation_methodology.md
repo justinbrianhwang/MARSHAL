@@ -14,7 +14,7 @@ redundant, because each answers a different question:
 
 | View | Question it answers | Form | Analogy |
 |---|---|---|---|
-| **Strict Pass/Fail** | *Did the vehicle do what the law required?* | binary verdict per episode, oracle-calibrated (oracle = 21/21) | certification test |
+| **Strict Pass/Fail** | *Did the vehicle do what the law required?* | binary verdict per episode, oracle-calibrated (oracle = 25/25) | certification test |
 | **MARSHAL-Graded** | *How competently did it do it?* | continuous 0–100 from physical margins (stop distance, residual speed, latency, clearance), authority-weighted, engagement-gated | graded exam |
 | **Failure Profile** | *What, specifically, does it fail at?* | failure rate per reasoning principle and per required action, plus a stop-bias index | diagnostic report |
 
@@ -44,25 +44,29 @@ inflating the scale (max stays 100; the oracle stays the calibration anchor).
 ## 3. Sensitivity analysis: the conclusions do not depend on the weights
 
 1,000 random perturbations (every weight independently scaled by U(0.75, 1.25),
-seeded) plus a uniform-weights ablation and 42 one-at-a-time ±25% probes
-(`outputs/weight_sensitivity.json`):
+seeded) plus a uniform-weights ablation and one-at-a-time ±25% probes, computed
+on the **current 25-scenario, round-7-rescored reference sweep**
+(`outputs/weight_sensitivity.json`; the earlier 21-scenario 3-run analysis this
+replaces is preserved in git history):
 
 | Probe | Result |
 |---|---|
-| Uniform weights (all 1.0) | **ranking identical** to the shipped weights, all 14 models |
-| Random ±25% × 1000 | Kendall τ vs current ranking **0.988 ± 0.013** |
-| Top non-privileged model changes | **0.0%** of draws (Qwen2.5-VL always leads) |
+| Uniform weights (all 1.0) | one adjacent swap only (GLM-4.5V ↔ OpenEMMA, 1.0 graded point apart); **all other ranks identical**, all 14 models |
+| Random ±25% × 1000 | Kendall τ vs current ranking **0.987 ± 0.017** |
+| Top non-privileged model changes | **1.5%** of draws (all TransFuser ↔ InterFuser) |
 | Oracle rank 1 | **100%** of draws |
-| Worst one-at-a-time ±25% effect | 1 rank (AIM, `green_stop` +25%) |
-| TransFuser ↔ InterFuser flips | 0.9% of draws — consistent with our reporting of the pair as a **statistical tie** |
-| Most weight-sensitive adjacent pair | AIM ↔ baseline, 47.3% — their means differ by 0.1 points (24.0 vs 23.9), so this order was never claimed as meaningful |
+| Worst one-at-a-time ±25% effect | 1 rank (baseline, `unauthorized_go` −25%) |
+| TransFuser ↔ InterFuser flips | 1.5% of draws — consistent with our reporting of the pair as a **statistical tie** |
+| Most weight-sensitive adjacent pair | GLM-4.5V ↔ OpenEMMA, 26.3% — their means differ by 1.1 points (42.3 vs 41.3), a pair never claimed as a meaningful ordering |
 
 **Reading:** the weights express *emphasis*, not the *ranking* — every ordering
-claim in the README survives removing the weights entirely. The one genuinely
-weight-sensitive comparison (AIM vs baseline) is a pair we already report as
-indistinguishable. Caveats: this analysis perturbs weights only (measurement noise is
-handled separately by the 3-run mean ± std —
-[reproducibility.md](reproducibility.md)); Track-C cells are single-sample.
+claim in the README survives removing the weights entirely. The genuinely
+weight-sensitive comparisons (GLM-4.5V vs OpenEMMA, baseline vs MPC) are
+adjacent pairs ~1 point apart that we already report as indistinguishable.
+Caveats: this analysis perturbs weights only, over the single current reference
+sweep (run-to-run measurement noise is characterized separately —
+[reproducibility.md](reproducibility.md), 3-run study on the 21-scenario
+generation); Track-C cells are single-sample.
 
 ## 4. Known interactions, stated honestly
 
