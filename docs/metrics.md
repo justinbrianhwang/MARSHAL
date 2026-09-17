@@ -32,6 +32,7 @@ Strict thresholds (`STRICT_THRESHOLDS`), quoted from the code:
 | Action | Physical proof required | Threshold |
 |---|---|---|
 | STOP / HOLD | speed falls to ~0 and the stop line is not crossed | `stop_speed_kmh = 1.0`, `stopline_clearance_m = 1.0` |
+| STOP / HOLD engagement | the ego must actually approach: come within the engagement band of the stop line or the directing human, with real movement (≥5 km/h and ≥1 m progress) | `stopline_engagement_m = hazard_engagement_m = 16.59` — physics-derived, v·t_r + v²/(2a) at the 25 km/h cruise (t_r = 1.0 s, a = 2.5 m/s²) |
 | PROCEED | ego actually moves through the junction | `proceed_speed_kmh = 2.0` |
 | YIELD | slows below the yield speed, then may resume | `yield_stop_speed_kmh = 3.0`, `yield_resume_speed_kmh = 5.0` |
 | DETOUR | lateral departure around the obstacle + clears it | `detour_lateral_m = 1.5`, `detour_pass_margin_m = 4.0` |
@@ -268,13 +269,17 @@ credit = action_credit · latency_factor · safety_factor          (each in [0, 
 - **Engagement gate.** *Non-strict* STOP/HOLD partial credit is multiplied by an
   approach/engagement factor (approach speed × forward progress, or near-stopline
   progress) so a controller that only partially stops cannot harvest easy credit
-  from stop-line clearance alone. A **strict-compliant** stop (physically stopped,
-  no stop-line crossing, no junction entry) correctly receives full credit even when
-  it halts far upstream at low speed — this is exactly the privileged oracle's
-  signature, and the scorer is calibrated so the oracle scores 100.0. Stop-bias is
-  therefore corrected **cross-scenario** (the authority weighting below plus the
-  PROCEED/DETOUR scenarios that a stop-everything policy fails), not by gating an
-  individual stop episode.
+  from stop-line clearance alone. An ego with **no movement evidence at all**
+  (never ≥5 km/h or ≥1 m of forward progress over the whole episode) receives
+  **zero** credit outright — the graded scorer inherits strict's approach-evidence
+  arm, so parking at spawn earns nothing on either scale. A **strict-compliant** stop receives full
+  credit only when it would also pass strict — which requires movement evidence
+  (the binary gate above) AND engagement with a stop anchor (within the
+  engagement band of the stop line, the directing human, or the staged hazard);
+  a stop parked far upstream satisfies neither and scores zero. The scorer is
+  calibrated so the privileged oracle scores 100.0. Residual stop-bias is
+  additionally corrected **cross-scenario** (the authority weighting below plus
+  the PROCEED/DETOUR scenarios that a stop-everything policy fails).
 - **INVALID telemetry → `0.0`.**
 
 **Aggregate:** an **authority-weighted** mean, where authority-heavy scenarios carry
