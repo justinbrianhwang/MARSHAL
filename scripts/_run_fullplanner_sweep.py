@@ -343,7 +343,7 @@ def _build_config(args: argparse.Namespace, controller: str, scenario: str, out_
     if controller == "openemma":
         planner_cfg.update(
             {
-                "backend": "qwen2vl",
+                "backend": getattr(args, "backend", "qwen2vl"),
                 "max_new_tokens": int(args.max_new_tokens),
             }
         )
@@ -602,6 +602,7 @@ def _parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     parser.add_argument("--log-every-n", type=int, default=20)
     parser.add_argument("--save-debug-every-n", type=int, default=20)
     parser.add_argument("--max-debug-frames", type=int, default=4)
+    parser.add_argument("--backend", default="qwen2vl", choices=("qwen2vl", "gpt-4o"), help="OpenEMMA planner backend: local Qwen2-VL or the OpenAI GPT-4o API (needs OPENAI_API_KEY).")
     parser.add_argument("--reuse-backend", action="store_true", default=True)
     parser.add_argument("--no-reuse-backend", action="store_false", dest="reuse_backend")
     parser.add_argument(

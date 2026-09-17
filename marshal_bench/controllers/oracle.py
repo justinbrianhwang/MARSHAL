@@ -109,6 +109,9 @@ class OracleController(EpisodeController):
 
     def setup(self, world: Any, ego: Any, ground_truth: Dict[str, Any],
               carla: Any) -> None:
+        # Per-episode reset: the far-directive latch must never leak
+        # across episodes when a controller instance is reused.
+        self._far_directive_mode = False
         self.world = world
         self.ego = ego
         self.gt = ground_truth or {}
@@ -480,6 +483,52 @@ class OracleController(EpisodeController):
             return ctrl
 
         ctrl = self._copy_control(base)
+        # A directive received far upstream (extended-approach stagings): the
+        # lawful response is to continue the approach and stop BEFORE the
+        # line, not to park wherever the gesture was first seen - an ego
+        # halted 30 m short never engages the scene and blocks the road.
+        # Outside the 15 m engagement band, keep a moderated approach until
+        # the stopping envelope is reached; inside the band this is
+        # unreachable (near stagings put the onset at <15 m), so leaderboard
+        # behavior is unchanged.
+        if not _stopline_envelope_hit():
+            try:
+                _raw = (obs or {}).get("distance_to_stopline_m")
+                _dstop = float(_raw) if _raw is not None else None
+            except Exception:
+                _dstop = None
+            try:
+                _raw_off = (obs or {}).get("distance_to_officer_m")
+                _doff = float(_raw_off) if _raw_off is not None else None
+            except Exception:
+                _doff = None
+            # Far-directive approach applies only when BOTH stop anchors (the
+            # stop line AND the directing human) are outside the engagement
+            # band: several leaderboard cells stage a mid-block director with
+            # a distant stop line, and there the lawful stop is AT the
+            # director (officer-anchored), exactly as before. Without the
+            # officer condition the oracle would drive past the person
+            # directing it.
+            from marshal_bench.criteria.strict_episode_scoring import (
+                STRICT_THRESHOLDS as _ST,
+            )
+            _band = float(_ST["stopline_engagement_m"])
+            _both_far = (
+                _dstop is not None and _dstop > _band
+                and (_doff is None or _doff > _band)
+            )
+            if _both_far:
+                # Latch far-directive mode: this episode's directive arrived
+                # while still outside the engagement band, so the approach
+                # continues to the stopping envelope instead of the band edge.
+                self._far_directive_mode = True
+            if _dstop is not None and (
+                _both_far
+                or (self._far_directive_mode and _dstop > 2.5)
+            ):
+                ctrl.throttle = min(max(float(getattr(base, "throttle", 0.0)), 0.65), 0.75)
+                ctrl.brake = 0.0
+                return ctrl
         ctrl.throttle = 0.0
         ctrl.brake = 1.0 if speed > 0.25 else 0.85
         return ctrl

@@ -200,6 +200,10 @@ class OpenEMMAController(TrajectoryPlannerControllerBase):
 
     def _load_backend(self) -> BasePlannerBackend:
         backend = str(self.mcfg.get("backend", "qwen2vl")).lower()
+        if backend in {"gpt", "gpt4o", "gpt-4o"}:
+            gpt = _OpenEMMAGptBackend(cfg=self.mcfg)
+            self.backend_info = dict(gpt.load_info)
+            return gpt
         if backend not in {"qwen", "qwen2vl", "qwen2-vl"}:
             raise RuntimeError(f"Unsupported OpenEMMA backend for this adapter: {backend}")
         model_dir = Path(self._resolve_path(self.mcfg.get("model_dir") or _DEFAULT_MODEL_DIR))
@@ -343,13 +347,30 @@ class _OpenEMMAQwenBackend(BasePlannerBackend):
             count=max_pairs,
             horizon_s=max_pairs * 0.5,
         )
-        text, motion_meta = self._vlm_query(
-            self._prepend_assist(motion_prompt, assist),
-            image,
-            stage="motion",
-            max_new_tokens=int(self.cfg.get("max_new_tokens", 128)),
-        )
-        pairs = self._parse_motion_pairs(text, max_pairs=max_pairs)
+        # Bounded motion-stage retry (mirrors the OpenEMMA-UI app). The local
+        # Qwen backend keeps motion_attempts=1, so its behavior is unchanged;
+        # the API backend sets 3 because cloud replies occasionally refuse or
+        # drop the bracket format even at temperature 0.
+        attempts = max(1, int(getattr(self, "motion_attempts", 1)))
+        pairs = []
+        text, motion_meta = "", {}
+        for attempt in range(attempts):
+            retry_suffix = chr(10) * 2 + (
+                "IMPORTANT: reply with ONLY the bracketed pairs, and every "
+                "pair must contain two actual decimal numbers (speed in m/s, "
+                "curvature in 1/m). Never repeat placeholder names such as "
+                "speed_1 or curvature_1; no refusal, no prose."
+            )
+            attempt_prompt = motion_prompt if attempt == 0 else motion_prompt + retry_suffix
+            text, motion_meta = self._vlm_query(
+                self._prepend_assist(attempt_prompt, assist),
+                image,
+                stage="motion",
+                max_new_tokens=int(self.cfg.get("max_new_tokens", 128)),
+            )
+            pairs = self._parse_motion_pairs(text, max_pairs=max_pairs)
+            if pairs:
+                break
         if not pairs:
             raise RuntimeError(f"OpenEMMA output had no speed/curvature pairs: {text[:160]}")
         waypoints = integrate_speed_curvature(pairs, dt=0.5, max_points=max_pairs)
@@ -543,3 +564,82 @@ class _OpenEMMAQwenBackend(BasePlannerBackend):
 
 
 __all__ = ["OpenEMMAController"]
+
+
+class _OpenEMMAGptBackend(_OpenEMMAQwenBackend):
+    """OpenEMMA CoT chain served by the OpenAI GPT-4o API instead of the
+    local Qwen2-VL checkpoint. Same prompts, parsing, history, and audit
+    metadata; only model I/O differs. Requires OPENAI_API_KEY in the
+    environment (never logged). Deterministic decoding (temperature 0)."""
+
+    name = "openemma_gpt4o"
+
+    def __init__(self, *, cfg: dict[str, Any]) -> None:  # no model_dir needed
+        super().__init__(model_dir=Path("."), cfg=cfg)
+
+    def _load(self) -> None:
+        t0 = time.perf_counter()
+        try:
+            from openai import OpenAI
+        except ImportError as exc:  # pragma: no cover - environment-dependent
+            raise RuntimeError(
+                "The gpt-4o OpenEMMA backend needs the optional 'openai' "
+                "package (pip install openai) and OPENAI_API_KEY in the "
+                "environment; the default qwen2vl backend does not."
+            ) from exc
+
+        self._client = OpenAI()
+        self._gpt_model = str(self.cfg.get("gpt_model", "gpt-4o"))
+        # Sentinels so the base-class readiness guard passes; the Qwen code
+        # paths that would use them are all overridden below.
+        self.model = self.processor = self.process_vision_info = "gpt"
+        self.motion_attempts = 4
+        self.load_info = {
+            "model_dir": self._gpt_model,
+            "load_s": round(time.perf_counter() - t0, 3),
+            "missing_keys": 0,
+            "unexpected_keys": 0,
+            "mismatched_keys": 0,
+            "dtype": "api",
+            "device": "openai-api",
+        }
+        log.info("Loaded OpenEMMA GPT backend: %s", self.load_info)
+
+    def _vlm_query(
+        self,
+        prompt: str,
+        image: Any,
+        *,
+        stage: str,
+        max_new_tokens: int,
+    ) -> tuple[str, dict[str, Any]]:
+        import base64
+        from io import BytesIO
+
+        buf = BytesIO()
+        image.save(buf, format="JPEG", quality=90)
+        data_url = "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode("ascii")
+        t0 = time.perf_counter()
+        resp = self._client.chat.completions.create(
+            model=self._gpt_model,
+            temperature=0,
+            max_tokens=int(max_new_tokens),
+            messages=[{
+                "role": "user",
+                "content": [
+                    {"type": "image_url", "image_url": {"url": data_url}},
+                    {"type": "text", "text": prompt},
+                ],
+            }],
+        )
+        text = (resp.choices[0].message.content or "").strip()
+        usage = getattr(resp, "usage", None)
+        return text, {
+            "stage": stage,
+            "model_latency_s": round(time.perf_counter() - t0, 3),
+            "vision": {"image_wh": list(image.size)},
+            "usage": {
+                "prompt_tokens": getattr(usage, "prompt_tokens", None),
+                "completion_tokens": getattr(usage, "completion_tokens", None),
+            } if usage is not None else None,
+        }
