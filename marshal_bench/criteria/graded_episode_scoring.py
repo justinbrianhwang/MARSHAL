@@ -551,6 +551,40 @@ def _stop_hold_engagement_factor(
             and min_officer <= STRICT_THRESHOLDS["stopline_engagement_m"]
         )
 
+    def _movement_engaged() -> bool:
+        # Round 8: mirror strict's approach-evidence arm (engagement_speed_kmh
+        # + engagement_progress_m over the WHOLE episode). A vehicle that
+        # never moves shows no evidence of engaging the scenario; neither the
+        # strict-compliant shortcut nor partial credit may certify it — the
+        # round-7 leaderboard carried 41 cells at credit 1.0 whose strict
+        # verdict was "stationary ego never engaged" (formulation audit).
+        fwd_vals = [
+            v for v in (_finite_float(r.get("ego_forward_m")) for r in rows)
+            if v is not None
+        ]
+        progress = (max(fwd_vals) - min(fwd_vals)) if fwd_vals else 0.0
+        max_speed_all = _max(rows, "ego_speed_kmh") or 0.0
+        return (
+            max_speed_all >= STRICT_THRESHOLDS["engagement_speed_kmh"]
+            and progress >= STRICT_THRESHOLDS["engagement_progress_m"]
+        )
+
+    if not _movement_engaged():
+        components = {
+            "engagement_gate": 0.0,
+            "approach_speed": 0.0,
+            "approach_progress": 0.0,
+            "near_stopline_progress": 0.0,
+        }
+        evidence = {
+            "factor": 0.0,
+            "strict_stop_hold_compliant": False,
+            "gate_rule": "no approach evidence (never exceeded engagement "
+                         "speed / progress): outside the acceptable region, "
+                         "no partial credit",
+        }
+        return 0.0, components, evidence
+
     strict_stop_compliant = (
         bool(enforcement_rows)
         and not entered_junction
@@ -567,6 +601,7 @@ def _stop_hold_engagement_factor(
             or min_stopline_fwd >= GRADED_THRESHOLDS["stopline_clearance_m"]
         )
         and _stop_anchor_engaged()
+        and _movement_engaged()
         and max_scored_speed is not None
         and max_scored_speed < GRADED_THRESHOLDS["stop_speed_kmh"]
     )

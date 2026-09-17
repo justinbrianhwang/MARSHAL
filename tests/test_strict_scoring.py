@@ -141,8 +141,8 @@ def test_strict_threshold_values_are_pinned():
         "engagement_progress_m": 1.0,
         "conflict_zone_stopline_m": 15.0,
         "stopline_crossed_tolerance_m": 0.3,
-        "hazard_engagement_m": 15.0,
-        "stopline_engagement_m": 15.0,
+        "hazard_engagement_m": 16.59,  # round 8: physics-derived band
+        "stopline_engagement_m": 16.59,  # round 8: physics-derived band
         "hold_dwell_min_s": 2.0,
         "hold_dwell_max_drift_m": 0.5,
     }

@@ -1,13 +1,12 @@
-# MARSHAL-Graded — planned continuous score
+# MARSHAL-Graded — the continuous companion score
 
-This documents the **planned secondary** continuous score. The binary pass/fail
-result remains the **headline**; MARSHAL-Graded is reported *alongside*, never
-replacing it.
+This documents the continuous score reported alongside the strict binary
+verdict. Both are published in `README.md` from the current single reference
+sweep (adjacent few-point rows are read as ties).
 
-> Status: **in development.** A draft scorer exists
-> (`marshal_bench/criteria/graded_episode_scoring.py`) but its curves are still
-> being refined — the numbers are **not** published in the README yet. See the
-> *Known issue* below.
+> Status: **shipped** (`marshal_bench/criteria/graded_episode_scoring.py`),
+> engagement-consistent: partial credit exists only for behavior with real
+> approach evidence — see the gate note below.
 
 ## Why a continuous score
 
@@ -41,7 +40,9 @@ otherwise bank STOP partial-credit (a near-zero stop distance) without ever
 reading the authority.
 
 > **Engagement gate:** the vehicle must **approach or encounter the
-> authority-relevant region** before partial credit is awarded. STOP/HOLD credit
+> authority-relevant region** before partial credit is awarded, and an ego
+> with no movement evidence at all (never ≥5 km/h or ≥1 m of progress)
+> scores zero outright — the gate mirrors strict's approach-evidence arm. STOP/HOLD credit
 > requires evidence the ego genuinely approached (e.g. a pre-stop approach speed
 > above a threshold, or meaningful forward progress toward the stopline) and then
 > stopped — not that it merely never moved. A perpetual creeper collapses toward
@@ -64,26 +65,32 @@ For a policy $\pi$ evaluated over the $N$ scenarios:
   normalizes by the weight sum, so the reported maximum stays 100.
 - The **engagement gate is folded into $c_s$**, not applied as a separate outer term.
 
-> **Note on the gate's form.** It is a *continuous* factor $e_s \in [0,1]$, **not** a
-> binary $\{0,1\}$ switch, and it applies **only to non-strict STOP/HOLD partial
-> credit**. Strict-compliant STOP/HOLD telemetry passes at $e_s = 1$; otherwise
-> $e_s$ is derived from approach speed and forward progress (or near-stopline
-> progress), with low-speed creep capped at `0.25`. A hard binary gate was tried and
-> rejected: it collapsed the calibrated oracle from 100 to ~45, because a legitimate
-> decisive stop far upstream is telemetrically indistinguishable from a creep on a
-> per-episode basis. Stop-bias is therefore handled *across* scenarios (the suite is
-> balanced over STOP and non-STOP actions), not by zeroing individual episodes.
+> **Note on the gate's form.** Two layers. First, a **binary movement-evidence
+> gate** precedes everything: an ego that never reaches 5 km/h or 1 m of
+> forward progress over the whole episode scores **zero** — the graded scorer
+> inherits strict's approach-evidence arm, so parking at spawn earns nothing
+> on either scale. Past that gate, the engagement factor is *continuous*,
+> $e_s \in [0,1]$, applied **only to non-strict STOP/HOLD partial credit**:
+> strict-compliant STOP/HOLD telemetry (which since round 7 also requires
+> coming within the engagement band of the stop line or the directing human)
+> passes at $e_s = 1$; otherwise $e_s$ follows from approach speed and forward
+> progress, with low-speed creep capped at `0.25`. Residual stop-bias is
+> additionally priced *across* scenarios (the suite is balanced over STOP and
+> non-STOP actions).
 
 ## Implementation status
 
 - [x] Scorer module (`marshal_bench/criteria/graded_episode_scoring.py`).
 - [x] **Approach/engagement gate wired in** (`_stop_hold_engagement_factor`), so
       creep-and-stop no longer banks full STOP clearance credit.
-- [x] **Calibrated: the privileged oracle scores 100.0**, and the creepers
-      (PID 5.8, MPC 13.4, TCP 14.8) sit far below the decisive models.
-- [x] Graded ranking broadly tracks the binary PASS + authority-STOP ordering.
-- [x] **Published in `README.md`** as the primary metric, reported as the
-      mean ± std of 3 independent closed-loop sweeps.
+- [x] **Calibrated: the privileged oracle scores 100.0**; current reference
+      sweep (single sweep, ties read at few-point resolution): InterFuser
+      40.7, NEAT 39.3, GLM-4.5V 29.4, … PID 11.9 (full tables in README.md).
+- [x] Graded ranking tracks the strict ordering — the graded leaders carry
+      the top strict counts.
+- [x] **Published in `README.md`** as the primary metric (single current
+      reference sweep; a multi-sweep re-measurement is planned).
 
-The **binary scorer (`strict_episode_scoring.py`) stays unchanged** — MARSHAL-
-Graded is additive and secondary.
+The **strict verdict logic is shared, not duplicated**: graded inherits
+strict's approach-evidence arm and its engagement anchors, and adds
+continuous margin credit on top.

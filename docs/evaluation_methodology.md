@@ -45,24 +45,27 @@ inflating the scale (max stays 100; the oracle stays the calibration anchor).
 
 1,000 random perturbations (every weight independently scaled by U(0.75, 1.25),
 seeded) plus a uniform-weights ablation and one-at-a-time ±25% probes, computed
-on the **current 25-scenario, round-7-rescored reference sweep**
+on the **current 25-scenario reference sweep (engagement-consistent graded scorer)**
 (`outputs/weight_sensitivity.json`; the earlier 21-scenario 3-run analysis this
 replaces is preserved in git history):
 
 | Probe | Result |
 |---|---|
-| Uniform weights (all 1.0) | one adjacent swap only (GLM-4.5V ↔ OpenEMMA, 1.0 graded point apart); **all other ranks identical**, all 14 models |
-| Random ±25% × 1000 | Kendall τ vs current ranking **0.987 ± 0.017** |
-| Top non-privileged model changes | **1.5%** of draws (all TransFuser ↔ InterFuser) |
+| Uniform weights (all 1.0) | one adjacent swap only (baseline ↔ TransFuser, equal at 13.8 graded); **all other ranks identical**, all 14 models |
+| Random ±25% × 1000 | Kendall τ vs current ranking **0.967 ± 0.025** |
+| Top non-privileged model changes | **16.3%** of draws (all InterFuser ↔ NEAT — the pair we report as a statistical tie, 1.4 points apart) |
 | Oracle rank 1 | **100%** of draws |
-| Worst one-at-a-time ±25% effect | 1 rank (baseline, `unauthorized_go` −25%) |
-| TransFuser ↔ InterFuser flips | 1.5% of draws — consistent with our reporting of the pair as a **statistical tie** |
-| Most weight-sensitive adjacent pair | GLM-4.5V ↔ OpenEMMA, 26.3% — their means differ by 1.1 points (42.3 vs 41.3), a pair never claimed as a meaningful ordering |
+| Worst one-at-a-time ±25% effect | 2 ranks (baseline, `unauthorized_go` −25%) |
+| InterFuser ↔ NEAT flips | 16.3% of draws — consistent with our reporting of the pair as a **statistical tie** |
+| Most weight-sensitive adjacent pair | baseline ↔ TransFuser, 49.5% — equal means (13.8 vs 13.8), a pair never claimed as an ordering |
 
 **Reading:** the weights express *emphasis*, not the *ranking* — every ordering
-claim in the README survives removing the weights entirely. The genuinely
-weight-sensitive comparisons (GLM-4.5V vs OpenEMMA, baseline vs MPC) are
-adjacent pairs ~1 point apart that we already report as indistinguishable.
+claim in the README survives removing the weights entirely, up to the one
+uniform-weights swap of an exactly-tied pair (baseline vs TransFuser, both
+13.8). The genuinely weight-sensitive comparisons are adjacent pairs we
+already report as ties or non-orderings: baseline vs TransFuser (49.5% of
+draws), OpenEMMA vs AIM (29.2%), InterFuser vs NEAT (16.3%), GLM-4.5V vs TCP
+(13.0%).
 Caveats: this analysis perturbs weights only, over the single current reference
 sweep (run-to-run measurement noise is characterized separately —
 [reproducibility.md](reproducibility.md), 3-run study on the 21-scenario
@@ -76,7 +79,7 @@ generation); Track-C cells are single-sample.
 - **Both metrics carry an engagement requirement, in different forms.** The strict
   binary fails an ego that never engaged the staged scene at all (speed + progress),
   and — since the round-7 adversarial review — an ego that never came within the
-  engagement radius (15 m) of the stop line *or* the directing officer ("park
+  engagement radius (16.6 m, physics-derived: v·t_r + v²/(2a) at the 25 km/h cruise) of the stop line *or* the directing officer ("park
   anywhere short" is not a compliant stop; the privileged oracle, which brakes on
   the true stop line's envelope, is unaffected). The graded score's engagement gate
   is continuous — see [marshal_graded_score.md](marshal_graded_score.md) for why

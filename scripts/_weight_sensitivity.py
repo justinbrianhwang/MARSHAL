@@ -164,9 +164,17 @@ def markdown(result):
 
 
 def main():
-    runs = load_runs(ROOT)
+    # The shipped artifact is produced from the current reference sweep, not
+    # the legacy multirun set: outputs/weight_sensitivity.json must be exactly
+    # reproducible by this CLI (round-8 review fix).
+    sweep = os.path.join(ROOT, "outputs", "full_sweep_results.json")
+    if os.path.exists(sweep):
+        with open(sweep, "r", encoding="utf-8") as f:
+            runs = [json.load(f)]
+    else:
+        runs = load_runs(ROOT)
     if not runs:
-        print("no runs found in outputs/multirun/")
+        print("no runs found (outputs/full_sweep_results.json or outputs/multirun/)")
         return 1
     result = analyze(runs)
     path = os.path.join(ROOT, "outputs", "weight_sensitivity.json")

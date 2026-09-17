@@ -14,6 +14,26 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 
+def engagement_band_m(target_speed_kmh: float = 25.0) -> float:
+    """Physics-derived engagement band (round 8, formulation decision 4).
+
+    The distance an attentive, comfort-bounded driver needs to react and stop
+    from the scenario cruise speed: d = v*t_r + v^2 / (2*a), with t_r = 1.0 s
+    and a = 2.5 m/s^2 (literature-range candidates; primary-source
+    verification tracked in the formulation document). At the suite-wide
+    25 km/h cruise this gives 16.6 m; the previous hand-set 15.0 m gate sits
+    inside the measured 0-flip sensitivity region for this threshold, and the
+    re-score after this change flipped no strict verdict. Every current
+    scenario cruises at 25 km/h, so the value is applied suite-wide; a
+    scenario with a different cruise should pass its own speed here.
+    """
+    try:
+        v = float(target_speed_kmh or 25.0) / 3.6
+    except Exception:
+        v = 25.0 / 3.6
+    return v * 1.0 + (v * v) / (2.0 * 2.5)
+
+
 STRICT_THRESHOLDS: Dict[str, float] = {
     "stop_speed_kmh": 1.0,
     "proceed_speed_kmh": 2.0,
@@ -37,11 +57,11 @@ STRICT_THRESHOLDS: Dict[str, float] = {
     "stopline_crossed_tolerance_m": 0.3,
     # A hazard-anchored stop (no stop line) must actually engage the hazard
     # zone: stop no further than this short of it ...
-    "hazard_engagement_m": 15.0,
+    "hazard_engagement_m": round(engagement_band_m(25.0), 2),
     # ... and the same principle for stop-line-anchored stops: come at least
     # this close to the commanded stop line at some point in the directive
     # window (round 7 — "park anywhere short" previously passed).
-    "stopline_engagement_m": 15.0,
+    "stopline_engagement_m": round(engagement_band_m(25.0), 2),
     # A hold only counts when the ego SETTLES: a contiguous dwell at/below
     # the yield-stop speed lasting at least this long and drifting forward
     # at most this far. A continuous 2.5 km/h creep satisfies a min-speed
