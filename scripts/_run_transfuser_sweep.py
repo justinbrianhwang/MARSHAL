@@ -46,7 +46,7 @@ from marshal_bench.criteria.marshal_metrics import (  # noqa: E402
 from marshal_bench.utils.carla_api_compat import import_carla  # noqa: E402
 from marshal_bench.utils.logging_utils import EpisodeLogger, setup_root_logger  # noqa: E402
 
-OUT_ROOT = ROOT / "tmp" / "_codex_transfuser_sweep_runs"
+OUT_ROOT = Path(os.environ["MARSHAL_OUT_ROOT"]) if os.environ.get("MARSHAL_OUT_ROOT") else ROOT / "tmp" / "_codex_transfuser_sweep_runs"
 RESULTS_JSON = ROOT / "tmp" / "_codex_transfuser_sweep.json"
 REPORT_MD = ROOT / "tmp" / "_codex_transfuser_sweep_report.md"
 COMBINED_JSON = ROOT / "tmp" / "_codex_combined_results.json"

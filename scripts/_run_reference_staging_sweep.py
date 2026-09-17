@@ -35,7 +35,7 @@ from marshal_bench.utils.conditions import (  # noqa: E402
 )
 from marshal_bench.utils.logging_utils import EpisodeLogger, setup_root_logger  # noqa: E402
 
-OUT_ROOT = os.path.join(ROOT, "tmp", "_codex_reference_sweep_runs")
+OUT_ROOT = os.environ.get("MARSHAL_OUT_ROOT") or os.path.join(ROOT, "tmp", "_codex_reference_sweep_runs")
 RESULTS_JSON = os.path.join(ROOT, "tmp", "_codex_reference_sweep.json")
 REPORT_MD = os.path.join(ROOT, "tmp", "_codex_reference_sweep_report.md")
 CONTROLLERS = ("baseline", "oracle")

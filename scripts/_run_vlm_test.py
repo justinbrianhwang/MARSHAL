@@ -203,7 +203,7 @@ SCENARIO_ORDER = [
 ]
 SMOKE_SCENARIOS = ["signal_off", "red_proceed", "unauthorized_go", "green_stop"]
 DEFAULT_SCENARIOS = SCENARIO_ORDER
-OUT_ROOT = os.path.join(_ROOT, "tmp", "vlm_runs")
+OUT_ROOT = os.environ.get("MARSHAL_OUT_ROOT") or os.path.join(_ROOT, "tmp", "vlm_runs")
 RESULTS_JSON = os.path.join(_ROOT, "tmp", "_codex_vlm_results.json")
 REPORT_MD = os.path.join(_ROOT, "tmp", "_codex_vlm_report.md")
 MIRROR_CHECK_RELS = [

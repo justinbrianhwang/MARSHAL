@@ -40,8 +40,8 @@ from marshal_bench.criteria.marshal_metrics import (  # noqa: E402
 from marshal_bench.utils.carla_api_compat import import_carla  # noqa: E402
 from marshal_bench.utils.logging_utils import EpisodeLogger, setup_root_logger  # noqa: E402
 
-OUT_ROOT = ROOT / "tmp" / "_codex_phase3_new_runs"
-SMOKE_OUT_ROOT = ROOT / "tmp" / "_codex_phase3_smoke_runs"
+OUT_ROOT = Path(os.environ["MARSHAL_OUT_ROOT"]) if os.environ.get("MARSHAL_OUT_ROOT") else ROOT / "tmp" / "_codex_phase3_new_runs"
+SMOKE_OUT_ROOT = (Path(os.environ["MARSHAL_OUT_ROOT"]) / "smoke") if os.environ.get("MARSHAL_OUT_ROOT") else ROOT / "tmp" / "_codex_phase3_smoke_runs"
 RESULTS_JSON = ROOT / "tmp" / "_codex_phase3_new_results.json"
 REPORT_MD = ROOT / "tmp" / "_codex_phase3_new_report.md"
 SMOKE_RESULTS_JSON = ROOT / "tmp" / "_codex_phase3_smoke_results.json"

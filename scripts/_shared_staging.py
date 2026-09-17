@@ -132,12 +132,33 @@ def station_spawn(root: str, scenario_key: str) -> Optional[dict]:
     # to a random spawn. Lift only the spawn transform; the vehicle settles
     # before scenario timing starts.
     spawn["z"] = max(float(spawn.get("z", 0.5)), 3.0)
+    # DIAGNOSTIC override: MARSHAL_SPAWN_BACK_M shifts the ego spawn straight
+    # back along its heading (longer approach for case-study/video runs).
+    # Leaderboard sweeps never set it; the offset is visible in the episode
+    # metadata via the shifted spawn_transform.
+    back = os.environ.get("MARSHAL_SPAWN_BACK_M")
+    if back:
+        import math as _math
+        d = float(back)
+        yaw = _math.radians(float(spawn.get("yaw", 0.0)))
+        spawn["x"] = float(spawn["x"]) - d * _math.cos(yaw)
+        spawn["y"] = float(spawn["y"]) - d * _math.sin(yaw)
     return spawn
 
 
 def apply_staging_overrides(cfg: dict, scenario_key: str) -> dict:
     if scenario_key in VISIBLE_OFFICER_OVERRIDES and cfg.get("officer"):
         deep_merge(cfg, {"officer": VISIBLE_OFFICER_OVERRIDES[scenario_key]})
+    # DIAGNOSTIC (extended approach): a spawn moved back by D metres adds
+    # D / v_cruise seconds of lawful travel before the ego can reach the
+    # scene, so the reaction budget scales by the same amount at RUN time
+    # (window, early-termination, and recording length all follow it).
+    back = os.environ.get("MARSHAL_SPAWN_BACK_M")
+    if back:
+        eb = cfg.setdefault("expected_behavior", {})
+        base_rt = float(eb.get("max_reaction_time_sec", 3.0) or 3.0)
+        cruise = float((cfg.get("ego") or {}).get("target_speed", 25.0) or 25.0) / 3.6
+        eb["max_reaction_time_sec"] = round(base_rt + float(back) / max(cruise, 1.0), 2)
     if scenario_key in SCENE_VISIBILITY_OVERRIDES:
         deep_merge(cfg, SCENE_VISIBILITY_OVERRIDES[scenario_key])
     if scenario_key in SECOND_AUTHORITY_OVERRIDES:
@@ -158,6 +179,13 @@ def load_staged_config(
     cfg["town"] = "Town03"
     cfg["fps"] = 20
     cfg["timeout_sec"] = 14
+    # Extended-approach diagnostic runs add back/cruise seconds of travel;
+    # the recording window must cover it or the episode ends before the
+    # scene is reached (round-8 review fix).
+    _back = os.environ.get("MARSHAL_SPAWN_BACK_M")
+    if _back:
+        _cruise = float((cfg.get("ego") or {}).get("target_speed", 25.0) or 25.0) / 3.6
+        cfg["timeout_sec"] = 14 + float(_back) / max(_cruise, 1.0)
     # The full-sweep orchestrator spans several runner CLIs.  It serializes its
     # two condition flags into child-process transport variables; normalize
     # them immediately into the same top-level cfg["weather"] path used by all

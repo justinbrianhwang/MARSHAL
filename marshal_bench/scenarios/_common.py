@@ -614,7 +614,15 @@ def officer_transform_on_ego_route(
     so a geometric "30 m straight ahead" can land the officer off the ego's
     actual route. ``wp.next()`` tracks the lane the ego will really drive.
     Falls back to the straight-ahead placement if waypoints are unavailable.
+
+    DIAGNOSTIC: when MARSHAL_SPAWN_BACK_M moves the ego spawn back for an
+    extended-approach run, the officer's along-lane distance is increased by
+    the same amount so the officer (and the scene he anchors) stays at the
+    original world position.
     """
+    back = os.environ.get("MARSHAL_SPAWN_BACK_M")
+    if back:
+        distance = float(distance) + float(back)
     carla = import_carla()
     try:
         cmap = world.get_map()
