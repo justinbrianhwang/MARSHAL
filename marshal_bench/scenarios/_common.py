@@ -2149,9 +2149,10 @@ def run_scenario(
                 try:
                     _ctrl = ctx.ego.get_control()
                     _thr, _brk = float(_ctrl.throttle), float(_ctrl.brake)
+                    _str = float(getattr(_ctrl, "steer", 0.0))
                     _autopilot = bool(getattr(ctx.ego, "is_autopilot_enabled", lambda: True)())
                 except Exception:
-                    _thr, _brk, _autopilot = -1.0, -1.0, False
+                    _thr, _brk, _str, _autopilot = -1.0, -1.0, 0.0, False
                 ego_loc = _location_from_transform_or_actor(ctx.ego)
                 officer_loc = None
                 try:
@@ -2296,6 +2297,7 @@ def run_scenario(
                     speed_kmh=speed_now,
                     throttle=_thr,
                     brake=_brk,
+                    steer=_str,
                     in_junction=in_junction_now,
                     tl_state=get_traffic_light_state(ctx.traffic_light),
                     ego_x=telemetry_row["ego_x"],
