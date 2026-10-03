@@ -149,6 +149,16 @@ def station_spawn(root: str, scenario_key: str) -> Optional[dict]:
 def apply_staging_overrides(cfg: dict, scenario_key: str) -> dict:
     if scenario_key in VISIBLE_OFFICER_OVERRIDES and cfg.get("officer"):
         deep_merge(cfg, {"officer": VISIBLE_OFFICER_OVERRIDES[scenario_key]})
+    # DIAGNOSTIC (paired controls): MARSHAL_OFFICER_CONDITION changes ONLY the
+    # specified officer condition, leaving scene/route/light/spawn untouched.
+    #   absent  -> remove the officer block (scenario runs with _NullOfficer)
+    #   proceed -> same officer, same position/onset, PROCEED gesture instead
+    # Leaderboard sweeps never set it; unset means byte-identical behavior.
+    officer_condition = (os.environ.get("MARSHAL_OFFICER_CONDITION") or "").lower()
+    if officer_condition == "absent":
+        cfg.pop("officer", None)
+    elif officer_condition == "proceed" and cfg.get("officer"):
+        cfg["officer"]["gesture"] = "PROCEED"
     # DIAGNOSTIC (extended approach): a spawn moved back by D metres adds
     # D / v_cruise seconds of lawful travel before the ego can reach the
     # scene, so the reaction budget scales by the same amount at RUN time
