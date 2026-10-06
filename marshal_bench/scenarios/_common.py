@@ -34,6 +34,7 @@ import math
 import os
 import random
 import re
+import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
@@ -2088,6 +2089,7 @@ def run_scenario(
                     scene_setup_errors.append(f"setup_after_autopilot failed: {e}")
                     log.warning("setup_after_autopilot failed: %s", e)
             steps = int(math.ceil(timeout * fps)) + 1
+            _wall0 = time.perf_counter()  # monotonic wall clock per tick (diagnostic telemetry)
             for _ in range(steps):
                 sync.tick(timeout=2.0)
                 sim_time += delta
@@ -2117,11 +2119,13 @@ def run_scenario(
 
                 # Controller (agent under test) drives the ego when present.
                 control_finite_this_tick = True
+                raw_control = None  # controller's own proposal, pre apply-gate
                 if controller is not None:
                     control_finite_this_tick = False
                     try:
                         obs = _build_observation(ctx, world, sim_time)
                         control = controller.step(obs, delta)
+                        raw_control = control
                         if _finite_vehicle_control(control):
                             ctx.ego.apply_control(control)
                             control_finite_this_tick = True
@@ -2267,11 +2271,34 @@ def run_scenario(
                             distance_to_pedestrian = _d
                 except Exception:
                     distance_to_pedestrian = None
+                _yaw_deg = None
+                try:
+                    _yaw_deg = float(ctx.ego.get_transform().rotation.yaw)
+                except Exception:
+                    _yaw_deg = None
+
+                def _raw_val(name):
+                    if raw_control is None:
+                        return None
+                    try:
+                        v = float(getattr(raw_control, name))
+                        return v if math.isfinite(v) else None
+                    except Exception:
+                        return None
+
                 telemetry_row = {
                     "sim_time": round(sim_time, 4),
+                    "wall_monotonic_s": round(time.perf_counter() - _wall0, 4),
                     "ego_speed_kmh": speed_now,
                     "ego_x": getattr(ego_loc, "x", float("nan")),
                     "ego_y": getattr(ego_loc, "y", float("nan")),
+                    "ego_yaw_deg": _yaw_deg,
+                    "applied_throttle": _thr,
+                    "applied_brake": _brk,
+                    "applied_steer": _str,
+                    "raw_throttle": _raw_val("throttle"),
+                    "raw_brake": _raw_val("brake"),
+                    "raw_steer": _raw_val("steer"),
                     "in_junction": in_junction_now,
                     "distance_to_officer_m": distance_to_officer,
                     "distance_to_stopline_m": distance_to_stopline,
