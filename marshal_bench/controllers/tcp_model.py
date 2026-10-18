@@ -82,13 +82,17 @@ class TCPController(EpisodeController):
         self.route_refresh_period_s = float(self.tcfg.get("route_refresh_period_s", 1.0))
         self.lookahead_m = float(self.tcfg.get("lookahead_m", 4.0))
         self.action_repeat = int(self.tcfg.get("action_repeat", 1))
-        self.postprocess_control = bool(self.tcfg.get("postprocess_control", True))
+        self.postprocess_control = (
+            bool(self.tcfg.get("postprocess_control", True))
+            and os.environ.get("MARSHAL_TCP_POSTPROCESS") != "0"
+        )
 
         self._step_count = 0
         self._inference_count = 0
         self._repeat_left = 0
         self._last_control = None
         self._last_metadata: dict[str, Any] = {}
+        self._last_pp_max_throttle: Optional[float] = None
 
         self._logger = self.config.get("_episode_logger")
         self._debug_dir = self._resolve_debug_dir()
@@ -194,6 +198,7 @@ class TCPController(EpisodeController):
         panorama = None
         target_point = (0.0, 0.0)
         error = ""
+        trace_meta: dict[str, Any] = {}
         try:
             panorama = self._build_panorama(samples)
             image_tensor = self._image_tensor(panorama)
@@ -208,6 +213,15 @@ class TCPController(EpisodeController):
                     pred["pred_wp"], velocity_tensor, target_tensor
                 )
             control = self._make_control(steer, throttle, brake, speed_mps)
+            trace_meta = {
+                "desired_speed": self._trace_scalar(
+                    metadata.get("desired_speed") if isinstance(metadata, dict) else None
+                ),
+                "pre_pp_throttle": self._trace_scalar(throttle),
+                "pre_pp_brake": self._trace_scalar(brake),
+                "pre_pp_steer": self._trace_scalar(steer),
+                "pp_max_throttle": self._last_pp_max_throttle,
+            }
             self._inference_count += 1
             self._last_metadata = {
                 **self._metadata_jsonable(metadata),
@@ -242,6 +256,7 @@ class TCPController(EpisodeController):
             stale=stale,
             target_point=target_point,
             error=error,
+            **trace_meta,
         )
         return control
 
@@ -561,6 +576,11 @@ class TCPController(EpisodeController):
                 "target_y",
                 "stale",
                 "error",
+                "desired_speed",
+                "pre_pp_throttle",
+                "pre_pp_brake",
+                "pre_pp_steer",
+                "pp_max_throttle",
             ],
         )
         self._trace_writer.writeheader()
@@ -578,6 +598,11 @@ class TCPController(EpisodeController):
         stale: bool,
         target_point: Any,
         error: str = "",
+        desired_speed: Any = "",
+        pre_pp_throttle: Any = "",
+        pre_pp_brake: Any = "",
+        pre_pp_steer: Any = "",
+        pp_max_throttle: Any = "",
     ) -> None:
         throttle = float(getattr(control, "throttle", 0.0) or 0.0)
         brake = float(getattr(control, "brake", 0.0) or 0.0)
@@ -603,6 +628,11 @@ class TCPController(EpisodeController):
                     "target_y": round(float(ty), 4),
                     "stale": bool(stale),
                     "error": str(error)[:200],
+                    "desired_speed": desired_speed,
+                    "pre_pp_throttle": pre_pp_throttle,
+                    "pre_pp_brake": pre_pp_brake,
+                    "pre_pp_steer": pre_pp_steer,
+                    "pp_max_throttle": pp_max_throttle,
                 }
             )
             self._trace_fh.flush()
@@ -702,6 +732,7 @@ class TCPController(EpisodeController):
             return 0.0
 
     def _make_control(self, steer: Any, throttle: Any, brake: Any, speed_mps: float) -> Any:
+        self._last_pp_max_throttle = None
         control = self.carla.VehicleControl()
         control.steer = float(np.clip(float(steer), -1.0, 1.0))
         control.throttle = float(np.clip(float(throttle), 0.0, 0.75))
@@ -709,12 +740,20 @@ class TCPController(EpisodeController):
         if self.postprocess_control:
             speed_threshold = 1.0 if abs(control.steer) > 0.07 else 1.5
             max_throttle = 0.05 if float(speed_mps) > speed_threshold else 0.5
+            self._last_pp_max_throttle = max_throttle
             control.throttle = float(np.clip(control.throttle, 0.0, max_throttle))
             if control.brake > 0.0:
                 control.brake = 1.0
             if control.brake > 0.5:
                 control.throttle = 0.0
         return control
+
+    @staticmethod
+    def _trace_scalar(value: Any) -> Any:
+        try:
+            return round(float(value), 5)
+        except (TypeError, ValueError):
+            return ""
 
     def _fallback_control(self, brake: float = 0.0) -> Any:
         control = self.carla.VehicleControl()

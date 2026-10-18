@@ -210,6 +210,9 @@ def load_staged_config(
     if _back:
         _cruise = float((cfg.get("ego") or {}).get("target_speed", 25.0) or 25.0) / 3.6
         cfg["timeout_sec"] = 14 + float(_back) / max(_cruise, 1.0)
+    _timeout = os.environ.get("MARSHAL_TIMEOUT_S")
+    if _timeout:
+        cfg["timeout_sec"] = float(_timeout)
     # The full-sweep orchestrator spans several runner CLIs.  It serializes its
     # two condition flags into child-process transport variables; normalize
     # them immediately into the same top-level cfg["weather"] path used by all

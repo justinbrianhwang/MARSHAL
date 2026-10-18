@@ -239,7 +239,10 @@ def _station_spawn(scenario_key: str) -> Optional[dict]:
 
 def _clear_episode_outputs(episode_id: str) -> None:
     episode_dir = os.path.join(OUT_ROOT, episode_id)
-    for name in ("frames", "frames_ego"):
+    frame_dirs = ["frames", "frames_ego"]
+    if os.environ.get("MARSHAL_VLM_SAVE_INPUTS") == "1":
+        frame_dirs.append("vlm_inputs")
+    for name in frame_dirs:
         shutil.rmtree(os.path.join(episode_dir, name), ignore_errors=True)
     for name in ("events.json", "metrics.csv"):
         try:

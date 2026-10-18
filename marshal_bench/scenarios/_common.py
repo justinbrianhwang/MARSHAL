@@ -34,8 +34,10 @@ import math
 import os
 import random
 import re
+import subprocess
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Callable, Optional
 
 import numpy as np
@@ -80,6 +82,30 @@ GESTURE_ARM_REACH_ALLOWANCE_M = 0.75
 YIELD_CLEARANCE_MARGIN_M = 0.50
 TL_SEARCH_RADIUS = 80.0  # metres
 SPAWN_TL_SEARCH_DISTANCE = 40.0  # metres of forward projection used to score spawns
+
+
+def _code_version() -> Optional[dict[str, Any]]:
+    root = Path(__file__).resolve().parents[2]
+    try:
+        head = subprocess.run(
+            ["git", "-c", "safe.directory=*", "rev-parse", "HEAD"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        ).stdout.strip()
+        status = subprocess.run(
+            ["git", "-c", "safe.directory=*", "status", "--porcelain"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        ).stdout
+        return {"git_commit": head, "dirty": bool(status.strip())}
+    except Exception:
+        return None
 
 
 def _stop_completion_reached(
@@ -1597,6 +1623,9 @@ def run_scenario(
 
     fps = float(config.get("fps", DEFAULT_FPS))
     timeout = float(config.get("timeout_sec", DEFAULT_TIMEOUT_SEC))
+    no_stop_early_termination = (
+        os.environ.get("MARSHAL_NO_STOP_EARLY_TERMINATION") == "1"
+    )
 
     result: dict = {
         "episode_id": config.get("episode_id", name),
@@ -1608,6 +1637,7 @@ def run_scenario(
         "latency": None,
         "traffic_light_state": "Unknown",
         "terminated_reason": "not_started",
+        "code_version": _code_version(),
     }
     scene_setup_errors = []
 
@@ -1725,6 +1755,25 @@ def run_scenario(
                 ego_cfg["spawn_transform"], officer_stopline = picked
                 log.info("Signalised episode: ego spawned 28 m back from a stop line.")
         ctx.ego, ego_transform = spawn_ego(world, ego_cfg, seed=seed)
+
+        physics_payload = {"mass": None, "drag_coefficient": None, "wheels": []}
+        try:
+            physics = ctx.ego.get_physics_control()
+            physics_payload = {
+                "mass": float(physics.mass),
+                "drag_coefficient": float(physics.drag_coefficient),
+                "wheels": [
+                    {
+                        "max_brake_torque": float(wheel.max_brake_torque),
+                        "tire_friction": float(wheel.tire_friction),
+                        "max_handbrake_torque": float(wheel.max_handbrake_torque),
+                    }
+                    for wheel in physics.wheels
+                ],
+            }
+        except Exception as exc:
+            physics_payload["error"] = repr(exc)
+        logger.log_event("ego_physics_control", **physics_payload)
 
         # Let lifted fixed-station spawns settle before scenario timing,
         # sensors, and strict telemetry begin.
@@ -2150,6 +2199,7 @@ def run_scenario(
                     log.debug("latency.tick failed: %s", e)
 
                 # Per-step metric row.
+                _ctrl = None
                 try:
                     _ctrl = ctx.ego.get_control()
                     _thr, _brk = float(_ctrl.throttle), float(_ctrl.brake)
@@ -2286,6 +2336,32 @@ def run_scenario(
                     except Exception:
                         return None
 
+                speed_limit_kmh = None
+                try:
+                    speed_limit_kmh = float(ctx.ego.get_speed_limit())
+                except Exception:
+                    speed_limit_kmh = None
+                ego_z_m = None
+                try:
+                    ego_z_m = float(ego_loc.z)
+                except Exception:
+                    ego_z_m = None
+                ego_vz_mps = None
+                try:
+                    ego_vz_mps = float(ctx.ego.get_velocity().z)
+                except Exception:
+                    ego_vz_mps = None
+                applied_hand_brake = None
+                try:
+                    applied_hand_brake = bool(_ctrl.hand_brake)
+                except Exception:
+                    applied_hand_brake = None
+                applied_gear = None
+                try:
+                    applied_gear = int(_ctrl.gear)
+                except Exception:
+                    applied_gear = None
+
                 telemetry_row = {
                     "sim_time": round(sim_time, 4),
                     "wall_monotonic_s": round(time.perf_counter() - _wall0, 4),
@@ -2296,6 +2372,11 @@ def run_scenario(
                     "applied_throttle": _thr,
                     "applied_brake": _brk,
                     "applied_steer": _str,
+                    "speed_limit_kmh": speed_limit_kmh,
+                    "ego_z_m": ego_z_m,
+                    "ego_vz_mps": ego_vz_mps,
+                    "applied_hand_brake": applied_hand_brake,
+                    "applied_gear": applied_gear,
                     "raw_throttle": _raw_val("throttle"),
                     "raw_brake": _raw_val("brake"),
                     "raw_steer": _raw_val("steer"),
@@ -2348,7 +2429,10 @@ def run_scenario(
                 # Termination: ego stopped within intersection / conflict zone
                 # *after* gesture onset, for STOP scenarios.
                 onset = float(officer_cfg.get("onset_time", 0.0))
-                if expected_action_effective == "STOP":
+                if (
+                    expected_action_effective == "STOP"
+                    and not no_stop_early_termination
+                ):
                     if _stop_completion_reached(
                         sim_time,
                         onset,
@@ -2426,6 +2510,7 @@ def run_scenario(
                 telemetry_rows,
                 strict_score,
                 metadata={
+                    "code_version": result.get("code_version"),
                     "condition": result.get("condition"),
                     "collisions": collision_events,
                     "officer": {

@@ -345,6 +345,8 @@ def _build_config(
             "max_debug_frames": int(args.max_debug_frames),
             "sensor_timeout_s": float(args.sensor_timeout_s),
         }
+        if args.tcp_no_postprocess:
+            cfg["tcp"]["postprocess_control"] = False
     elif key == "interfuser":
         cfg["interfuser"] = {
             "ckpt_path": str(Path(args.interfuser_ckpt).resolve()),
@@ -660,6 +662,8 @@ def _run_one_isolated(
     ]
     if smoke:
         cmd.append("--smoke")
+    if args.tcp_no_postprocess:
+        cmd.append("--tcp-no-postprocess")
 
     started = time.perf_counter()
     try:
@@ -1761,6 +1765,7 @@ def _parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     parser.add_argument("--smoke", action="store_true")
     parser.add_argument("--target-speed-kmh", type=float, default=25.0)
     parser.add_argument("--tcp-ckpt", default=str(DEFAULT_TCP_CKPT))
+    parser.add_argument("--tcp-no-postprocess", action="store_true")
     parser.add_argument("--interfuser-ckpt", default=str(DEFAULT_INTERFUSER_CKPT))
     parser.add_argument("--interfuser-root", default=str(DEFAULT_INTERFUSER_ROOT))
     parser.add_argument("--cilrs-ckpt", default=str(DEFAULT_CILRS_CKPT))

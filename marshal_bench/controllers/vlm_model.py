@@ -124,6 +124,8 @@ _PROMPT = (
 
 
 def _frame_to_data_url(frame, max_side: int = 512) -> str:
+    if isinstance(frame, str) and frame.startswith("data:image/"):
+        return frame
     from PIL import Image
     im = Image.fromarray(frame).convert("RGB")
     w, h = im.size
@@ -279,6 +281,8 @@ class VLMController(EpisodeController):
         self._oracle_shadow = None
         self._vcfg = vcfg
         self._logger = self.config.get("_episode_logger")
+        self._episode_dir: Optional[str] = None
+        self._save_inputs = os.environ.get("MARSHAL_VLM_SAVE_INPUTS") == "1"
         self.carla = None
         self.world = None
         self.ego = None
@@ -357,6 +361,9 @@ class VLMController(EpisodeController):
         """Privileged runs only: live handle to the scene's director."""
         self._assist.set_officer_ref(officer)
 
+    def set_episode_dir(self, episode_dir: str) -> None:
+        self._episode_dir = os.path.abspath(episode_dir)
+
     def _live_officer_state(self) -> Optional[Dict[str, Any]]:
         return self._assist.live_officer_state()
 
@@ -415,12 +422,20 @@ class VLMController(EpisodeController):
             self._query_count += 1
             try:
                 assist = self._ablation_assist(sim_time)
+                query_image = image
+                input_filename = None
+                if self._save_inputs:
+                    query_image = _frame_to_data_url(image)
+                    input_filename = self._save_query_input(
+                        query_image, self._query_count, sim_time
+                    )
                 dec = self._backend.decide(
-                    image, speed_kmh, str(obs.get("tl_state") or ""),
+                    query_image, speed_kmh, str(obs.get("tl_state") or ""),
                     assist=assist)
                 self._record_decision(sim_time, speed_kmh,
                                       str(obs.get("tl_state") or ""), dec,
-                                      assist=assist)
+                                      assist=assist,
+                                      input_filename=input_filename)
                 if dec.get("action"):
                     self._decision = dec
                     self._predicted_target = self._who_to_target(dec.get("who"))
@@ -447,7 +462,8 @@ class VLMController(EpisodeController):
 
     # ------------------------------------------------------------------
     def _record_decision(self, sim_time: float, speed_kmh: float, tl_state: str,
-                         dec: Dict[str, Any], assist: str = "") -> None:
+                         dec: Dict[str, Any], assist: str = "",
+                         input_filename: Optional[str] = None) -> None:
         record = {
             "t": round(float(sim_time), 3),
             "model": self.model,
@@ -467,6 +483,8 @@ class VLMController(EpisodeController):
             "speed_kmh": round(float(speed_kmh), 2),
             "tl_state": tl_state,
         }
+        if input_filename is not None:
+            record["input_filename"] = input_filename
         self.decision_history.append(record)
         if len(self.decision_history) > 64:
             del self.decision_history[:-64]
@@ -476,6 +494,26 @@ class VLMController(EpisodeController):
                 logger.log_event("vlm_decision", **record)
             except Exception:  # noqa: BLE001
                 pass
+
+    def _save_query_input(
+        self, data_url: str, query_index: int, sim_time: float
+    ) -> Optional[str]:
+        episode_dir = self._episode_dir or getattr(self._logger, "episode_dir", None)
+        if not episode_dir:
+            return None
+        relative = f"vlm_inputs/q{query_index}_t{sim_time:.3f}.png"
+        path = os.path.join(episode_dir, *relative.split("/"))
+        try:
+            from PIL import Image
+
+            encoded = data_url.split(",", 1)[1]
+            image = Image.open(io.BytesIO(base64.b64decode(encoded))).convert("RGB")
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            image.save(path, format="PNG")
+            return relative
+        except Exception as exc:  # noqa: BLE001
+            log.warning("Could not save VLM query input %s: %s", path, exc)
+            return None
 
     def _record_error(self, sim_time: float, kind: str, message: str) -> None:
         record = {

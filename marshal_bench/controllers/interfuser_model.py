@@ -10,6 +10,7 @@ import csv
 import logging
 import math
 import os
+import re
 import sys
 import threading
 import time
@@ -214,6 +215,7 @@ class InterFuserController(EpisodeController):
         stale = any(sample_frame < frame for sample_frame in input_frames.values()) if frame else False
         error = ""
         tick_data: Optional[dict[str, Any]] = None
+        safety_meta: dict[str, Any] = {}
         try:
             tick_data = self._build_tick_data(samples)
             model_input = self._model_input(tick_data)
@@ -259,6 +261,7 @@ class InterFuserController(EpisodeController):
                 stop_sign_p,
                 traffic_meta_smooth,
             )
+            safety_meta = self._safety_trace_meta(meta_infos)
             if float(brake) < 0.05:
                 brake = 0.0
             if float(brake) > 0.1:
@@ -305,6 +308,7 @@ class InterFuserController(EpisodeController):
             input_frames=input_frames,
             stale=stale,
             error=error,
+            **safety_meta,
         )
         return control
 
@@ -658,6 +662,9 @@ class InterFuserController(EpisodeController):
                 "imu_frame",
                 "stale",
                 "error",
+                "desired_speed",
+                "brake_reason",
+                "safe_distance",
             ],
         )
         self._trace_writer.writeheader()
@@ -674,6 +681,9 @@ class InterFuserController(EpisodeController):
         input_frames: dict[str, int],
         stale: bool,
         error: str = "",
+        desired_speed: Any = "",
+        brake_reason: Any = "",
+        safe_distance: Any = "",
     ) -> None:
         throttle = float(getattr(control, "throttle", 0.0) or 0.0)
         brake = float(getattr(control, "brake", 0.0) or 0.0)
@@ -695,8 +705,12 @@ class InterFuserController(EpisodeController):
                     "imu_frame": input_frames.get("imu", ""),
                     "stale": bool(stale),
                     "error": str(error)[:200],
+                    "desired_speed": desired_speed,
+                    "brake_reason": brake_reason,
+                    "safe_distance": safe_distance,
                 }
             )
+
             self._trace_fh.flush()
         if self._log_every_n > 0 and (
             self._step_count <= 5 or (self._step_count % self._log_every_n) == 0
@@ -713,6 +727,38 @@ class InterFuserController(EpisodeController):
                 stale,
                 error or "-",
             )
+
+    @staticmethod
+    def _safety_trace_meta(meta_infos: Any) -> dict[str, Any]:
+        desired_speed: Any = ""
+        brake_reason: Any = ""
+        safe_distance: Any = ""
+        if isinstance(meta_infos, dict):
+            desired_speed = meta_infos.get("desired_speed", meta_infos.get("target_speed", ""))
+            brake_reason = meta_infos.get("brake_reason", "")
+            safe_distance = meta_infos.get("safe_distance", meta_infos.get("safe_dis", ""))
+        elif isinstance(meta_infos, (tuple, list)):
+            if meta_infos:
+                match = re.search(
+                    r"(?:desired_speed|target_speed)\s*:\s*(-?\d+(?:\.\d+)?)",
+                    str(meta_infos[0]),
+                )
+                if match:
+                    desired_speed = match.group(1)
+            if len(meta_infos) > 3:
+                safe_distance = meta_infos[3]
+
+        def _number(value: Any) -> Any:
+            try:
+                return round(float(value), 5)
+            except (TypeError, ValueError):
+                return ""
+
+        return {
+            "desired_speed": _number(desired_speed),
+            "brake_reason": str(brake_reason) if brake_reason not in (None, "") else "",
+            "safe_distance": _number(safe_distance),
+        }
 
     def _maybe_save_debug_artifacts(
         self,
