@@ -45,6 +45,7 @@ def _setup_extra_actors(
         ego_transform,
         distance=float(sa.get("distance", 16.0)),
         lateral=float(sa.get("lateral", -2.4)),
+        blueprint_id=sa.get("blueprint_id"),
     )
 
 

@@ -35,6 +35,7 @@ never hard-coded and never logged.
 from __future__ import annotations
 
 import base64
+import csv
 import io
 import json
 import logging
@@ -293,10 +294,16 @@ class VLMController(EpisodeController):
         self._backend = None
         self._last_query_t = -1e9
         self._query_count = 0
+        self._query_error_count = 0
+        self._query_latencies = []
+        self._query_times = []
         self._decision: Dict[str, Any] = {"action": "GO", "who": None, "reason": "init"}
+        self._active_decision_idx = -1
         self.decision_history = []
         self._predicted_target: Optional[str] = None
         self._last_steer = 0.0
+        self._trace_path: Optional[str] = None
+        self._summary_emitted = False
 
     # ------------------------------------------------------------------
     def setup(self, world: Any, ego: Any, ground_truth: Dict[str, Any],
@@ -363,6 +370,16 @@ class VLMController(EpisodeController):
 
     def set_episode_dir(self, episode_dir: str) -> None:
         self._episode_dir = os.path.abspath(episode_dir)
+        self._trace_path = os.path.join(
+            self._episode_dir, "vlm_debug", "vlm_trace.csv"
+        )
+        os.makedirs(os.path.dirname(self._trace_path), exist_ok=True)
+        with open(self._trace_path, "w", encoding="utf-8", newline="") as fh:
+            csv.writer(fh).writerow([
+                "sim_time", "queried_this_tick", "query_idx", "query_latency_s",
+                "active_action", "active_decision_idx", "applied_throttle",
+                "applied_brake", "applied_steer", "base_throttle", "base_brake",
+            ])
 
     def _live_officer_state(self) -> Optional[Dict[str, Any]]:
         return self._assist.live_officer_state()
@@ -414,12 +431,19 @@ class VLMController(EpisodeController):
 
         # Query the VLM on a fixed cadence; reuse the last decision in between.
         image = obs.get("image")
+        queried_this_tick = False
+        query_idx = -1
+        query_latency_s = None
         if (image is not None
                 and sim_time - self._last_query_t >= self.query_period
                 and (self.max_queries is None
                      or self._query_count < self.max_queries)):
             self._last_query_t = sim_time
             self._query_count += 1
+            queried_this_tick = True
+            query_idx = self._query_count
+            self._query_times.append(sim_time)
+            query_started = time.perf_counter()
             try:
                 assist = self._ablation_assist(sim_time)
                 query_image = image
@@ -438,6 +462,7 @@ class VLMController(EpisodeController):
                                       input_filename=input_filename)
                 if dec.get("action"):
                     self._decision = dec
+                    self._active_decision_idx = query_idx
                     self._predicted_target = self._who_to_target(dec.get("who"))
                     log.info("VLM @%.1fs -> %s (who=%s) %s", sim_time,
                              dec.get("action"), dec.get("who"), dec.get("reason"))
@@ -445,20 +470,77 @@ class VLMController(EpisodeController):
                     log.warning("VLM @%.1fs returned no parseable action: %s",
                                 sim_time, dec.get("raw"))
             except urllib.error.HTTPError as e:
+                self._query_error_count += 1
                 detail = e.read()[:160]
                 self._record_error(sim_time, "http", f"{e.code}: {detail!r}")
                 log.warning("VLM HTTP %s: %s", e.code, detail)
             except Exception as e:  # noqa: BLE001
+                self._query_error_count += 1
                 self._record_error(sim_time, "exception", str(e))
                 log.warning("VLM query failed: %s", e)
+            finally:
+                query_latency_s = time.perf_counter() - query_started
+                self._query_latencies.append(query_latency_s)
 
-        return self._apply_action(base, self._decision.get("action"), speed)
+        control = self._apply_action(base, self._decision.get("action"), speed)
+        self._write_trace(
+            sim_time, queried_this_tick, query_idx, query_latency_s,
+            base, control,
+        )
+        return control
 
     def report_target(self) -> Optional[str]:
         return self._predicted_target
 
     def teardown(self) -> None:
-        pass
+        if self._summary_emitted:
+            return
+        self._summary_emitted = True
+        logger = self._logger
+        if logger is not None and hasattr(logger, "log_event"):
+            logger.log_event(
+                "vlm_query_summary",
+                max_queries=self.max_queries,
+                query_period_s=self.query_period,
+                n_queries=self._query_count,
+                n_errors=self._query_error_count,
+                latencies=[round(value, 6) for value in self._query_latencies],
+                first_query_sim_time=(
+                    round(self._query_times[0], 4) if self._query_times else None
+                ),
+                last_query_sim_time=(
+                    round(self._query_times[-1], 4) if self._query_times else None
+                ),
+            )
+
+    def _write_trace(
+        self,
+        sim_time: float,
+        queried_this_tick: bool,
+        query_idx: int,
+        query_latency_s: Optional[float],
+        base: Any,
+        control: Any,
+    ) -> None:
+        if not self._trace_path:
+            return
+        try:
+            with open(self._trace_path, "a", encoding="utf-8", newline="") as fh:
+                csv.writer(fh).writerow([
+                    round(sim_time, 4),
+                    queried_this_tick,
+                    query_idx,
+                    round(query_latency_s, 6) if query_latency_s is not None else None,
+                    str(self._decision.get("action") or ""),
+                    self._active_decision_idx,
+                    float(getattr(control, "throttle", 0.0) or 0.0),
+                    float(getattr(control, "brake", 0.0) or 0.0),
+                    float(getattr(control, "steer", 0.0) or 0.0),
+                    float(getattr(base, "throttle", 0.0) or 0.0),
+                    float(getattr(base, "brake", 0.0) or 0.0),
+                ])
+        except Exception as exc:  # noqa: BLE001
+            log.warning("Could not write VLM trace %s: %s", self._trace_path, exc)
 
     # ------------------------------------------------------------------
     def _record_decision(self, sim_time: float, speed_kmh: float, tl_state: str,

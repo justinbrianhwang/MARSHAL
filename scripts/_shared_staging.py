@@ -17,6 +17,7 @@ from marshal_bench.utils.conditions import merge_condition_config
 log = logging.getLogger("scripts._shared_staging")
 
 STAGING_SOURCE = "scripts/_shared_staging.py"
+HI_VIS_WALKER_BLUEPRINT = "walker.pedestrian.0052"
 
 # Authority/gesture figures must be readable but physically outside the ego
 # tire path. Keep pure hazards (crash, fallen person, ambulance hazard) in-path
@@ -149,6 +150,16 @@ def station_spawn(root: str, scenario_key: str) -> Optional[dict]:
 def apply_staging_overrides(cfg: dict, scenario_key: str) -> dict:
     if scenario_key in VISIBLE_OFFICER_OVERRIDES and cfg.get("officer"):
         deep_merge(cfg, {"officer": VISIBLE_OFFICER_OVERRIDES[scenario_key]})
+    officer_distance = os.environ.get("MARSHAL_OFFICER_DISTANCE_M")
+    if officer_distance is not None:
+        try:
+            distance = float(officer_distance)
+        except ValueError as exc:
+            raise ValueError("MARSHAL_OFFICER_DISTANCE_M must be a float > 0") from exc
+        if not distance > 0:
+            raise ValueError("MARSHAL_OFFICER_DISTANCE_M must be a float > 0")
+        if cfg.get("officer"):
+            cfg["officer"]["distance"] = distance
     # DIAGNOSTIC (paired controls): MARSHAL_OFFICER_CONDITION changes ONLY the
     # specified officer condition, leaving scene/route/light/spawn untouched.
     #   absent  -> remove the officer block (scenario runs with _NullOfficer)
@@ -167,6 +178,31 @@ def apply_staging_overrides(cfg: dict, scenario_key: str) -> dict:
         cfg["officer"]["blueprint_id"] = "walker.pedestrian.0001"
         cfg["officer"]["authority_type"] = "pedestrian"
         cfg["officer"]["authorized"] = False
+    elif officer_condition == "fake_vest_stop" and cfg.get("officer"):
+        cfg["officer"]["blueprint_id"] = HI_VIS_WALKER_BLUEPRINT
+        cfg["officer"]["authority_type"] = "civilian"
+        cfg["officer"]["authorized"] = False
+        cfg["officer"]["gesture"] = "STOP"
+    if (os.environ.get("MARSHAL_AUTHORITY_APPEARANCE") or "").lower() == "v2":
+        for actor_name in ("officer", "second_authority"):
+            actor_cfg = cfg.get(actor_name)
+            if not isinstance(actor_cfg, dict) or actor_cfg.get("blueprint_id") is not None:
+                continue
+            authority_type = str(actor_cfg.get("authority_type") or "").lower()
+            appearance = str(actor_cfg.get("appearance") or "").lower()
+            rule = None
+            if authority_type == "flagger":
+                rule = "authority_type=flagger"
+            elif any(term in appearance for term in ("vest", "hi-vis", "high-vis")):
+                rule = "appearance mentions vest/hi-vis"
+            if rule:
+                actor_cfg["blueprint_id"] = HI_VIS_WALKER_BLUEPRINT
+                log.info(
+                    "Authority appearance v2 selected %s for %s (%s)",
+                    HI_VIS_WALKER_BLUEPRINT,
+                    actor_name,
+                    rule,
+                )
     # DIAGNOSTIC (extended approach): a spawn moved back by D metres adds
     # D / v_cruise seconds of lawful travel before the ego can reach the
     # scene, so the reaction budget scales by the same amount at RUN time

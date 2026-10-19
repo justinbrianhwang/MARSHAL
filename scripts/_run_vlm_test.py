@@ -368,6 +368,29 @@ def _query_period_override(diagnostic: bool) -> Tuple[float, str]:
     return value, f"qp{value!r}_"
 
 
+def _max_queries_override(diagnostic: bool) -> Tuple[Optional[int], str, bool]:
+    """Return (effective cap, episode-id tag, explicitly overridden)."""
+    raw = os.environ.get("MARSHAL_VLM_MAX_QUERIES")
+    if diagnostic or raw is None:
+        return (None if diagnostic else 3), "", False
+    text = raw.strip().lower()
+    if text == "none":
+        return None, "mqinf_", True
+    try:
+        value = int(text)
+    except ValueError as exc:
+        raise SystemExit(
+            "MARSHAL_VLM_MAX_QUERIES must be 0, none, or a positive integer, "
+            f"got {raw!r}"
+        ) from exc
+    if value < 0:
+        raise SystemExit(
+            "MARSHAL_VLM_MAX_QUERIES must be 0, none, or a positive integer, "
+            f"got {raw!r}"
+        )
+    return (None, "mqinf_", True) if value == 0 else (value, f"mq{value}_", True)
+
+
 def _diagnostic_id_parts() -> Tuple[bool, str, str]:
     """(diagnostic, ablation, qp_tag) as _run_one derives them — shared with
     the failure-row helpers so crashed episodes keep the tagged episode ids."""
@@ -391,21 +414,27 @@ def _run_one(client: Any, model: str, scenario_key: str) -> Dict[str, Any]:
     diagnostic = ablation_env is not None
     ablation = (ablation_env or "none").strip().lower() or "none"
     query_period_s, qp_tag = _query_period_override(diagnostic)
+    max_queries, mq_tag, max_queries_overridden = _max_queries_override(diagnostic)
     cfg["vlm"] = {
         "backend": "hf",
         "model": model,
         "query_period_s": query_period_s,
-        "max_queries": None if diagnostic else 3,
+        "max_queries": max_queries,
         "ablation": ablation,
     }
     # Ablation episodes are privileged diagnostics: keep their artifacts in
     # clearly-separated episode ids so they can never be collected into the
     # Track-C leaderboard rows.
-    prefix = f"ablate-{ablation}_{qp_tag}" if diagnostic else ""
+    prefix = f"ablate-{ablation}_{qp_tag}" if diagnostic else mq_tag
     cfg["episode_id"] = f"vlm_{prefix}{_slug(model)}_{scenario_key}"
     _clear_episode_outputs(cfg["episode_id"])
 
     logger = EpisodeLogger(cfg["episode_id"], output_root=OUT_ROOT)
+    logger.save_metadata({
+        "model": model,
+        "scenario": scenario_key,
+        "config": cfg,
+    })
     cfg["_episode_logger"] = logger
     mod = importlib.import_module(f"marshal_bench.scenarios.{spec['module']}")
     restore_patches = _apply_runner_local_patches(scenario_key, mod, cfg)
@@ -465,6 +494,8 @@ def _run_one(client: Any, model: str, scenario_key: str) -> Dict[str, Any]:
         # Diagnostic-only field: keeps the leaderboard row schema unchanged
         # across vintages while making the measured cadence a per-row record.
         row["query_period_s"] = query_period_s
+    if max_queries_overridden:
+        row["max_queries"] = max_queries
     print(
         "{model} / {scenario}: action={action} pass={passed} "
         "terminated={terminated} speed={speed}".format(
@@ -483,7 +514,8 @@ def _run_one(client: Any, model: str, scenario_key: str) -> Dict[str, Any]:
 def _failure_row(model: str, scenario_key: str, exc: Exception) -> Dict[str, Any]:
     spec = SCENARIOS[scenario_key]
     diagnostic, ablation, qp_tag = _diagnostic_id_parts()
-    prefix = f"ablate-{ablation}_{qp_tag}" if diagnostic else ""
+    max_queries, mq_tag, max_queries_overridden = _max_queries_override(diagnostic)
+    prefix = f"ablate-{ablation}_{qp_tag}" if diagnostic else mq_tag
     episode_id = f"vlm_{prefix}{_slug(model)}_{scenario_key}"
     row = {
         "model": model,
@@ -518,6 +550,8 @@ def _failure_row(model: str, scenario_key: str, exc: Exception) -> Dict[str, Any
     }
     if diagnostic:
         row["query_period_s"] = _query_period_override(diagnostic)[0]
+    if max_queries_overridden:
+        row["max_queries"] = max_queries
     print(f"{model} / {scenario_key}: ERROR {row['exception']}", flush=True)
     return row
 
@@ -525,7 +559,8 @@ def _failure_row(model: str, scenario_key: str, exc: Exception) -> Dict[str, Any
 def _native_failure_row(model: str, scenario_key: str, message: str) -> Dict[str, Any]:
     spec = SCENARIOS[scenario_key]
     diagnostic, ablation, qp_tag = _diagnostic_id_parts()
-    prefix = f"ablate-{ablation}_{qp_tag}" if diagnostic else ""
+    max_queries, mq_tag, max_queries_overridden = _max_queries_override(diagnostic)
+    prefix = f"ablate-{ablation}_{qp_tag}" if diagnostic else mq_tag
     episode_id = f"vlm_{prefix}{_slug(model)}_{scenario_key}"
     row = {
         "model": model,
@@ -560,11 +595,13 @@ def _native_failure_row(model: str, scenario_key: str, message: str) -> Dict[str
     }
     if diagnostic:
         row["query_period_s"] = _query_period_override(diagnostic)[0]
+    if max_queries_overridden:
+        row["max_queries"] = max_queries
     print(f"{model} / {scenario_key}: NATIVE CRASH {message}", flush=True)
     return row
 
 
-def _row_key(row: Dict[str, Any]) -> Tuple[str, str, str, str]:
+def _row_key(row: Dict[str, Any]) -> Tuple[str, str, str, str, str]:
     # The ablation level is part of the identity: without it a diagnostic
     # ablation row silently OVERWRITES the genuine Track-C row for the same
     # (model, scenario) when both target one results file (adversarial
@@ -574,11 +611,17 @@ def _row_key(row: Dict[str, Any]) -> Tuple[str, str, str, str]:
         period = float(row.get("query_period_s", 1.5))
     except (TypeError, ValueError):
         period = 1.5
+    if "max_queries" not in row:
+        max_queries_key = "default"
+    else:
+        max_queries = row.get("max_queries")
+        max_queries_key = "inf" if max_queries is None else f"mq{max_queries}"
     return (
         str(row.get("model") or ""),
         str(row.get("scenario") or ""),
         str(row.get("ablation") or ""),
         repr(period),
+        max_queries_key,
     )
 
 
@@ -630,7 +673,11 @@ def _child_output_path(model: str, scenario_key: str) -> str:
     # Ablation-suffixed so a concurrent normal + diagnostic run of the same
     # cell cannot race on one temp file.
     ablation_env = os.environ.get("MARSHAL_VLM_ABLATION")
-    suffix = f"_ablate-{(ablation_env or 'none').strip().lower()}" if ablation_env is not None else ""
+    diagnostic = ablation_env is not None
+    suffix = f"_ablate-{(ablation_env or 'none').strip().lower()}" if diagnostic else ""
+    _, mq_tag, overridden = _max_queries_override(diagnostic)
+    if overridden:
+        suffix += f"_{mq_tag.rstrip('_')}"
     return os.path.join(
         _ROOT,
         "tmp",

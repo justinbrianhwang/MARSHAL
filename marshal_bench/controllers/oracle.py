@@ -497,10 +497,19 @@ class OracleController(EpisodeController):
                 _dstop = float(_raw) if _raw is not None else None
             except Exception:
                 _dstop = None
+            # Only the oracle may combine privileged officer ground truth with
+            # the shared ego observation. Ground truth currently exposes the
+            # primary officer only, not a second authority's transform.
+            _officer = (self.gt or {}).get("officer_transform") or {}
             try:
-                _raw_off = (obs or {}).get("distance_to_officer_m")
-                _doff = float(_raw_off) if _raw_off is not None else None
-            except Exception:
+                _doff = math.sqrt(sum(
+                    (float((obs or {})[f"ego_{axis}"])
+                     - float(_officer[axis])) ** 2
+                    for axis in ("x", "y", "z")
+                ))
+                if not math.isfinite(_doff):
+                    _doff = None
+            except (KeyError, TypeError, ValueError):
                 _doff = None
             # Far-directive approach applies only when BOTH stop anchors (the
             # stop line AND the directing human) are outside the engagement
@@ -515,7 +524,7 @@ class OracleController(EpisodeController):
             _band = float(_ST["stopline_engagement_m"])
             _both_far = (
                 _dstop is not None and _dstop > _band
-                and (_doff is None or _doff > _band)
+                and _doff is not None and _doff > _band
             )
             if _both_far:
                 # Latch far-directive mode: this episode's directive arrived

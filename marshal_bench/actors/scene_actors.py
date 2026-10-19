@@ -440,7 +440,11 @@ def spawn_occluder(
 # #11  second authority — a flagger standing near the officer (conflicting cmd)
 # ---------------------------------------------------------------------------
 def spawn_flagger(
-    world: Any, ego_transform: Any, distance: float = 26.0, lateral: float = -2.4,
+    world: Any,
+    ego_transform: Any,
+    distance: float = 26.0,
+    lateral: float = -2.4,
+    blueprint_id: str | None = None,
 ) -> list:
     """Spawn a construction-flagger walker offset from the officer. Its
     *conflicting* command is ground-truth metadata; the police outranks it.
@@ -464,7 +468,24 @@ def spawn_flagger(
     from marshal_bench.scenarios._common import yaw_toward_location
 
     rot = carla.Rotation(yaw=yaw_toward_location(loc, ego_transform.location))
-    bp = walkers[-1]  # a different blueprint from the police 0030
+    bp = next(
+        (candidate for candidate in walkers
+         if getattr(candidate, "id", None) == blueprint_id),
+        None,
+    )
+    if bp is not None:
+        blueprint_rule = f"explicit blueprint_id={blueprint_id}"
+    else:
+        bp = walkers[-1]  # legacy default: a different blueprint from police 0030
+        blueprint_rule = (
+            f"explicit blueprint_id={blueprint_id} unavailable; legacy fallback"
+            if blueprint_id else "legacy last-walker default"
+        )
+    log.info(
+        "Selected flagger blueprint: %s (%s)",
+        getattr(bp, "id", None),
+        blueprint_rule,
+    )
     actor = world.try_spawn_actor(bp, carla.Transform(loc, rot))
     if actor is None:
         return []
