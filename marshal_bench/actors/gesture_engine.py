@@ -173,9 +173,25 @@ class GestureEngine:
 
     def __init__(self, caps: Optional[Capabilities] = None):
         self._caps: Capabilities = caps or detect_capabilities()
-        self.pose_baseline_rotations_: dict[int, dict[str, Any]] = {}
-        self._bone_map_cache: dict[int, dict[str, Optional[str]]] = {}
-        self._all_bones_cache: dict[int, list[str]] = {}
+        self.pose_baseline_rotations_: dict[tuple[int, Any], dict[str, Any]] = {}
+        self._bone_map_cache: dict[tuple[int, Any], dict[str, Optional[str]]] = {}
+        self._all_bones_cache: dict[tuple[int, Any], list[str]] = {}
+
+    @staticmethod
+    def _actor_key(actor: Any) -> tuple[int, Any]:
+        """Include CARLA's stable actor id; Python may reuse wrapper ids."""
+        return (id(actor), getattr(actor, "id", None))
+
+    def clear_actor(self, actor: Any) -> None:
+        """Drop all cached pose data for an actor before it is destroyed."""
+        object_id = id(actor)
+        for cache in (
+            self.pose_baseline_rotations_,
+            self._bone_map_cache,
+            self._all_bones_cache,
+        ):
+            for key in [key for key in cache if key[0] == object_id]:
+                cache.pop(key, None)
 
     # ------------------------------------------------------------------ caps
     def supports_skeleton_control(self, actor: Any) -> bool:
@@ -192,7 +208,7 @@ class GestureEngine:
 
     # ----------------------------------------------------- baseline snapshot
     def _ensure_baseline(self, actor: Any) -> dict[str, Any]:
-        key = id(actor)
+        key = self._actor_key(actor)
         if key in self.pose_baseline_rotations_:
             return self.pose_baseline_rotations_[key]
 
@@ -223,7 +239,83 @@ class GestureEngine:
 
     def _bone_map(self, actor: Any) -> dict[str, Optional[str]]:
         self._ensure_baseline(actor)
-        return self._bone_map_cache.get(id(actor), {})
+        return self._bone_map_cache.get(self._actor_key(actor), {})
+
+    def gesture_capability_error(
+        self, actor: Any, gesture_id: GestureID
+    ) -> Optional[str]:
+        """Return why this skeleton cannot safely render ``gesture_id``.
+
+        CARLA 0.9.16's compact 26-bone walkers expose the main arm names but
+        silently ignore ``set_bones``.  The working 66-bone rigs also expose
+        hand descendants, so require that complete signalling chain rather
+        than treating any non-empty skeleton as pose-capable.
+        """
+        self._ensure_baseline(actor)
+        key = self._actor_key(actor)
+        bone_map = self._bone_map_cache.get(key, {})
+        names = self._all_bones_cache.get(key, [])
+        required = {
+            canonical
+            for frame in self.build_pose_sequence(gesture_id)
+            for canonical in frame.bones
+        }
+        missing = sorted(canonical for canonical in required if not bone_map.get(canonical))
+        if missing:
+            return f"missing gesture bones: {', '.join(missing)}"
+        sides = {"r" if canonical.startswith("r_") else "l" for canonical in required}
+        for side in sides:
+            hand = bone_map.get(f"{side}_hand")
+            suffix = f"__{side.upper()}"
+            finger_tokens = ("thumb", "index", "middle", "ring", "pinky")
+            if hand and not any(
+                any(token in name.lower() for token in finger_tokens)
+                and name.endswith(suffix)
+                for name in names
+            ):
+                return (
+                    f"compact {len(names)}-bone skeleton has no {side}-hand descendants; "
+                    "CARLA does not render bone poses on this rig"
+                )
+        return None
+
+    def gesture_render_probe(
+        self, actor: Any, gesture_id: GestureID
+    ) -> Optional[tuple[str, float]]:
+        """Return the moved bone and minimum rotation that proves rendering.
+
+        The probe is derived from the real pose keyframes: choose the bone with
+        the largest guaranteed rotation across every phase, then require 20%
+        of that rotation.  This avoids hand-displacement false positives for
+        HOLD, SLOW, PROCEED, LEFT, and RIGHT while still detecting an ignored
+        ``set_bones`` call.
+        """
+        frames = self.build_pose_sequence(gesture_id)
+        if not frames:
+            return None
+        shared_bones = set(frames[0].bones)
+        for frame in frames[1:]:
+            shared_bones.intersection_update(frame.bones)
+        if not shared_bones:
+            return None
+
+        def rotation_magnitude(rotation: tuple[float, float, float]) -> float:
+            return math.sqrt(sum(float(angle) ** 2 for angle in rotation))
+
+        canonical, guaranteed = max(
+            (
+                (
+                    bone,
+                    min(rotation_magnitude(frame.bones[bone]) for frame in frames),
+                )
+                for bone in shared_bones
+            ),
+            key=lambda item: item[1],
+        )
+        actual = self._bone_map(actor).get(canonical)
+        if actual is None or guaranteed <= 0.0:
+            return None
+        return actual, guaranteed * 0.20
 
     # ------------------------------------------------------------ keyframes
     def build_pose_sequence(self, gesture_id: GestureID) -> list[PoseKeyframe]:

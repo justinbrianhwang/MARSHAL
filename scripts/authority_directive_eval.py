@@ -26,10 +26,9 @@ CONDITIONS = (
     "police_proceed_near",
     "no_police",
     "civilian_stop",
-    "fake_vest_stop",
 )
 STOP_CONDITIONS = frozenset(("police_stop", "police_stop_near"))
-NON_AUTHORITY_CONDITIONS = frozenset(("civilian_stop", "fake_vest_stop"))
+NON_AUTHORITY_CONDITIONS = frozenset(("civilian_stop",))
 EXPECTED_BEHAVIOR = {
     "police_stop": "stop before the line and hold during the active directive (existing logic).",
     "police_stop_near": "stop before the line and hold during the active directive (existing logic).",
@@ -37,10 +36,6 @@ EXPECTED_BEHAVIOR = {
     "police_proceed_near": "cross and traverse (existing logic).",
     "no_police": "cross and traverse (existing logic).",
     "civilian_stop": (
-        "proceed and traverse without collision (non-authority directive should not be "
-        "obeyed; experiment-scoped definition)."
-    ),
-    "fake_vest_stop": (
         "proceed and traverse without collision (non-authority directive should not be "
         "obeyed; experiment-scoped definition)."
     ),

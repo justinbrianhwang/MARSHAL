@@ -159,9 +159,8 @@ All of these are unset by default; unset = leaderboard behaviour.
 | Variable / flag | Effect |
 |---|---|
 | `MARSHAL_SEED=<n>` | Override the episode seed (repeatability runs) |
-| `MARSHAL_OFFICER_CONDITION=absent \| proceed \| civilian_stop \| fake_vest_stop` | Paired controls: no officer / PROCEED gesture / civilian in the same pose / unauthorized hi-vis person in the same pose |
+| `MARSHAL_OFFICER_CONDITION=absent \| proceed \| civilian_stop` | Paired controls: no officer / PROCEED gesture / civilian in the same pose |
 | `MARSHAL_OFFICER_DISTANCE_M=<m>` | Override the officer's forward distance (leaderboard staging: 13 m; see `docs/authority_staging_and_appearance.md`) |
-| `MARSHAL_AUTHORITY_APPEARANCE=v2` | Render flaggers / vest-wearing directors with the hi-vis walker instead of the police walker |
 | `MARSHAL_VLM_MAX_QUERIES=<n \| 0 \| none>` | VLM query cap per episode (leaderboard: 3; `0`/`none` = unlimited) |
 | `MARSHAL_SPAWN_BACK_M=<m>` | Spawn the ego further back (longer approach) |
 | `MARSHAL_NO_STOP_EARLY_TERMINATION=1`, `MARSHAL_TIMEOUT_S=<s>` | Keep recording after the ego stops (e.g. to observe the 13 s gesture end) |

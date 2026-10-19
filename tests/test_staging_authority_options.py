@@ -13,7 +13,6 @@ from scripts import _shared_staging as staging
 NEW_ENV_VARS = (
     "MARSHAL_OFFICER_DISTANCE_M",
     "MARSHAL_OFFICER_CONDITION",
-    "MARSHAL_AUTHORITY_APPEARANCE",
     "MARSHAL_SPAWN_BACK_M",
 )
 
@@ -74,65 +73,6 @@ def test_officer_distance_must_be_positive(
 
     with pytest.raises(ValueError, match="MARSHAL_OFFICER_DISTANCE_M"):
         staging.apply_staging_overrides({"officer": {}}, "green_stop")
-
-
-def test_fake_vest_stop_changes_only_requested_officer_fields(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    _clear_new_env(monkeypatch)
-    monkeypatch.setenv("MARSHAL_OFFICER_CONDITION", "fake_vest_stop")
-    cfg = {
-        "officer": {
-            "distance": 30.0,
-            "lateral_offset": 2.0,
-            "gesture": "PROCEED",
-            "onset_time": 1.25,
-            "duration": 9.0,
-            "hand_prop": "static.prop.stopquad",
-        }
-    }
-
-    staging.apply_staging_overrides(cfg, "green_stop")
-
-    assert cfg["officer"] == {
-        "distance": 13.0,
-        "lateral_offset": 3.2,
-        "gesture": "STOP",
-        "onset_time": 1.25,
-        "duration": 9.0,
-        "hand_prop": "static.prop.stopquad",
-        "blueprint_id": "walker.pedestrian.0052",
-        "authority_type": "civilian",
-        "authorized": False,
-    }
-
-
-def test_authority_appearance_v2_maps_eligible_null_blueprints(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    _clear_new_env(monkeypatch)
-    monkeypatch.setenv("MARSHAL_AUTHORITY_APPEARANCE", "v2")
-    cases = [
-        ({"authority_type": "flagger"}, "walker.pedestrian.0052"),
-        (
-            {"authority_type": "civilian", "appearance": "orange hi-vis jacket"},
-            "walker.pedestrian.0052",
-        ),
-        ({"authority_type": "police", "blueprint_id": None}, None),
-        (
-            {"authority_type": "flagger", "blueprint_id": "walker.pedestrian.0001"},
-            "walker.pedestrian.0001",
-        ),
-    ]
-
-    for officer, expected in cases:
-        cfg = {"officer": officer}
-        staging.apply_staging_overrides(cfg, "not_staged")
-        assert cfg["officer"].get("blueprint_id") == expected
-
-    cfg = {"second_authority": {"authority_type": "flagger", "blueprint_id": None}}
-    staging.apply_staging_overrides(cfg, "not_staged")
-    assert cfg["second_authority"]["blueprint_id"] == "walker.pedestrian.0052"
 
 
 def test_explicit_officer_blueprint_wins_over_police_default() -> None:

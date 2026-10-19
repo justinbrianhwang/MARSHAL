@@ -59,15 +59,10 @@ _GREEN_SPEC = {
     "config": "marshal_bench/configs/demo_green_stop.yaml",
     "expect": "STOP",
 }
-_FAKE_SPEC = {
-    "config": "marshal_bench/configs/demo_fake_vest_director.yaml",
-    "expect": "STOP",
-}
 VARIANTS = (
     "police_stop",
     "police_proceed",
     "civilian_stop",
-    "fake_vest",
     "no_police",
 )
 
@@ -97,19 +92,7 @@ def _variant_config(name: str) -> dict:
         "no_police": "absent",
     }.get(name)
     with _officer_condition(condition):
-        green = load_staged_config(str(_ROOT), "green_stop", _GREEN_SPEC, "capture")
-    if name != "fake_vest":
-        return green
-
-    with _officer_condition(None):
-        fake = load_staged_config(str(_ROOT), "fake_vest_director", _FAKE_SPEC, "capture")
-    # The visual/legal identity comes from the fake-vest scenario; its location
-    # is pinned to the green_stop episode placement requested for this panel.
-    officer = dict(fake["officer"])
-    officer["distance"] = green["officer"]["distance"]
-    officer["lateral_offset"] = green["officer"]["lateral_offset"]
-    green["officer"] = officer
-    return green
+        return load_staged_config(str(_ROOT), "green_stop", _GREEN_SPEC, "capture")
 
 
 def _xyz(value: Any) -> dict[str, float]:

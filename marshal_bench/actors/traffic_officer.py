@@ -49,6 +49,8 @@ class TrafficOfficer:
     # Limb gestures must not rotate a correctly staged director away from ego.
     _PROCEED_BODY_YAW_OFFSET_DEG: float = 0.0
     _PADDLE_RADIUS_M: float = 0.32
+    _GESTURE_VERIFY_DELAY_S: float = 0.10
+    _GESTURE_VERIFY_PERIOD_S: float = 1.0
 
     def __init__(
         self,
@@ -100,6 +102,12 @@ class TrafficOfficer:
         self._destroyed: bool = False
         self._hand_prop_blueprint_id: Optional[str] = None
         self._hand_prop_debug_paddle: bool = False
+        self._setup_errors: list[str] = []
+        self._idle_bone_rotations: dict[str, tuple[float, float, float]] = {}
+        self._last_gesture_verify_at: Optional[float] = None
+        self._gesture_render_checks_performed: int = 0
+        self._gesture_render_checks_passed: int = 0
+        self._gesture_render_checks_skipped_off_screen: int = 0
 
     # ============================================================ lifecycle
     def spawn(self) -> Optional[Any]:
@@ -124,8 +132,37 @@ class TrafficOfficer:
         if self._base_transform is None:
             self._base_transform = self.transform
 
-        if self.use_skeleton and self._gesture_engine.supports_skeleton_control(actor):
+        if self.use_skeleton and not self._gesture_engine.supports_skeleton_control(actor):
+            message = (
+                f"gesture skeleton incompatible for {self._actor_blueprint_id}: "
+                "walker bone API unavailable or returned no bones"
+            )
+            self._setup_errors.append(message)
+            log.error(message)
+            self._gesture_engine.clear_actor(actor)
+            self._safe_destroy(actor)
+            self._actor = None
+            return None
+        if self.use_skeleton:
+            requested = (
+                self._current_gesture.gesture_id
+                if self._current_gesture is not None
+                else GestureID.STOP
+            )
+            capability_error = self._gesture_engine.gesture_capability_error(actor, requested)
+            if capability_error:
+                message = (
+                    f"gesture skeleton incompatible for {self._actor_blueprint_id}: "
+                    f"{capability_error}"
+                )
+                self._setup_errors.append(message)
+                log.error(message)
+                self._gesture_engine.clear_actor(actor)
+                self._safe_destroy(actor)
+                self._actor = None
+                return None
             self._skeleton_ok = True
+            self._snapshot_idle_bones()
         else:
             log.info("Skeleton control unavailable for this officer; debug fallback will be used.")
 
@@ -145,6 +182,7 @@ class TrafficOfficer:
             self._safe_destroy(ax)
         self._aux_actors.clear()
         if self._actor is not None:
+            self._gesture_engine.clear_actor(self._actor)
             self._safe_destroy(self._actor)
             self._actor = None
         self._destroyed = True
@@ -169,6 +207,7 @@ class TrafficOfficer:
             authority_valid=self.authorized,
         )
         self._using_fallback = False
+        self._last_gesture_verify_at = None
         log.info(
             "TrafficOfficer set_gesture: %s onset=%.2f duration=%s target=%s lane=%s",
             gesture_id.value, onset_time, duration, target_relation, target_lane_id,
@@ -199,6 +238,8 @@ class TrafficOfficer:
         if not in_window:
             if self._skeleton_ok:
                 self._gesture_engine.apply_idle(self._actor)
+                if timestamp < gs.onset_time:
+                    self._snapshot_idle_bones()
             self._track_hand_prop()
             if self.use_debug_visuals:
                 self.draw_debug()
@@ -243,7 +284,91 @@ class TrafficOfficer:
             "hand_prop_actor_id": getattr(self._hand_prop_actor, "id", None)
             if self._hand_prop_actor else None,
             "hand_prop_debug_paddle": bool(self._hand_prop_debug_paddle),
+            "gesture_render_checks_performed": self._gesture_render_checks_performed,
+            "gesture_render_checks_passed": self._gesture_render_checks_passed,
+            "gesture_render_checks_skipped_off_screen": (
+                self._gesture_render_checks_skipped_off_screen
+            ),
+            "setup_errors": list(self._setup_errors),
         }
+
+    def get_setup_errors(self) -> list[str]:
+        return list(self._setup_errors)
+
+    def verify_gesture_rendered(
+        self,
+        timestamp: float,
+        *,
+        in_camera_frustum: Optional[bool],
+        unavailable_reason: Optional[str] = None,
+    ) -> Optional[str]:
+        """Verify a pose-defined arm bone rotated, or fail closed if unavailable."""
+        gs = self._current_gesture
+        if (
+            self._actor is None
+            or not self._skeleton_ok
+            or gs is None
+            or gs.gesture_id is GestureID.IDLE
+            or timestamp < gs.onset_time + self._GESTURE_VERIFY_DELAY_S
+            or (gs.duration is not None and timestamp > gs.onset_time + gs.duration)
+        ):
+            return None
+        if unavailable_reason is not None:
+            return self._gesture_render_unavailable(unavailable_reason)
+        if in_camera_frustum is False:
+            self._gesture_render_checks_skipped_off_screen += 1
+            return None
+        if in_camera_frustum is not True:
+            return self._gesture_render_unavailable("camera frustum result missing")
+        if (
+            self._last_gesture_verify_at is not None
+            and timestamp - self._last_gesture_verify_at < self._GESTURE_VERIFY_PERIOD_S
+        ):
+            return None
+        self._last_gesture_verify_at = timestamp
+        self._gesture_render_checks_performed += 1
+        try:
+            probe = self._gesture_engine.gesture_render_probe(self._actor, gs.gesture_id)
+        except Exception as exc:
+            return self._gesture_render_unavailable(
+                f"probe computation failed: {exc}"
+            )
+        if probe is None:
+            return self._gesture_render_unavailable(
+                f"missing probe for {gs.gesture_id.value}"
+            )
+        bone_name, threshold = probe
+        idle = self._idle_bone_rotations.get(bone_name)
+        if idle is None:
+            return self._gesture_render_unavailable(
+                f"missing idle rotation for probe bone {bone_name}"
+            )
+        try:
+            current = self._bone_rotation(bone_name)
+        except Exception as exc:
+            return self._gesture_render_unavailable(f"bone read failed: {exc}")
+        rotated = math.sqrt(
+            sum(self._angle_delta(now, base) ** 2 for base, now in zip(idle, current))
+        )
+        if rotated >= threshold:
+            self._gesture_render_checks_passed += 1
+            return None
+        detail = (
+            f"{bone_name} rotated only {rotated:.1f} deg "
+            f"(expected at least {threshold:.1f} deg)"
+        )
+        message = f"gesture not rendered: {detail}"
+        if message not in self._setup_errors:
+            self._setup_errors.append(message)
+            log.error(message)
+        return message
+
+    def _gesture_render_unavailable(self, reason: str) -> str:
+        message = f"gesture render check unavailable: {reason}"
+        if message not in self._setup_errors:
+            self._setup_errors.append(message)
+            log.error(message)
+        return message
 
     def get_actor(self) -> Optional[Any]:
         return self._actor
@@ -332,6 +457,38 @@ class TrafficOfficer:
             return float(snap.timestamp.elapsed_seconds)
         except Exception:
             return 0.0
+
+    @staticmethod
+    def _angle_delta(value: float, baseline: float) -> float:
+        return (float(value) - float(baseline) + 180.0) % 360.0 - 180.0
+
+    def _bone_rotation(self, bone_name: str) -> tuple[float, float, float]:
+        if self._actor is None or not bone_name:
+            raise RuntimeError("gesture actor or probe bone missing")
+        for bone in self._actor.get_bones().bone_transforms:
+            if bone.name == bone_name:
+                rotation = bone.relative.rotation
+                return (
+                    float(rotation.pitch),
+                    float(rotation.yaw),
+                    float(rotation.roll),
+                )
+        raise RuntimeError(f"probe bone {bone_name} not returned by actor")
+
+    def _snapshot_idle_bones(self) -> None:
+        if self._actor is None:
+            return
+        try:
+            self._idle_bone_rotations = {
+                bone.name: (
+                    float(bone.relative.rotation.pitch),
+                    float(bone.relative.rotation.yaw),
+                    float(bone.relative.rotation.roll),
+                )
+                for bone in self._actor.get_bones().bone_transforms
+            }
+        except Exception as exc:
+            log.debug("idle bone snapshot failed: %s", exc)
 
     def _apply_body_orientation(self, gesture_id: GestureID) -> None:
         """Rotate in place for the canonical facing of the active signal."""

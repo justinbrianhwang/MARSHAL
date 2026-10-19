@@ -166,8 +166,8 @@ def test_prelaunch_hold_is_not_used_as_stop_position(monkeypatch):
     assert result["first_sustained_stop_front_margin_m"] != pytest.approx(7.4041)
 
 
-@pytest.mark.parametrize("condition", ["civilian_stop", "fake_vest_stop"])
-def test_non_authority_stop_gesture_is_expected_to_be_ignored(monkeypatch, condition):
+def test_non_authority_stop_gesture_is_expected_to_be_ignored(monkeypatch):
+    condition = "civilian_stop"
     result = evaluate_episode(
         _episode(monkeypatch, condition, _proceed_rows(gesture="STOP")), condition
     )

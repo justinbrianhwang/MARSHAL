@@ -1,6 +1,6 @@
 # Authority-figure staging: distance, lateral offset and appearance
 
-This document records where the human authority figures (police officer, flagger, vest-wearing director, civilian) are placed in the leaderboard scenes, **why those numbers were chosen**, and what we measured when we changed them. It also covers a stimulus defect we found in seven scenarios (flaggers rendered in a police uniform), its re-measurement, and an oracle regression found and fixed during the same check.
+This document records where the human authority figures (police officer, flagger, vest-wearing director, civilian) are placed in the leaderboard scenes, **why those numbers were chosen**, and what we measured when we changed them. It also covers a stimulus limitation found in seven scenarios (flaggers rendered with the police walker, or as a static vest walker that does not gesture), why it cannot be fixed with the stock CARLA walkers, the safeguards added, and an oracle regression found and fixed during the same check.
 
 All experiments here: CARLA 0.9.16, Town03, leaderboard settings unless stated. CARLA was restarted before every episode, and a world check after every episode confirmed no leftover actors.
 
@@ -100,57 +100,48 @@ The current values are the third placement. Each earlier placement was dropped b
 - Making the officer visible does not make the models compliant.
 - We keep 13 m for the leaderboard. It is the distance at which E2E and VLM models were compared, and moving closer would bring back the Step 2 obstacle-like cue for camera models.
 
-## 4. Appearance defect: flaggers rendered as police
+## 4. Flagger appearance: a known limitation
 
-**Defect:**
-- Seven scenarios specify a flagger or a vest-wearing person, but no walker blueprint was set for that role, so the person was rendered with the police walker (`walker.pedestrian.0030`).
-- Affected scenarios: `flagger_control`, `flagger_slow_then_stop`, `out_of_jurisdiction_director`, `stale_directive_residue`, `fake_vest_director`, and the second authority in `conflicting_authorities` and `dual_authority_handoff`.
-- This matters most for `fake_vest_director`, where the point is a person *without* police authority.
+**What we found:**
+- Five scenarios specify a flagger or a vest-wearing director as the primary authority, but the config gives no walker
+  blueprint for that role, so the person is rendered with the police walker (`walker.pedestrian.0030`) while gesturing:
+  `flagger_control`, `flagger_slow_then_stop`, `out_of_jurisdiction_director`, `stale_directive_residue`,
+  `fake_vest_director`.
+- In `conflicting_authorities` and `dual_authority_handoff` the second authority (flagger) is spawned as a static walker.
+  With no blueprint configured it falls back to the last walker in the library, which is the hi-vis walker
+  `walker.pedestrian.0052`. It wears a vest but does not gesture: its PROCEED / SLOW signal exists only in the scenario
+  metadata.
 
-**Fix (opt-in):**
-- `MARSHAL_AUTHORITY_APPEARANCE=v2` gives the flagger or vest-wearing person the hi-vis walker `walker.pedestrian.0052`.
-- The rule applies when `authority_type: flagger`, or when `appearance` mentions vest or hi-vis.
-- An explicit `blueprint_id` in a config is never overridden.
-- Police officers keep 0030.
+**Why it is not changed:**
+- We audited all 52 walker blueprints in CARLA 0.9.16 live: each walker was posed with the STOP gesture in front of a
+  camera and the right-hand bone height was measured.
+- 49 blueprints (0001–0049) have a 66-bone skeleton and raise the right hand by about 0.37–0.75 m.
+- 0050–0052 have a 26-bone skeleton. `set_bones` returns without error, but the arm does not move in any tested
+  combination of bone subset, transform space and pose-call order.
+- 0052 is the only hi-vis (vest) walker in this build. No stock walker can both wear a vest and gesture.
+- A vest drawn with debug geometry on a gesture-capable walker was tried and rejected: it does not look like a garment
+  and could act as an artificial cue.
+- The published leaderboard therefore keeps these scenes as they are. A proper fix needs a new walker asset (a
+  gesture-capable body with a hi-vis texture) built in the CARLA source tree.
+- An earlier 98-episode re-measurement that swapped in 0052 is **not valid**: the swapped-in flaggers did not gesture. Its
+  results are not reported.
 
-**Verification:**
-- All 70 single-authority episodes (5 scenarios × 14 models) log `walker.pedestrian.0052`.
-- For the two dual-authority scenarios, rendered frames show exactly one officer (0030) and one vest worker (0052).
-
-### Re-measurement: 7 scenarios × 14 models = 98 episodes
-
-Leaderboard settings throughout, including the 3-query VLM cap and early termination. Each new episode was re-scored with the same strict and graded scorers as the published leaderboard (`scripts/_collect_sweep.py` functions).
-
-| Model | 7-scenario strict PASS (published → v2) | graded credit, mean of 7 | 25-scenario total PASS |
-|---|---|---|---|
-| Oracle | 7 → 7 | 1.00 → 1.00 | 25 → 25 |
-| GLM-4.5V | **3 → 1** | 0.47 → 0.14 | **6 → 4** |
-| Qwen2.5-VL-72B | 3 → 3 | 0.43 → 0.44 | 5 → 5 |
-| InterFuser | 3 → 3 | 0.67 → 0.59 | 6 → 6 |
-| CILRS | 2 → 2 | 0.33 → 0.34 | 5 → 5 |
-| Baseline, PID, MPC, OpenEMMA, Qwen3-VL | 1 → 1 | ≈ unchanged | unchanged |
-| TransFuser, TCP, AIM, NEAT | 0 → 0 | small changes | unchanged |
-
-**Cells that changed (4 of 98):**
-- **GLM-4.5V, `flagger_control` and `flagger_slow_then_stop`: PASS → FAIL.**
-  - Published run: GLM drove up to about 18.6 km/h and then held, calling the person an *officer*.
-  - v2: it called the person a *flagger* from the first query and issued STOP before moving. The ego never left the spawn.
-  - The strict scorer does not credit a stop that never engages the scenario ("stationary ego never engaged the STOP/HOLD scenario"), which closes the spawn-parking loophole.
-  - So the identification improved, but the scorer reports a FAIL.
-- **Qwen2.5-VL-72B:**
-  - `flagger_control` went PASS → FAIL (collision).
-  - `flagger_slow_then_stop` went FAIL → PASS.
-  - Its decisions alternate between GO and STOP within an episode, so these flips are within its run-to-run noise. The net change is zero.
-
-**Recognition shift (VLM `who` field, `flagger_control`):**
-- Published run: GLM-4.5V and Qwen3-VL both labelled the person `officer`.
-- v2: both labelled the person `flagger`.
-- The police-uniform defect therefore did change what the models perceived.
-
-**Conclusion:**
-- The defect was real and visible to the models.
-- Its effect on the leaderboard is small: 13 of 14 models keep the same 25-scenario PASS count.
-- GLM-4.5V drops by 2, through an interaction with the never-engaged rule rather than a change in compliance.
+**Safeguards added:**
+- A walker whose skeleton lacks the bones a gesture needs is refused at spawn for any gesture role, and the episode records
+  a setup error.
+- While a gesturing figure is inside the ego camera's field of view, the runner checks the local rotation of the bone that
+  has the largest guaranteed rotation across that gesture's real pose keyframes. Rendering passes at 20% of that
+  per-gesture minimum; this catches ignored poses without rejecting small hand displacement in HOLD, SLOW, PROCEED,
+  LEFT, or RIGHT. A genuinely off-screen figure is skipped. A missing/unreadable ego camera, frustum error, missing
+  probe, or failed bone read records `gesture render check unavailable`; a confirmed stationary pose records
+  `gesture not rendered`. Either error makes strict scoring INVALID.
+- Every scored controller uses `run_scenario`, which attaches the common forward ego camera even when the controller
+  itself does not consume images (including oracle and TCP). There is therefore no camera-free scored-runner exemption:
+  failure to attach/read this validation camera is a setup error. Standalone, non-scoring capture utilities are outside
+  this guard.
+- Gesturing authority metadata records render checks performed, passed, and skipped because off-screen, and the strict
+  telemetry artifact copies those counters as positive evidence that the guard ran. The static second authority in the two
+  scenarios above has no gesture and is therefore not checked.
 
 ## 5. Oracle regression found during the check
 
@@ -177,9 +168,6 @@ Leaderboard settings throughout, including the 3-query VLM cap and early termina
 Run from the repository root with CARLA running. Restart CARLA before each episode when measuring officer presence (see `docs/RUN_GUIDE.md`).
 
 ```bash
-# appearance v2 on one scenario, any runner
-MARSHAL_AUTHORITY_APPEARANCE=v2 python scripts/_run_vlm_test.py flagger_control --model Qwen/Qwen3-VL-235B-A22B-Instruct
-
 # officer at 7 m instead of 13 m
 MARSHAL_OFFICER_DISTANCE_M=7 MARSHAL_NO_STOP_EARLY_TERMINATION=1 MARSHAL_TIMEOUT_S=25 \
   python scripts/_run_more_e2e_sweep.py green_stop --models tcp
@@ -193,6 +181,5 @@ All switches are unset by default. Unset means the published leaderboard behavio
 ## 7. Limitations
 
 - One episode per model × scenario cell. Hosted VLMs are not deterministic.
-- The v2 re-sweep runs on the current code. Separating the appearance effect from code changes since the published sweep would need a paired v1-appearance run on the same code, which has not been done.
 - The distance experiment covers one scene (green_stop) and two models.
-- Whether to make v2 appearance the default and replace the seven published cells is an open decision. Until then the published leaderboard stays as is.
+- Flaggers in five scenarios still render with the police walker, and the vest-wearing second authority in two scenarios does not gesture. Fixing this needs a new gesture-capable hi-vis walker asset (section 4).

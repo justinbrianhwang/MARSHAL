@@ -47,7 +47,6 @@ COLORS = {
     "police_proceed_near": "#98df8a",
     "no_police": "#1f77b4",
     "civilian_stop": "#9467bd",
-    "fake_vest_stop": "#ff7f0e",
 }
 LINESTYLES = {1: "-", 2: "--", 3: ":"}
 

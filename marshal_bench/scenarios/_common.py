@@ -239,6 +239,8 @@ class ScenarioContext:
 
 def _actor_id(actor: Any) -> Optional[int]:
     try:
+        if callable(getattr(actor, "get_actor", None)):
+            actor = actor.get_actor()
         actor_id = getattr(actor, "id", None)
         return int(actor_id) if actor_id is not None else None
     except (TypeError, ValueError):
@@ -704,7 +706,13 @@ class _NullOfficer:
             "role_name": "none", "blueprint_id": None,
             "skeleton_control": False, "custom_asset": False,
             "debug_visuals": False, "actor_id": None,
+            "gesture_render_checks_performed": 0,
+            "gesture_render_checks_passed": 0,
+            "gesture_render_checks_skipped_off_screen": 0,
         }
+
+    def verify_gesture_rendered(self, *args: Any, **kwargs: Any) -> None:
+        return None
 
     def set_gesture(self, *args: Any, **kwargs: Any) -> None:
         pass
@@ -770,7 +778,6 @@ def build_officer(
         hand_prop_yaw_offset=float(officer_cfg.get("hand_prop_yaw_offset", 0.0)),
         hand_prop_z_offset=float(officer_cfg.get("hand_prop_z_offset", 0.30)),
     )
-    officer.spawn()
 
     gesture_name = str(officer_cfg.get("gesture", "STOP")).upper()
     try:
@@ -786,6 +793,7 @@ def build_officer(
         target_relation=officer_cfg.get("target_relation", "ego"),
         target_lane_id=officer_cfg.get("target_lane_id"),
     )
+    officer.spawn()
     log.info(
         "Officer ready: gesture=%s onset=%.2fs duration=%s authorized=%s",
         gesture_id.value,
@@ -799,6 +807,52 @@ def build_officer(
 # ---------------------------------------------------------------------------
 # Sensors
 # ---------------------------------------------------------------------------
+def actor_in_camera_frustum(
+    camera: Any,
+    actor: Any,
+    *,
+    horizontal_fov_deg: float,
+    aspect_ratio: float = 1280.0 / 720.0,
+) -> "CameraFrustumResult":
+    """Classify the actor as visible, off-screen, or uncheckable."""
+    if camera is None:
+        return CameraFrustumResult("error", "ego camera missing")
+    if actor is None:
+        return CameraFrustumResult("error", "gesture actor missing")
+    try:
+        camera_tf = camera.get_transform()
+        actor_loc = actor.get_transform().location
+        camera_loc = camera_tf.location
+        target = (
+            float(actor_loc.x - camera_loc.x),
+            float(actor_loc.y - camera_loc.y),
+            float(actor_loc.z + 1.0 - camera_loc.z),
+        )
+        forward = camera_tf.get_forward_vector()
+        right = camera_tf.get_right_vector()
+        up = camera_tf.get_up_vector()
+        depth = sum(target[i] * value for i, value in enumerate((forward.x, forward.y, forward.z)))
+        if depth <= 0.05:
+            return CameraFrustumResult("off_screen")
+        horizontal = sum(target[i] * value for i, value in enumerate((right.x, right.y, right.z)))
+        vertical = sum(target[i] * value for i, value in enumerate((up.x, up.y, up.z)))
+        horizontal_tan = math.tan(math.radians(horizontal_fov_deg) / 2.0)
+        vertical_tan = horizontal_tan / aspect_ratio
+        visible = (
+            abs(horizontal / depth) <= horizontal_tan
+            and abs(vertical / depth) <= vertical_tan
+        )
+        return CameraFrustumResult("visible" if visible else "off_screen")
+    except Exception as exc:
+        return CameraFrustumResult("error", f"frustum computation failed: {exc}")
+
+
+@dataclass(frozen=True)
+class CameraFrustumResult:
+    status: str
+    reason: Optional[str] = None
+
+
 def attach_collision_sensor(
     world: Any,
     ego: Any,
@@ -1633,6 +1687,7 @@ def run_scenario(
         "expected_action": expected_action,
         "expected_gesture": expected_gesture.value,
         "officer_metadata": None,
+        "second_authority_metadata": None,
         "compliance": None,
         "latency": None,
         "traffic_light_state": "Unknown",
@@ -1859,6 +1914,9 @@ def run_scenario(
             ctx.officer = _NullOfficer(officer_stopline or ego_transform)
             log.info("No officer configured — running with a null officer.")
         result["officer_metadata"] = ctx.officer.get_metadata()
+        for message in getattr(ctx.officer, "get_setup_errors", lambda: [])():
+            if message not in scene_setup_errors:
+                scene_setup_errors.append(message)
         if yield_clearance_geometry is not None:
             result["officer_metadata"]["yield_clearance_geometry"] = yield_clearance_geometry
         director_facing = {
@@ -1890,6 +1948,17 @@ def run_scenario(
                 )
                 blocking = getattr(extra, "blocking_actors", None)
                 ctx.extra_actors = [a for a in (extra or []) if a is not None]
+                for actor in ctx.extra_actors:
+                    if not callable(getattr(actor, "verify_gesture_rendered", None)):
+                        continue
+                    for message in getattr(actor, "get_setup_errors", lambda: [])():
+                        if message not in scene_setup_errors:
+                            scene_setup_errors.append(message)
+                    if getattr(actor, "get_actor", lambda: None)() is None:
+                        message = f"required second authority actor missing for {name}"
+                        if message not in scene_setup_errors:
+                            scene_setup_errors.append(message)
+                    result["second_authority_metadata"] = actor.get_metadata()
                 if blocking is not None:
                     managed_ids = {id(a) for a in ctx.extra_actors}
                     ctx.blocking_actors = [
@@ -2006,6 +2075,16 @@ def run_scenario(
             )
         except Exception as e:
             log.warning("Could not attach ego camera: %s", e)
+            scene_setup_errors.append(
+                f"gesture render check unavailable: ego camera attachment failed: {e}"
+            )
+        if ctx.ego_camera is None and not any(
+            message.startswith("gesture render check unavailable: ego camera")
+            for message in scene_setup_errors
+        ):
+            scene_setup_errors.append(
+                "gesture render check unavailable: ego camera missing"
+            )
 
         logger.log_event(
             "scenario_started",
@@ -2153,11 +2232,42 @@ def run_scenario(
                     if _near_tl is not None:
                         ctx.traffic_light = _near_tl
 
-                # Officer + criteria ticks.
-                try:
-                    ctx.officer.tick(sim_time)
-                except Exception as e:
-                    log.debug("officer.tick failed: %s", e)
+                # Gesture validation is fail-closed and deliberately separate
+                # from the best-effort animation tick below.
+                gesture_actors = [("officer", ctx.officer)] + [
+                    ("second_authority", actor)
+                    for actor in ctx.extra_actors
+                    if callable(getattr(actor, "verify_gesture_rendered", None))
+                ]
+                for actor_role, gesture_actor in gesture_actors:
+                    frustum = actor_in_camera_frustum(
+                        ctx.ego_camera,
+                        gesture_actor.get_actor(),
+                        horizontal_fov_deg=90.0,
+                    )
+                    render_error = gesture_actor.verify_gesture_rendered(
+                        sim_time,
+                        in_camera_frustum=(
+                            True if frustum.status == "visible"
+                            else False if frustum.status == "off_screen"
+                            else None
+                        ),
+                        unavailable_reason=(
+                            frustum.reason if frustum.status == "error" else None
+                        ),
+                    )
+                    if render_error and render_error not in scene_setup_errors:
+                        scene_setup_errors.append(render_error)
+                        logger.log_event(
+                            "gesture_render_failure",
+                            sim_time=sim_time,
+                            actor_role=actor_role,
+                            error=render_error,
+                        )
+                    try:
+                        gesture_actor.tick(sim_time)
+                    except Exception as e:
+                        log.debug("%s.tick failed: %s", actor_role, e)
                 # Per-scenario per-tick extra-actor update (e.g. keep the
                 # ambulance locked behind the ego).
                 if tick_extra_actors is not None:
@@ -2505,6 +2615,13 @@ def run_scenario(
             )
             result["officer_metadata"] = ctx.officer.get_metadata()
             result["officer_metadata"]["facing_ego_deg"] = dict(director_facing)
+            second_authorities = [
+                actor for actor in ctx.extra_actors
+                if callable(getattr(actor, "verify_gesture_rendered", None))
+            ]
+            result["second_authority_metadata"] = (
+                second_authorities[0].get_metadata() if second_authorities else None
+            )
             artifact_paths = write_strict_artifacts(
                 logger.episode_dir,
                 telemetry_rows,
@@ -2515,7 +2632,17 @@ def run_scenario(
                     "collisions": collision_events,
                     "officer": {
                         "facing_ego_deg": dict(director_facing),
+                        "gesture_render_checks_performed": result["officer_metadata"].get(
+                            "gesture_render_checks_performed", 0
+                        ),
+                        "gesture_render_checks_passed": result["officer_metadata"].get(
+                            "gesture_render_checks_passed", 0
+                        ),
+                        "gesture_render_checks_skipped_off_screen": result[
+                            "officer_metadata"
+                        ].get("gesture_render_checks_skipped_off_screen", 0),
                     } if officer_raw else None,
+                    "second_authority": result["second_authority_metadata"],
                 },
             )
             strict_score["artifacts"] = artifact_paths
