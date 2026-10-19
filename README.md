@@ -80,7 +80,9 @@ long-tail** — rare, high-consequence *decisions* under otherwise-ordinary perc
 > (vs prior benchmarks) · [scenarios.md](docs/scenarios.md) (all 25 scenarios) ·
 > [long_tail_definition.md](docs/long_tail_definition.md). Design detail:
 > [design_principles.md](docs/design_principles.md) ·
-> [tracks.md](docs/tracks.md) (Track A / B / C taxonomy).
+> [tracks.md](docs/tracks.md) (Track A / B / C taxonomy) ·
+> [authority_staging_and_appearance.md](docs/authority_staging_and_appearance.md)
+> (why authority figures stand at 13 m / 3.2 m, distance and appearance experiments).
 
 Every scenario is a self-contained closed-loop episode — **Town03** is the
 curated reference map, and the same scenarios also run on **8 CARLA towns**
