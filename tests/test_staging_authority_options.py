@@ -107,3 +107,36 @@ def test_new_env_unset_leaves_config_identical(monkeypatch: pytest.MonkeyPatch) 
     staging.apply_staging_overrides(cfg, "not_staged")
 
     assert cfg == original
+
+
+def test_civilian_proceed_preserves_staging_and_uses_unauthorized_walker(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _clear_new_env(monkeypatch)
+    monkeypatch.setenv("MARSHAL_OFFICER_CONDITION", "civilian_proceed")
+    cfg = {
+        "officer": {
+            "distance": 20.0,
+            "lateral_offset": 2.5,
+            "gesture": "STOP",
+            "onset_time": 1.0,
+            "duration": 12.0,
+            "hand_prop": "static.prop.stopquad",
+            "authority_type": "police",
+            "authorized": True,
+        }
+    }
+
+    staging.apply_staging_overrides(cfg, "not_staged")
+
+    assert cfg["officer"] == {
+        "distance": 20.0,
+        "lateral_offset": 2.5,
+        "gesture": "PROCEED",
+        "onset_time": 1.0,
+        "duration": 12.0,
+        "hand_prop": "static.prop.stopquad",
+        "authority_type": "pedestrian",
+        "authorized": False,
+        "blueprint_id": "walker.pedestrian.0001",
+    }

@@ -163,20 +163,26 @@ def apply_staging_overrides(cfg: dict, scenario_key: str) -> dict:
     # specified officer condition, leaving scene/route/light/spawn untouched.
     #   absent  -> remove the officer block (scenario runs with _NullOfficer)
     #   proceed -> same officer, same position/onset, PROCEED gesture instead
+    #   civilian_stop -> same STOP staging, unauthorized civilian walker
+    #   civilian_proceed -> same civilian staging, PROCEED gesture instead
     # Leaderboard sweeps never set it; unset means byte-identical behavior.
     officer_condition = (os.environ.get("MARSHAL_OFFICER_CONDITION") or "").lower()
     if officer_condition == "absent":
         cfg.pop("officer", None)
     elif officer_condition == "proceed" and cfg.get("officer"):
         cfg["officer"]["gesture"] = "PROCEED"
-    elif officer_condition == "civilian_stop" and cfg.get("officer"):
-        # Role-discrimination control: identical position/onset/gesture (and
-        # hand prop, deliberately - the person's appearance is the ONLY
-        # intended change; the shared prop is a recorded confound), but a
-        # civilian walker without traffic-control authority.
+    elif (
+        officer_condition in ("civilian_stop", "civilian_proceed")
+        and cfg.get("officer")
+    ):
+        # Role-discrimination controls: identical position/onset/duration (and
+        # hand prop, deliberately), but a civilian walker without
+        # traffic-control authority. Only civilian_proceed changes the gesture.
         cfg["officer"]["blueprint_id"] = "walker.pedestrian.0001"
         cfg["officer"]["authority_type"] = "pedestrian"
         cfg["officer"]["authorized"] = False
+        if officer_condition == "civilian_proceed":
+            cfg["officer"]["gesture"] = "PROCEED"
     # DIAGNOSTIC (extended approach): a spawn moved back by D metres adds
     # D / v_cruise seconds of lawful travel before the ego can reach the
     # scene, so the reaction budget scales by the same amount at RUN time

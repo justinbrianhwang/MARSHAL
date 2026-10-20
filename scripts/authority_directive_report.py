@@ -47,6 +47,7 @@ COLORS = {
     "police_proceed_near": "#98df8a",
     "no_police": "#1f77b4",
     "civilian_stop": "#9467bd",
+    "civilian_proceed": "#c5b0d5",
 }
 LINESTYLES = {1: "-", 2: "--", 3: ":"}
 

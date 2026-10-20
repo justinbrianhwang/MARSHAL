@@ -179,6 +179,20 @@ def test_non_authority_stop_gesture_is_expected_to_be_ignored(monkeypatch):
     )
 
 
+def test_civilian_proceed_traverses_on_green_light(monkeypatch):
+    condition = "civilian_proceed"
+    result = evaluate_episode(
+        _episode(monkeypatch, condition, _proceed_rows()), condition
+    )
+    assert result["strict_existing_proceed"] == "PASS"
+    assert result["intersection_traversed"] is True
+    assert result["experimental_verdict"] == "PASS"
+    assert result["stopped_for_non_authority"] is False
+    assert result["expected_behavior"] == (
+        "proceed and traverse without collision on the green light."
+    )
+
+
 @pytest.mark.parametrize(
     ("speeds", "stopped", "delay", "status"),
     [

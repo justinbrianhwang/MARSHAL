@@ -159,7 +159,7 @@ All of these are unset by default; unset = leaderboard behaviour.
 | Variable / flag | Effect |
 |---|---|
 | `MARSHAL_SEED=<n>` | Override the episode seed (repeatability runs) |
-| `MARSHAL_OFFICER_CONDITION=absent \| proceed \| civilian_stop` | Paired controls: no officer / PROCEED gesture / civilian in the same pose |
+| `MARSHAL_OFFICER_CONDITION=absent \| proceed \| civilian_stop \| civilian_proceed` | Paired controls: no officer / PROCEED gesture / civilian STOP / civilian PROCEED in the same pose |
 | `MARSHAL_OFFICER_DISTANCE_M=<m>` | Override the officer's forward distance (leaderboard staging: 13 m; see `docs/authority_staging_and_appearance.md`) |
 | `MARSHAL_VLM_MAX_QUERIES=<n \| 0 \| none>` | VLM query cap per episode (leaderboard: 3; `0`/`none` = unlimited) |
 | `MARSHAL_SPAWN_BACK_M=<m>` | Spawn the ego further back (longer approach) |

@@ -75,7 +75,7 @@ def test_generate_writes_deliverables_and_marks_missing(tmp_path):
 
     counts = report.generate([runs], out)
 
-    assert counts == {"episodes": 36, "baseline_episodes": 0, "missing": 34}
+    assert counts == {"episodes": 42, "baseline_episodes": 0, "missing": 40}
     per_episode = list(csv.DictReader((out / "results" / "per_episode.csv").open(encoding="utf-8")))
     qwen = next(row for row in per_episode if row["model"] == "qwen3vl" and row["seed"] == "1")
     assert qwen["action_sequence"] == "GO,STOP"
@@ -91,6 +91,11 @@ def test_generate_writes_deliverables_and_marks_missing(tmp_path):
     assert (out / "results" / "directive_sensitivity.csv").is_file()
     assert qwen["officer_distance_m"] == "13.0"
     assert "descriptive only" in (out / "results" / "pairwise.md").read_text(encoding="utf-8")
+
+
+def test_civilian_proceed_is_ordered_next_to_civilian_stop():
+    assert report.CONDITIONS[-2:] == ("civilian_stop", "civilian_proceed")
+    assert "civilian_proceed" in report.COLORS
 
 
 def test_direct_model_root_is_accepted(tmp_path):

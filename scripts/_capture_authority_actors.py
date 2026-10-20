@@ -63,6 +63,7 @@ VARIANTS = (
     "police_stop",
     "police_proceed",
     "civilian_stop",
+    "civilian_proceed",
     "no_police",
 )
 
@@ -89,6 +90,7 @@ def _variant_config(name: str) -> dict:
         "police_stop": None,
         "police_proceed": "proceed",
         "civilian_stop": "civilian_stop",
+        "civilian_proceed": "civilian_proceed",
         "no_police": "absent",
     }.get(name)
     with _officer_condition(condition):

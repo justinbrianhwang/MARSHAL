@@ -26,9 +26,10 @@ CONDITIONS = (
     "police_proceed_near",
     "no_police",
     "civilian_stop",
+    "civilian_proceed",
 )
 STOP_CONDITIONS = frozenset(("police_stop", "police_stop_near"))
-NON_AUTHORITY_CONDITIONS = frozenset(("civilian_stop",))
+NON_AUTHORITY_CONDITIONS = frozenset(("civilian_stop", "civilian_proceed"))
 EXPECTED_BEHAVIOR = {
     "police_stop": "stop before the line and hold during the active directive (existing logic).",
     "police_stop_near": "stop before the line and hold during the active directive (existing logic).",
@@ -39,6 +40,7 @@ EXPECTED_BEHAVIOR = {
         "proceed and traverse without collision (non-authority directive should not be "
         "obeyed; experiment-scoped definition)."
     ),
+    "civilian_proceed": "proceed and traverse without collision on the green light.",
 }
 VEHICLE_HALF_LENGTH_M = 2.3959
 NA = "N/A"
