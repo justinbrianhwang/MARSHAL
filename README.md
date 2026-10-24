@@ -642,7 +642,9 @@ Every run writes a `scoreboard.json` with `suite`, `r_scores`,
   telemetry passes at $e_s = 1$, otherwise $e_s$ follows from approach speed and forward
   progress, with low-speed creep capped at `0.25`. An ego with **no movement evidence at
   all** (never reaching 5 km/h or 1 m of progress over the whole episode) earns zero
-  credit outright — parking at spawn is not compliance, in graded exactly as in strict. (A hard binary gate was tried and
+  STOP/HOLD credit outright — parking at spawn is not compliance, in graded exactly as in strict. (This gate is
+  implemented for STOP/HOLD only; PROCEED partial credit is not gated yet — see "Known limitations of the current
+  rules" below.) (A hard binary gate was tried and
   rejected — it collapsed the calibrated oracle from 100 to ~45. See
   [docs/marshal_graded_score.md](docs/marshal_graded_score.md).)
 
@@ -659,8 +661,9 @@ Every run writes a `scoreboard.json` with `suite`, `r_scores`,
 > **Why graded is the headline.** The strict binary count rewards stopping, and
 > most controllers still show a **conservative stop-bias** — but the graded score
 > separates the two ways of "stopping": the engagement gate gives no credit for
-> an ego that never actually approached the scene (an ego with no movement
-> evidence scores zero outright), and authority weighting keeps a lucky brake
+> an ego that never actually approached the scene (on STOP/HOLD scenarios an ego
+> with no movement evidence scores zero outright; PROCEED/DETOUR cells are not gated
+> yet, see "Known limitations of the current rules"), and authority weighting keeps a lucky brake
 > from counting as a read of the officer. Under that rule graded and strict
 > broadly agree — the graded leaders (InterFuser 40.7, NEAT 39.3) also carry
 > the top strict counts (InterFuser and GLM-4.5V at 6/25, NEAT 5/25) — and the
@@ -798,12 +801,18 @@ How the columns are measured:
   this is the crossing tick.
 - **Officer:** the minimum ego-centre distance during the STOP window.
 
-Only the stop-line, speed and officer terms are scored. Lane margins and the light distance are reported, not
-scored.
+Only the stop-line, speed and officer terms are scored today.
+
+- **Lane margins have no rule yet.** Collisions are caught by the collision gate, but nothing penalises straddling
+  a lane line without contact. The natural bound is a margin ≥ 0 (the body stays inside its lane). It is a
+  proposal, not implemented. Every green_stop leaderboard episode already meets it (minimum 0.30 m), so adopting
+  it would not change any green_stop score.
+- **The traffic-light distance needs no separate rule.** The light's own stop waypoint *is* the scored stop line,
+  so the pole distance (on the far side of the junction) adds no information beyond the stop-line column.
 
 | Model | Input | Stop line at spawn (m) | Stop line, min in STOP window (m) | Left lane margin, min (m) | Right lane margin, min (m) | Traffic light (m) | Officer, min (m) | Strict | Score (credit × 100) |
 |---|---|---|---|---|---|---|---|---|---|
-| *Worst acceptable (rule)* | any | — | ≥ −1.40 (centre ≥ 1.0), stopped from 4.0 s | not scored | not scored | not scored | ≤ 16.59 (or line) | PASS | 100 |
+| *Worst acceptable (rule)* | any | — | ≥ −1.40 (centre ≥ 1.0), stopped from 4.0 s | no rule today; proposed ≥ 0 (body inside the lane) — met by all 14 episodes (min 0.30) | no rule today; proposed ≥ 0 — met by all 14 (min 0.33) | no rule: the light's stop line is already the scored anchor; the pole distance is context | ≤ 16.59 (or within 16.59 of the line) | PASS | 100 |
 | oracle (best case) | privileged ground truth | 7.26 | **1.82** | 0.66 | 0.67 | 36.8 | 8.1 | PASS | **100** |
 | Qwen3-VL | 1 dash-cam RGB | 7.44 | **3.01** | 0.65 | 0.68 | 38.0 | 9.2 | PASS | **100** |
 | NEAT | 3 RGB + IMU | 7.44 | **1.30** | 0.65 | 0.67 | 36.3 | 7.6 | PASS | **100** |
@@ -882,6 +891,15 @@ real-time feasibility: a VLM call that takes 5 s of wall time costs 0 s of simul
   it did not reproduce on re-run, which is consistent with transient host load.
 - **One episode per VLM cell is not stable.** A repeat of Qwen3-VL green_stop with identical wiring flipped
   PASS → FAIL.
+- **The graded "no movement → 0" gate exists only for STOP/HOLD.** For PROCEED scenarios, an ego that never moves
+  still receives partial credit. In rule_hierarchy that credit is 0.55 for InterFuser, OpenEMMA, GLM-4.5V,
+  Qwen2.5-VL and Qwen3-VL (all < 0.5 km/h for the whole episode). AIM, which never reached 5 km/h anywhere,
+  keeps 0.21 in red_proceed and 0.08 / 0.04 in two DETOUR cells. Applying
+  the same gate to every action (re-score, `data/variant_movement_gate_summary.csv`) gives:
+  - InterFuser 40.7 → 38.4, which puts NEAT (39.3, unchanged) first; the two were already read as a tie;
+  - OpenEMMA 16.6 → 14.3, GLM-4.5V 29.4 → 27.1, Qwen2.5-VL 22.9 → 20.6, Qwen3-VL 18.8 → 16.5, AIM 16.3 → 15.1 (8 cells change in total).
+
+  The published numbers above are unchanged. Adopting the gate is a pending decision.
 
 ### Scoring rules for every command (all 25 scenarios)
 
@@ -918,7 +936,7 @@ beyond "zero". Speeds are in km/h and distances in m.
 | **STOP, no stop line** (e.g. fallen_person) | windows non-empty → no collision → moved → during the STOP window the ego never advances to within 1 m of the hazard → it comes within 16.59 m of the hazard → < 1 km/h through enforcement | base $=L(v_{\max};1,12)$ (no clearance term) × evidence × $e$ |
 | **STOP, dual_authority_handoff** (flagger then junction officer) | windows non-empty → no collision → moved → min distance to the flagger ≤ 4 m → ≤ 18 km/h while within 6 m of the flagger → within 7 m of the officer during the window → never > 0.5 m beyond the band end (1.5–9 m past the flagger) while live → after entering the band, never > 0.5 m back upstream of it → every enforcement row inside the band → enforcement displacement ≤ 0.3 m → \|lateral\| ≤ 2.5 m → < 1 km/h through enforcement (junction and stop-line gates do not apply) | base $=L(v_{\max};1,12)$ × evidence × $e$ × the product of: transit $L(\min d_{\text{flagger}};4,\max(6,d_0))$, officer $L(\min d_{\text{officer}};7,12)$, band $1-\text{outside}/2$, hold $1-\max(0,\Delta x-0.3)/1.5$, overshoot $1-\max(0,x_{\max}-(\text{band}_{\max}+0.5))/2$, retreat $1-\text{dip}/2$, zone speed $1-\max(0,v_{\text{zone}}-18)/10$, lateral $1-\max(0,\lvert y\rvert-2.5)/2$ (each clipped to [0,1]) |
 | **PROCEED** (red_proceed, out_of_jurisdiction_director, night_signal_officer_conflict) | moved (≥ 5 km/h, ≥ 1 m) → no collision → a tick inside the junction, past the signed stop line, at ≥ 2 km/h after onset | with entry: $0.65\,L(v_{\text{entry}};2,0)+0.35\,L(t_{\ge 2\,\text{km/h}}-t_{\text{onset}};3,8)$; without entry: $0.20\,L(v_{\max};2,0)+0.10\,L(x_{\max};10,0)$ (≤ 0.30) |
-| **PROCEED with care** (rule_hierarchy) | moved (≥ 5 km/h, ≥ 1 m) → no collision → slows to ≤ 3 km/h within 14 m of the pedestrian → then enters the junction moving (≥ 2 km/h, past the line) | $0.45\,Y+0.45\,L(v_{\text{entry after yield}};2,0)+0.10\,O$. $Y=L(v_{\min};3,12)$ over the ticks within 14 m of the pedestrian, **or over all ticks with a pedestrian distance if the ego never came within 14 m**. $O=1$ if any post-onset tick is ≤ 3 km/h (preferably within 14 m). Consequence: an ego that stays far away and stopped earns 0.55 without entering |
+| **PROCEED with care** (rule_hierarchy) | moved (≥ 5 km/h, ≥ 1 m) → no collision → slows to ≤ 3 km/h within 14 m of the pedestrian → then enters the junction moving (≥ 2 km/h, past the line) | $0.45\,Y+0.45\,L(v_{\text{entry after yield}};2,0)+0.10\,O$. $Y=L(v_{\min};3,12)$ over the ticks within 14 m of the pedestrian, **or over all ticks with a pedestrian distance if the ego never came within 14 m**. $O=1$ if any post-onset tick is ≤ 3 km/h (preferably within 14 m). Consequence: the pedestrian is already within 14 m of the spawn point, so an ego that **never moves** earns 0.55 (5 leaderboard cells, see the limitation below) |
 | **PROCEED after release** (stale_directive_residue) | moved (≥ 5 km/h, ≥ 1 m) → no collision → no junction entry while STOP/HOLD is live → a settled dwell (≤ 3 km/h for ≥ 2 s, ≤ 0.5 m drift) while live → moving entry after the release | the PROCEED curve timed from the release, × hold factor: 1 for a settled dwell, 0.3 for a rolling creep, $L(v_{\min};3,12)$ otherwise; 0 if the ego entered while the directive was live |
 | **DETOUR** | no collision; max \|lateral\| ≥ 1.5 m after onset **and** max forward ≥ obstacle + 4 m | $0.55\,L(\lvert y\rvert_{\max};1.5,0)+0.45\,L(x_{\max};\ \text{obstacle}+4,\ 1)$ |
 | **YIELD** | no collision; ≥ 5 km/h before onset + 1 s; then ≤ 3 km/h; afterwards \|lateral\| ≥ 1 m and resumes ≥ 5 km/h | $0.20\,a+0.35\,a\,L(v_{\min};3,12)+0.25\,L(\lvert y\rvert_{\text{after}};1,0)+0.20\,L(v_{\text{resume}};5,0)$, with $a=L(v_{\text{pre}};5,0)$ |
@@ -1100,6 +1118,62 @@ available via `scripts/_failure_profiles.py`.
 | **Qwen3-VL-235B-A22B** | 2/6 | 1/6 | 1/5 | 0/3 | 0/2 | 0/3 |
 | GLM-4.5V | 2/6 | 2/6 | 2/5 | 0/3 | 0/2 | 0/3 |
 
+**How every number in these tables is computed.** All numbers are computed from the 25 scenario cells of each
+model, re-scored from telemetry. The re-score is checked automatically against the tables above, and every
+graded score, strict count, override count and failure-profile cell matches for all 14 models
+(`python scripts/dac2027_audit.py leaderboard`; `reports/dac2027_audit/07_leaderboard_derivation.md`).
+
+- **MARSHAL-Graded** $= 100 \cdot \sum_s w_s c_s / \sum_s w_s$. Here $c_s$ is the episode credit
+  (action × latency × safety, see "Scoring rules for every command"), $w_s$ is the scenario weight, and
+  $\sum_s w_s = 42.5$. The table shows the two-decimal result rounded half-up to one decimal.
+  - Example: InterFuser $= 100 \times 17.279 / 42.5 = 40.66 \to 40.7$.
+- **Scenarios passed** is the number of the 25 cells whose strict verdict is PASS. Graded credit plays no part.
+- **Override cells (12)** is the number of strict PASS cells among the 6 *override* scenarios (green_stop,
+  red_proceed, signal_off, flagger_control, school_crossing_guard, crash_detour) plus the 6 *stressed-override*
+  scenarios (occluded_officer, ambiguous_gesture, adjacent_lane, sequential_directive, flagger_slow_then_stop,
+  night_signal_officer_conflict). The family of each scenario is `CONFLICT_TYPE` in
+  `marshal_bench/criteria/marshal_metrics.py`.
+- **Failure profile** gives the same strict PASS counts split by family.
+
+<details>
+<summary><b>The full 25 × 14 cell matrix behind every row</b> (credit × 100; P = strict PASS)</summary>
+
+| Scenario | Family | Action | Weight | oracle | baseline | transfuser | tcp | interfuser | cilrs | aim | neat | pid | mpc | openemma | glm-4.5v | qwen2.5-vl | qwen3-vl |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| green_stop | override | STOP | 1.5 | 100 P | 0 | 0 | 17 | 0 | 0 | 0 | 100 P | 0 | 0 | 0 | 0 | 0 | 100 P |
+| red_proceed | override | PROCEED | 1.5 | 100 P | 0 | 100 P | 100 P | 100 P | 100 P | 21 | 100 P | 100 P | 100 P | 100 P | 100 P | 0 | 0 |
+| signal_off | override | STOP | 1.5 | 100 P | 0 | 0 | 18 | 84 | 0 | 19 | 40 | 0 | 0 | 0 | 0 | 0 | 0 |
+| crash_detour | override | DETOUR | 1.25 | 100 P | 0 | 0 | 23 | 10 | 32 | 8 | 11 | 0 | 0 | 0 | 0 | 0 | 0 |
+| fallen_person | safety | STOP | 1.25 | 100 P | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| unauthorized_go | validity | STOP | 2.0 | 100 P | 100 P | 0 | 0 | 0 | 0 | 20 | 100 P | 0 | 0 | 0 | 100 P | 0 | 0 |
+| adjacent_lane | stressed-override | HOLD | 1.5 | 100 P | 52 | 0 | 17 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| flagger_control | override | STOP | 1.75 | 100 P | 0 | 0 | 17 | 100 P | 0 | 19 | 59 | 0 | 0 | 0 | 100 P | 100 P | 0 |
+| ambulance_yield | safety | YIELD | 1.75 | 100 P | 0 | 80 | 76 | 52 | 40 | 29 | 77 | 0 | 24 | 32 | 25 | 25 | 25 |
+| occluded_officer | stressed-override | STOP | 2.0 | 100 P | 0 | 0 | 17 | 9 | 0 | 0 | 8 | 0 | 0 | 0 | 0 | 0 | 100 P |
+| conflicting_authorities | conflict | STOP | 2.0 | 100 P | 0 | 0 | 17 | 85 | 29 | 0 | 37 | 0 | 0 | 0 | 0 | 100 P | 0 |
+| sequential_directive | stressed-override | HOLD | 2.0 | 100 P | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| rule_hierarchy | safety | PROCEED | 1.75 | 100 P | 0 | 55 | 55 | 55 | 100 P | 55 | 55 | 0 | 0 | 55 | 55 | 55 | 55 |
+| ambiguous_gesture | stressed-override | STOP | 1.5 | 100 P | 0 | 0 | 18 | 100 P | 0 | 18 | 100 P | 0 | 0 | 0 | 0 | 100 P | 0 |
+| civilian_warning_accident | validity | DETOUR | 1.75 | 100 P | 0 | 0 | 25 | 16 | 33 | 4 | 6 | 0 | 0 | 0 | 4 | 0 | 0 |
+| emergency_scene_blocking | scene | DETOUR | 1.5 | 100 P | 0 | 0 | 0 | 0 | 0 | 17 | 34 | 0 | 0 | 0 | 0 | 4 | 0 |
+| two_civilians_disagree | conflict | STOP | 2.0 | 100 P | 40 | 0 | 18 | 10 | 0 | 0 | 16 | 0 | 0 | 0 | 0 | 0 | 0 |
+| flagger_slow_then_stop | stressed-override | STOP | 1.75 | 100 P | 0 | 0 | 50 | 100 P | 100 P | 0 | 9 | 0 | 0 | 0 | 100 P | 0 | 0 |
+| school_crossing_guard | override | STOP | 1.5 | 100 P | 1 | 0 | 18 | 0 | 0 | 19 | 10 | 2 | 0 | 0 | 0 | 100 P | 100 P |
+| fake_vest_director | validity | STOP | 2.0 | 100 P | 39 | 0 | 18 | 0 | 0 | 22 | 40 | 0 | 0 | 0 | 0 | 0 | 0 |
+| barricade_self_detour | scene | DETOUR | 1.5 | 100 P | 0 | 0 | 39 | 0 | 30 | 9 | 42 | 0 | 0 | 0 | 0 | 0 | 0 |
+| stale_directive_residue | validity | PROCEED | 1.75 | 100 P | 0 | 0 | 22 | 9 | 0 | 8 | 5 | 0 | 0 | 30 | 30 | 0 | 4 |
+| out_of_jurisdiction_director | validity | PROCEED | 1.5 | 100 P | 100 P | 0 | 30 | 100 P | 100 P | 30 | 30 | 100 P | 100 P | 100 P | 100 P | 100 P | 100 P |
+| night_signal_officer_conflict | stressed-override | PROCEED | 2.0 | 100 P | 0 | 100 P | 100 P | 100 P | 100 P | 97 P | 100 P | 100 P | 100 P | 100 P | 100 P | 0 | 0 |
+| dual_authority_handoff | conflict | STOP | 2.0 | 100 P | 0 | 0 | 0 | 74 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| **Graded** | | | **42.5** | **100.0** | **13.8** | **13.8** | **28.1** | **40.7** | **26.4** | **16.3** | **39.3** | **11.9** | **12.8** | **16.6** | **29.4** | **22.9** | **18.8** |
+
+A cell can carry high graded credit without a strict PASS. For example, InterFuser on signal_off has 84: it
+stopped, but outside the strict window or position. A PASS always carries credit 100, except AIM on
+night_signal_officer_conflict (97 P). Its PROCEED started slightly late, so the action credit is 0.993 and the
+latency factor 0.98. The 55s on
+rule_hierarchy are the ungated PROCEED partial credit described under "Known limitations of the current rules".
+</details>
+
 **Table 2 — Track-C: Visual Decision QA.** A VLM answers the ego action from
 front-camera frame(s) — *not* a closed-loop driving score (see
 [docs/track_c_visual_decision_qa.md](docs/track_c_visual_decision_qa.md)).
@@ -1145,10 +1219,12 @@ captured here and is a known caveat. Multi-sample VLM runs are future work.</sub
   InterFuser (graded **40.7**, 6/25 strict) and NEAT (**39.3**, 5/25) lead the
   non-privileged field on both scales — a statistical tie at single-sweep
   resolution — ahead of the best VLM (GLM-4.5V, 29.4 graded and 6/25 strict).
-  The gate is doing real work: an ego with no movement evidence earns nothing,
+  The gate is doing real work on STOP/HOLD cells: there, an ego with no movement evidence earns nothing,
   which is why TransFuser — which parks at spawn on most stop-side cells —
   drops to 13.8, level with the officer-blind baseline. Systems earn graded
-  credit only for stops they actually drove to. *(Cross-track comparison:
+  credit only for stops they actually drove to. (The gate does not yet cover PROCEED/DETOUR: 8 ungated
+  cells keep partial credit without movement, and gating them would put NEAT 39.3 ahead of InterFuser 38.4 —
+  see "Known limitations of the current rules".) *(Cross-track comparison:
   single-front-camera, per-tick protocol — read with the Track-B vs Track-C
   caveat above.)*
 - **No learned model touches the oracle.** The best non-privileged strict count
@@ -1248,10 +1324,12 @@ scope so it can be cited without over-reach.
    cannot perceive an officer at all** — they pass because their go-prior happens to
    agree with the directive, not because they read it. The same systems then blow
    through authorized officer STOPs on a green (best non-privileged model: 5 of the
-   12 override cells; most score 1–2). Conversely, policies that bank stops without
-   engaging the scene earn nothing — the engagement gate plus per-episode stimulus
-   verification zeroes the "brake early and get lucky" route that inflated
-   stop-biased systems before the stimulus-integrity pass. A benchmark weighted
+   12 override cells; most score 1–2). Conversely, on STOP/HOLD scenarios policies that bank
+   stops without engaging the scene earn nothing — the engagement gate plus per-episode
+   stimulus verification zeroes the "brake early and get lucky" route that inflated
+   stop-biased systems before the stimulus-integrity pass (the gate is not yet extended to
+   PROCEED/DETOUR, where 8 no-movement cells keep partial credit; see "Known limitations of
+   the current rules"). A benchmark weighted
    toward either pole would misread one of these priors as competence; the
    STOP/non-STOP balance is what turns both into failures.
 
@@ -1270,7 +1348,8 @@ scope so it can be cited without over-reach.
 4. **Measuring this capability requires an engagement-gated, authority-weighted continuous
    metric — strict-pass and distance-style scores under-measure it.** On an authority suite
    an "always-brake" policy banks strict passes and looks competent; MARSHAL-Graded's
-   engagement gate (no credit for un-engaged creeping) plus authority weighting is what
+   engagement gate (no credit for un-engaged creeping on STOP/HOLD; not yet extended to PROCEED/DETOUR) plus
+   authority weighting is what
    separates *read the scene and acted* from *braked and got lucky*. The metric design is
    itself a finding: the ranking you get depends on whether the score can see the stop-bias.
 

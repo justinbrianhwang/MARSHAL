@@ -7,7 +7,7 @@ measurement -> component credit -> episode credit -> scenario -> suite score.
 
     python scripts/dac2027_audit.py all [--dev-root DIR] [--out DIR]
 
-Subcommands: score-trace, aggregate, cases, rescore-variant, timing, geometry, figures, tables, all.
+Subcommands: score-trace, aggregate, cases, rescore-variant, leaderboard, timing, geometry, figures, tables, all.
 Run from the `marshal` conda env (needs carla only for the scenario registry
 import, matplotlib for figures).
 """
@@ -331,8 +331,7 @@ def graded_breakdown(g: Dict[str, Any]) -> Dict[str, Any]:
 def score(ep: Episode, action: str = "STOP", scenario: str = "green_stop"):
     inner = dict(ep.result or {"scenario": scenario})
     inner.setdefault("ground_truth", {"max_reaction_time_sec": ep.budget})
-    kw = dict(scenario=scenario, expected_action=action, max_reaction_time=ep.budget,
-              setup_errors=inner.get("setup_errors") or (), controller_errors=inner.get("controller_errors") or ())
+    kw = scorer_kwargs(ep, scenario, action)
     s = S.score_episode_from_telemetry(inner, ep.rows, **kw)
     g = G.score_episode_from_telemetry(inner, ep.rows, **kw)
     return s, g
@@ -386,8 +385,7 @@ def cmd_aggregate(dev: Path, out: Path) -> None:
                 cells.append({"model": label, "scenario": sc, "status": "MISSING"})
                 continue
             inner = dict(ep.result or {"scenario": sc})
-            kw = dict(scenario=sc, expected_action=vlm.SCENARIOS[sc]["expect"], max_reaction_time=ep.budget,
-                      setup_errors=inner.get("setup_errors") or (), controller_errors=inner.get("controller_errors") or ())
+            kw = scorer_kwargs(ep, sc, vlm.SCENARIOS[sc]["expect"])
             s = S.score_episode_from_telemetry(inner, ep.rows, **kw)
             g = G.score_episode_from_telemetry(inner, ep.rows, **kw)
             scores.append(g)
@@ -489,6 +487,13 @@ def _patched(key: str, value: float):
         S.STRICT_THRESHOLDS[key], G.GRADED_THRESHOLDS[key] = old_s, old_g
 
 
+def scorer_kwargs(ep: "Episode", sc: str, action: str) -> Dict[str, Any]:
+    """Arguments every re-score passes to the strict and graded scorers (incl. recorded validity errors)."""
+    inner = ep.result or {}
+    return dict(scenario=sc, expected_action=action, max_reaction_time=ep.budget,
+                setup_errors=inner.get("setup_errors") or (), controller_errors=inner.get("controller_errors") or ())
+
+
 def cmd_rescore_variant(dev: Path, out: Path) -> None:
     """Proposal impact only: front-bumper-at-or-behind-line clearance (centre >= half length)."""
     import _run_vlm_test as vlm
@@ -502,8 +507,7 @@ def cmd_rescore_variant(dev: Path, out: Path) -> None:
                 continue
             act = vlm.SCENARIOS[sc]["expect"]
             inner = dict(ep.result or {"scenario": sc})
-            kw = dict(scenario=sc, expected_action=act, max_reaction_time=ep.budget, setup_errors=inner.get("setup_errors") or (),
-                      controller_errors=inner.get("controller_errors") or ())
+            kw = scorer_kwargs(ep, sc, act)
             s0, g0 = S.score_episode_from_telemetry(inner, ep.rows, **kw), G.score_episode_from_telemetry(inner, ep.rows, **kw)
             with _patched("stopline_clearance_m", EGO_HALF_LENGTH_M):
                 s1, g1 = S.score_episode_from_telemetry(inner, ep.rows, **kw), G.score_episode_from_telemetry(inner, ep.rows, **kw)
@@ -520,6 +524,31 @@ def cmd_rescore_variant(dev: Path, out: Path) -> None:
     write_csv(out / "variant_front_bumper_cells.csv", rows)
     write_csv(out / "variant_front_bumper_summary.csv", summ)
     print(f"rescore-variant: {len(rows)} changed cells, {sum(s['strict_flips'] for s in summ)} strict flips")
+    # Variant 2 (proposal impact only): the graded movement gate that STOP/HOLD already has ("no movement
+    # evidence -> 0": never >= 5 km/h and >= 1 m over the episode) applied to every action.
+    rows2, summ2 = [], []
+    for label in LB_LABELS:
+        cur, var = [], []
+        for sc in scen:
+            ep = lb_episode(dev, label, sc)
+            inner = dict(ep.result or {"scenario": sc})
+            kw = scorer_kwargs(ep, sc, vlm.SCENARIOS[sc]["expect"])
+            s0, g0 = S.score_episode_from_telemetry(inner, ep.rows, **kw), G.score_episode_from_telemetry(inner, ep.rows, **kw)
+            g1 = dict(g0)
+            eng = S._engagement(ep.rows)
+            if not eng["engaged"] and (g0.get("credit") or 0) > 0:
+                g1["credit"] = 0.0
+                rows2.append({"model": label, "scenario": sc, "expected_action": vlm.SCENARIOS[sc]["expect"],
+                              "credit_current": g0.get("credit"), "credit_variant": 0.0,
+                              "max_speed_kmh": eng["max_speed_kmh"], "forward_progress_m": eng["forward_progress_m"],
+                              "strict_reason": s0.get("reason")})
+            cur.append(g0)
+            var.append(g1)
+        summ2.append({"model": label, "graded_current": G.aggregate_graded_scores(cur)["marshal_graded"],
+                      "graded_variant": G.aggregate_graded_scores(var)["marshal_graded"]})
+    write_csv(out / "variant_movement_gate_cells.csv", rows2)
+    write_csv(out / "variant_movement_gate_summary.csv", summ2)
+    print(f"rescore-variant (movement gate for every action): {len(rows2)} cells change")
 
 
 # ------------------------------------------------------------------ timing
@@ -931,6 +960,165 @@ def cmd_geometry(dev: Path, out: Path) -> None:
     print(f"geometry: {len(summary)} models, {len(series)} per-second rows")
 
 
+# ------------------------------------------------------------- leaderboard
+README_NAMES = {  # README row label -> sweep label
+    "oracle": "oracle", "InterFuser": "interfuser", "NEAT": "neat", "TCP": "tcp", "CILRS": "cilrs",
+    "OpenEMMA-B": "openemma", "AIM": "aim", "baseline": "baseline", "TransFuser": "transfuser",
+    "MPC": "mpc", "PID": "pid", "GLM-4.5V": "glm-4.5v", "Qwen2.5-VL-72B": "qwen2.5-vl",
+    "Qwen3-VL-235B-A22B": "qwen3-vl",
+}
+
+
+def _readme_label(cell: str) -> Optional[str]:
+    """Exact model name of a README table row: markup removed, qualifier after ' (' or ' —' dropped."""
+    import re
+    text = re.sub(r"[*_]|&[A-Za-z]+;", "", cell).strip()
+    text = re.split(r" \(| —", text)[0].strip()
+    return README_NAMES.get(text)
+
+
+def published_from_readme(readme: Path) -> Dict[str, Dict[str, Any]]:
+    """Graded, scenarios passed, override cells and failure profile per model, read from the README results tables.
+
+    Only tables whose header carries the expected column names are read; values are taken by column
+    position; a duplicate row or a missing field for any leaderboard model is an error.
+    """
+    import re
+    pub: Dict[str, Dict[str, Any]] = {}
+    seen: Dict[tuple, str] = {}
+    header: Optional[List[str]] = None
+    clean = lambda c: re.sub(r"[*_]|&[A-Za-z]+;", "", c).strip()  # noqa: E731
+    for line in readme.read_text(encoding="utf-8").splitlines():
+        if not line.startswith("|"):
+            header = None
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if header is None:
+            header = [clean(c).lower() for c in cells]
+            continue
+        if set("".join(cells)) <= set("-: "):
+            continue  # separator row
+        label = _readme_label(cells[0])
+        if label is None:
+            continue
+        if {"marshal-graded", "scenarios passed", "override cells (12)"} <= set(header):
+            kind = "leaderboard"
+            val = {"graded": float(clean(cells[header.index("marshal-graded")])),
+                   "passed": clean(cells[header.index("scenarios passed")]).replace(" ", ""),
+                   "override_cells": clean(cells[header.index("override cells (12)")]).replace(" ", "")}
+        elif header[1:] == ["override (6)", "stressed-override (6)", "validity (5)", "conflict (3)", "scene (2)", "safety (3)"]:
+            kind = "profile"
+            val = {"profile": ";".join(clean(c).replace(" ", "") for c in cells[1:7])}
+        else:
+            continue
+        if (label, kind) in seen:
+            raise ValueError(f"README: duplicate {kind} row for {label}")
+        seen[(label, kind)] = line
+        pub.setdefault(label, {}).update(val)
+    missing = [m for m in LB_LABELS
+               if set(pub.get(m, {})) != {"graded", "passed", "override_cells", "profile"}]
+    if missing:
+        raise ValueError(f"README: leaderboard or failure-profile fields missing for {missing}")
+    return pub
+
+
+def cmd_leaderboard(dev: Path, out: Path) -> None:
+    """Every published leaderboard number decomposed into its 25 scenario cells and re-derived."""
+    import _run_vlm_test as vlm
+    from marshal_bench.criteria.marshal_metrics import (
+        CONFLICT_TYPE, CONFLICT_TYPE_ORDER, aggregate, compute_episode_metrics)
+    scen = list(vlm.SCENARIO_ORDER)
+    pub = published_from_readme(REPO / "README.md")
+    cells, summary = [], []
+    for label in LB_LABELS:
+        scores, metrics, rows_m = [], [], []
+        for sc in scen:
+            ep = lb_episode(dev, label, sc)
+            inner = dict(ep.result or {"scenario": sc})
+            inner.setdefault("scenario", sc)
+            kw = scorer_kwargs(ep, sc, vlm.SCENARIOS[sc]["expect"])
+            s = S.score_episode_from_telemetry(inner, ep.rows, **kw)
+            g = G.score_episode_from_telemetry(inner, ep.rows, **kw)
+            inner["strict_scoring"] = s
+            scores.append(g)
+            metrics.append(compute_episode_metrics(inner, scenario=sc, telemetry_rows=ep.rows))
+            w = G.SCENARIO_AUTHORITY_WEIGHTS.get(G.canonical_scenario_name(sc), 1.0)
+            row = {"model": label, "scenario": sc, "family": CONFLICT_TYPE.get(sc), "expected_action": vlm.SCENARIOS[sc]["expect"],
+                   "weight": w, "strict": s.get("verdict"), "strict_reason": s.get("reason"), "credit": g.get("credit"),
+                   "action_credit": g.get("raw_action_credit"), "latency_factor": g.get("latency_factor"),
+                   "safety_factor": g.get("safety_factor"), "weighted_credit": w * (g.get("credit") or 0.0)}
+            cells.append(row)
+            rows_m.append(row)
+        agg = G.aggregate_graded_scores(scores)
+        mag = aggregate(metrics)
+        prof = {fam: sum(1 for r in rows_m if r["family"] == fam and r["strict"] == "PASS") for fam in CONFLICT_TYPE_ORDER}
+        size = {fam: sum(1 for r in rows_m if r["family"] == fam) for fam in CONFLICT_TYPE_ORDER}
+        n_pass = sum(r["strict"] == "PASS" for r in rows_m)
+        override = prof["override"] + prof["stressed-override"]
+        p = pub.get(label, {})
+        from decimal import ROUND_HALF_UP, Decimal  # README shows the 2-decimal score rounded half-up to 1 decimal
+        graded_1dp = float(Decimal(str(agg["marshal_graded"])).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP))
+        derived = {"graded": graded_1dp, "passed": f"{n_pass}/{len(scen)}",
+                   "override_cells": f"{override}/{size['override'] + size['stressed-override']}",
+                   "profile": ";".join(f"{prof[f]}/{size[f]}" for f in CONFLICT_TYPE_ORDER)}
+        summary.append({
+            "model": label, "weighted_credit_sum": agg["weighted_credit_sum"], "weight_sum": agg["weight_sum"],
+            "marshal_graded": agg["marshal_graded"], **{f"derived_{k}": v for k, v in derived.items()},
+            **{f"readme_{k}": p.get(k) for k in derived},
+            "readme_matches": all(p.get(k) == v for k, v in derived.items()),
+            "marshal_score_partial": mag["marshal_score_partial"],
+            "r_scores": json.dumps(mag["r_scores"]), "r_unmeasured": ";".join(mag["r_unmeasured"]),
+        })
+    write_csv(out / "leaderboard_cells.csv", cells)
+    write_csv(out / "leaderboard_summary.csv", summary)
+    bad = [s["model"] for s in summary if not s["readme_matches"]]
+    print(f"leaderboard: {len(summary)} models, README numbers reproduced for {len(summary) - len(bad)}"
+          + (f"; mismatch: {bad}" if bad else ""))
+
+
+def leaderboard_tables(summary: List[Dict[str, Any]], cells: List[Dict[str, Any]]) -> List[str]:
+    lines = ["", "## T6. Leaderboard numbers re-derived from the 350 episode cells", "",
+             "MARSHAL-Graded = 100 x (sum of weight x credit) / (sum of weights); scenarios passed = strict PASS count; "
+             "override cells = strict PASS on the 6 override + 6 stressed-override scenarios. "
+             "README columns are parsed from README.md and compared automatically.", "",
+             "| Model | Sum w x credit | Sum w | Graded | README graded | Passed | README passed | Override cells | README override | Failure profile (override / stressed / validity / conflict / scene / safety) | README profile | MARSHAL Score (partial) | All README numbers reproduced |",
+             "|" + "---|" * 13]
+    for x in summary:
+        lines.append(f"| {x['model']} | {_r(x['weighted_credit_sum'], 3)} | {_r(x['weight_sum'], 1)} | {x['derived_graded']} | "
+                     f"{x['readme_graded'] or '-'} | {x['derived_passed']} | {x['readme_passed'] or '-'} | {x['derived_override_cells']} | "
+                     f"{x['readme_override_cells'] or '-'} | {x['derived_profile'].replace(';', ' / ')} | "
+                     f"{(x['readme_profile'] or '-').replace(';', ' / ')} | {x['marshal_score_partial']} | {x['readme_matches']} |")
+    models = [x["model"] for x in summary]
+    scen = list(dict.fromkeys(c["scenario"] for c in cells))
+    by = {(c["model"], c["scenario"]): c for c in cells}
+    lines += ["", "## T7. Per-scenario credit (x 100) behind every leaderboard row; P = strict PASS", "",
+              "| Scenario | Family | Action | Weight | " + " | ".join(models) + " |",
+              "|" + "---|" * (4 + len(models))]
+    for sc in scen:
+        c0 = by[(models[0], sc)]
+        vals = []
+        for m in models:
+            c = by[(m, sc)]
+            vals.append(f"{100 * float(c['credit'] or 0):.0f}{' P' if c['strict'] == 'PASS' else ''}")
+        lines.append(f"| {sc} | {c0['family']} | {c0['expected_action']} | {c0['weight']} | " + " | ".join(vals) + " |")
+    lines.append("| **Graded** | | | **" + _r(sum(float(by[(models[0], s)]['weight']) for s in scen), 1) + "** | "
+                 + " | ".join(f"**{x['derived_graded']}**" for x in summary) + " |")
+    lines += ["", "## T8. Score chain per model: action x latency x safety = credit; weight x credit summed",
+              "", "MARSHAL Score (partial) R-subscores per model are in `data/leaderboard_summary.csv` (`r_scores`)."]
+    for x in summary:
+        m = x["model"]
+        lines += ["", f"### {m}: graded {x['derived_graded']} = 100 x {_r(x['weighted_credit_sum'], 3)} / {_r(x['weight_sum'], 1)}; "
+                  f"strict {x['derived_passed']}; override {x['derived_override_cells']}", "",
+                  "| Scenario | Family | Action | Strict | Strict reason | Action credit | Latency factor | Safety | Credit | Weight | Weight x credit |",
+                  "|" + "---|" * 11]
+        for sc in scen:
+            c = by[(m, sc)]
+            lines.append(f"| {sc} | {c['family']} | {c['expected_action']} | {c['strict']} | {c['strict_reason']} | "
+                         f"{_r(c['action_credit'], 3)} | {_r(c['latency_factor'], 2)} | {_r(c['safety_factor'], 2)} | "
+                         f"{_r(c['credit'], 3)} | {c['weight']} | {_r(c['weighted_credit'], 3)} |")
+    return lines
+
+
 # ------------------------------------------------------------------ tables
 def _r(v: Any, n: int = 2) -> str:
     x = f(v)
@@ -948,7 +1136,8 @@ def geometry_tables(summary: List[Dict[str, Any]], series: List[Dict[str, Any]],
              "Left lane margin min (m) | Right lane margin min (m) | Traffic light (m) | Officer min (m) | Strict | Score |",
              "|" + "---|" * 11,
              "| *Worst acceptable (strict rule)* | any | - | >= -1.40 (centre >= 1.0) | stopped (< 1 km/h from 4.0 s) | "
-             "not scored | not scored | not scored | <= 16.59 (or line) | PASS | 100 |"]
+             "no rule; proposal >= 0 (body inside lane), met by all 14 | no rule; proposal >= 0, met by all 14 | "
+             "no rule (the light's stop line is the scored anchor) | <= 16.59 (or line) | PASS | 100 |"]
     for x in summary:
         lines.append(f"| {x['model']} | {x['input']} | {_r(x['front_to_line_at_spawn_m'])} | "
                      f"{_r(x['front_to_line_min_in_stop_window_m'])} | {_r(x['front_to_line_final_m'])} | "
@@ -1002,6 +1191,8 @@ def cmd_tables(dev: Path, out: Path) -> None:
     for x in a:
         lines.append(f"| {x['model']} | {x['strict_pass']} | {_r(x['weighted_credit_sum'], 3)} | {_r(x['weight_sum'], 2)} | {x['marshal_graded']} | "
                      f"{x['published_graded']} | {x['published_marshal_score']} | {x['matches_published']} |")
+    if (out / "leaderboard_summary.csv").exists():
+        lines += leaderboard_tables(rd("leaderboard_summary.csv"), rd("leaderboard_cells.csv"))
     if (out / "green_stop_geometry_summary.csv").exists():
         lines += geometry_tables(rd("green_stop_geometry_summary.csv"), rd("green_stop_geometry_per_second.csv"))
     (out.parent / "tables.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -1010,14 +1201,14 @@ def cmd_tables(dev: Path, out: Path) -> None:
 # -------------------------------------------------------------------- main
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("command", choices=["score-trace", "aggregate", "cases", "rescore-variant", "timing", "geometry", "figures", "tables", "all"])
+    ap.add_argument("command", choices=["score-trace", "aggregate", "cases", "rescore-variant", "leaderboard", "timing", "geometry", "figures", "tables", "all"])
     ap.add_argument("--dev-root", default=str(REPO.parent), help="workspace that holds tmp/ and outputs/ episode artifacts")
     ap.add_argument("--out", default=str(REPO / "reports" / "dac2027_audit" / "data"))
     a = ap.parse_args(argv)
     dev, out = Path(a.dev_root), Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     cmds = {"score-trace": cmd_score_trace, "aggregate": cmd_aggregate, "cases": cmd_cases,
-            "rescore-variant": cmd_rescore_variant, "timing": cmd_timing, "geometry": cmd_geometry, "figures": cmd_figures,
+            "rescore-variant": cmd_rescore_variant, "leaderboard": cmd_leaderboard, "timing": cmd_timing, "geometry": cmd_geometry, "figures": cmd_figures,
             "tables": cmd_tables}
     for name in (cmds if a.command == "all" else [a.command]):
         cmds[name](dev, out)

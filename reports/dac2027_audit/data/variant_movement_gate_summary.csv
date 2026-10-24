@@ -1,0 +1,15 @@
+model,graded_current,graded_variant
+oracle,100.0,100.0
+baseline,13.83,13.83
+transfuser,13.79,13.79
+tcp,28.08,28.08
+interfuser,40.66,38.39
+cilrs,26.38,26.38
+aim,16.25,15.1
+neat,39.28,39.28
+pid,11.85,11.85
+mpc,12.75,12.75
+openemma,16.58,14.32
+glm-4.5v,29.4,27.13
+qwen2.5-vl,22.86,20.6
+qwen3-vl,18.75,16.49

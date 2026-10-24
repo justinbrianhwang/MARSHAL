@@ -18,6 +18,7 @@ it, P2 later. Status: Done (this audit) / Partial / Open.
 | Actual model inputs | adapters | traces | Done (`02_…` §2, `03_…` §3) | — | A | P0 |
 | Simulation FPS, sensor, decision, control periods | `_common.py`, adapters | 112 episodes timed, including 5 new instrumented runs | Done (`03_…`) | runtime substep values; capture vs receipt time | B + C + D | P0 |
 | Time-series figures and model comparison | — | `figures/` | Done for green_stop | other scenarios | B | P0 |
+| Every README leaderboard number explained | `aggregate_graded_scores`, `CONFLICT_TYPE`, `marshal_metrics.aggregate` | T6–T8, `07_leaderboard_derivation.md` | Done: graded, scenarios passed, override cells and failure profile reproduced for 14/14 models directly against README.md | — | B | P0 |
 | Suite aggregation and reproduction | `aggregate_graded_scores`, `_collect_sweep.py` | T3 | Done; reproduction commands in `06_reproduction.md` | missing-telemetry episodes would shrink the denominator (none today) | B | P1 |
 | Hold through release | — | authority-wiring runs only | Partial: leaderboard checks 1.05 s | leaderboard re-run without early termination | D | P1 |
 | Validity flag for degraded inputs | — | TCP outlier found | Open (proposal) | — | C | P1 |

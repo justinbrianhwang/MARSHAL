@@ -234,5 +234,9 @@ FAIL with partial graded credit is TCP (leaderboard 0.171: crept to front −0.6
 4. **"Too far" is unbounded inside the band** (C3); the band is formula-derived, not validated.
 5. **No validity flag for degraded inputs.** An episode in which TCP repeated stale control on 46 % of ticks
    (authority experiment, police STOP s1) was scored as valid (see `03_timing_audit.md`).
-6. Release behaviour (resume after 13.0 s) is unscored for green_stop by design (STOP expires); the oracle has
+6. **The graded movement gate covers STOP/HOLD only.** A never-moving ego earns 0.55 in rule_hierarchy (5
+   leaderboard cells), and AIM (never ≥ 5 km/h) keeps 0.21 / 0.08 / 0.04 in red_proceed and two DETOUR cells;
+   gating every action (8 cells) would move InterFuser 40.66 → 38.39
+   and put NEAT first (`07_leaderboard_derivation.md` §4).
+7. Release behaviour (resume after 13.0 s) is unscored for green_stop by design (STOP expires); the oracle has
    no release logic and stays stopped [LOG].

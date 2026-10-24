@@ -13,7 +13,8 @@ python scripts/dac2027_audit.py all            # every step below, in order
 python scripts/dac2027_audit.py score-trace     # data/green_stop_score_trace.csv, data/green_stop_strict_gates.csv
 python scripts/dac2027_audit.py aggregate       # data/suite_cells_rescored.csv, data/suite_aggregate_rescored.csv
 python scripts/dac2027_audit.py cases           # data/illustrative_cases.csv (synthetic inputs)
-python scripts/dac2027_audit.py rescore-variant # data/variant_front_bumper_*.csv (proposal impact only)
+python scripts/dac2027_audit.py rescore-variant # data/variant_front_bumper_*.csv, data/variant_movement_gate_*.csv (proposal impact only)
+python scripts/dac2027_audit.py leaderboard     # data/leaderboard_cells.csv, data/leaderboard_summary.csv (checked against README.md)
 python scripts/dac2027_audit.py timing          # data/timing_per_episode.csv, data/timing_summary.csv
 python scripts/dac2027_audit.py geometry        # data/green_stop_geometry_summary.csv, data/green_stop_geometry_per_second.csv
 python scripts/dac2027_audit.py figures         # figures/*.png
