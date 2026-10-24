@@ -13,7 +13,7 @@ scenarios.
 | `04_green_stop_results.md` | reference vs model behaviour, raw → component → score tables, hold/release, timelines |
 | `05_benchmark_extension.md` | common vs command-specific items, aggregation, re-scoring feasibility |
 | `06_reproduction.md` | commands, environments, original vs re-analysed data, code changes |
-| `tables.md` | generated tables T1–T3 |
+| `tables.md` | generated tables: T1 behaviour, T2 graded decomposition, T3 suite aggregation, T4 ego vs. environment per model, T5 per-second distances per model |
 | `data/` | per-episode CSVs (score trace, strict gates, timing, suite cells, variants, synthetic cases) |
 | `figures/` | stop-line/speed time series, lateral offset, hold panels, per-run timelines |
 

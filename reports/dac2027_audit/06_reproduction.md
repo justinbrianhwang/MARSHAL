@@ -15,6 +15,7 @@ python scripts/dac2027_audit.py aggregate       # data/suite_cells_rescored.csv,
 python scripts/dac2027_audit.py cases           # data/illustrative_cases.csv (synthetic inputs)
 python scripts/dac2027_audit.py rescore-variant # data/variant_front_bumper_*.csv (proposal impact only)
 python scripts/dac2027_audit.py timing          # data/timing_per_episode.csv, data/timing_summary.csv
+python scripts/dac2027_audit.py geometry        # data/green_stop_geometry_summary.csv, data/green_stop_geometry_per_second.csv
 python scripts/dac2027_audit.py figures         # figures/*.png
 python scripts/dac2027_audit.py tables          # tables.md
 ```
@@ -35,8 +36,11 @@ safety and action = base × factors for every episode; every re-scored leaderboa
 
 ## New runs (CARLA required)
 
-`outputs/dac2027_audit/logs/batch_timing.sh` (bash, Windows Git-Bash paths): restarts CARLA 0.9.16 before every
-episode, loads Town03, checks that no walker or vehicle is left, then runs
+`scripts/dac2027_timing_runs.sh` (bash, Windows Git-Bash; interpreters via `MPY`/`TPY`/`IPY`) restarts CARLA
+0.9.16 before every episode, loads Town03 and checks that no walker or vehicle is left
+(`scripts/dac2027_carla_util.py load-town03 | world-check`), runs the episodes below, and exports the Town03
+OpenDRIVE map and traffic-light geometry for the offline geometry tables (`dac2027_carla_util.py export-map`;
+`geometry` is skipped with a message when the export is missing). It runs
 
 | Run | Command (from the workspace root) |
 |---|---|
@@ -59,4 +63,7 @@ deterministic; a repeat can change a VLM verdict (see `04_…` §5).
   (otherwise left empty). The five runs were recorded with this final code; an earlier recording made with a
   variant that took the image from the metadata tuple is kept, unused, in `runs_superseded_tuple_variant/`.
 - `marshal_bench/controllers/vlm_model.py`: `input_frame`, `input_sim_ts` columns in `vlm_trace.csv`.
-- `scripts/dac2027_audit.py`: this analysis. No scorer, threshold, weight or controller policy was changed.
+- `scripts/dac2027_audit.py`: this analysis (including the offline `geometry` tables).
+- `scripts/dac2027_carla_util.py`, `scripts/dac2027_timing_runs.sh`: the run driver and CARLA helpers (the
+  recorded runs used an equivalent workspace-local copy of the driver).
+- No scorer, threshold, weight or controller policy was changed.

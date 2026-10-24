@@ -34,7 +34,8 @@ line; red dash-dot = the implemented strict limit (centre 1.0 m = front −1.40 
 engagement band (centre). Shaded = STOP active. Episodes that stop end at ≈ 5 s through early termination.*
 
 Lateral offset from the spawn axis stays within ±0.3 m for every stopping run and is not scored in green_stop
-(`figures/gs_leaderboard_lateral.png`).
+(`figures/gs_leaderboard_lateral.png`). Distances to the lane boundaries, the governing traffic light and the
+officer, per model and second by second, are in `tables.md` T4/T5 (lane margin ≥ 0.30 m in every episode).
 
 ## 2. Raw measurement → component credit → episode score (leaderboard)
 

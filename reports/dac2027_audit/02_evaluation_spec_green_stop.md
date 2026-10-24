@@ -77,9 +77,12 @@ Distinctions the spec requires:
   window — a held stop by construction. A momentary stop shows up in the derived "longest stopped span".
 - **Final position vs maximum incursion.** Strict uses the minimum over the window (maximum incursion);
   reversing back after an incursion does not help.
-- **Lane-centre offset vs boundary margin.** Only lane-centre offset (`ego_lateral_m`) is logged. Body-to-lane-
-  boundary clearance is not computed anywhere [UNVERIFIED for all runs]; it would need lane width from the map
-  and the ego box per tick.
+- **Lane-centre offset vs boundary margin.** Only the offset from the spawn axis (`ego_lateral_m`) is logged.
+  Body-to-lane-boundary clearance is computed offline in this audit (`scripts/dac2027_audit.py geometry`): the
+  ego position is projected onto the Town03 OpenDRIVE lane (exported once from CARLA), and
+  margin = lane width / 2 ∓ centre offset − box half-extent (half-width 1.0817 m, half-length 2.3959 m, rotated by
+  the logged yaw when available, else lane-aligned). It is reported (T4/T5 in `tables.md`), not scored. Inside
+  the junction the OpenDRIVE lane is a virtual connector without painted boundaries.
 
 ## 4. What enters the score (and what does not)
 

@@ -7,7 +7,7 @@ measurement -> component credit -> episode credit -> scenario -> suite score.
 
     python scripts/dac2027_audit.py all [--dev-root DIR] [--out DIR]
 
-Subcommands: score-trace, aggregate, cases, rescore-variant, timing, figures, tables, all.
+Subcommands: score-trace, aggregate, cases, rescore-variant, timing, geometry, figures, tables, all.
 Run from the `marshal` conda env (needs carla only for the scenario registry
 import, matplotlib for figures).
 """
@@ -809,10 +809,167 @@ def _timeline(plt, ep: Episode, fig_dir: Path) -> None:
 
 
 
+# --------------------------------------------------------------- geometry
+EGO_HALF_WIDTH_M = 1.0817  # measured tesla.model3 bounding-box half-width (same source as the half-length)
+MODEL_INPUTS = {  # as wired in MARSHAL (02_evaluation_spec_green_stop.md section 2)
+    "oracle": "privileged ground truth (no sensor)", "baseline": "TrafficManager autopilot (officer-blind)",
+    "transfuser": "3 RGB + LiDAR + IMU + GNSS", "tcp": "3 RGB 1600x900", "interfuser": "3 RGB + LiDAR + IMU",
+    "cilrs": "1 RGB 400x300 + IMU", "aim": "1 RGB 400x300 + IMU", "neat": "3 RGB 400x300 + IMU",
+    "pid": "route + speed (no camera)", "mpc": "route + speed (no camera)", "openemma": "1 RGB 800x600 + IMU + GNSS",
+    "glm-4.5v": "1 dash-cam RGB (512 px JPEG)", "qwen2.5-vl": "1 dash-cam RGB (512 px JPEG)",
+    "qwen3-vl": "1 dash-cam RGB (512 px JPEG)",
+}
+
+
+class _Geometry:
+    """Offline Town03 lane and signal geometry from an exported OpenDRIVE file (no simulator needed)."""
+
+    def __init__(self, map_dir: Path):
+        import carla  # the carla package builds a Map from OpenDRIVE text without a server
+        self.carla = carla
+        self.map = carla.Map("Town03", (map_dir / "Town03.xodr").read_text(encoding="utf-8"))
+        self.lights = (_json(map_dir / "town03_traffic_lights.json") or {}).get("traffic_lights", [])
+
+    def light_for_stop_line(self, stop_xy):
+        """The traffic light whose stop waypoint is the episode's stop line (CARLA get_stop_waypoints)."""
+        best = None
+        for tl in self.lights:
+            for s in tl["stop_waypoints"]:
+                d = math.hypot(s["x"] - stop_xy[0], s["y"] - stop_xy[1])
+                if best is None or d < best[0]:
+                    best = (d, tl)
+        return best[1] if best and best[0] < 0.5 else None
+
+    def lane_margins(self, x, y, yaw_deg):
+        """(left, right, waypoint): clearance in m between the ego body box and each lane boundary; + = inside."""
+        wp = self.map.get_waypoint(self.carla.Location(x=float(x), y=float(y), z=0.0), project_to_road=True)
+        if wp is None:
+            return None, None, None
+        c = wp.transform.location
+        lane_yaw = math.radians(wp.transform.rotation.yaw)
+        # signed lateral offset of the ego centre from the lane centre (+ = right of the lane direction)
+        off = (float(x) - c.x) * -math.sin(lane_yaw) + (float(y) - c.y) * math.cos(lane_yaw)
+        dpsi = math.radians((yaw_deg if yaw_deg is not None else wp.transform.rotation.yaw) - wp.transform.rotation.yaw)
+        half_extent = EGO_HALF_WIDTH_M * abs(math.cos(dpsi)) + EGO_HALF_LENGTH_M * abs(math.sin(dpsi))
+        half_lane = wp.lane_width / 2.0
+        return half_lane + off - half_extent, half_lane - off - half_extent, wp
+
+
+def geometry_rows(ep: Episode, geo: _Geometry) -> List[Dict[str, Any]]:
+    light = geo.light_for_stop_line(ep.stop_xy) if ep.stop_xy else None
+    ctrl: Dict[float, Dict[str, float]] = {}  # applied controls; July logs keep them only in metrics.csv (t,key,value)
+    if (ep.dir / "metrics.csv").exists():
+        with (ep.dir / "metrics.csv").open(encoding="utf-8") as fh:
+            for m in csv.DictReader(fh):
+                if m.get("key") in ("throttle", "brake") and f(m.get("value")) is not None:
+                    ctrl.setdefault(round(float(m["t"]), 3), {})[m["key"]] = float(m["value"])
+    out = []
+    for r, d in zip(ep.rows, ep.signed_stopline()):
+        c = ctrl.get(round(float(r["sim_time"]), 3), {})
+        yaw = f(r.get("ego_yaw_deg"))
+        left, right, wp = geo.lane_margins(r["ego_x"], r["ego_y"], yaw)
+        out.append({
+            "sim_time": float(r["sim_time"]), "speed_kmh": float(r["ego_speed_kmh"]),
+            "front_to_stop_line_m": (d - EGO_HALF_LENGTH_M) if d is not None else None,
+            "centre_to_stop_line_m": d,
+            "left_lane_margin_m": left, "right_lane_margin_m": right,
+            "lane_width_m": wp.lane_width if wp else None, "in_junction_lane": bool(wp.is_junction) if wp else None,
+            "yaw_source": "logged ego_yaw_deg" if yaw is not None else "lane-aligned (yaw not logged)",
+            "dist_to_traffic_light_m": (math.hypot(float(r["ego_x"]) - light["x"], float(r["ego_y"]) - light["y"])
+                                        if light else None),
+            "dist_to_officer_m": f(r.get("distance_to_officer_m")),
+            "officer_gesture": r.get("officer_gesture_id"), "officer_active": r.get("officer_active"),
+            "applied_brake": f(r.get("applied_brake")) if f(r.get("applied_brake")) is not None else c.get("brake"),
+            "applied_throttle": (f(r.get("applied_throttle")) if f(r.get("applied_throttle")) is not None
+                                 else c.get("throttle")),
+        })
+    return out
+
+
+def cmd_geometry(dev: Path, out: Path) -> None:
+    """Per-model summary and per-second tables of ego-to-environment distances (green_stop leaderboard)."""
+    map_dir = dev / "outputs" / "dac2027_audit" / "map"
+    if not (map_dir / "Town03.xodr").exists():
+        print(f"geometry: skipped, {map_dir / 'Town03.xodr'} missing (export it with: python scripts/dac2027_carla_util.py export-map {map_dir})")
+        return
+    geo = _Geometry(map_dir)
+    summary, series = [], []
+    for label in LB_LABELS:
+        ep = lb_episode(dev, label)
+        if ep is None:
+            continue
+        s, g = score(ep)
+        rows = geometry_rows(ep, geo)
+        onset, _, active_end = S._stop_hold_window(ep.rows)
+        act = [x for x in rows if onset <= x["sim_time"] <= active_end]
+        deepest = min(act, key=lambda x: x["front_to_stop_line_m"])  # maximum incursion (or closest stop)
+        nearest = min(act, key=lambda x: abs(x["front_to_stop_line_m"]))  # closest approach to the line itself
+        light = geo.light_for_stop_line(ep.stop_xy)
+        summary.append({
+            "model": label, "input": MODEL_INPUTS.get(label, ""),
+            "episode_end_s": rows[-1]["sim_time"], "terminated": ep.terminated,
+            "front_to_line_at_spawn_m": rows[0]["front_to_stop_line_m"],
+            "front_to_line_min_in_stop_window_m": deepest["front_to_stop_line_m"],
+            "front_to_line_final_m": rows[-1]["front_to_stop_line_m"],
+            "left_lane_margin_min_m": min(x["left_lane_margin_m"] for x in act),
+            "right_lane_margin_min_m": min(x["right_lane_margin_m"] for x in act),
+            "dist_to_traffic_light_at_closest_m": nearest["dist_to_traffic_light_m"],
+            "time_of_closest_approach_s": nearest["sim_time"],
+            "dist_to_officer_min_m": min(x["dist_to_officer_m"] for x in act if x["dist_to_officer_m"] is not None),
+            "traffic_light": f"actor {light['actor_id']} (OpenDRIVE {light['opendrive_id']}), held Green" if light else "",
+            "strict": s.get("verdict"), "graded_credit_x100": round(100 * (g.get("credit") or 0.0), 1),
+            "yaw_source": rows[0]["yaw_source"],
+        })
+        whole = 0
+        for i, x in enumerate(rows):  # first tick at or after every whole simulation second, plus the last tick
+            last = i == len(rows) - 1
+            if x["sim_time"] + 1e-9 >= whole or last:
+                series.append({"model": label, "t_label_s": whole if x["sim_time"] + 1e-9 >= whole else "end", **x})
+                whole = math.floor(x["sim_time"] + 1e-9) + 1
+    write_csv(out / "green_stop_geometry_summary.csv", summary)
+    write_csv(out / "green_stop_geometry_per_second.csv", series)
+    print(f"geometry: {len(summary)} models, {len(series)} per-second rows")
+
+
 # ------------------------------------------------------------------ tables
 def _r(v: Any, n: int = 2) -> str:
     x = f(v)
     return "-" if x is None else f"{x:.{n}f}"
+
+
+def geometry_tables(summary: List[Dict[str, Any]], series: List[Dict[str, Any]],
+                    models: Optional[List[str]] = None) -> List[str]:
+    """T4 (per model) and T5 (per second) ego-to-environment distance tables."""
+    lines = ["", "## T4. green_stop: ego vs. environment per model (leaderboard episodes)", "",
+             "Stop line = front bumper to stop line (+ before, - past); lane margin = body box to lane boundary "
+             "(+ inside); traffic light = ego centre to the governing light pole (actor 69) at the closest approach "
+             "to the line; officer = minimum ego-centre distance during the STOP window; score = graded credit x 100.", "",
+             "| Model | Input | Stop line at spawn (m) | Stop line min in STOP window (m) | Stop line final (m) | "
+             "Left lane margin min (m) | Right lane margin min (m) | Traffic light (m) | Officer min (m) | Strict | Score |",
+             "|" + "---|" * 11,
+             "| *Worst acceptable (strict rule)* | any | - | >= -1.40 (centre >= 1.0) | stopped (< 1 km/h from 4.0 s) | "
+             "not scored | not scored | not scored | <= 16.59 (or line) | PASS | 100 |"]
+    for x in summary:
+        lines.append(f"| {x['model']} | {x['input']} | {_r(x['front_to_line_at_spawn_m'])} | "
+                     f"{_r(x['front_to_line_min_in_stop_window_m'])} | {_r(x['front_to_line_final_m'])} | "
+                     f"{_r(x['left_lane_margin_min_m'])} | {_r(x['right_lane_margin_min_m'])} | "
+                     f"{_r(x['dist_to_traffic_light_at_closest_m'], 1)} | {_r(x['dist_to_officer_min_m'], 1)} | "
+                     f"{x['strict']} | {x['graded_credit_x100']} |")
+    for m in (models or [x["model"] for x in summary]):
+        rows = [x for x in series if x["model"] == m]
+        if not rows:
+            continue
+        lines += ["", f"## T5. green_stop per second: {m}", "",
+                  "| t (s) | sim time (s) | Speed (km/h) | Stop line, front (m) | Left lane margin (m) | "
+                  "Right lane margin (m) | Traffic light (m) | Officer (m) | STOP active | Throttle | Brake |",
+                  "|" + "---|" * 11]
+        for x in rows:
+            lines.append(f"| {x['t_label_s']} | {_r(x['sim_time'])} | {_r(x['speed_kmh'], 1)} | "
+                         f"{_r(x['front_to_stop_line_m'])} | {_r(x['left_lane_margin_m'])} | "
+                         f"{_r(x['right_lane_margin_m'])} | {_r(x['dist_to_traffic_light_m'], 1)} | "
+                         f"{_r(x['dist_to_officer_m'], 1)} | {x['officer_active']} | {_r(x['applied_throttle'])} | "
+                         f"{_r(x['applied_brake'])} |")
+    return lines
 
 
 def cmd_tables(dev: Path, out: Path) -> None:
@@ -845,20 +1002,22 @@ def cmd_tables(dev: Path, out: Path) -> None:
     for x in a:
         lines.append(f"| {x['model']} | {x['strict_pass']} | {_r(x['weighted_credit_sum'], 3)} | {_r(x['weight_sum'], 2)} | {x['marshal_graded']} | "
                      f"{x['published_graded']} | {x['published_marshal_score']} | {x['matches_published']} |")
+    if (out / "green_stop_geometry_summary.csv").exists():
+        lines += geometry_tables(rd("green_stop_geometry_summary.csv"), rd("green_stop_geometry_per_second.csv"))
     (out.parent / "tables.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"tables: {out.parent / 'tables.md'}")
 
 # -------------------------------------------------------------------- main
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("command", choices=["score-trace", "aggregate", "cases", "rescore-variant", "timing", "figures", "tables", "all"])
+    ap.add_argument("command", choices=["score-trace", "aggregate", "cases", "rescore-variant", "timing", "geometry", "figures", "tables", "all"])
     ap.add_argument("--dev-root", default=str(REPO.parent), help="workspace that holds tmp/ and outputs/ episode artifacts")
     ap.add_argument("--out", default=str(REPO / "reports" / "dac2027_audit" / "data"))
     a = ap.parse_args(argv)
     dev, out = Path(a.dev_root), Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     cmds = {"score-trace": cmd_score_trace, "aggregate": cmd_aggregate, "cases": cmd_cases,
-            "rescore-variant": cmd_rescore_variant, "timing": cmd_timing, "figures": cmd_figures,
+            "rescore-variant": cmd_rescore_variant, "timing": cmd_timing, "geometry": cmd_geometry, "figures": cmd_figures,
             "tables": cmd_tables}
     for name in (cmds if a.command == "all" else [a.command]):
         cmds[name](dev, out)

@@ -10,7 +10,7 @@ it, P2 later. Status: Done (this audit) / Partial / Open.
 | Ideal / best case | — | oracle runs | Partial: defined as a proposal (`02_…` §5); no source for an upper bound on stop distance | a justified "too far" bound | A + decision | P0 |
 | Worst acceptable | `strict_episode_scoring.py` gates | 44 green_stop episodes re-scored, gate cascade reproduced | Done for the implemented rule; front-bumper variant evaluated (flips the oracle's occluded_officer) | decision whether to adopt a bumper-based rule | B | P0 |
 | Oracle role and behaviour | `controllers/oracle.py` | 5 green_stop oracle executions; 25/25 leaderboard | Done: passes the same scorer; rolling 1.8 m/s start is a different initial condition | release logic absent (stays stopped) | B | P1 |
-| Feature definitions | `_common.py` telemetry row | — | Done (`02_…` §3) | lane-boundary clearance not computed | A | P0 |
+| Feature definitions | `_common.py` telemetry row | — | Done (`02_…` §3); lane-boundary margin, traffic-light and officer distances added offline (T4/T5) | yaw not logged in the July runs (box assumed lane-aligned) | A + B | P0 |
 | Strict / Graded / MARSHAL Score meaning and relation | three criteria modules | T3 | Done (`02_…` §6) | — | A | P0 |
 | Stop-line distance vs score | strict clearance, graded clearance curve | illustrative C1–C5, T2 | Done; centre-based, bumper −1.40 m admitted | — | B | P0 |
 | Per-command functions and failure handling | `_score_*` in both scorers | C1–C9 | Done (`02_…` §6.4–6.5) | — | A | P0 |

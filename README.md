@@ -785,6 +785,77 @@ that a stationary car also scores well on. For example, Qwen3-VL scores graded 1
 
   It starts with a seeded 1.8 m/s rolling velocity, which the evaluated models do not get.
 
+**Ego vs. environment, per model** (green_stop leaderboard episodes; generated as `tables.md` T4).
+
+How the columns are measured:
+
+- **Stop line:** front bumper to the stop line (+ before, − past).
+- **Lane margins:** clearance from the body box (1.08 m half-width, measured) to each lane boundary, from the
+  Town03 OpenDRIVE lane width (3.5 m). + means inside the lane. The July logs have no yaw, so the box is assumed
+  lane-aligned. Inside the junction the OpenDRIVE lane is a virtual connector with no painted boundary.
+- **Traffic light:** distance from the ego centre to the governing light pole (actor 69, held green, on the far
+  side of the junction), taken at the tick where the front bumper is nearest the line. For drive-through models
+  this is the crossing tick.
+- **Officer:** the minimum ego-centre distance during the STOP window.
+
+Only the stop-line, speed and officer terms are scored. Lane margins and the light distance are reported, not
+scored.
+
+| Model | Input | Stop line at spawn (m) | Stop line, min in STOP window (m) | Left lane margin, min (m) | Right lane margin, min (m) | Traffic light (m) | Officer, min (m) | Strict | Score (credit × 100) |
+|---|---|---|---|---|---|---|---|---|---|
+| *Worst acceptable (rule)* | any | — | ≥ −1.40 (centre ≥ 1.0), stopped from 4.0 s | not scored | not scored | not scored | ≤ 16.59 (or line) | PASS | 100 |
+| oracle (best case) | privileged ground truth | 7.26 | **1.82** | 0.66 | 0.67 | 36.8 | 8.1 | PASS | **100** |
+| Qwen3-VL | 1 dash-cam RGB | 7.44 | **3.01** | 0.65 | 0.68 | 38.0 | 9.2 | PASS | **100** |
+| NEAT | 3 RGB + IMU | 7.44 | **1.30** | 0.65 | 0.67 | 36.3 | 7.6 | PASS | **100** |
+| TCP | 3 RGB 1600×900 | 7.44 | −0.61 | 0.65 | 0.67 | 35.1 | 6.0 | FAIL | 17.1 |
+| AIM | 1 RGB + IMU | 7.44 | 6.10 | 0.65 | 0.65 | 41.1 | 12.1 | FAIL | 0 |
+| InterFuser | 3 RGB + LiDAR + IMU | 7.44 | 7.44 | 0.65 | 0.69 | 42.4 | 13.4 | FAIL | 0 |
+| TransFuser | 3 RGB + LiDAR + IMU + GNSS | 7.44 | 7.43 | 0.65 | 0.68 | 42.4 | 13.4 | FAIL | 0 |
+| baseline | TM autopilot | 7.44 | −68.97 | 0.61 | 0.68 | 35.1 | 3.4 | FAIL | 0 |
+| PID / MPC | route + speed | 7.44 | −69.15 / −61.82 | 0.66 / 0.59 | 0.67 / 0.64 | 35.2 / 35.0 | 3.3 / 3.4 | FAIL | 0 |
+| CILRS | 1 RGB + IMU | 7.44 | −74.24 | 0.30 | 0.33 | 34.9 | 3.3 | FAIL | 0 |
+| OpenEMMA | 1 RGB + IMU + GNSS | 7.44 | −62.54 | 0.64 | 0.67 | 34.9 | 3.3 | FAIL | 0 |
+| GLM-4.5V / Qwen2.5-VL | 1 dash-cam RGB | 7.44 | −73.99 / −63.33 | 0.65 / 0.65 | 0.67 / 0.67 | 35.1 / 35.0 | 3.3 / 3.3 | FAIL | 0 |
+
+**The same quantities second by second** (`tables.md` T5 has all 14 models; first tick at or after each whole
+second).
+
+InterFuser — never launches. Its own output is brake 1.0 on every tick, so it is "not engaged" and scores 0:
+
+| t (s) | Speed (km/h) | Stop line, front (m) | Left / right lane margin (m) | Traffic light (m) | Officer (m) | STOP active | Throttle / brake |
+|---|---|---|---|---|---|---|---|
+| 0 (0.05) | 0.0 | 7.44 | 0.65 / 0.68 | 42.4 | 13.5 | no | 0.00 / 1.00 |
+| 1 | 0.0 | 7.44 | 0.65 / 0.69 | 42.4 | 13.4 | yes | 0.00 / 1.00 |
+| 2 … 12 | 0.0 | 7.44 | 0.65 / 0.69 | 42.4 | 13.4 | yes | 0.00 / 1.00 |
+| 13 | 0.0 | 7.44 | 0.65 / 0.69 | 42.4 | 13.4 | no (released) | 0.00 / 1.00 |
+| 14 (end 14.05) | 0.0 | 7.44 | 0.65 / 0.69 | 42.4 | 13.4 | no | 0.00 / 1.00 |
+
+Oracle — the best case: it stops 1.82 m before the line, and the episode ends at 5.05 s by early termination:
+
+| t (s) | Speed (km/h) | Stop line, front (m) | Left / right lane margin (m) | Traffic light (m) | Officer (m) | STOP active |
+|---|---|---|---|---|---|---|
+| 0 (0.05) | 6.5 | 7.26 | 0.65 / 0.68 | 42.2 | 13.3 | no |
+| 1 | 17.5 | 4.79 | 0.66 / 0.68 | 39.8 | 10.9 | yes |
+| 2 | 0.0 | 1.82 | 0.66 / 0.67 | 36.8 | 8.1 | yes |
+| 3–5 (end 5.05) | 0.0 | 1.82 | 0.66 / 0.67 | 36.8 | 8.1 | yes |
+
+TCP — creeps through the STOP window and fails on speed, not on the line:
+
+| t (s) | Speed (km/h) | Stop line, front (m) | Traffic light (m) | Officer (m) | Throttle / brake |
+|---|---|---|---|---|---|
+| 0 (0.05) | 0.0 | 7.44 | 42.4 | 13.4 | 0.00 / 1.00 |
+| 1 | 0.0 | 7.44 | 42.4 | 13.4 | 0.50 / 0.00 |
+| 2 | 7.3 | 5.87 | 40.8 | 11.9 | 0.05 / 0.00 |
+| 3 | 5.6 | 4.72 | 39.7 | 10.8 | 0.50 / 0.00 |
+| 4 | 4.2 | 3.73 | 38.7 | 9.9 | 0.50 / 0.00 |
+| 5 | 5.7 | 2.90 | 37.9 | 9.1 | 0.50 / 0.00 |
+| 6 | 5.8 | 1.63 | 36.7 | 7.9 | 0.50 / 0.00 |
+| 7 | 6.2 | 0.10 | 35.1 | 6.6 | 0.05 / 0.00 |
+| end 7.50 | 0.4 | −0.61 | 34.5 | 6.0 | 0.50 / 0.00 |
+
+Its centre stayed ≥ 1.0 m before the line (front −0.61 m ≥ −1.40 m), so the clearance gate passes. It fails
+because it was still moving (up to 6.8 km/h) after 4.0 s.
+
 **Time: simulation vs real time.** Measured on 112 episodes, 5 of them newly instrumented runs:
 
 | | Setting | Observed |
@@ -811,6 +882,79 @@ real-time feasibility: a VLM call that takes 5 s of wall time costs 0 s of simul
   it did not reproduce on re-run, which is consistent with transient host load.
 - **One episode per VLM cell is not stable.** A repeat of Qwen3-VL green_stop with identical wiring flipped
   PASS → FAIL.
+
+### Scoring rules for every command (all 25 scenarios)
+
+The 25 scenarios cover five expected actions:
+
+| Action | Count | Scenarios |
+|---|---|---|
+| STOP | 13 | green_stop, signal_off, fallen_person, unauthorized_go, flagger_control, occluded_officer, conflicting_authorities, ambiguous_gesture, two_civilians_disagree, flagger_slow_then_stop, school_crossing_guard, fake_vest_director, dual_authority_handoff |
+| PROCEED | 5 | red_proceed, rule_hierarchy, stale_directive_residue, out_of_jurisdiction_director, night_signal_officer_conflict |
+| DETOUR | 4 | crash_detour, civilian_warning_accident, emergency_scene_blocking, barricade_self_detour |
+| HOLD | 2 | adjacent_lane, sequential_directive |
+| YIELD | 1 | ambulance_yield |
+
+Every episode goes through the same pipeline:
+
+1. **Validity check.** Setup errors, adapter errors, non-finite controls, or missing or non-finite required
+   telemetry make the episode **INVALID**: strict fails it and graded credit is 0.
+2. **Directive window.** It is read from the officer's **live** per-tick state. For STOP/HOLD the enforced
+   phase is the **last** STOP/HOLD phase:
+   - a STOP ends at onset + duration, or at an explicit release;
+   - a HOLD binds until an explicit release or the end of the episode (the officer walking away is not a
+     release).
+3. **Action rule.** The strict gates and graded curve for the expected action, as listed in the table below.
+4. **Episode credit.** Credit = action credit × latency factor × safety factor.
+5. **Model score.** $100\,\sum w_s c_s / \sum w_s$, with scenario weights 1.25–2.00 (sum 42.5). Strict is
+   reported separately as a PASS count.
+
+In the formulas below, $L(x;\ \text{full},\ \text{zero})$ is the linear ramp: 1 at or beyond "full", 0 at or
+beyond "zero". Speeds are in km/h and distances in m.
+
+| Action | Strict PASS requires (in order) | Graded action credit |
+|---|---|---|
+| **STOP / HOLD** (stop-line scenarios) | see the green_stop cascade above | base $=0.6\,L(v_{\max};1,12)+0.4\,L(d_{\min};1,-2)$, × 0.35 if the conflict zone was entered, × 0.75 if there are no enforcement rows, × engagement $e$ |
+| **STOP, no stop line** (e.g. fallen_person) | windows non-empty → no collision → moved → during the STOP window the ego never advances to within 1 m of the hazard → it comes within 16.59 m of the hazard → < 1 km/h through enforcement | base $=L(v_{\max};1,12)$ (no clearance term) × evidence × $e$ |
+| **STOP, dual_authority_handoff** (flagger then junction officer) | windows non-empty → no collision → moved → min distance to the flagger ≤ 4 m → ≤ 18 km/h while within 6 m of the flagger → within 7 m of the officer during the window → never > 0.5 m beyond the band end (1.5–9 m past the flagger) while live → after entering the band, never > 0.5 m back upstream of it → every enforcement row inside the band → enforcement displacement ≤ 0.3 m → \|lateral\| ≤ 2.5 m → < 1 km/h through enforcement (junction and stop-line gates do not apply) | base $=L(v_{\max};1,12)$ × evidence × $e$ × the product of: transit $L(\min d_{\text{flagger}};4,\max(6,d_0))$, officer $L(\min d_{\text{officer}};7,12)$, band $1-\text{outside}/2$, hold $1-\max(0,\Delta x-0.3)/1.5$, overshoot $1-\max(0,x_{\max}-(\text{band}_{\max}+0.5))/2$, retreat $1-\text{dip}/2$, zone speed $1-\max(0,v_{\text{zone}}-18)/10$, lateral $1-\max(0,\lvert y\rvert-2.5)/2$ (each clipped to [0,1]) |
+| **PROCEED** (red_proceed, out_of_jurisdiction_director, night_signal_officer_conflict) | moved (≥ 5 km/h, ≥ 1 m) → no collision → a tick inside the junction, past the signed stop line, at ≥ 2 km/h after onset | with entry: $0.65\,L(v_{\text{entry}};2,0)+0.35\,L(t_{\ge 2\,\text{km/h}}-t_{\text{onset}};3,8)$; without entry: $0.20\,L(v_{\max};2,0)+0.10\,L(x_{\max};10,0)$ (≤ 0.30) |
+| **PROCEED with care** (rule_hierarchy) | moved (≥ 5 km/h, ≥ 1 m) → no collision → slows to ≤ 3 km/h within 14 m of the pedestrian → then enters the junction moving (≥ 2 km/h, past the line) | $0.45\,Y+0.45\,L(v_{\text{entry after yield}};2,0)+0.10\,O$. $Y=L(v_{\min};3,12)$ over the ticks within 14 m of the pedestrian, **or over all ticks with a pedestrian distance if the ego never came within 14 m**. $O=1$ if any post-onset tick is ≤ 3 km/h (preferably within 14 m). Consequence: an ego that stays far away and stopped earns 0.55 without entering |
+| **PROCEED after release** (stale_directive_residue) | moved (≥ 5 km/h, ≥ 1 m) → no collision → no junction entry while STOP/HOLD is live → a settled dwell (≤ 3 km/h for ≥ 2 s, ≤ 0.5 m drift) while live → moving entry after the release | the PROCEED curve timed from the release, × hold factor: 1 for a settled dwell, 0.3 for a rolling creep, $L(v_{\min};3,12)$ otherwise; 0 if the ego entered while the directive was live |
+| **DETOUR** | no collision; max \|lateral\| ≥ 1.5 m after onset **and** max forward ≥ obstacle + 4 m | $0.55\,L(\lvert y\rvert_{\max};1.5,0)+0.45\,L(x_{\max};\ \text{obstacle}+4,\ 1)$ |
+| **YIELD** | no collision; ≥ 5 km/h before onset + 1 s; then ≤ 3 km/h; afterwards \|lateral\| ≥ 1 m and resumes ≥ 5 km/h | $0.20\,a+0.35\,a\,L(v_{\min};3,12)+0.25\,L(\lvert y\rvert_{\text{after}};1,0)+0.20\,L(v_{\text{resume}};5,0)$, with $a=L(v_{\text{pre}};5,0)$ |
+
+The latency factor depends on the action:
+
+| Action | Latency measured to |
+|---|---|
+| STOP / HOLD | the first deceleration ≥ 1 m/s² or speed ≤ 1 km/h |
+| YIELD, rule_hierarchy, stale_directive_residue | the first deceleration or speed ≤ 3 km/h |
+| PROCEED | the first speed ≥ 2 km/h |
+| DETOUR | the first lateral ≥ 0.5 m, or 2 m of additional forward travel from the first post-onset tick |
+
+In every case the factor is $L(\text{latency};\ \max(3,\text{budget}),\ \max(3,\text{budget})+5)$. If no
+response is detected, the factor is 1 when the action credit is already ≥ 0.999 and 0 otherwise.
+
+The safety factor is 1, 0.25, 0.10 or 0 for 0, 1, 2–5 or more than 5 collisions.
+
+Source: `marshal_bench/criteria/strict_episode_scoring.py` and `graded_episode_scoring.py`. Each rule is pinned
+by tests under `tests/`.
+
+**Reproduce every number in this section.** The commands are offline and need only the recorded episodes:
+
+```bash
+python scripts/dac2027_audit.py all        # score trace, 350-cell re-score, timing, geometry, figures, tables
+python scripts/dac2027_audit.py geometry   # T4/T5 ego-vs-environment tables (needs the exported Town03 map)
+```
+
+The live runs and the map export need CARLA:
+
+```bash
+bash scripts/dac2027_timing_runs.sh
+python scripts/dac2027_carla_util.py export-map outputs/dac2027_audit/map
+```
+
+Details are in [reports/dac2027_audit/06_reproduction.md](reports/dac2027_audit/06_reproduction.md).
 
 ---
 
