@@ -51,21 +51,24 @@ replaces is preserved in git history):
 
 | Probe | Result |
 |---|---|
-| Uniform weights (all 1.0) | one adjacent swap only (baseline ↔ TransFuser, equal at 13.8 graded); **all other ranks identical**, all 14 models |
-| Random ±25% × 1000 | Kendall τ vs current ranking **0.967 ± 0.025** |
-| Top non-privileged model changes | **16.3%** of draws (all InterFuser ↔ NEAT — the pair we report as a statistical tie, 1.4 points apart) |
+| Uniform weights (all 1.0) | two adjacent swaps only: GLM-4.5V ↔ CILRS (27.1 vs 26.4 graded) and baseline ↔ TransFuser (equal at 13.8); **all other ranks identical**, all 14 models |
+| Random ±25% × 1000 | Kendall τ vs current ranking **0.941 ± 0.033** |
+| Top non-privileged model changes | **27.8%** of draws (all NEAT ↔ InterFuser — the pair we report as a statistical tie, 0.9 points apart) |
 | Oracle rank 1 | **100%** of draws |
 | Worst one-at-a-time ±25% effect | 2 ranks (baseline, `unauthorized_go` −25%) |
-| InterFuser ↔ NEAT flips | 16.3% of draws — consistent with our reporting of the pair as a **statistical tie** |
+| NEAT ↔ InterFuser flips | 27.8% of draws — consistent with our reporting of the pair as a **statistical tie** |
 | Most weight-sensitive adjacent pair | baseline ↔ TransFuser, 49.5% — equal means (13.8 vs 13.8), a pair never claimed as an ordering |
 
+Recomputed on 2026-10-24 after the graded movement gate was extended to every action (see README, "Rule change,
+2026-10-24"). Before that change the same probes gave τ = 0.967 ± 0.025 with InterFuser first.
+
 **Reading:** the weights express *emphasis*, not the *ranking* — every ordering
-claim in the README survives removing the weights entirely, up to the one
-uniform-weights swap of an exactly-tied pair (baseline vs TransFuser, both
-13.8). The genuinely weight-sensitive comparisons are adjacent pairs we
+claim in the README survives removing the weights entirely, up to the two
+uniform-weights swaps of pairs within one graded point (GLM-4.5V vs CILRS, baseline vs
+TransFuser). The genuinely weight-sensitive comparisons are adjacent pairs we
 already report as ties or non-orderings: baseline vs TransFuser (49.5% of
-draws), OpenEMMA vs AIM (29.2%), InterFuser vs NEAT (16.3%), GLM-4.5V vs TCP
-(13.0%).
+draws), OpenEMMA vs baseline (35.0%), NEAT vs InterFuser (27.8%), GLM-4.5V vs CILRS
+(25.9%), TCP vs GLM-4.5V (19.7%), AIM vs OpenEMMA (18.8%).
 Caveats: this analysis perturbs weights only, over the single current reference
 sweep (run-to-run measurement noise is characterized separately —
 [reproducibility.md](reproducibility.md), 3-run study on the 21-scenario

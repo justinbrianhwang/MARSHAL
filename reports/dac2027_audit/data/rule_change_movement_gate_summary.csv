@@ -1,4 +1,4 @@
-model,graded_current,graded_variant
+model,graded_before_rule_change,graded_after
 oracle,100.0,100.0
 baseline,13.83,13.83
 transfuser,13.79,13.79

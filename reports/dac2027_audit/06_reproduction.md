@@ -13,7 +13,7 @@ python scripts/dac2027_audit.py all            # every step below, in order
 python scripts/dac2027_audit.py score-trace     # data/green_stop_score_trace.csv, data/green_stop_strict_gates.csv
 python scripts/dac2027_audit.py aggregate       # data/suite_cells_rescored.csv, data/suite_aggregate_rescored.csv
 python scripts/dac2027_audit.py cases           # data/illustrative_cases.csv (synthetic inputs)
-python scripts/dac2027_audit.py rescore-variant # data/variant_front_bumper_*.csv, data/variant_movement_gate_*.csv (proposal impact only)
+python scripts/dac2027_audit.py rescore-variant # data/variant_front_bumper_*.csv (proposal impact), data/rule_change_movement_gate_*.csv (before/after of the 2026-10-24 rule change)
 python scripts/dac2027_audit.py leaderboard     # data/leaderboard_cells.csv, data/leaderboard_summary.csv (checked against README.md)
 python scripts/dac2027_audit.py timing          # data/timing_per_episode.csv, data/timing_summary.csv
 python scripts/dac2027_audit.py geometry        # data/green_stop_geometry_summary.csv, data/green_stop_geometry_per_second.csv
@@ -28,9 +28,11 @@ safety and action = base × factors for every episode; every re-scored leaderboa
 
 ## Original vs re-analysed results
 
-- Original: the stored `strict_scoring.json` of each episode and `outputs/full_sweep_results.json`. Never edited.
+- Original: the stored telemetry and `strict_scoring.json` of each episode. Never edited.
+- `outputs/full_sweep_results.json` is a derived file. It was regenerated on 2026-10-24 by
+  `scripts/_collect_sweep.py` after the movement-gate rule change; its pre-change version is in git at `c3aa67e`.
 - Re-analysed: everything under `reports/dac2027_audit/data/`, computed with the scorers at the working tree
-  (scorer files unchanged from commit `1fac326`). Column `stored_strict_verdict` keeps the original next to the
+  (the scorers as of 2026-10-24, i.e. `c3aa67e` plus the all-action movement gate). Column `stored_strict_verdict` keeps the original next to the
   re-scored `strict_verdict`; they agree in all 44 green_stop episodes.
 - Synthetic: `illustrative_cases.csv` only; labelled as such everywhere.
 - Proposal: `variant_front_bumper_*.csv`; changes no published score.
@@ -67,4 +69,8 @@ deterministic; a repeat can change a VLM verdict (see `04_…` §5).
 - `scripts/dac2027_audit.py`: this analysis (including the offline `geometry` tables).
 - `scripts/dac2027_carla_util.py`, `scripts/dac2027_timing_runs.sh`: the run driver and CARLA helpers (the
   recorded runs used an equivalent workspace-local copy of the driver).
-- No scorer, threshold, weight or controller policy was changed.
+- `marshal_bench/criteria/graded_episode_scoring.py` (2026-10-24): the graded movement gate (credit 0 unless
+  max speed ≥ 5 km/h and progress ≥ 1 m) now applies to every expected action, pinned by
+  `tests/test_graded_movement_gate.py`; `outputs/full_sweep_results.json`, `outputs/weight_sensitivity.json` and
+  `assets/figures/leaderboard.png` were regenerated. No strict rule, threshold, weight or controller policy was
+  changed.

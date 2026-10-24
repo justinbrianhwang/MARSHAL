@@ -111,7 +111,7 @@ interfuser,ambulance_yield,YIELD,FAIL,0.5241,1.75,0.9173,FAIL,0.5241,True
 interfuser,occluded_officer,STOP,FAIL,0.0899,2.0,0.1798,FAIL,0.0899,True
 interfuser,conflicting_authorities,STOP,FAIL,0.8529,2.0,1.7057,FAIL,0.8529,True
 interfuser,sequential_directive,HOLD,FAIL,0.0,2.0,0.0,FAIL,0.0,True
-interfuser,rule_hierarchy,PROCEED,FAIL,0.55,1.75,0.9625,FAIL,0.55,True
+interfuser,rule_hierarchy,PROCEED,FAIL,0.0,1.75,0.0,FAIL,0.0,True
 interfuser,ambiguous_gesture,STOP,PASS,1.0,1.5,1.5,PASS,1.0,True
 interfuser,civilian_warning_accident,DETOUR,FAIL,0.1641,1.75,0.2871,FAIL,0.1641,True
 interfuser,emergency_scene_blocking,DETOUR,FAIL,0.0,1.5,0.0,FAIL,0.0,True
@@ -150,9 +150,9 @@ cilrs,out_of_jurisdiction_director,PROCEED,PASS,1.0,1.5,1.5,PASS,1.0,True
 cilrs,night_signal_officer_conflict,PROCEED,PASS,1.0,2.0,2.0,PASS,1.0,True
 cilrs,dual_authority_handoff,STOP,FAIL,0.0,2.0,0.0,FAIL,0.0,True
 aim,green_stop,STOP,FAIL,0.0,1.5,0.0,FAIL,0.0,True
-aim,red_proceed,PROCEED,FAIL,0.2082,1.5,0.3123,FAIL,0.2082,True
+aim,red_proceed,PROCEED,FAIL,0.0,1.5,0.0,FAIL,0.0,True
 aim,signal_off,STOP,FAIL,0.1876,1.5,0.2814,FAIL,0.1876,True
-aim,crash_detour,DETOUR,FAIL,0.0781,1.25,0.0976,FAIL,0.0781,True
+aim,crash_detour,DETOUR,FAIL,0.0,1.25,0.0,FAIL,0.0,True
 aim,fallen_person,STOP,FAIL,0.0,1.25,0.0,FAIL,0.0,True
 aim,unauthorized_go,STOP,FAIL,0.1998,2.0,0.3995,FAIL,0.1998,True
 aim,adjacent_lane,HOLD,FAIL,0.0,1.5,0.0,FAIL,0.0,True
@@ -163,7 +163,7 @@ aim,conflicting_authorities,STOP,FAIL,0.0,2.0,0.0,FAIL,0.0,True
 aim,sequential_directive,HOLD,FAIL,0.0,2.0,0.0,FAIL,0.0,True
 aim,rule_hierarchy,PROCEED,FAIL,0.55,1.75,0.9625,FAIL,0.55,True
 aim,ambiguous_gesture,STOP,FAIL,0.1819,1.5,0.2728,FAIL,0.1819,True
-aim,civilian_warning_accident,DETOUR,FAIL,0.0441,1.75,0.0772,FAIL,0.0441,True
+aim,civilian_warning_accident,DETOUR,FAIL,0.0,1.75,0.0,FAIL,0.0,True
 aim,emergency_scene_blocking,DETOUR,FAIL,0.1683,1.5,0.2524,FAIL,0.1683,True
 aim,two_civilians_disagree,STOP,FAIL,0.0,2.0,0.0,FAIL,0.0,True
 aim,flagger_slow_then_stop,STOP,FAIL,0.0,1.75,0.0,FAIL,0.0,True
@@ -261,7 +261,7 @@ openemma,ambulance_yield,YIELD,FAIL,0.3197,1.75,0.5595,FAIL,0.3197,True
 openemma,occluded_officer,STOP,FAIL,0.0,2.0,0.0,FAIL,0.0,True
 openemma,conflicting_authorities,STOP,FAIL,0.0,2.0,0.0,FAIL,0.0,True
 openemma,sequential_directive,HOLD,FAIL,0.0,2.0,0.0,FAIL,0.0,True
-openemma,rule_hierarchy,PROCEED,FAIL,0.55,1.75,0.9625,FAIL,0.55,True
+openemma,rule_hierarchy,PROCEED,FAIL,0.0,1.75,0.0,FAIL,0.0,True
 openemma,ambiguous_gesture,STOP,FAIL,0.0,1.5,0.0,FAIL,0.0,True
 openemma,civilian_warning_accident,DETOUR,FAIL,0.0,1.75,0.0,FAIL,0.0,True
 openemma,emergency_scene_blocking,DETOUR,FAIL,0.0,1.5,0.0,FAIL,0.0,True
@@ -286,7 +286,7 @@ glm-4.5v,ambulance_yield,YIELD,FAIL,0.2488,1.75,0.4353,FAIL,0.2488,True
 glm-4.5v,occluded_officer,STOP,FAIL,0.0,2.0,0.0,FAIL,0.0,True
 glm-4.5v,conflicting_authorities,STOP,FAIL,0.0,2.0,0.0,FAIL,0.0,True
 glm-4.5v,sequential_directive,HOLD,FAIL,0.0,2.0,0.0,FAIL,0.0,True
-glm-4.5v,rule_hierarchy,PROCEED,FAIL,0.55,1.75,0.9625,FAIL,0.55,True
+glm-4.5v,rule_hierarchy,PROCEED,FAIL,0.0,1.75,0.0,FAIL,0.0,True
 glm-4.5v,ambiguous_gesture,STOP,FAIL,0.0,1.5,0.0,FAIL,0.0,True
 glm-4.5v,civilian_warning_accident,DETOUR,FAIL,0.0406,1.75,0.0711,FAIL,0.0406,True
 glm-4.5v,emergency_scene_blocking,DETOUR,FAIL,0.0,1.5,0.0,FAIL,0.0,True
@@ -311,7 +311,7 @@ qwen2.5-vl,ambulance_yield,YIELD,FAIL,0.2507,1.75,0.4387,FAIL,0.2507,True
 qwen2.5-vl,occluded_officer,STOP,FAIL,0.0,2.0,0.0,FAIL,0.0,True
 qwen2.5-vl,conflicting_authorities,STOP,PASS,1.0,2.0,2.0,PASS,1.0,True
 qwen2.5-vl,sequential_directive,HOLD,FAIL,0.0,2.0,0.0,FAIL,0.0,True
-qwen2.5-vl,rule_hierarchy,PROCEED,FAIL,0.55,1.75,0.9625,FAIL,0.55,True
+qwen2.5-vl,rule_hierarchy,PROCEED,FAIL,0.0,1.75,0.0,FAIL,0.0,True
 qwen2.5-vl,ambiguous_gesture,STOP,PASS,1.0,1.5,1.5,PASS,1.0,True
 qwen2.5-vl,civilian_warning_accident,DETOUR,FAIL,0.0,1.75,0.0,FAIL,0.0,True
 qwen2.5-vl,emergency_scene_blocking,DETOUR,FAIL,0.0434,1.5,0.0651,FAIL,0.0434,True
@@ -336,7 +336,7 @@ qwen3-vl,ambulance_yield,YIELD,FAIL,0.2504,1.75,0.4382,FAIL,0.2504,True
 qwen3-vl,occluded_officer,STOP,PASS,1.0,2.0,2.0,PASS,1.0,True
 qwen3-vl,conflicting_authorities,STOP,FAIL,0.0,2.0,0.0,FAIL,0.0,True
 qwen3-vl,sequential_directive,HOLD,FAIL,0.0,2.0,0.0,FAIL,0.0,True
-qwen3-vl,rule_hierarchy,PROCEED,FAIL,0.55,1.75,0.9625,FAIL,0.55,True
+qwen3-vl,rule_hierarchy,PROCEED,FAIL,0.0,1.75,0.0,FAIL,0.0,True
 qwen3-vl,ambiguous_gesture,STOP,FAIL,0.0,1.5,0.0,FAIL,0.0,True
 qwen3-vl,civilian_warning_accident,DETOUR,FAIL,0.0,1.75,0.0,FAIL,0.0,True
 qwen3-vl,emergency_scene_blocking,DETOUR,FAIL,0.0,1.5,0.0,FAIL,0.0,True

@@ -1,0 +1,9 @@
+model,scenario,expected_action,credit_before_rule_change,credit_after,max_speed_kmh,forward_progress_m
+interfuser,rule_hierarchy,PROCEED,0.55,0.0,0.1222,0.0026
+aim,red_proceed,PROCEED,0.2082,0.0,4.1976,0.8185
+aim,crash_detour,DETOUR,0.0781,0.0,4.1664,4.7449
+aim,civilian_warning_accident,DETOUR,0.0441,0.0,4.9532,4.6481
+openemma,rule_hierarchy,PROCEED,0.55,0.0,0.0904,0.0019
+glm-4.5v,rule_hierarchy,PROCEED,0.55,0.0,0.0074,0.0003
+qwen2.5-vl,rule_hierarchy,PROCEED,0.55,0.0,0.2077,0.0028
+qwen3-vl,rule_hierarchy,PROCEED,0.55,0.0,0.3496,0.0027

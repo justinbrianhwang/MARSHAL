@@ -18,13 +18,13 @@ The README tables are parsed from the file itself, not typed in.
 
 | README column | Definition | Code |
 |---|---|---|
-| MARSHAL-Graded | $100 \cdot \sum_s w_s c_s / \sum_s w_s$ over the 25 cells; $c_s$ = action credit × latency factor × safety factor; $\sum w_s$ = 42.5. The printed value is the two-decimal result rounded half-up to one decimal (AIM 16.25 → 16.3, PID 11.85 → 11.9) | `graded_episode_scoring.score_episode_from_telemetry`, `aggregate_graded_scores` |
+| MARSHAL-Graded | 100 · Σ w_s c_s / Σ w_s over the 25 cells; c_s = action credit × latency factor × safety factor × movement gate; Σ w_s = 42.5. The printed value is the two-decimal result rounded half-up to one decimal (e.g. PID 11.85 → 11.9) | `graded_episode_scoring.score_episode_from_telemetry`, `aggregate_graded_scores` |
 | scenarios passed | number of cells with strict verdict PASS (graded credit plays no part) | `strict_episode_scoring.score_episode_from_telemetry` |
 | override cells (12) | strict PASS count over the 6 *override* scenarios (green_stop, red_proceed, signal_off, flagger_control, school_crossing_guard, crash_detour) and the 6 *stressed-override* scenarios (occluded_officer, ambiguous_gesture, adjacent_lane, sequential_directive, flagger_slow_then_stop, night_signal_officer_conflict) | `marshal_metrics.CONFLICT_TYPE` |
 | failure profile | strict PASS count per family: override 6, stressed-override 6, validity 5, conflict 3, scene 2, safety 3 | same |
-| MARSHAL Score (partial) | $100 \cdot \sum_{r \in M} w_r R_r / \sum_{r \in M} w_r$ over the measured requirement subscores; weights R1 .10, R2 .12, R3 .28, R4 .05, R5 .03, R6 .02, R7 .22, R8 .13, R9 .05 | `marshal_metrics.aggregate` |
+| MARSHAL Score (partial) | 100 · Σ w_r R_r / Σ w_r over the measured requirement subscores r; weights R1 .10, R2 .12, R3 .28, R4 .05, R5 .03, R6 .02, R7 .22, R8 .13, R9 .05 | `marshal_metrics.aggregate` |
 
-## 2. Worked chain: InterFuser (README 40.7, 6/25, 5/12)
+## 2. Worked chain: InterFuser (README 38.4, 6/25, 5/12)
 
 From `tables.md` T8 (all 14 models are listed there in the same form):
 
@@ -39,17 +39,17 @@ From `tables.md` T8 (all 14 models are listed there in the same form):
 | conflicting_authorities | conflict | STOP | FAIL (moving in enforcement) | 0.853 | 2.0 | 1.706 |
 | dual_authority_handoff | conflict | STOP | FAIL (too fast through the flagger zone) | 0.741 | 2.0 | 1.483 |
 | signal_off | override | STOP | FAIL (moving in enforcement) | 0.841 | 1.5 | 1.261 |
-| rule_hierarchy | safety | PROCEED | FAIL (never moved) | 0.550 | 1.75 | 0.963 |
 | ambulance_yield | safety | YIELD | FAIL (did not slow) | 0.524 | 1.75 | 0.917 |
 | civilian_warning_accident | validity | DETOUR | FAIL | 0.164 | 1.75 | 0.287 |
 | two_civilians_disagree | conflict | STOP | FAIL | 0.100 | 2.0 | 0.200 |
 | occluded_officer | stressed-override | STOP | FAIL (conflict zone) | 0.090 | 2.0 | 0.180 |
 | stale_directive_residue | validity | PROCEED | FAIL | 0.089 | 1.75 | 0.155 |
 | crash_detour | override | DETOUR | FAIL (collision; safety 0.25) | 0.102 | 1.25 | 0.127 |
-| 9 cells (green_stop, unauthorized_go, adjacent_lane, school_crossing_guard, fake_vest_director: never moved; fallen_person, sequential_directive: conflict zone; emergency_scene_blocking: no lateral departure, action 0; barricade_self_detour: > 5 collisions, safety 0) | | | FAIL | 0 | | 0 |
-| **Sum** | | | **6 PASS** | | **42.5** | **17.279** |
+| 10 cells (rule_hierarchy, green_stop, unauthorized_go, adjacent_lane, school_crossing_guard, fake_vest_director: never moved; fallen_person, sequential_directive: conflict zone; emergency_scene_blocking: no lateral departure, action 0; barricade_self_detour: > 5 collisions, safety 0) | | | FAIL | 0 | | 0 |
+| **Sum** | | | **6 PASS** | | **42.5** | **16.316** |
 
-- **MARSHAL-Graded:** 100 × 17.279 / 42.5 = 40.66, printed as **40.7**.
+- **MARSHAL-Graded:** 100 × 16.316 / 42.5 = 38.39, printed as **38.4**. (Before the 2026-10-24 rule change,
+  rule_hierarchy added 0.55 × 1.75 = 0.963 although InterFuser never moved, giving 40.66 → 40.7.)
 - **Override cells:** PASS on red_proceed and flagger_control (override) plus ambiguous_gesture,
   flagger_slow_then_stop and night_signal_officer_conflict (stressed-override) = **5 / 12**. The failure profile
   is 2/6, 3/6, 1/5 (out_of_jurisdiction_director), 0/3, 0/2, 0/3.
@@ -73,20 +73,20 @@ all 350 cells with a P for strict PASS. Reading it:
   any authority. This is why the suite balances STOP and non-STOP actions and why strict counts alone overstate
   competence.
 
-## 4. Findings from the derivation (published numbers not changed)
+## 4. Findings from the derivation (finding 1 changed the scorer and the published numbers on 2026-10-24)
 
-1. **The "no movement → 0" graded gate exists only for STOP/HOLD.**
-   - In rule_hierarchy the pedestrian is already within the 14 m yield window at spawn. An ego that never moves
-     therefore earns yield credit 1 and order credit 1, giving 0.45 + 0.10 = **0.55**.
-   - This happens for InterFuser, OpenEMMA, GLM-4.5V, Qwen2.5-VL and Qwen3-VL (max speed < 0.5 km/h).
-   - AIM never reaches 5 km/h in red_proceed, crash_detour or civilian_warning_accident, but keeps partial
-     credit there (0.21, 0.08, 0.04). DETOUR's strict check has no movement gate at all.
-   - The README previously stated that parking at spawn earns nothing "in graded exactly as in strict". That holds
-     for STOP/HOLD only, and the README and `docs/marshal_graded_score.md` now say so.
-   - Applying the same gate (≥ 5 km/h and ≥ 1 m over the episode) to every action changes 8 cells
-     (`data/variant_movement_gate_*.csv`):
+1. **The "no movement → 0" graded gate covered STOP/HOLD only — fixed 2026-10-24.**
+   - In rule_hierarchy the pedestrian is already within the 14 m yield window at spawn. An ego that never moved
+     therefore earned yield credit 1 and order credit 1, giving 0.45 + 0.10 = **0.55**.
+   - This happened for InterFuser, OpenEMMA, GLM-4.5V, Qwen2.5-VL and Qwen3-VL (max speed < 0.5 km/h). AIM, which
+     never reaches 5 km/h in red_proceed, crash_detour or civilian_warning_accident, kept 0.21, 0.08 and 0.04
+     there; DETOUR's strict check has no movement gate at all.
+   - The graded scorer now applies the gate (≥ 5 km/h and ≥ 1 m over the episode) to every action
+     (`graded_episode_scoring.score_episode_from_telemetry`, `tests/test_graded_movement_gate.py`). Eight
+     cells drop to 0 and no strict verdict changes. Before/after, re-computed by switching the gate off
+     (`data/rule_change_movement_gate_*.csv`):
 
-     | Model | Current | With the gate |
+     | Model | Before | After |
      |---|---|---|
      | InterFuser | 40.66 | 38.39 |
      | NEAT | 39.28 | 39.28 (now first) |
@@ -96,8 +96,8 @@ all 350 cells with a P for strict PASS. Reading it:
      | OpenEMMA | 16.58 | 14.32 |
      | AIM | 16.25 | 15.10 |
 
-     No strict verdict changes. The first two places were already read as a tie, but the top position would
-     change. This is a decision for the authors.
+   - README, the leaderboard chart, `outputs/full_sweep_results.json` and the weight-sensitivity analysis
+     (`docs/evaluation_methodology.md`) were regenerated with the new rule.
 2. **Rounding.** The README prints one decimal from a two-decimal value, rounded half-up. Python's `round`
    would print 16.2 / 11.8 for AIM and PID.
 3. **Single sweep.** Every number is one episode per cell. The repeat in this audit flipped one VLM cell

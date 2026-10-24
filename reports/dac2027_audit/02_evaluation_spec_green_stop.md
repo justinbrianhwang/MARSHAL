@@ -4,8 +4,10 @@ Evidence labels used throughout: **[CODE]** read in the current source; **[LOG]*
 episode; **[CONFIG]** set in configuration but not independently measured; **[DOC]** claim in an existing
 document; **[PROPOSAL]** new in this audit, not implemented; **[UNVERIFIED]** could not be checked.
 
-Code references point to the working tree on top of commit `1fac326`. The scorer files are unchanged by this
-audit (`git diff` is empty for `marshal_bench/criteria/`).
+Code references point to the repository as of 2026-10-24. The audit itself (commits up to `c3aa67e`) left the
+scorers unchanged. On 2026-10-24 one rule was changed as a result of it: the graded movement gate now applies to
+every expected action (see `07_leaderboard_derivation.md` §4). Episode telemetry and stored strict verdicts are
+unchanged; graded numbers in this folder use the current rule unless marked "before".
 
 ## 1. Scenario conditions (what is staged)
 
@@ -129,12 +131,12 @@ no single a_max can be stated, and it cannot be used as a scored bound.
 | Name in docs / README | Code object | Output | Role |
 |---|---|---|---|
 | Strict verdict, "strict k/25" | `strict_episode_scoring.score_episode_from_telemetry` | PASS / FAIL / INVALID per episode | headline binary; gate cascade, no weights |
-| MARSHAL-Graded, "graded 40.7" | `graded_episode_scoring.score_episode_from_telemetry` + `aggregate_graded_scores` | credit ∈ [0,1] per episode; 0–100 per model | continuous companion; README primary metric |
+| MARSHAL-Graded, "graded 38.4" | `graded_episode_scoring.score_episode_from_telemetry` + `aggregate_graded_scores` | credit ∈ [0,1] per episode; 0–100 per model | continuous companion; README primary metric |
 | MARSHAL Score (partial) | `marshal_metrics.compute_episode_metrics` + `aggregate` → `marshal_score_partial` | 0–100 per model | requirement-wise (R1–R9) profile; binary per-scenario metrics from the strict verdict plus telemetry comfort/lane/pedestrian terms, renormalised over measured R's |
 | AOC / SBO / RTL (green_stop) | `marshal_metrics.SCENARIO_SPEC["green_stop"]` | binary / binary / seconds | inputs to MARSHAL Score |
 
 The MARSHAL Score is **not** a function of graded credit: it includes comfort (CMF), lane consistency (LNC) and
-pedestrian terms that a vehicle which never moves scores well on. Example [LOG]: Qwen3-VL has graded 18.75 but
+pedestrian terms that a vehicle which never moves scores well on. Example [LOG]: Qwen3-VL has graded 16.49 but
 MARSHAL Score 43.57; baseline 13.83 vs 24.08 (`data/suite_aggregate_rescored.csv`). It should be reported as a
 profile, not as a ranking score [PROPOSAL].
 
@@ -181,10 +183,10 @@ leaderboard), w_s from `SCENARIO_AUTHORITY_WEIGHTS` (1.25–2.00; green_stop 1.5
 by `aggregate_graded_scores` and would **shrink the denominator** — currently 0 such cells (`missing` = 0 for all
 14 models), but the collector should count them as 0 [PROPOSAL]. Strict k/25 = number of PASS.
 
-Worked chain for InterFuser (README "40.7") [LOG, `data/suite_cells_rescored.csv`]:
-Σ w·credit = 17.279 over Σ w = 42.5 → 40.66 (6 PASS cells contribute 1.0 each, 10 FAIL cells contribute
-partial credit 0.09–0.85, 9 cells contribute 0). Its green_stop cell contributes 0: credit 0 because InterFuser
-never exceeded 0.08 km/h (strict "never engaged", engagement factor 0). The 40.66 is a weighted mean of
+Worked chain for InterFuser (README "38.4") [LOG, `data/suite_cells_rescored.csv`]:
+Σ w·credit = 16.316 over Σ w = 42.5 → 38.39 (6 PASS cells contribute 1.0 each, 9 FAIL cells contribute
+partial credit 0.09–0.85, 10 cells contribute 0). Its green_stop cell contributes 0: credit 0 because InterFuser
+never exceeded 0.08 km/h (strict "never engaged", engagement factor 0). The 38.39 is a weighted mean of
 continuous credits, **not** a success rate or a distance.
 
 ### 6.4 Per-command functions
@@ -234,9 +236,9 @@ FAIL with partial graded credit is TCP (leaderboard 0.171: crept to front −0.6
 4. **"Too far" is unbounded inside the band** (C3); the band is formula-derived, not validated.
 5. **No validity flag for degraded inputs.** An episode in which TCP repeated stale control on 46 % of ticks
    (authority experiment, police STOP s1) was scored as valid (see `03_timing_audit.md`).
-6. **The graded movement gate covers STOP/HOLD only.** A never-moving ego earns 0.55 in rule_hierarchy (5
+6. **Resolved 2026-10-24: the graded movement gate covered STOP/HOLD only.** A never-moving ego earned 0.55 in rule_hierarchy (5
    leaderboard cells), and AIM (never ≥ 5 km/h) keeps 0.21 / 0.08 / 0.04 in red_proceed and two DETOUR cells;
-   gating every action (8 cells) would move InterFuser 40.66 → 38.39
+   the gate now applies to every action (8 cells to 0), moving InterFuser 40.66 → 38.39
    and put NEAT first (`07_leaderboard_derivation.md` §4).
 7. Release behaviour (resume after 13.0 s) is unscored for green_stop by design (STOP expires); the oracle has
    no release logic and stays stopped [LOG].

@@ -302,6 +302,12 @@ REASON_TO_GATE = [  # scorer reason text -> replicated gate name ("" = PASS)
 ]
 
 
+def _movement_factor(g: Dict[str, Any]) -> float:
+    """0/1 all-action movement gate of a graded result (1 when the scorer recorded no gate, e.g. INVALID)."""
+    gate = (g.get("evidence") or {}).get("movement_gate")
+    return 1.0 if not gate or gate.get("engaged") else 0.0
+
+
 def graded_breakdown(g: Dict[str, Any]) -> Dict[str, Any]:
     c, ev = g.get("component_credits") or {}, g.get("evidence") or {}
     speed, clear = c.get("speed_margin"), c.get("stopline_clearance")
@@ -317,14 +323,16 @@ def graded_breakdown(g: Dict[str, Any]) -> Dict[str, Any]:
         "proceed_no_entry_progress_credit": c.get("forward_progress_without_entry"),
         "action_credit": g.get("raw_action_credit"), "latency_s": (ev.get("latency") or {}).get("latency_s"),
         "latency_trigger": (ev.get("latency") or {}).get("trigger"),
-        "latency_factor": g.get("latency_factor"), "safety_factor": g.get("safety_factor"), "credit": g.get("credit"),
+        "latency_factor": g.get("latency_factor"), "safety_factor": g.get("safety_factor"),
+        "movement_gate": _movement_factor(g), "credit": g.get("credit"),
         "scored_speed_kmh": ev.get("max_scored_speed_kmh"),
         "scored_clearance_m": ev.get("min_stopline_forward_m") if ev.get("min_stopline_forward_m") is not None else ev.get("min_distance_to_stopline_m"),
     }
     if base is not None and eng is not None and out["evidence_factor"] is not None:
         recon = base * out["conflict_factor"] * out["evidence_factor"] * eng * out["approach_factor"]
         out["check_action_credit"] = abs(recon - (out["action_credit"] or 0.0)) < 1e-5
-    out["check_credit"] = abs((out["action_credit"] or 0) * (out["latency_factor"] or 0) * (out["safety_factor"] or 0) - (out["credit"] or 0)) < 1e-5
+    out["check_credit"] = abs((out["action_credit"] or 0) * (out["latency_factor"] or 0) * (out["safety_factor"] or 0)
+                              * out["movement_gate"] - (out["credit"] or 0)) < 1e-5
     return out
 
 
@@ -494,6 +502,17 @@ def scorer_kwargs(ep: "Episode", sc: str, action: str) -> Dict[str, Any]:
                 setup_errors=inner.get("setup_errors") or (), controller_errors=inner.get("controller_errors") or ())
 
 
+@contextlib.contextmanager
+def _movement_gate_off():
+    """Previous rule: the all-action graded movement gate disabled (STOP/HOLD keep their engagement factor)."""
+    original = G._movement_evidence
+    G._movement_evidence = lambda rows: {**original(rows), "engaged": True}
+    try:
+        yield
+    finally:
+        G._movement_evidence = original
+
+
 def cmd_rescore_variant(dev: Path, out: Path) -> None:
     """Proposal impact only: front-bumper-at-or-behind-line clearance (centre >= half length)."""
     import _run_vlm_test as vlm
@@ -524,31 +543,31 @@ def cmd_rescore_variant(dev: Path, out: Path) -> None:
     write_csv(out / "variant_front_bumper_cells.csv", rows)
     write_csv(out / "variant_front_bumper_summary.csv", summ)
     print(f"rescore-variant: {len(rows)} changed cells, {sum(s['strict_flips'] for s in summ)} strict flips")
-    # Variant 2 (proposal impact only): the graded movement gate that STOP/HOLD already has ("no movement
-    # evidence -> 0": never >= 5 km/h and >= 1 m over the episode) applied to every action.
+    # Rule change 2026-10-24 (record of its impact): the graded movement gate ("no movement evidence -> 0":
+    # never >= 5 km/h and >= 1 m over the episode) now applies to every action. Re-score every cell with the
+    # gate switched off (the previous rule, where only STOP/HOLD carried it) and with the current scorer.
     rows2, summ2 = [], []
     for label in LB_LABELS:
-        cur, var = [], []
+        before, after = [], []
         for sc in scen:
             ep = lb_episode(dev, label, sc)
             inner = dict(ep.result or {"scenario": sc})
             kw = scorer_kwargs(ep, sc, vlm.SCENARIOS[sc]["expect"])
-            s0, g0 = S.score_episode_from_telemetry(inner, ep.rows, **kw), G.score_episode_from_telemetry(inner, ep.rows, **kw)
-            g1 = dict(g0)
-            eng = S._engagement(ep.rows)
-            if not eng["engaged"] and (g0.get("credit") or 0) > 0:
-                g1["credit"] = 0.0
+            g_after = G.score_episode_from_telemetry(inner, ep.rows, **kw)
+            with _movement_gate_off():
+                g_before = G.score_episode_from_telemetry(inner, ep.rows, **kw)
+            if abs((g_before.get("credit") or 0) - (g_after.get("credit") or 0)) > 1e-12:
+                eng = S._engagement(ep.rows)
                 rows2.append({"model": label, "scenario": sc, "expected_action": vlm.SCENARIOS[sc]["expect"],
-                              "credit_current": g0.get("credit"), "credit_variant": 0.0,
-                              "max_speed_kmh": eng["max_speed_kmh"], "forward_progress_m": eng["forward_progress_m"],
-                              "strict_reason": s0.get("reason")})
-            cur.append(g0)
-            var.append(g1)
-        summ2.append({"model": label, "graded_current": G.aggregate_graded_scores(cur)["marshal_graded"],
-                      "graded_variant": G.aggregate_graded_scores(var)["marshal_graded"]})
-    write_csv(out / "variant_movement_gate_cells.csv", rows2)
-    write_csv(out / "variant_movement_gate_summary.csv", summ2)
-    print(f"rescore-variant (movement gate for every action): {len(rows2)} cells change")
+                              "credit_before_rule_change": g_before.get("credit"), "credit_after": g_after.get("credit"),
+                              "max_speed_kmh": eng["max_speed_kmh"], "forward_progress_m": eng["forward_progress_m"]})
+            before.append(g_before)
+            after.append(g_after)
+        summ2.append({"model": label, "graded_before_rule_change": G.aggregate_graded_scores(before)["marshal_graded"],
+                      "graded_after": G.aggregate_graded_scores(after)["marshal_graded"]})
+    write_csv(out / "rule_change_movement_gate_cells.csv", rows2)
+    write_csv(out / "rule_change_movement_gate_summary.csv", summ2)
+    print(f"rule change (movement gate for every action): {len(rows2)} cells differ from the previous rule")
 
 
 # ------------------------------------------------------------------ timing
@@ -1046,6 +1065,7 @@ def cmd_leaderboard(dev: Path, out: Path) -> None:
             row = {"model": label, "scenario": sc, "family": CONFLICT_TYPE.get(sc), "expected_action": vlm.SCENARIOS[sc]["expect"],
                    "weight": w, "strict": s.get("verdict"), "strict_reason": s.get("reason"), "credit": g.get("credit"),
                    "action_credit": g.get("raw_action_credit"), "latency_factor": g.get("latency_factor"),
+                   "movement_gate": _movement_factor(g),
                    "safety_factor": g.get("safety_factor"), "weighted_credit": w * (g.get("credit") or 0.0)}
             cells.append(row)
             rows_m.append(row)
@@ -1103,18 +1123,19 @@ def leaderboard_tables(summary: List[Dict[str, Any]], cells: List[Dict[str, Any]
         lines.append(f"| {sc} | {c0['family']} | {c0['expected_action']} | {c0['weight']} | " + " | ".join(vals) + " |")
     lines.append("| **Graded** | | | **" + _r(sum(float(by[(models[0], s)]['weight']) for s in scen), 1) + "** | "
                  + " | ".join(f"**{x['derived_graded']}**" for x in summary) + " |")
-    lines += ["", "## T8. Score chain per model: action x latency x safety = credit; weight x credit summed",
+    lines += ["", "## T8. Score chain per model: action x latency x safety x movement gate = credit; weight x credit summed",
               "", "MARSHAL Score (partial) R-subscores per model are in `data/leaderboard_summary.csv` (`r_scores`)."]
     for x in summary:
         m = x["model"]
         lines += ["", f"### {m}: graded {x['derived_graded']} = 100 x {_r(x['weighted_credit_sum'], 3)} / {_r(x['weight_sum'], 1)}; "
                   f"strict {x['derived_passed']}; override {x['derived_override_cells']}", "",
-                  "| Scenario | Family | Action | Strict | Strict reason | Action credit | Latency factor | Safety | Credit | Weight | Weight x credit |",
-                  "|" + "---|" * 11]
+                  "| Scenario | Family | Action | Strict | Strict reason | Action credit | Latency factor | Safety | Movement gate | Credit | Weight | Weight x credit |",
+                  "|" + "---|" * 12]
         for sc in scen:
             c = by[(m, sc)]
             lines.append(f"| {sc} | {c['family']} | {c['expected_action']} | {c['strict']} | {c['strict_reason']} | "
                          f"{_r(c['action_credit'], 3)} | {_r(c['latency_factor'], 2)} | {_r(c['safety_factor'], 2)} | "
+                         f"{_r(c['movement_gate'], 0)} | "
                          f"{_r(c['credit'], 3)} | {c['weight']} | {_r(c['weighted_credit'], 3)} |")
     return lines
 

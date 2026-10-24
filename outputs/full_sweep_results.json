@@ -276,7 +276,7 @@
       "missing": 0,
       "scored": 25,
       "pass_rate": 24.0,
-      "graded": 40.66,
+      "graded": 38.39,
       "marshal_score": 41.29,
       "r_scores": {
         "R3": 0.2606,
@@ -410,7 +410,7 @@
       "missing": 0,
       "scored": 25,
       "pass_rate": 4.0,
-      "graded": 16.25,
+      "graded": 15.1,
       "marshal_score": 27.75,
       "r_scores": {
         "R3": 0.1818,
@@ -678,7 +678,7 @@
       "missing": 0,
       "scored": 25,
       "pass_rate": 12.0,
-      "graded": 16.58,
+      "graded": 14.32,
       "marshal_score": 32.97,
       "r_scores": {
         "R3": 0.197,
@@ -745,7 +745,7 @@
       "missing": 0,
       "scored": 25,
       "pass_rate": 24.0,
-      "graded": 29.4,
+      "graded": 27.13,
       "marshal_score": 32.11,
       "r_scores": {
         "R3": 0.2939,
@@ -811,7 +811,7 @@
       "missing": 0,
       "scored": 25,
       "pass_rate": 20.0,
-      "graded": 22.86,
+      "graded": 20.6,
       "marshal_score": 40.61,
       "r_scores": {
         "R3": 0.3288,
@@ -875,7 +875,7 @@
       "missing": 0,
       "scored": 25,
       "pass_rate": 16.0,
-      "graded": 18.75,
+      "graded": 16.49,
       "marshal_score": 43.57,
       "r_scores": {
         "R3": 0.2455,
@@ -1728,7 +1728,7 @@
       },
       "rule_hierarchy": {
         "strict": "FAIL",
-        "credit": 0.55,
+        "credit": 0.0,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -2005,7 +2005,7 @@
       },
       "red_proceed": {
         "strict": "FAIL",
-        "credit": 0.208184,
+        "credit": 0.0,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -2019,7 +2019,7 @@
       },
       "crash_detour": {
         "strict": "FAIL",
-        "credit": 0.078071,
+        "credit": 0.0,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -2096,7 +2096,7 @@
       },
       "civilian_warning_accident": {
         "strict": "FAIL",
-        "credit": 0.044107,
+        "credit": 0.0,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -2790,7 +2790,7 @@
       },
       "rule_hierarchy": {
         "strict": "FAIL",
-        "credit": 0.55,
+        "credit": 0.0,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -2967,7 +2967,7 @@
       },
       "rule_hierarchy": {
         "strict": "FAIL",
-        "credit": 0.55,
+        "credit": 0.0,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -3144,7 +3144,7 @@
       },
       "rule_hierarchy": {
         "strict": "FAIL",
-        "credit": 0.55,
+        "credit": 0.0,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null
@@ -3321,7 +3321,7 @@
       },
       "rule_hierarchy": {
         "strict": "FAIL",
-        "credit": 0.55,
+        "credit": 0.0,
         "stored_strict": "FAIL",
         "rescored": true,
         "changed": null

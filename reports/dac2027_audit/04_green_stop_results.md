@@ -59,8 +59,8 @@ AIM's conflict factor 0.35 is an artefact of the legacy telemetry: its July epis
 the line", which is true 6 m before the paint. It does not change AIM's result (engagement is already 0), but
 legacy rows can mark a stop short of the line as a conflict entry; the newer signed column removes this.
 
-From episode to model score: green_stop has weight 1.50 of Σw = 42.5; e.g. InterFuser's 40.66 is
-100 × 17.279 / 42.5 with 0 from green_stop (worked chain in `02_evaluation_spec_green_stop.md` §6.3).
+From episode to model score: green_stop has weight 1.50 of Σw = 42.5; e.g. InterFuser's 38.39 is
+100 × 16.316 / 42.5 with 0 from green_stop (worked chain in `02_evaluation_spec_green_stop.md` §6.3).
 
 ## 3. Hold and release (authority-experiment runs, 25 s, no early termination)
 
@@ -93,7 +93,7 @@ Hold durations above 1.05 s are only observable here; the leaderboard wiring can
 Videos for the authority-wiring runs are in `outputs/authority_directive_comparison/videos/<model>_<condition>_s<seed>*.mp4`
 (20 fps, one video second = one sim second); the gesture onset is at 0:01 and the release at 0:13.
 
-## 5. Issues found in the evaluation (no scorer was changed)
+## 5. Issues found in the evaluation (none of these changed a scorer; the separate movement-gate change is in `07_leaderboard_derivation.md` §4)
 
 1. **Whole-episode engagement** — Qwen3-VL authority-experiment 7 m s3 PASSES with zero motion during the STOP (moved after
    the release); the same in-window behaviour FAILS in a 14 s episode. Proposal: approach evidence within
@@ -101,7 +101,7 @@ Videos for the authority-wiring runs are in `outputs/authority_directive_compari
 2. **Hold verified for 1.05 s** on the leaderboard (early termination at 5.05 s).
 3. **Centre-based clearance** — front bumper up to 1.40 m past the line passes (illustrative C2). A front-bumper
    rule flips the oracle's occluded_officer cell (`data/variant_front_bumper_summary.csv`: oracle 100 → 95.29,
-   Qwen3-VL 18.75 → 15.03, other models change by ≤ 0.07).
+   Qwen3-VL 16.49 → 12.76, other models change by ≤ 0.07).
 4. **Spawn inside the engagement band** — any stop after ≥ 1 m of motion passes in green_stop (C3).
 5. **Run-to-run variation decides VLM cells** — the July Qwen3-VL leaderboard run PASSED; the instrumented
    repeat with identical wiring answered GO at all three queries and FAILED. One episode per cell is not a stable estimate

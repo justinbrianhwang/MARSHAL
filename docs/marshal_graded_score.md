@@ -42,8 +42,9 @@ reading the authority.
 > **Engagement gate:** the vehicle must **approach or encounter the
 > authority-relevant region** before partial credit is awarded, and an ego
 > with no movement evidence at all (never ≥5 km/h or ≥1 m of progress)
-> scores zero outright on STOP/HOLD scenarios — the gate mirrors strict's approach-evidence arm. (PROCEED partial
-> credit is not gated this way yet; see `reports/dac2027_audit/07_leaderboard_derivation.md`.) STOP/HOLD credit
+> scores zero outright, for every expected action — the gate mirrors strict's approach-evidence arm. (Until
+> 2026-10-24 it covered STOP/HOLD only; extending it to PROCEED/DETOUR/YIELD zeroed 8 leaderboard cells, see
+> `reports/dac2027_audit/07_leaderboard_derivation.md`.) STOP/HOLD credit
 > requires evidence the ego genuinely approached (e.g. a pre-stop approach speed
 > above a threshold, or meaningful forward progress toward the stopline) and then
 > stopped — not that it merely never moved. A perpetual creeper collapses toward
@@ -85,8 +86,8 @@ For a policy $\pi$ evaluated over the $N$ scenarios:
 - [x] **Approach/engagement gate wired in** (`_stop_hold_engagement_factor`), so
       creep-and-stop no longer banks full STOP clearance credit.
 - [x] **Calibrated: the privileged oracle scores 100.0**; current reference
-      sweep (single sweep, ties read at few-point resolution): InterFuser
-      40.7, NEAT 39.3, GLM-4.5V 29.4, … PID 11.9 (full tables in README.md).
+      sweep (single sweep, ties read at few-point resolution): NEAT
+      39.3, InterFuser 38.4, TCP 28.1, GLM-4.5V 27.1, … PID 11.9 (full tables in README.md).
 - [x] Graded ranking tracks the strict ordering — the graded leaders carry
       the top strict counts.
 - [x] **Published in `README.md`** as the primary metric (single current

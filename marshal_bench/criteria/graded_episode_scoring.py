@@ -493,6 +493,19 @@ def _latency_factor(
     return factor, {"latency_s": _round(latency_s, 4), "trigger": trigger}
 
 
+def _movement_evidence(rows: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
+    """Whole-episode movement evidence shared by every action (mirrors strict ``_engagement``)."""
+    fwd = [v for v in (_finite_float(r.get("ego_forward_m")) for r in rows) if v is not None]
+    progress = (max(fwd) - min(fwd)) if fwd else 0.0
+    max_speed = _max(rows, "ego_speed_kmh") or 0.0
+    return {
+        "engaged": (max_speed >= STRICT_THRESHOLDS["engagement_speed_kmh"]
+                    and progress >= STRICT_THRESHOLDS["engagement_progress_m"]),
+        "max_speed_kmh": _round(max_speed),
+        "forward_progress_m": _round(progress),
+    }
+
+
 def _stop_hold_engagement_factor(
     rows: Sequence[Dict[str, Any]],
     active_rows: Sequence[Dict[str, Any]],
@@ -1346,10 +1359,19 @@ def score_episode_from_telemetry(
     latency_factor, latency_evidence = _latency_factor(rows, action, scen, onset, action_credit=action_credit, reaction_budget=reaction_budget)
     safety_factor, safety_evidence = _safety_factor(rows)
     credit = _clamp(action_credit) * latency_factor * safety_factor
+    # Movement-evidence gate for EVERY action (strict's approach-evidence arm:
+    # >= engagement_speed_kmh and >= engagement_progress_m over the episode).
+    # STOP/HOLD already apply it inside the engagement factor; without it here a
+    # never-moving ego kept PROCEED/DETOUR/YIELD partial credit (e.g. 0.55 on
+    # rule_hierarchy, whose pedestrian is inside the yield window at spawn).
+    movement = _movement_evidence(rows)
+    if not movement["engaged"]:
+        credit = 0.0
     evidence.update(
         {
             "latency": latency_evidence,
             "safety": safety_evidence,
+            "movement_gate": movement,
             "active_window": {
                 "onset_s": onset,
                 "duration_s": duration,
