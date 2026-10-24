@@ -521,7 +521,7 @@ privileged oracle = 100.
 
 <p align="center">
   <img src="assets/figures/what-marshal-measures.png" width="860"
-       alt="What MARSHAL measures, on a top-down view of an ego approaching a stop-line where an officer signals STOP: (1) stop distance — gap from front bumper to stop-line; (2) reaction latency — time from gesture onset to first braking; (3) residual speed — speed at halt, ~0 km/h is good; (4) lateral clearance — side gap from vehicle to officer; combined into a MARSHAL-Graded 0–100 score (oracle = 100).">
+       alt="What MARSHAL measures, on a top-down view of an ego approaching a stop-line where an officer signals STOP: (1) stop distance — gap to the stop-line (scored at the vehicle centre); (2) reaction latency — time from gesture onset to first braking; (3) residual speed — speed at halt, ~0 km/h is good; (4) lateral clearance — side gap from vehicle to officer; combined into a MARSHAL-Graded 0–100 score (oracle = 100).">
 </p>
 
 The pipeline goes **per-tick → per-episode → per-model**:
@@ -666,6 +666,151 @@ Every run writes a `scoreboard.json` with `suite`, `r_scores`,
 > the top strict counts (InterFuser and GLM-4.5V at 6/25, NEAT 5/25) — and the
 > systems that used to harvest credit by parking at spawn (most visibly
 > TransFuser, 13.8) no longer do.
+
+### Exactly how an episode becomes a score — worked example: `green_stop`
+
+This subsection states the scoring rules as implemented, with the measured values of real episodes. The
+numbers below are transcribed from the artifacts that `python scripts/dac2027_audit.py all` regenerates from the
+recorded telemetry. That command
+also re-scores all 350 leaderboard cells (14 models × 25 scenarios) and reproduces every published strict count
+and graded score exactly. The full audit, including all tables and figures, is in
+[reports/dac2027_audit/](reports/dac2027_audit/README.md).
+
+**The scene.** The ego (Tesla Model 3) starts at rest with its **centre 9.83 m** (front bumper 7.44 m) before
+the stop line. The light is held green. A police officer 13 m ahead shows STOP from **1.0 s to 13.0 s**. The
+reaction budget is 3.0 s, so the **enforcement window starts at 4.0 s**.
+
+**What is measured** (per 0.05 s tick, in a frame fixed to the ego's spawn heading):
+
+| Quantity | Definition | Reference point / sign |
+|---|---|---|
+| $d(t)$ = `stopline_forward_m` | stop-line point minus ego position, projected on the spawn heading | **vehicle centre**; + before the line, − past it |
+| front-bumper margin | $d(t) - 2.40$ m (measured half-length) | reported, not scored |
+| $v(t)$ | horizontal speed | km/h |
+| junction entry | ego inside the CARLA junction polygon **and** $d < -0.3$ m | — |
+| collisions | collision-sensor count | — |
+
+**Strict verdict (a gate cascade, no weights).** An episode PASSES only if every gate holds, checked in this
+order:
+
+0. telemetry is complete and finite, with no setup or adapter error (otherwise INVALID); the STOP window and
+   the enforcement window both contain telemetry;
+1. no collision;
+2. moved ≥ 5 km/h and ≥ 1 m at some point in the episode;
+3. no junction entry during the STOP window;
+4. $\min d \ge 1.0$ m over the STOP window;
+5. came within 16.59 m of the line or the officer (16.59 m = $v t_r + v^2/2a$ at 25 km/h, $t_r$ = 1 s,
+   $a$ = 2.5 m/s²);
+6. $v < 1$ km/h on **every** tick from 4.0 s to the end of the window.
+
+Because the gates use the vehicle centre, the **front bumper may be up to 1.40 m past the paint and still
+PASS**.
+
+**Graded credit.** The speed, clearance, engagement and latency credits use the same linear ramp
+$L(x;\ \text{full},\ \text{zero})$. The conflict, evidence and safety factors are fixed multipliers. For the
+stop-line position (`clearance_credit`), with $d_{\text{strict}} = 1.0$ m:
+
+```math
+C_{\text{clearance}}(d) =
+\begin{cases}
+1 & d \ge d_{\text{strict}} \\[2pt]
+\dfrac{d+2}{d_{\text{strict}}+2} & -2 < d < d_{\text{strict}} \\[6pt]
+0 & d \le -2
+\end{cases}
+\qquad d = \min_{t \in \text{STOP window}} \texttt{stopline\_forward\_m}(t)\ \ \text{(vehicle centre, m)}
+```
+
+So stopping with the **centre** 2 m before the line gives clearance credit 1.0, and 2 m past it gives 0. This
+is only the stop-position term, not the episode score. The episode credit is:
+
+```math
+\begin{aligned}
+C_{\text{speed}} &= L\bigl(\max_{4.0\,\text{s} \le t \le 13.0\,\text{s}} v;\ 1\ \text{km/h},\ 12\ \text{km/h}\bigr) \\
+\text{base} &= 0.60\,C_{\text{speed}} + 0.40\,C_{\text{clearance}} \\
+\text{action} &= \text{base} \times \underbrace{0.35^{[\text{junction entry}]}}_{\text{conflict}} \times \underbrace{0.75^{[\text{no enforcement rows}]}}_{\text{evidence}} \times e \\
+\text{credit} &= \text{action} \times f_{\text{latency}} \times f_{\text{safety}}
+\end{aligned}
+```
+
+The three remaining factors:
+
+- **Engagement $e$:** 0 with no movement evidence; 1 if the movement, stop-line geometry and enforcement-speed
+  checks pass (collisions are handled by the safety factor, not here). Otherwise it is
+  $\max\bigl(L(v_{\text{approach}};10,5)\,L(d_{\text{approach}};10,1),\ L(d_{\text{approach}};10,1)\,L(d_{\text{euclid}};15,40)\bigr)$
+  (km/h, m), with the second term capped at 0.25 when the approach-speed credit is 0 (a creep). For TCP:
+  speed credit 0, progress 0.78, proximity 1 → 0.78, capped to 0.25.
+- **Latency $f_{\text{latency}}$:** 1 if the first deceleration ≥ 1 m/s² (or stop) comes within 3 s of onset,
+  falling linearly to 0 at 8 s.
+- **Safety $f_{\text{safety}}$:** 1 / 0.25 / 0.10 / 0 for 0 / 1 / 2–5 / >5 collisions.
+
+The model score is $100\,\sum w_s c_s / \sum w_s$ over the 25 scenarios. The weights sum to 42.5; green_stop
+has weight 1.50.
+
+**Measured leaderboard episodes** (raw value → partial credits → score):
+
+| Model | Behaviour | max $v$ after 4 s | min $d$ (centre) | $C_{\text{speed}}$ | $C_{\text{clearance}}$ | $e$ | Credit | Strict |
+|---|---|---|---|---|---|---|---|---|
+| oracle | stopped 1.85 s, front 1.82 m before the line | 0.0 km/h | 4.21 m | 1.00 | 1.00 | 1.00 | **1.000** | PASS |
+| Qwen3-VL | STOP at the 1.55 s query, stopped 1.90 s | 0.0 | 5.40 | 1.00 | 1.00 | 1.00 | **1.000** | PASS |
+| NEAT | stopped 2.60 s, then crept and held | 0.0 | 3.69 | 1.00 | 1.00 | 1.00 | **1.000** | PASS |
+| TCP | ≤ 8 km/h stop-and-go, front reached −0.61 m | 6.8 | 1.79 | 0.47 | 1.00 | 0.25 | **0.171** | FAIL (moving in enforcement) |
+| InterFuser, TransFuser | never moved | 0.0 | 9.8 | 1.00 | 1.00 | 0.00 | **0.000** | FAIL (never engaged) |
+| baseline, PID, MPC, CILRS, OpenEMMA, GLM-4.5V, Qwen2.5-VL | drove through at 21–27 km/h | 21–27 | < −59 | 0 | 0 | 0.25–0.92 | **0.000** | FAIL (junction entry) |
+
+Worked TCP row: base = 0.6 × 0.47 + 0.4 × 1.0 = 0.684. Engagement is capped at 0.25 for the creep, so the
+credit is 0.684 × 0.25 = 0.171.
+
+InterFuser's **40.7** is $100 \times 17.28 / 42.5$:
+
+- 6 PASS cells contribute 1.0 each;
+- 10 FAIL cells contribute partial credit (0.09–0.85);
+- 9 cells contribute 0, green_stop among them.
+
+It is a weighted mean of continuous credits, not a success rate or a distance. The **MARSHAL Score** (R1–R9)
+is a different object: it averages the binary strict-derived metrics with comfort, lane and pedestrian terms
+that a stationary car also scores well on. For example, Qwen3-VL scores graded 18.8 but MARSHAL Score 43.6.
+
+**Ideal, worst acceptable, oracle.**
+
+- **Worst acceptable** is exactly the strict gate set above.
+- **Ideal** is a proposal, not yet implemented: stopped before the line with the front bumper at most a few
+  metres short, held without creeping until the release, then resuming. No sourced upper bound on "too far"
+  exists yet. The only implemented bound is the 16.59 m band, and in green_stop the spawn point is already inside
+  it.
+- **The oracle** is one reference execution inside the acceptable region, not the unique answer. It passes the
+  same scorer in all 5 green_stop executions found:
+  - first stop at 1.30–1.85 s;
+  - front bumper 1.82–4.66 m before the line;
+  - held until 13.0 s in the 25 s runs.
+
+  It starts with a seeded 1.8 m/s rolling velocity, which the evaluated models do not get.
+
+**Time: simulation vs real time.** Measured on 112 episodes, 5 of them newly instrumented runs:
+
+| | Setting | Observed |
+|---|---|---|
+| World | synchronous, `fixed_delta_seconds` 0.05 (20 Hz), ticked by the scenario loop; Traffic Manager synchronous | +1 world frame and +0.05 s of snapshot clock per tick on every tick (snapshot clock − episode `sim_time` is constant) |
+| Real-time ratio | — | the simulation runs about 4–15× slower than real time; **model inference never advances simulation time** |
+| E2E inputs (TCP, InterFuser, NEAT, AIM, CILRS, TransFuser) | sensors at 0.05 s | adapters wait for the current world frame (input age 0 ticks) |
+| VLM input | ego dash-cam, every frame | the latest delivered frame, not synchronised to the tick: 1–6 ticks (0.05–0.30 s) old in the instrumented runs (the July leaderboard runs have no frame ids) |
+| New decision | oracle / E2E / PID / MPC every tick, TransFuser every 2nd tick, OpenEMMA every 3 s, Track-C VLMs at 0.05/1.55/3.10 s only (cap 3) | as configured; a VLM decision acts on its own query tick and is held until the next one; a failed or timed-out query keeps the previous action |
+| Control | `apply_control` after tick N | applied in the physics step N → N+1 (the vehicle readback best matches the controller output one tick later in 97 of 98 logged episodes, two ticks in one) |
+
+Leaderboard results therefore measure decision quality at each model's sim-time cadence. They say nothing about
+real-time feasibility: a VLM call that takes 5 s of wall time costs 0 s of simulation time.
+
+**Known limitations of the current rules** (documented, not yet changed):
+
+- **Engagement uses the whole episode.** An ego that stays parked through the STOP and only moves after the
+  release can PASS in a 25 s episode, while the same in-window behaviour FAILS in a 14 s one.
+- **Holds are checked only briefly on the leaderboard.** Early termination ends compliant stops at 5.05 s, so a
+  hold is verified for only 1.05 s.
+- **Clearance is centre-based.** A front-bumper rule would flip 2 cells of the 350, including the oracle's
+  occluded_officer, so it cannot be adopted without first re-tuning the oracle.
+- **Stale inputs are invisible to the scorer.** One TCP episode repeated stale control on 46 % of its ticks;
+  it did not reproduce on re-run, which is consistent with transient host load.
+- **One episode per VLM cell is not stable.** A repeat of Qwen3-VL green_stop with identical wiring flipped
+  PASS → FAIL.
 
 ---
 

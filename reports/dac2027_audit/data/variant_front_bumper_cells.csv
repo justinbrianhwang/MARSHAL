@@ -1,0 +1,7 @@
+model,scenario,strict_current,strict_variant,credit_current,credit_variant,variant_reason
+oracle,occluded_officer,PASS,FAIL,1.0,0.0,ego breached the stopline clearance while commanded to stop
+baseline,two_civilians_disagree,FAIL,FAIL,0.4,0.3946,ego breached the stopline clearance while commanded to stop
+tcp,green_stop,FAIL,FAIL,0.171,0.1573,ego breached the stopline clearance while commanded to stop
+tcp,occluded_officer,FAIL,FAIL,0.1707,0.1658,ego breached the stopline clearance while commanded to stop
+pid,school_crossing_guard,FAIL,FAIL,0.0243,0.0166,collision recorded during STOP/HOLD episode
+qwen3-vl,occluded_officer,PASS,FAIL,1.0,0.2081,ego breached the stopline clearance while commanded to stop

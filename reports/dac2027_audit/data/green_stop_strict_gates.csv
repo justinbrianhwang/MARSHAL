@@ -1,0 +1,397 @@
+run_set,model,condition,seed,gate,value,rule,pass,first_failure
+leaderboard,oracle,police_stop,,active_window_rows,82,> 0,True,False
+leaderboard,oracle,police_stop,,enforcement_rows,22,> 0,True,False
+leaderboard,oracle,police_stop,,no_collision,0,== 0,True,False
+leaderboard,oracle,police_stop,,engaged_speed,18.1436,>= 5 km/h,True,False
+leaderboard,oracle,police_stop,,engaged_progress,5.4411,>= 1 m,True,False
+leaderboard,oracle,police_stop,,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),True,False
+leaderboard,oracle,police_stop,,stopline_clearance,4.2122,>= 1.0 m (centre),True,False
+leaderboard,oracle,police_stop,,stop_anchor_engaged,4.2122,<= 16.59 m of line or officer,True,False
+leaderboard,oracle,police_stop,,stopped_through_enforcement,0.0001,< 1 km/h,True,False
+leaderboard,baseline,police_stop,,active_window_rows,241,> 0,True,False
+leaderboard,baseline,police_stop,,enforcement_rows,181,> 0,True,False
+leaderboard,baseline,police_stop,,no_collision,0,== 0,True,False
+leaderboard,baseline,police_stop,,engaged_speed,23.8762,>= 5 km/h,True,False
+leaderboard,baseline,police_stop,,engaged_progress,83.3522,>= 1 m,True,False
+leaderboard,baseline,police_stop,,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+leaderboard,baseline,police_stop,,stopline_clearance,-66.5732,>= 1.0 m (centre),False,False
+leaderboard,baseline,police_stop,,stop_anchor_engaged,-66.5732,<= 16.59 m of line or officer,True,False
+leaderboard,baseline,police_stop,,stopped_through_enforcement,23.761,< 1 km/h,False,False
+leaderboard,transfuser,police_stop,,active_window_rows,241,> 0,True,False
+leaderboard,transfuser,police_stop,,enforcement_rows,181,> 0,True,False
+leaderboard,transfuser,police_stop,,no_collision,0,== 0,True,False
+leaderboard,transfuser,police_stop,,engaged_speed,0.8122,>= 5 km/h,False,True
+leaderboard,transfuser,police_stop,,engaged_progress,0.0256,>= 1 m,False,False
+leaderboard,transfuser,police_stop,,no_conflict_zone_entry,euclidean,no in_junction row past line (-0.3 m centre),True,False
+leaderboard,transfuser,police_stop,,stopline_clearance,9.822,>= 1.0 m (centre),True,False
+leaderboard,transfuser,police_stop,,stop_anchor_engaged,9.822,<= 16.59 m of line or officer,True,False
+leaderboard,transfuser,police_stop,,stopped_through_enforcement,0.0001,< 1 km/h,True,False
+leaderboard,tcp,police_stop,,active_window_rows,131,> 0,True,False
+leaderboard,tcp,police_stop,,enforcement_rows,71,> 0,True,False
+leaderboard,tcp,police_stop,,no_collision,0,== 0,True,False
+leaderboard,tcp,police_stop,,engaged_speed,8.1062,>= 5 km/h,True,False
+leaderboard,tcp,police_stop,,engaged_progress,8.0497,>= 1 m,True,False
+leaderboard,tcp,police_stop,,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),True,False
+leaderboard,tcp,police_stop,,stopline_clearance,1.7904,>= 1.0 m (centre),True,False
+leaderboard,tcp,police_stop,,stop_anchor_engaged,1.7904,<= 16.59 m of line or officer,True,False
+leaderboard,tcp,police_stop,,stopped_through_enforcement,6.791,< 1 km/h,False,True
+leaderboard,interfuser,police_stop,,active_window_rows,241,> 0,True,False
+leaderboard,interfuser,police_stop,,enforcement_rows,181,> 0,True,False
+leaderboard,interfuser,police_stop,,no_collision,0,== 0,True,False
+leaderboard,interfuser,police_stop,,engaged_speed,0.0773,>= 5 km/h,False,True
+leaderboard,interfuser,police_stop,,engaged_progress,0.0081,>= 1 m,False,False
+leaderboard,interfuser,police_stop,,no_conflict_zone_entry,euclidean,no in_junction row past line (-0.3 m centre),True,False
+leaderboard,interfuser,police_stop,,stopline_clearance,9.8408,>= 1.0 m (centre),True,False
+leaderboard,interfuser,police_stop,,stop_anchor_engaged,9.8408,<= 16.59 m of line or officer,True,False
+leaderboard,interfuser,police_stop,,stopped_through_enforcement,0.0,< 1 km/h,True,False
+leaderboard,cilrs,police_stop,,active_window_rows,241,> 0,True,False
+leaderboard,cilrs,police_stop,,enforcement_rows,181,> 0,True,False
+leaderboard,cilrs,police_stop,,no_collision,0,== 0,True,False
+leaderboard,cilrs,police_stop,,engaged_speed,26.6152,>= 5 km/h,True,False
+leaderboard,cilrs,police_stop,,engaged_progress,88.8904,>= 1 m,True,False
+leaderboard,cilrs,police_stop,,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+leaderboard,cilrs,police_stop,,stopline_clearance,-71.841,>= 1.0 m (centre),False,False
+leaderboard,cilrs,police_stop,,stop_anchor_engaged,-71.841,<= 16.59 m of line or officer,True,False
+leaderboard,cilrs,police_stop,,stopped_through_enforcement,26.6152,< 1 km/h,False,False
+leaderboard,aim,police_stop,,active_window_rows,83,> 0,True,False
+leaderboard,aim,police_stop,,enforcement_rows,23,> 0,True,False
+leaderboard,aim,police_stop,,no_collision,0,== 0,True,False
+leaderboard,aim,police_stop,,engaged_speed,4.7563,>= 5 km/h,False,True
+leaderboard,aim,police_stop,,engaged_progress,1.3428,>= 1 m,True,False
+leaderboard,aim,police_stop,,no_conflict_zone_entry,euclidean,no in_junction row past line (-0.3 m centre),False,False
+leaderboard,aim,police_stop,,stopline_clearance,8.4975,>= 1.0 m (centre),True,False
+leaderboard,aim,police_stop,,stop_anchor_engaged,8.4975,<= 16.59 m of line or officer,True,False
+leaderboard,aim,police_stop,,stopped_through_enforcement,3.5668,< 1 km/h,False,False
+leaderboard,neat,police_stop,,active_window_rows,82,> 0,True,False
+leaderboard,neat,police_stop,,enforcement_rows,22,> 0,True,False
+leaderboard,neat,police_stop,,no_collision,0,== 0,True,False
+leaderboard,neat,police_stop,,engaged_speed,17.9359,>= 5 km/h,True,False
+leaderboard,neat,police_stop,,engaged_progress,6.1425,>= 1 m,True,False
+leaderboard,neat,police_stop,,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),True,False
+leaderboard,neat,police_stop,,stopline_clearance,3.6943,>= 1.0 m (centre),True,False
+leaderboard,neat,police_stop,,stop_anchor_engaged,3.6943,<= 16.59 m of line or officer,True,False
+leaderboard,neat,police_stop,,stopped_through_enforcement,0.0022,< 1 km/h,True,False
+leaderboard,pid,police_stop,,active_window_rows,241,> 0,True,False
+leaderboard,pid,police_stop,,enforcement_rows,181,> 0,True,False
+leaderboard,pid,police_stop,,no_collision,0,== 0,True,False
+leaderboard,pid,police_stop,,engaged_speed,23.3071,>= 5 km/h,True,False
+leaderboard,pid,police_stop,,engaged_progress,83.3823,>= 1 m,True,False
+leaderboard,pid,police_stop,,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+leaderboard,pid,police_stop,,stopline_clearance,-66.7562,>= 1.0 m (centre),False,False
+leaderboard,pid,police_stop,,stop_anchor_engaged,-66.7562,<= 16.59 m of line or officer,True,False
+leaderboard,pid,police_stop,,stopped_through_enforcement,23.3071,< 1 km/h,False,False
+leaderboard,mpc,police_stop,,active_window_rows,241,> 0,True,False
+leaderboard,mpc,police_stop,,enforcement_rows,181,> 0,True,False
+leaderboard,mpc,police_stop,,no_collision,0,== 0,True,False
+leaderboard,mpc,police_stop,,engaged_speed,21.5446,>= 5 km/h,True,False
+leaderboard,mpc,police_stop,,engaged_progress,75.3153,>= 1 m,True,False
+leaderboard,mpc,police_stop,,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+leaderboard,mpc,police_stop,,stopline_clearance,-59.4226,>= 1.0 m (centre),False,False
+leaderboard,mpc,police_stop,,stop_anchor_engaged,-59.4226,<= 16.59 m of line or officer,True,False
+leaderboard,mpc,police_stop,,stopped_through_enforcement,21.4044,< 1 km/h,False,False
+leaderboard,openemma,police_stop,,active_window_rows,241,> 0,True,False
+leaderboard,openemma,police_stop,,enforcement_rows,181,> 0,True,False
+leaderboard,openemma,police_stop,,no_collision,0,== 0,True,False
+leaderboard,openemma,police_stop,,engaged_speed,21.5972,>= 5 km/h,True,False
+leaderboard,openemma,police_stop,,engaged_progress,75.3053,>= 1 m,True,False
+leaderboard,openemma,police_stop,,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+leaderboard,openemma,police_stop,,stopline_clearance,-60.1423,>= 1.0 m (centre),False,False
+leaderboard,openemma,police_stop,,stop_anchor_engaged,-60.1423,<= 16.59 m of line or officer,True,False
+leaderboard,openemma,police_stop,,stopped_through_enforcement,21.4332,< 1 km/h,False,False
+leaderboard,glm-4.5v,police_stop,,active_window_rows,241,> 0,True,False
+leaderboard,glm-4.5v,police_stop,,enforcement_rows,181,> 0,True,False
+leaderboard,glm-4.5v,police_stop,,no_collision,0,== 0,True,False
+leaderboard,glm-4.5v,police_stop,,engaged_speed,25.572,>= 5 km/h,True,False
+leaderboard,glm-4.5v,police_stop,,engaged_progress,88.6612,>= 1 m,True,False
+leaderboard,glm-4.5v,police_stop,,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+leaderboard,glm-4.5v,police_stop,,stopline_clearance,-71.592,>= 1.0 m (centre),False,False
+leaderboard,glm-4.5v,police_stop,,stop_anchor_engaged,-71.592,<= 16.59 m of line or officer,True,False
+leaderboard,glm-4.5v,police_stop,,stopped_through_enforcement,25.2437,< 1 km/h,False,False
+leaderboard,qwen2.5-vl,police_stop,,active_window_rows,241,> 0,True,False
+leaderboard,qwen2.5-vl,police_stop,,enforcement_rows,181,> 0,True,False
+leaderboard,qwen2.5-vl,police_stop,,no_collision,0,== 0,True,False
+leaderboard,qwen2.5-vl,police_stop,,engaged_speed,25.9716,>= 5 km/h,True,False
+leaderboard,qwen2.5-vl,police_stop,,engaged_progress,77.968,>= 1 m,True,False
+leaderboard,qwen2.5-vl,police_stop,,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+leaderboard,qwen2.5-vl,police_stop,,stopline_clearance,-60.9309,>= 1.0 m (centre),False,False
+leaderboard,qwen2.5-vl,police_stop,,stop_anchor_engaged,-60.9309,<= 16.59 m of line or officer,True,False
+leaderboard,qwen2.5-vl,police_stop,,stopped_through_enforcement,25.9716,< 1 km/h,False,False
+leaderboard,qwen3-vl,police_stop,,active_window_rows,82,> 0,True,False
+leaderboard,qwen3-vl,police_stop,,enforcement_rows,22,> 0,True,False
+leaderboard,qwen3-vl,police_stop,,no_collision,0,== 0,True,False
+leaderboard,qwen3-vl,police_stop,,engaged_speed,18.7932,>= 5 km/h,True,False
+leaderboard,qwen3-vl,police_stop,,engaged_progress,4.4319,>= 1 m,True,False
+leaderboard,qwen3-vl,police_stop,,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),True,False
+leaderboard,qwen3-vl,police_stop,,stopline_clearance,5.404,>= 1.0 m (centre),True,False
+leaderboard,qwen3-vl,police_stop,,stop_anchor_engaged,5.404,<= 16.59 m of line or officer,True,False
+leaderboard,qwen3-vl,police_stop,,stopped_through_enforcement,0.0001,< 1 km/h,True,False
+authority_wiring,glm45v,police_stop,1,active_window_rows,241,> 0,True,False
+authority_wiring,glm45v,police_stop,1,enforcement_rows,181,> 0,True,False
+authority_wiring,glm45v,police_stop,1,no_collision,0,== 0,True,False
+authority_wiring,glm45v,police_stop,1,engaged_speed,25.7031,>= 5 km/h,True,False
+authority_wiring,glm45v,police_stop,1,engaged_progress,142.5125,>= 1 m,True,False
+authority_wiring,glm45v,police_stop,1,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+authority_wiring,glm45v,police_stop,1,stopline_clearance,-49.9841,>= 1.0 m (centre),False,False
+authority_wiring,glm45v,police_stop,1,stop_anchor_engaged,-49.9841,<= 16.59 m of line or officer,True,False
+authority_wiring,glm45v,police_stop,1,stopped_through_enforcement,25.7031,< 1 km/h,False,False
+authority_wiring,glm45v,police_stop,2,active_window_rows,241,> 0,True,False
+authority_wiring,glm45v,police_stop,2,enforcement_rows,181,> 0,True,False
+authority_wiring,glm45v,police_stop,2,no_collision,0,== 0,True,False
+authority_wiring,glm45v,police_stop,2,engaged_speed,25.5825,>= 5 km/h,True,False
+authority_wiring,glm45v,police_stop,2,engaged_progress,153.4091,>= 1 m,True,False
+authority_wiring,glm45v,police_stop,2,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+authority_wiring,glm45v,police_stop,2,stopline_clearance,-60.9068,>= 1.0 m (centre),False,False
+authority_wiring,glm45v,police_stop,2,stop_anchor_engaged,-60.9068,<= 16.59 m of line or officer,True,False
+authority_wiring,glm45v,police_stop,2,stopped_through_enforcement,25.5462,< 1 km/h,False,False
+authority_wiring,glm45v,police_stop,3,active_window_rows,241,> 0,True,False
+authority_wiring,glm45v,police_stop,3,enforcement_rows,181,> 0,True,False
+authority_wiring,glm45v,police_stop,3,no_collision,0,== 0,True,False
+authority_wiring,glm45v,police_stop,3,engaged_speed,25.5864,>= 5 km/h,True,False
+authority_wiring,glm45v,police_stop,3,engaged_progress,163.6501,>= 1 m,True,False
+authority_wiring,glm45v,police_stop,3,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+authority_wiring,glm45v,police_stop,3,stopline_clearance,-71.2011,>= 1.0 m (centre),False,False
+authority_wiring,glm45v,police_stop,3,stop_anchor_engaged,-71.2011,<= 16.59 m of line or officer,True,False
+authority_wiring,glm45v,police_stop,3,stopped_through_enforcement,25.5462,< 1 km/h,False,False
+authority_wiring,interfuser,police_stop,1,active_window_rows,241,> 0,True,False
+authority_wiring,interfuser,police_stop,1,enforcement_rows,181,> 0,True,False
+authority_wiring,interfuser,police_stop,1,no_collision,0,== 0,True,False
+authority_wiring,interfuser,police_stop,1,engaged_speed,0.2212,>= 5 km/h,False,True
+authority_wiring,interfuser,police_stop,1,engaged_progress,0.0059,>= 1 m,False,False
+authority_wiring,interfuser,police_stop,1,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),True,False
+authority_wiring,interfuser,police_stop,1,stopline_clearance,9.8345,>= 1.0 m (centre),True,False
+authority_wiring,interfuser,police_stop,1,stop_anchor_engaged,9.8345,<= 16.59 m of line or officer,True,False
+authority_wiring,interfuser,police_stop,1,stopped_through_enforcement,0.0,< 1 km/h,True,False
+authority_wiring,neat,police_stop,1,active_window_rows,241,> 0,True,False
+authority_wiring,neat,police_stop,1,enforcement_rows,181,> 0,True,False
+authority_wiring,neat,police_stop,1,no_collision,0,== 0,True,False
+authority_wiring,neat,police_stop,1,engaged_speed,25.8515,>= 5 km/h,True,False
+authority_wiring,neat,police_stop,1,engaged_progress,51.2162,>= 1 m,True,False
+authority_wiring,neat,police_stop,1,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),True,False
+authority_wiring,neat,police_stop,1,stopline_clearance,3.0556,>= 1.0 m (centre),True,False
+authority_wiring,neat,police_stop,1,stop_anchor_engaged,3.0556,<= 16.59 m of line or officer,True,False
+authority_wiring,neat,police_stop,1,stopped_through_enforcement,9.0787,< 1 km/h,False,True
+authority_wiring,neat,police_stop,2,active_window_rows,241,> 0,True,False
+authority_wiring,neat,police_stop,2,enforcement_rows,181,> 0,True,False
+authority_wiring,neat,police_stop,2,no_collision,0,== 0,True,False
+authority_wiring,neat,police_stop,2,engaged_speed,14.6463,>= 5 km/h,True,False
+authority_wiring,neat,police_stop,2,engaged_progress,6.1692,>= 1 m,True,False
+authority_wiring,neat,police_stop,2,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),True,False
+authority_wiring,neat,police_stop,2,stopline_clearance,3.6764,>= 1.0 m (centre),True,False
+authority_wiring,neat,police_stop,2,stop_anchor_engaged,3.6764,<= 16.59 m of line or officer,True,False
+authority_wiring,neat,police_stop,2,stopped_through_enforcement,0.0022,< 1 km/h,True,False
+authority_wiring,neat,police_stop,3,active_window_rows,241,> 0,True,False
+authority_wiring,neat,police_stop,3,enforcement_rows,181,> 0,True,False
+authority_wiring,neat,police_stop,3,no_collision,0,== 0,True,False
+authority_wiring,neat,police_stop,3,engaged_speed,18.6266,>= 5 km/h,True,False
+authority_wiring,neat,police_stop,3,engaged_progress,6.0857,>= 1 m,True,False
+authority_wiring,neat,police_stop,3,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),True,False
+authority_wiring,neat,police_stop,3,stopline_clearance,3.7499,>= 1.0 m (centre),True,False
+authority_wiring,neat,police_stop,3,stop_anchor_engaged,3.7499,<= 16.59 m of line or officer,True,False
+authority_wiring,neat,police_stop,3,stopped_through_enforcement,0.0022,< 1 km/h,True,False
+authority_wiring,oracle,police_stop,1,active_window_rows,241,> 0,True,False
+authority_wiring,oracle,police_stop,1,enforcement_rows,181,> 0,True,False
+authority_wiring,oracle,police_stop,1,no_collision,0,== 0,True,False
+authority_wiring,oracle,police_stop,1,engaged_speed,15.2093,>= 5 km/h,True,False
+authority_wiring,oracle,police_stop,1,engaged_progress,3.7543,>= 1 m,True,False
+authority_wiring,oracle,police_stop,1,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),True,False
+authority_wiring,oracle,police_stop,1,stopline_clearance,6.0339,>= 1.0 m (centre),True,False
+authority_wiring,oracle,police_stop,1,stop_anchor_engaged,6.0339,<= 16.59 m of line or officer,True,False
+authority_wiring,oracle,police_stop,1,stopped_through_enforcement,0.0001,< 1 km/h,True,False
+authority_wiring,oracle,police_stop,2,active_window_rows,241,> 0,True,False
+authority_wiring,oracle,police_stop,2,enforcement_rows,181,> 0,True,False
+authority_wiring,oracle,police_stop,2,no_collision,0,== 0,True,False
+authority_wiring,oracle,police_stop,2,engaged_speed,13.3482,>= 5 km/h,True,False
+authority_wiring,oracle,police_stop,2,engaged_progress,2.7353,>= 1 m,True,False
+authority_wiring,oracle,police_stop,2,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),True,False
+authority_wiring,oracle,police_stop,2,stopline_clearance,7.0504,>= 1.0 m (centre),True,False
+authority_wiring,oracle,police_stop,2,stop_anchor_engaged,7.0504,<= 16.59 m of line or officer,True,False
+authority_wiring,oracle,police_stop,2,stopped_through_enforcement,0.0001,< 1 km/h,True,False
+authority_wiring,oracle,police_stop,3,active_window_rows,241,> 0,True,False
+authority_wiring,oracle,police_stop,3,enforcement_rows,181,> 0,True,False
+authority_wiring,oracle,police_stop,3,no_collision,0,== 0,True,False
+authority_wiring,oracle,police_stop,3,engaged_speed,15.1404,>= 5 km/h,True,False
+authority_wiring,oracle,police_stop,3,engaged_progress,3.7045,>= 1 m,True,False
+authority_wiring,oracle,police_stop,3,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),True,False
+authority_wiring,oracle,police_stop,3,stopline_clearance,6.0841,>= 1.0 m (centre),True,False
+authority_wiring,oracle,police_stop,3,stop_anchor_engaged,6.0841,<= 16.59 m of line or officer,True,False
+authority_wiring,oracle,police_stop,3,stopped_through_enforcement,0.0001,< 1 km/h,True,False
+authority_wiring,qwen25vl,police_stop,1,active_window_rows,241,> 0,True,False
+authority_wiring,qwen25vl,police_stop,1,enforcement_rows,181,> 0,True,False
+authority_wiring,qwen25vl,police_stop,1,no_collision,0,== 0,True,False
+authority_wiring,qwen25vl,police_stop,1,engaged_speed,25.584,>= 5 km/h,True,False
+authority_wiring,qwen25vl,police_stop,1,engaged_progress,163.6426,>= 1 m,True,False
+authority_wiring,qwen25vl,police_stop,1,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+authority_wiring,qwen25vl,police_stop,1,stopline_clearance,-71.1925,>= 1.0 m (centre),False,False
+authority_wiring,qwen25vl,police_stop,1,stop_anchor_engaged,-71.1925,<= 16.59 m of line or officer,True,False
+authority_wiring,qwen25vl,police_stop,1,stopped_through_enforcement,25.5462,< 1 km/h,False,False
+authority_wiring,qwen25vl,police_stop,2,active_window_rows,241,> 0,True,False
+authority_wiring,qwen25vl,police_stop,2,enforcement_rows,181,> 0,True,False
+authority_wiring,qwen25vl,police_stop,2,no_collision,0,== 0,True,False
+authority_wiring,qwen25vl,police_stop,2,engaged_speed,18.8453,>= 5 km/h,True,False
+authority_wiring,qwen25vl,police_stop,2,engaged_progress,4.9762,>= 1 m,True,False
+authority_wiring,qwen25vl,police_stop,2,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),True,False
+authority_wiring,qwen25vl,police_stop,2,stopline_clearance,4.8653,>= 1.0 m (centre),True,False
+authority_wiring,qwen25vl,police_stop,2,stop_anchor_engaged,4.8653,<= 16.59 m of line or officer,True,False
+authority_wiring,qwen25vl,police_stop,2,stopped_through_enforcement,0.0028,< 1 km/h,True,False
+authority_wiring,qwen25vl,police_stop,3,active_window_rows,241,> 0,True,False
+authority_wiring,qwen25vl,police_stop,3,enforcement_rows,181,> 0,True,False
+authority_wiring,qwen25vl,police_stop,3,no_collision,0,== 0,True,False
+authority_wiring,qwen25vl,police_stop,3,engaged_speed,25.583,>= 5 km/h,True,False
+authority_wiring,qwen25vl,police_stop,3,engaged_progress,163.6427,>= 1 m,True,False
+authority_wiring,qwen25vl,police_stop,3,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+authority_wiring,qwen25vl,police_stop,3,stopline_clearance,-71.2005,>= 1.0 m (centre),False,False
+authority_wiring,qwen25vl,police_stop,3,stop_anchor_engaged,-71.2005,<= 16.59 m of line or officer,True,False
+authority_wiring,qwen25vl,police_stop,3,stopped_through_enforcement,25.5462,< 1 km/h,False,False
+authority_wiring,qwen3vl,police_stop_near,1,active_window_rows,241,> 0,True,False
+authority_wiring,qwen3vl,police_stop_near,1,enforcement_rows,181,> 0,True,False
+authority_wiring,qwen3vl,police_stop_near,1,no_collision,0,== 0,True,False
+authority_wiring,qwen3vl,police_stop_near,1,engaged_speed,25.7073,>= 5 km/h,True,False
+authority_wiring,qwen3vl,police_stop_near,1,engaged_progress,95.2336,>= 1 m,True,False
+authority_wiring,qwen3vl,police_stop_near,1,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+authority_wiring,qwen3vl,police_stop_near,1,stopline_clearance,-2.5278,>= 1.0 m (centre),False,False
+authority_wiring,qwen3vl,police_stop_near,1,stop_anchor_engaged,-2.5278,<= 16.59 m of line or officer,True,False
+authority_wiring,qwen3vl,police_stop_near,1,stopped_through_enforcement,25.3823,< 1 km/h,False,False
+authority_wiring,qwen3vl,police_stop_near,2,active_window_rows,241,> 0,True,False
+authority_wiring,qwen3vl,police_stop_near,2,enforcement_rows,181,> 0,True,False
+authority_wiring,qwen3vl,police_stop_near,2,no_collision,0,== 0,True,False
+authority_wiring,qwen3vl,police_stop_near,2,engaged_speed,25.6885,>= 5 km/h,True,False
+authority_wiring,qwen3vl,police_stop_near,2,engaged_progress,137.7765,>= 1 m,True,False
+authority_wiring,qwen3vl,police_stop_near,2,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+authority_wiring,qwen3vl,police_stop_near,2,stopline_clearance,-45.2147,>= 1.0 m (centre),False,False
+authority_wiring,qwen3vl,police_stop_near,2,stop_anchor_engaged,-45.2147,<= 16.59 m of line or officer,True,False
+authority_wiring,qwen3vl,police_stop_near,2,stopped_through_enforcement,25.6885,< 1 km/h,False,False
+authority_wiring,qwen3vl,police_stop_near,3,active_window_rows,241,> 0,True,False
+authority_wiring,qwen3vl,police_stop_near,3,enforcement_rows,181,> 0,True,False
+authority_wiring,qwen3vl,police_stop_near,3,no_collision,0,== 0,True,False
+authority_wiring,qwen3vl,police_stop_near,3,engaged_speed,25.6916,>= 5 km/h,True,False
+authority_wiring,qwen3vl,police_stop_near,3,engaged_progress,33.3068,>= 1 m,True,False
+authority_wiring,qwen3vl,police_stop_near,3,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),True,False
+authority_wiring,qwen3vl,police_stop_near,3,stopline_clearance,9.8403,>= 1.0 m (centre),True,False
+authority_wiring,qwen3vl,police_stop_near,3,stop_anchor_engaged,9.8403,<= 16.59 m of line or officer,True,False
+authority_wiring,qwen3vl,police_stop_near,3,stopped_through_enforcement,0.0001,< 1 km/h,True,False
+authority_wiring,qwen3vl,police_stop,1,active_window_rows,241,> 0,True,False
+authority_wiring,qwen3vl,police_stop,1,enforcement_rows,181,> 0,True,False
+authority_wiring,qwen3vl,police_stop,1,no_collision,0,== 0,True,False
+authority_wiring,qwen3vl,police_stop,1,engaged_speed,25.5994,>= 5 km/h,True,False
+authority_wiring,qwen3vl,police_stop,1,engaged_progress,153.4307,>= 1 m,True,False
+authority_wiring,qwen3vl,police_stop,1,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+authority_wiring,qwen3vl,police_stop,1,stopline_clearance,-60.9235,>= 1.0 m (centre),False,False
+authority_wiring,qwen3vl,police_stop,1,stop_anchor_engaged,-60.9235,<= 16.59 m of line or officer,True,False
+authority_wiring,qwen3vl,police_stop,1,stopped_through_enforcement,25.5462,< 1 km/h,False,False
+authority_wiring,qwen3vl,police_stop,2,active_window_rows,241,> 0,True,False
+authority_wiring,qwen3vl,police_stop,2,enforcement_rows,181,> 0,True,False
+authority_wiring,qwen3vl,police_stop,2,no_collision,0,== 0,True,False
+authority_wiring,qwen3vl,police_stop,2,engaged_speed,25.8152,>= 5 km/h,True,False
+authority_wiring,qwen3vl,police_stop,2,engaged_progress,163.548,>= 1 m,True,False
+authority_wiring,qwen3vl,police_stop,2,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+authority_wiring,qwen3vl,police_stop,2,stopline_clearance,-71.131,>= 1.0 m (centre),False,False
+authority_wiring,qwen3vl,police_stop,2,stop_anchor_engaged,-71.131,<= 16.59 m of line or officer,True,False
+authority_wiring,qwen3vl,police_stop,2,stopped_through_enforcement,25.5472,< 1 km/h,False,False
+authority_wiring,qwen3vl,police_stop,3,active_window_rows,241,> 0,True,False
+authority_wiring,qwen3vl,police_stop,3,enforcement_rows,181,> 0,True,False
+authority_wiring,qwen3vl,police_stop,3,no_collision,0,== 0,True,False
+authority_wiring,qwen3vl,police_stop,3,engaged_speed,25.632,>= 5 km/h,True,False
+authority_wiring,qwen3vl,police_stop,3,engaged_progress,164.371,>= 1 m,True,False
+authority_wiring,qwen3vl,police_stop,3,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+authority_wiring,qwen3vl,police_stop,3,stopline_clearance,-71.7446,>= 1.0 m (centre),False,False
+authority_wiring,qwen3vl,police_stop,3,stop_anchor_engaged,-71.7446,<= 16.59 m of line or officer,True,False
+authority_wiring,qwen3vl,police_stop,3,stopped_through_enforcement,25.2445,< 1 km/h,False,False
+authority_wiring,tcp,police_stop_near,1,active_window_rows,241,> 0,True,False
+authority_wiring,tcp,police_stop_near,1,enforcement_rows,181,> 0,True,False
+authority_wiring,tcp,police_stop_near,1,no_collision,0,== 0,True,False
+authority_wiring,tcp,police_stop_near,1,engaged_speed,8.1302,>= 5 km/h,True,False
+authority_wiring,tcp,police_stop_near,1,engaged_progress,35.1526,>= 1 m,True,False
+authority_wiring,tcp,police_stop_near,1,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+authority_wiring,tcp,police_stop_near,1,stopline_clearance,-6.2583,>= 1.0 m (centre),False,False
+authority_wiring,tcp,police_stop_near,1,stop_anchor_engaged,-6.2583,<= 16.59 m of line or officer,True,False
+authority_wiring,tcp,police_stop_near,1,stopped_through_enforcement,6.8203,< 1 km/h,False,False
+authority_wiring,tcp,police_stop_near,2,active_window_rows,241,> 0,True,False
+authority_wiring,tcp,police_stop_near,2,enforcement_rows,181,> 0,True,False
+authority_wiring,tcp,police_stop_near,2,no_collision,0,== 0,True,False
+authority_wiring,tcp,police_stop_near,2,engaged_speed,8.274,>= 5 km/h,True,False
+authority_wiring,tcp,police_stop_near,2,engaged_progress,34.6925,>= 1 m,True,False
+authority_wiring,tcp,police_stop_near,2,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+authority_wiring,tcp,police_stop_near,2,stopline_clearance,-5.9729,>= 1.0 m (centre),False,False
+authority_wiring,tcp,police_stop_near,2,stop_anchor_engaged,-5.9729,<= 16.59 m of line or officer,True,False
+authority_wiring,tcp,police_stop_near,2,stopped_through_enforcement,6.8258,< 1 km/h,False,False
+authority_wiring,tcp,police_stop_near,3,active_window_rows,241,> 0,True,False
+authority_wiring,tcp,police_stop_near,3,enforcement_rows,181,> 0,True,False
+authority_wiring,tcp,police_stop_near,3,no_collision,0,== 0,True,False
+authority_wiring,tcp,police_stop_near,3,engaged_speed,8.242,>= 5 km/h,True,False
+authority_wiring,tcp,police_stop_near,3,engaged_progress,35.0695,>= 1 m,True,False
+authority_wiring,tcp,police_stop_near,3,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+authority_wiring,tcp,police_stop_near,3,stopline_clearance,-6.7086,>= 1.0 m (centre),False,False
+authority_wiring,tcp,police_stop_near,3,stop_anchor_engaged,-6.7086,<= 16.59 m of line or officer,True,False
+authority_wiring,tcp,police_stop_near,3,stopped_through_enforcement,6.7208,< 1 km/h,False,False
+authority_wiring,tcp,police_stop,1,active_window_rows,241,> 0,True,False
+authority_wiring,tcp,police_stop,1,enforcement_rows,181,> 0,True,False
+authority_wiring,tcp,police_stop,1,no_collision,0,== 0,True,False
+authority_wiring,tcp,police_stop,1,engaged_speed,8.7459,>= 5 km/h,True,False
+authority_wiring,tcp,police_stop,1,engaged_progress,37.012,>= 1 m,True,False
+authority_wiring,tcp,police_stop,1,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+authority_wiring,tcp,police_stop,1,stopline_clearance,-5.4963,>= 1.0 m (centre),False,False
+authority_wiring,tcp,police_stop,1,stop_anchor_engaged,-5.4963,<= 16.59 m of line or officer,True,False
+authority_wiring,tcp,police_stop,1,stopped_through_enforcement,8.7459,< 1 km/h,False,False
+authority_wiring,tcp,police_stop,2,active_window_rows,241,> 0,True,False
+authority_wiring,tcp,police_stop,2,enforcement_rows,181,> 0,True,False
+authority_wiring,tcp,police_stop,2,no_collision,0,== 0,True,False
+authority_wiring,tcp,police_stop,2,engaged_speed,8.112,>= 5 km/h,True,False
+authority_wiring,tcp,police_stop,2,engaged_progress,29.5689,>= 1 m,True,False
+authority_wiring,tcp,police_stop,2,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+authority_wiring,tcp,police_stop,2,stopline_clearance,-1.2724,>= 1.0 m (centre),False,False
+authority_wiring,tcp,police_stop,2,stop_anchor_engaged,-1.2724,<= 16.59 m of line or officer,True,False
+authority_wiring,tcp,police_stop,2,stopped_through_enforcement,6.7206,< 1 km/h,False,False
+authority_wiring,tcp,police_stop,3,active_window_rows,241,> 0,True,False
+authority_wiring,tcp,police_stop,3,enforcement_rows,181,> 0,True,False
+authority_wiring,tcp,police_stop,3,no_collision,0,== 0,True,False
+authority_wiring,tcp,police_stop,3,engaged_speed,7.3373,>= 5 km/h,True,False
+authority_wiring,tcp,police_stop,3,engaged_progress,31.0755,>= 1 m,True,False
+authority_wiring,tcp,police_stop,3,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+authority_wiring,tcp,police_stop,3,stopline_clearance,-2.6274,>= 1.0 m (centre),False,False
+authority_wiring,tcp,police_stop,3,stop_anchor_engaged,-2.6274,<= 16.59 m of line or officer,True,False
+authority_wiring,tcp,police_stop,3,stopped_through_enforcement,6.7722,< 1 km/h,False,False
+new_leaderboard_wiring,interfuser,police_stop,default,active_window_rows,241,> 0,True,False
+new_leaderboard_wiring,interfuser,police_stop,default,enforcement_rows,181,> 0,True,False
+new_leaderboard_wiring,interfuser,police_stop,default,no_collision,0,== 0,True,False
+new_leaderboard_wiring,interfuser,police_stop,default,engaged_speed,0.3693,>= 5 km/h,False,True
+new_leaderboard_wiring,interfuser,police_stop,default,engaged_progress,0.0069,>= 1 m,False,False
+new_leaderboard_wiring,interfuser,police_stop,default,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),True,False
+new_leaderboard_wiring,interfuser,police_stop,default,stopline_clearance,9.8397,>= 1.0 m (centre),True,False
+new_leaderboard_wiring,interfuser,police_stop,default,stop_anchor_engaged,9.8397,<= 16.59 m of line or officer,True,False
+new_leaderboard_wiring,interfuser,police_stop,default,stopped_through_enforcement,0.0,< 1 km/h,True,False
+new_leaderboard_wiring,oracle,police_stop,default,active_window_rows,82,> 0,True,False
+new_leaderboard_wiring,oracle,police_stop,default,enforcement_rows,22,> 0,True,False
+new_leaderboard_wiring,oracle,police_stop,default,no_collision,0,== 0,True,False
+new_leaderboard_wiring,oracle,police_stop,default,engaged_speed,18.27,>= 5 km/h,True,False
+new_leaderboard_wiring,oracle,police_stop,default,engaged_progress,3.4953,>= 1 m,True,False
+new_leaderboard_wiring,oracle,police_stop,default,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),True,False
+new_leaderboard_wiring,oracle,police_stop,default,stopline_clearance,6.1581,>= 1.0 m (centre),True,False
+new_leaderboard_wiring,oracle,police_stop,default,stop_anchor_engaged,6.1581,<= 16.59 m of line or officer,True,False
+new_leaderboard_wiring,oracle,police_stop,default,stopped_through_enforcement,0.0001,< 1 km/h,True,False
+new_leaderboard_wiring,qwen3vl,police_stop,default,active_window_rows,241,> 0,True,False
+new_leaderboard_wiring,qwen3vl,police_stop,default,enforcement_rows,181,> 0,True,False
+new_leaderboard_wiring,qwen3vl,police_stop,default,no_collision,0,== 0,True,False
+new_leaderboard_wiring,qwen3vl,police_stop,default,engaged_speed,25.7212,>= 5 km/h,True,False
+new_leaderboard_wiring,qwen3vl,police_stop,default,engaged_progress,89.0747,>= 1 m,True,False
+new_leaderboard_wiring,qwen3vl,police_stop,default,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+new_leaderboard_wiring,qwen3vl,police_stop,default,stopline_clearance,-71.9809,>= 1.0 m (centre),False,False
+new_leaderboard_wiring,qwen3vl,police_stop,default,stop_anchor_engaged,-71.9809,<= 16.59 m of line or officer,True,False
+new_leaderboard_wiring,qwen3vl,police_stop,default,stopped_through_enforcement,25.5587,< 1 km/h,False,False
+new_leaderboard_wiring,tcp,police_stop,default,active_window_rows,103,> 0,True,False
+new_leaderboard_wiring,tcp,police_stop,default,enforcement_rows,43,> 0,True,False
+new_leaderboard_wiring,tcp,police_stop,default,no_collision,0,== 0,True,False
+new_leaderboard_wiring,tcp,police_stop,default,engaged_speed,8.1408,>= 5 km/h,True,False
+new_leaderboard_wiring,tcp,police_stop,default,engaged_progress,6.5558,>= 1 m,True,False
+new_leaderboard_wiring,tcp,police_stop,default,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),True,False
+new_leaderboard_wiring,tcp,police_stop,default,stopline_clearance,3.2781,>= 1.0 m (centre),True,False
+new_leaderboard_wiring,tcp,police_stop,default,stop_anchor_engaged,3.2781,<= 16.59 m of line or officer,True,False
+new_leaderboard_wiring,tcp,police_stop,default,stopped_through_enforcement,6.6841,< 1 km/h,False,True
+new_authority_wiring,tcp,police_stop,1,active_window_rows,241,> 0,True,False
+new_authority_wiring,tcp,police_stop,1,enforcement_rows,181,> 0,True,False
+new_authority_wiring,tcp,police_stop,1,no_collision,0,== 0,True,False
+new_authority_wiring,tcp,police_stop,1,engaged_speed,7.3587,>= 5 km/h,True,False
+new_authority_wiring,tcp,police_stop,1,engaged_progress,30.432,>= 1 m,True,False
+new_authority_wiring,tcp,police_stop,1,no_conflict_zone_entry,signed,no in_junction row past line (-0.3 m centre),False,True
+new_authority_wiring,tcp,police_stop,1,stopline_clearance,-2.4905,>= 1.0 m (centre),False,False
+new_authority_wiring,tcp,police_stop,1,stop_anchor_engaged,-2.4905,<= 16.59 m of line or officer,True,False
+new_authority_wiring,tcp,police_stop,1,stopped_through_enforcement,6.8192,< 1 km/h,False,False

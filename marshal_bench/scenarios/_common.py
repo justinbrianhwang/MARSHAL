@@ -219,6 +219,10 @@ class ScenarioContext:
     camera: Any = None          # 3rd-person scene/director camera
     ego_camera: Any = None      # ego dashcam — the VLM benchmark input view
     latest_ego_frame: Any = None  # latest dashcam RGB ndarray, HWC uint8
+    # (sensor frame id, sensor sim timestamp s, callback perf_counter s, rgb)
+    # of the latest dash-cam frame (timing audit only; the image handed to the
+    # controller is still latest_ego_frame).
+    latest_ego_frame_meta: Any = None
     frames_ego_dir: Optional[str] = None
     traffic_manager: Any = None
     original_settings: Any = None
@@ -966,6 +970,8 @@ def attach_ego_camera(
             rgb = bgra[:, :, :3][:, :, ::-1].copy()
             if ctx is not None:
                 ctx.latest_ego_frame = rgb
+                ctx.latest_ego_frame_meta = (
+                    int(img.frame), float(img.timestamp), time.perf_counter(), rgb)
         except Exception as e:
             log.debug("ego camera frame conversion failed: %s", e)
         try:
@@ -1524,6 +1530,9 @@ def _build_observation(
     v = ctx.ego.get_velocity()
     speed = math.hypot(v.x, v.y)
     image = ctx.latest_ego_frame
+    image_meta = ctx.latest_ego_frame_meta
+    if not image_meta or image_meta[3] is not image:
+        image_meta = None  # callback landed between the two reads: id unknown
     # Controller-only physical signal. The all-hazard compatibility value is
     # ego-heading based; the explicit blocking set is route-arc based below.
     hazard_forward_m = None
@@ -1560,6 +1569,10 @@ def _build_observation(
         "hazard_forward_m": hazard_forward_m,
         "image": image,
         "image_hwc": tuple(image.shape) if image is not None else None,
+        # Sensor frame id / sim timestamp of `image` (timing audit).
+        "image_frame": image_meta[0] if image_meta else None,
+        "image_sim_timestamp": image_meta[1] if image_meta else None,
+        "image_callback_perf_s": image_meta[2] if image_meta else None,
         "frames_ego_dir": ctx.frames_ego_dir,
     }
     # Presence means the scenario supplied a physical blocking set. Omit this
@@ -2219,8 +2232,12 @@ def run_scenario(
             steps = int(math.ceil(timeout * fps)) + 1
             _wall0 = time.perf_counter()  # monotonic wall clock per tick (diagnostic telemetry)
             for _ in range(steps):
-                sync.tick(timeout=2.0)
+                world_frame = sync.tick(timeout=2.0)
                 sim_time += delta
+                try:
+                    world_elapsed_s = float(world.get_snapshot().timestamp.elapsed_seconds)
+                except Exception:
+                    world_elapsed_s = None
 
                 # Hold the signal premise: re-pin every forward light each
                 # tick so the light the ego faces (and the dashcam shows) is
@@ -2279,11 +2296,20 @@ def run_scenario(
                 # Controller (agent under test) drives the ego when present.
                 control_finite_this_tick = True
                 raw_control = None  # controller's own proposal, pre apply-gate
+                obs_image_frame = None
+                obs_image_ts = None
+                obs_image_cb = None
+                ctrl_step_wall_s = None
                 if controller is not None:
                     control_finite_this_tick = False
                     try:
                         obs = _build_observation(ctx, world, sim_time)
+                        obs_image_frame = obs.get("image_frame")
+                        obs_image_ts = obs.get("image_sim_timestamp")
+                        obs_image_cb = obs.get("image_callback_perf_s")
+                        _step_t0 = time.perf_counter()
                         control = controller.step(obs, delta)
+                        ctrl_step_wall_s = time.perf_counter() - _step_t0
                         raw_control = control
                         if _finite_vehicle_control(control):
                             ctx.ego.apply_control(control)
@@ -2475,6 +2501,19 @@ def run_scenario(
                 telemetry_row = {
                     "sim_time": round(sim_time, 4),
                     "wall_monotonic_s": round(time.perf_counter() - _wall0, 4),
+                    # Timing audit: world frame returned by world.tick(), the
+                    # snapshot's simulation clock, the ego-dashcam frame handed
+                    # to controller.step this tick, and the step's wall time.
+                    "world_frame": int(world_frame) if isinstance(world_frame, int) else None,
+                    "world_elapsed_s": world_elapsed_s,
+                    "obs_image_frame": obs_image_frame,
+                    "obs_image_sim_ts": obs_image_ts,
+                    # callback receipt on the same perf_counter clock as
+                    # wall_monotonic_s (receipt time, not capture time)
+                    "obs_image_cb_wall_s": (
+                        round(obs_image_cb - _wall0, 4) if obs_image_cb is not None else None),
+                    "ctrl_step_wall_s": (
+                        round(ctrl_step_wall_s, 6) if ctrl_step_wall_s is not None else None),
                     "ego_speed_kmh": speed_now,
                     "ego_x": getattr(ego_loc, "x", float("nan")),
                     "ego_y": getattr(ego_loc, "y", float("nan")),

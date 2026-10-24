@@ -379,6 +379,7 @@ class VLMController(EpisodeController):
                 "sim_time", "queried_this_tick", "query_idx", "query_latency_s",
                 "active_action", "active_decision_idx", "applied_throttle",
                 "applied_brake", "applied_steer", "base_throttle", "base_brake",
+                "input_frame", "input_sim_ts",
             ])
 
     def _live_officer_state(self) -> Optional[Dict[str, Any]]:
@@ -431,6 +432,7 @@ class VLMController(EpisodeController):
 
         # Query the VLM on a fixed cadence; reuse the last decision in between.
         image = obs.get("image")
+        self._trace_input = (None, None)
         queried_this_tick = False
         query_idx = -1
         query_latency_s = None
@@ -443,6 +445,7 @@ class VLMController(EpisodeController):
             queried_this_tick = True
             query_idx = self._query_count
             self._query_times.append(sim_time)
+            self._trace_input = (obs.get("image_frame"), obs.get("image_sim_timestamp"))
             query_started = time.perf_counter()
             try:
                 assist = self._ablation_assist(sim_time)
@@ -538,6 +541,7 @@ class VLMController(EpisodeController):
                     float(getattr(control, "steer", 0.0) or 0.0),
                     float(getattr(base, "throttle", 0.0) or 0.0),
                     float(getattr(base, "brake", 0.0) or 0.0),
+                    *getattr(self, "_trace_input", (None, None)),
                 ])
         except Exception as exc:  # noqa: BLE001
             log.warning("Could not write VLM trace %s: %s", self._trace_path, exc)
