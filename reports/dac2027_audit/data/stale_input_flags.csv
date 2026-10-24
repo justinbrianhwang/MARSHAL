@@ -1,0 +1,7 @@
+group,episode,stale_input_ticks_after_t0,flag
+authority_directive,outputs/authority_directive_comparison/runs/tcp/no_police_s1/tcp_green_stop,3,note
+authority_directive,outputs/authority_directive_comparison/runs/tcp/no_police_s2/tcp_green_stop,1,note
+authority_directive,outputs/authority_directive_comparison/runs/tcp/police_stop_s1/tcp_green_stop,229,re-run
+leaderboard_sweep,tmp/_phase3_new_runs/cilrs_red_proceed,1,note
+leaderboard_sweep,tmp/_phase3_new_runs/interfuser_barricade_self_detour,1,note
+leaderboard_sweep,tmp/_transfuser_sweep_runs/transfuser_fallen_person,4,note

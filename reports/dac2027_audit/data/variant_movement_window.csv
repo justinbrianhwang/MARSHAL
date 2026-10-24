@@ -1,0 +1,2 @@
+group,model,scenario,condition,seed,strict_current,strict_window_only,credit_current,credit_window_only,reason_window_only
+authority_directive,qwen3-vl,green_stop,police_stop_near,3,PASS,FAIL,1.0,0.0,no movement evidence before the directive ended

@@ -4,10 +4,8 @@ Evidence labels used throughout: **[CODE]** read in the current source; **[LOG]*
 episode; **[CONFIG]** set in configuration but not independently measured; **[DOC]** claim in an existing
 document; **[PROPOSAL]** new in this audit, not implemented; **[UNVERIFIED]** could not be checked.
 
-Code references point to the repository as of 2026-10-24. The audit itself (commits up to `c3aa67e`) left the
-scorers unchanged. On 2026-10-24 one rule was changed as a result of it: the graded movement gate now applies to
-every expected action (see `07_leaderboard_derivation.md` §4). Episode telemetry and stored strict verdicts are
-unchanged; graded numbers in this folder use the current rule unless marked "before".
+Code references point to the repository as of 2026-10-24. Episode telemetry and stored strict verdicts are
+the recorded originals; every score in this folder is computed with the current scorers.
 
 ## 1. Scenario conditions (what is staged)
 
@@ -236,9 +234,5 @@ FAIL with partial graded credit is TCP (leaderboard 0.171: crept to front −0.6
 4. **"Too far" is unbounded inside the band** (C3); the band is formula-derived, not validated.
 5. **No validity flag for degraded inputs.** An episode in which TCP repeated stale control on 46 % of ticks
    (authority experiment, police STOP s1) was scored as valid (see `03_timing_audit.md`).
-6. **Resolved 2026-10-24: the graded movement gate covered STOP/HOLD only.** A never-moving ego earned 0.55 in rule_hierarchy (5
-   leaderboard cells), and AIM (never ≥ 5 km/h) keeps 0.21 / 0.08 / 0.04 in red_proceed and two DETOUR cells;
-   the gate now applies to every action (8 cells to 0), moving InterFuser 40.66 → 38.39
-   and put NEAT first (`07_leaderboard_derivation.md` §4).
-7. Release behaviour (resume after 13.0 s) is unscored for green_stop by design (STOP expires); the oracle has
+6. Release behaviour (resume after 13.0 s) is unscored for green_stop by design (STOP expires); the oracle has
    no release logic and stays stopped [LOG].

@@ -19,9 +19,10 @@ runs the closed-loop episode, and returns authority-aware reliability metrics.
        alt="MARSHAL pipeline — Scenario Spec (25 authority-conflict episodes) → Scenario Generator (CARLA Town03; officer, flagger, ambulance, hazard, gestures) → Driving Agent under test (plug-in / swappable: A privileged oracle, B closed-loop E2E, C VLM) → Evaluation Engine (strict telemetry + metric suite) → Reliability Metrics (AOC · FOA · TAA · SBO · CRI · RTL → R1–R9) → MARSHAL Score (strict pass-rate + MARSHAL-Graded 0–100). Correct action per scenario: STOP / PROCEED / YIELD / DETOUR / HOLD.">
 </p>
 
-**What one episode looks like.** Every tick, the model under test receives a
-front-camera frame, decides one of STOP / PROCEED / SLOW / HOLD, emits a
-`VehicleControl`, and the realized telemetry is scored against the authority-correct
+**What one episode looks like.** The model under test reads the front camera at its own decision cadence
+(every tick for the end-to-end stacks; for the Track-C VLM controller, queries at 0.05 / 1.55 / 3.10 s on the
+leaderboard, the last answer then held), decides one of STOP / PROCEED / SLOW / HOLD, a `VehicleControl` is applied every tick, and the
+realized telemetry is scored against the authority-correct
 behavior — here `green_stop`, where the officer's STOP overrides the green light:
 
 <p align="center">
@@ -644,7 +645,6 @@ Every run writes a `scoreboard.json` with `suite`, `r_scores`,
   progress, with low-speed creep capped at `0.25`. An ego with **no movement evidence at
   all** (max speed < 5 km/h, or < 1 m of forward progress, over the whole episode) earns zero
   credit outright, **for every expected action** — parking at spawn is not compliance, in graded exactly as in
-  strict. (Until 2026-10-24 this movement gate covered STOP/HOLD only; see "Rule change, 2026-10-24" below.)
   (A hard binary gate was tried and
   rejected — it collapsed the calibrated oracle from 100 to ~45. See
   [docs/marshal_graded_score.md](docs/marshal_graded_score.md).)
@@ -662,13 +662,12 @@ Every run writes a `scoreboard.json` with `suite`, `r_scores`,
 > **Why graded is the headline.** The strict binary count rewards stopping, and
 > most controllers still show a **conservative stop-bias** — but the graded score
 > separates the two ways of "stopping": the engagement gate gives no credit for
-> an ego that never actually approached the scene (on STOP/HOLD scenarios an ego
-> with no movement evidence scores zero outright, for every expected action), and authority weighting keeps a lucky brake
+> an ego that never actually approached the scene (an ego with no movement
+> evidence scores zero outright, for every expected action), and authority weighting keeps a lucky brake
 > from counting as a read of the officer. Under that rule graded and strict
 > broadly agree — the graded leaders (NEAT 39.3, InterFuser 38.4) also carry
-> the top strict counts (InterFuser and GLM-4.5V at 6/25, NEAT 5/25) — and the
-> systems that used to harvest credit by parking at spawn (most visibly
-> TransFuser, 13.8) no longer do.
+> the top strict counts (InterFuser and GLM-4.5V at 6/25, NEAT 5/25) — and
+> systems that park at spawn earn nothing for it (most visibly TransFuser, 13.8).
 
 ### Exactly how an episode becomes a score — worked example: `green_stop`
 
@@ -762,11 +761,11 @@ has weight 1.50.
 | oracle | stopped 1.85 s, front 1.82 m before the line | 0.0 km/h | 4.21 m | 1.00 | 1.00 | 1.00 | **1.000** | PASS |
 | Qwen3-VL | STOP at the 1.55 s query, stopped 1.90 s | 0.0 | 5.40 | 1.00 | 1.00 | 1.00 | **1.000** | PASS |
 | NEAT | stopped 2.60 s, then crept and held | 0.0 | 3.69 | 1.00 | 1.00 | 1.00 | **1.000** | PASS |
-| TCP | ≤ 8 km/h stop-and-go, front reached −0.61 m | 6.8 | 1.79 | 0.47 | 1.00 | 0.25 | **0.171** | FAIL (moving in enforcement) |
+| TCP | ≤ 8 km/h stop-and-go, front reached −0.61 m | 6.79 | 1.79 | 0.474 | 1.00 | 0.25 | **0.171** | FAIL (moving in enforcement) |
 | InterFuser, TransFuser | never moved | 0.0 | 9.8 | 1.00 | 1.00 | 0.00 | **0.000** | FAIL (never engaged) |
 | baseline, PID, MPC, CILRS, OpenEMMA, GLM-4.5V, Qwen2.5-VL | drove through at 21–27 km/h | 21–27 | < −59 | 0 | 0 | 0.25–0.92 | **0.000** | FAIL (junction entry) |
 
-Worked TCP row: base = 0.6 × 0.47 + 0.4 × 1.0 = 0.684. Engagement is capped at 0.25 for the creep, so the
+Worked TCP row: speed credit = (12 − 6.791) / (12 − 1) = 0.4735, so base = 0.6 × 0.4735 + 0.4 × 1.0 = 0.684. Engagement is capped at 0.25 for the creep, so the
 credit is 0.684 × 0.25 = 0.171.
 
 InterFuser's **38.4** is 100 × 16.316 / 42.5 = 38.39:
@@ -885,40 +884,19 @@ because it was still moving (up to 6.8 km/h) after 4.0 s.
 Leaderboard results therefore measure decision quality at each model's sim-time cadence. They say nothing about
 real-time feasibility: a VLM call that takes 5 s of wall time costs 0 s of simulation time.
 
-**Rule change, 2026-10-24: the movement gate now covers every action.** Before, the graded "no movement → 0"
-gate applied only to STOP/HOLD. A never-moving ego kept PROCEED/DETOUR partial credit:
+**Known limitations of the current rules** (measured; full evidence in
+[reports/dac2027_audit/08_experiment_inventory_and_open_items.md](reports/dac2027_audit/08_experiment_inventory_and_open_items.md)):
 
-- 0.55 in rule_hierarchy (the pedestrian is inside the yield window at spawn) for InterFuser, OpenEMMA,
-  GLM-4.5V, Qwen2.5-VL and Qwen3-VL;
-- 0.21 / 0.08 / 0.04 for AIM in red_proceed and two DETOUR cells.
-
-The gate now applies to every action (`graded_episode_scoring.score_episode_from_telemetry`, pinned by
-`tests/test_graded_movement_gate.py`). Eight cells drop to 0 and no strict verdict changes:
-
-| Model | Before | After |
-|---|---|---|
-| InterFuser | 40.7 | 38.4 |
-| GLM-4.5V | 29.4 | 27.1 |
-| Qwen2.5-VL | 22.9 | 20.6 |
-| Qwen3-VL | 18.8 | 16.5 |
-| AIM | 16.3 | 15.1 |
-| OpenEMMA | 16.6 | 14.3 |
-
-NEAT (39.3, unchanged) is now the top non-privileged model. It and InterFuser were already read as a statistical
-tie. All tables in this README use the new rule.
-
-**Known limitations of the current rules** (documented, not yet changed):
-
-- **Engagement uses the whole episode.** An ego that stays parked through the STOP and only moves after the
-  release can PASS in a 25 s episode, while the same in-window behaviour FAILS in a 14 s one.
-- **Holds are checked only briefly on the leaderboard.** Early termination ends compliant stops at 5.05 s, so a
-  hold is verified for only 1.05 s.
-- **Clearance is centre-based.** A front-bumper rule would flip 2 cells of the 350, including the oracle's
-  occluded_officer, so it cannot be adopted without first re-tuning the oracle.
-- **Stale inputs are invisible to the scorer.** One TCP episode repeated stale control on 46 % of its ticks;
-  it did not reproduce on re-run, which is consistent with transient host load.
-- **One episode per VLM cell is not stable.** A repeat of Qwen3-VL green_stop with identical wiring flipped
-  PASS → FAIL.
+| Item | Measured result |
+|---|---|
+| Movement evidence uses the whole episode | Counting it only up to the end of the directive changes 0 of the 350 leaderboard cells. In the 25 s authority runs it changes 1 episode: a Qwen3-VL run that never moved during the STOP goes from PASS to FAIL |
+| Hold length on the leaderboard | 25 of the 33 STOP/HOLD passes were observed until the directive ended. Early termination cut 4 after 1.05 s (oracle green_stop and dual_authority_handoff, NEAT and Qwen3-VL green_stop). In flagger_slow_then_stop the STOP phase ends at 16.05 s but episodes end at 14.05 s (4 passes). Observed for 25 s: the oracle held all three of its cells and InterFuser held flagger_slow_then_stop; NEAT held green_stop in 2/3 seeds and Qwen3-VL (13 m) stopped in 0/3; the CILRS and GLM-4.5V repeats failed before the STOP phase (collision at 4.5 s; never left the spawn) |
+| Centre-based clearance | A front-bumper rule flips 2 of the 350 cells, including the oracle's occluded_officer |
+| Query cap of the Track-C VLMs | GLM-4.5V on 25 scenarios: 6/25 strict and 27.1 graded with 3 queries; 1/25 and 8.9 when queried every 1.5 s. Track-C numbers hold for the 3-query wiring only |
+| Repeat stability | The oracle (2 repeats) and TCP (1 repeat) reproduce all 25 verdicts. Qwen3-VL green_stop with the officer at 13 m passes 1 of 5 unique recordings with the leaderboard wiring and 0 of 3 with uncapped queries |
+| PROCEED has no strict deadline | A PROCEED that starts 8.9 s after the signal passes strict but scores 0 graded (latency factor) |
+| Stale inputs | 6 recorded episodes had adapter fallback ticks after the first tick. One (TCP, 229 of 500 ticks) is flagged for re-run; its re-run had none. The scorer does not use this flag |
+| Oracle initial condition | The leaderboard oracle starts STOP/HOLD/YIELD scenarios at 1.8 m/s; the evaluated systems start from rest. Started from rest, the oracle passes all 16 of those scenarios. Over all 25 it passes 24: civilian_warning_accident (DETOUR, where the rolling start is not used) had one collision in that run |
 
 ### Scoring rules for every command (all 25 scenarios)
 
@@ -1052,13 +1030,14 @@ LiDAR + ego state + a non-privileged lane-follow route).
 
 **Track-C (VLM) is not a vendor benchmark — it is a controller we built to *test
 whether an off-the-shelf VLM can read traffic authority*.** A single forward camera
-feeds the model, which answers STOP / GO / SLOW / HOLD every tick over the Hugging
-Face router. We ran three backbones through that test harness — **Qwen2.5-VL-72B,
+feeds the model, which is queried over the Hugging Face router every 1.5 s of simulation time (leaderboard
+wiring: the first 3 queries, at 0.05 / 1.55 / 3.10 s) and answers STOP / GO / SLOW / HOLD; the last answer is
+applied every tick until the next one. We ran three backbones through that test harness — **Qwen2.5-VL-72B,
 Qwen3-VL-235B-A22B, GLM-4.5V** — so the Track-C numbers below report how each did
-*on our per-tick controller*, i.e. whether the approach works, not a claim about
+*on our query-and-hold controller*, i.e. whether the approach works, not a claim about
 the models' native driving.
 
-**OpenEMMA** sits between the two — instead of a per-tick decision it *plans a
+**OpenEMMA** sits between the two — instead of an action token it *plans a
 trajectory*: a single forward camera feeds a Qwen2-VL chain-of-thought
 (*scene → critical objects → intent → speed/curvature*) that emits future waypoints
 (a "full-planning VLM-E2E"). All learned checkpoints are loaded **original and unchanged** (no
@@ -1083,7 +1062,7 @@ binary count across all 25 scenarios. Sorted by MARSHAL-Graded.
 
 <p align="center">
   <img src="assets/figures/leaderboard.png" width="760"
-       alt="Horizontal bar chart of MARSHAL-Graded (0–100), models sorted high to low: oracle 100.0 (gold, calibration ceiling), NEAT 39.3, InterFuser 38.4, TCP 28.1, GLM-4.5V 27.1, CILRS 26.4, Qwen2.5-VL 20.6, Qwen3-VL 16.5, AIM 15.1, OpenEMMA 14.3, baseline 13.8, TransFuser 13.8, MPC 12.8, PID 11.9. Track-C VLMs (†) are per-tick QA controllers, not closed-loop driving stacks.">
+       alt="Horizontal bar chart of MARSHAL-Graded (0–100), models sorted high to low: oracle 100.0 (gold, calibration ceiling), NEAT 39.3, InterFuser 38.4, TCP 28.1, GLM-4.5V 27.1, CILRS 26.4, Qwen2.5-VL 20.6, Qwen3-VL 16.5, AIM 15.1, OpenEMMA 14.3, baseline 13.8, TransFuser 13.8, MPC 12.8, PID 11.9. Track-C VLMs (†) are query-and-hold QA controllers, not closed-loop driving stacks.">
 </p>
 
 | model | track | MARSHAL-Graded | scenarios passed | override cells (12) | link |
@@ -1116,7 +1095,7 @@ as ties unless separated by more than a few points. Sorted by MARSHAL-Graded.</s
 
 **Failure profile — strict passes by authority-conflict type** (reference run)
 
-This is the diagnostic view the tiers used to (mis)serve. Per-principle detail is
+The diagnostic view by authority-conflict type. Per-principle detail is
 available via `scripts/_failure_profiles.py`.
 
 | model | override (6) | stressed-override (6) | validity (5) | conflict (3) | scene (2) | safety (3) |
@@ -1190,7 +1169,7 @@ A cell can carry high graded credit without a strict PASS. For example, InterFus
 stopped, but outside the strict window or position. A PASS always carries credit 100, except AIM on
 night_signal_officer_conflict (97 P). Its PROCEED started slightly late, so the action credit is 0.993 and the
 latency factor 0.98. The rule_hierarchy cells of the five models that never moved are 0 under
-the all-action movement gate (they were 55 before the 2026-10-24 rule change).
+the movement gate.
 </details>
 
 **Table 2 — Track-C: Visual Decision QA.** A VLM answers the ego action from
@@ -1199,9 +1178,9 @@ front-camera frame(s) — *not* a closed-loop driving score (see
 
 | model | track | input frames | prompt type | MARSHAL-Graded | scenarios passed | override cells (12) | link |
 |-------|-------|--------------|-------------|---------------:|-----------------:|-------------------:|------|
-| **GLM-4.5V**           | C | 3 queries @ ~1.5 s&Dagger; | per-tick STOP/GO/SLOW/HOLD | **27.1** | **6 / 25** | **4 / 12** | [github](https://github.com/zai-org/GLM-V) |
-| **Qwen2.5-VL-72B**     | C | 3 queries @ ~1.5 s&Dagger; | per-tick STOP/GO/SLOW/HOLD | 20.6 | 5 / 25 | 3 / 12 | [github](https://github.com/QwenLM/Qwen2.5-VL) |
-| Qwen3-VL-235B-A22B     | C | 3 queries @ ~1.5 s&Dagger; | per-tick STOP/GO/SLOW/HOLD | 16.5 | 4 / 25 | 3 / 12 | [github](https://github.com/QwenLM/Qwen3-VL) |
+| **GLM-4.5V**           | C | 3 queries @ ~1.5 s&Dagger; | STOP/GO/SLOW/HOLD token, held between queries | **27.1** | **6 / 25** | **4 / 12** | [github](https://github.com/zai-org/GLM-V) |
+| **Qwen2.5-VL-72B**     | C | 3 queries @ ~1.5 s&Dagger; | STOP/GO/SLOW/HOLD token, held between queries | 20.6 | 5 / 25 | 3 / 12 | [github](https://github.com/QwenLM/Qwen2.5-VL) |
+| Qwen3-VL-235B-A22B     | C | 3 queries @ ~1.5 s&Dagger; | STOP/GO/SLOW/HOLD token, held between queries | 16.5 | 4 / 25 | 3 / 12 | [github](https://github.com/QwenLM/Qwen3-VL) |
 | _OpenEMMA-C_           | C | — | — | — | _planned (not yet run)_ | — | [github](https://github.com/taco-group/OpenEMMA) |
 
 <sub>&Dagger; **Query budget.** Each episode queries the VLM on the first three
@@ -1213,7 +1192,7 @@ cannot be revised on approach. The oracle-assist ablation
 ([docs/oracle_ablation.md](docs/oracle_ablation.md)) runs the same controller
 with an unbounded query budget for exactly this reason.</sub>
 
-<sub>Track-C graded is from a **single API pass per scenario** (the VLM's per-tick
+<sub>Track-C graded is from a **single API pass per scenario** (the VLM's three
 decisions are logged once, then re-scored deterministically), so unlike the Track-B
 rows it carries no cross-sample std — the model's own API sampling variance is not
 captured here and is a known caveat. Multi-sample VLM runs are future work.</sub>
@@ -1242,7 +1221,7 @@ captured here and is a known caveat. Multi-sample VLM runs are future work.</sub
   which is why TransFuser — which parks at spawn on most stop-side cells —
   drops to 13.8, level with the officer-blind baseline. Systems earn graded
   credit only for behaviour they actually drove. *(Cross-track comparison:
-  single-front-camera, per-tick protocol — read with the Track-B vs Track-C
+  single-front-camera, query-and-hold protocol — read with the Track-B vs Track-C
   caveat above.)*
 - **No learned model touches the oracle.** The best non-privileged strict count
   (InterFuser / GLM-4.5V, 6/25) and the best graded score (NEAT, 39.3) both leave a wide
@@ -1253,8 +1232,8 @@ captured here and is a known caveat. Multi-sample VLM runs are future work.</sub
   non-oracle model except two.
 - **How you wire the VLM matters.** OpenEMMA-B — a VLM that regresses a *trajectory*
   from a normal-driving prior — clears 2 of the 12 authority-override cells where
-  the per-tick Track-C reasoners clear 3–4 and bank up to 6 strict passes overall:
-  asked every tick "should I stop for this person?", a VLM
+  the query-and-hold Track-C reasoners clear 3–4 and bank up to 6 strict passes overall:
+  asked directly for an action ("should I stop for this person?"), a VLM
   reads the human far more often than one that smooths a path from a
   green-light-means-go prior. OpenEMMA's misses split cleanly
   into **authority blindness** (it logs the officer as "a pedestrian on the
@@ -1272,15 +1251,15 @@ captured here and is a known caveat. Multi-sample VLM runs are future work.</sub
 `marshal_bench/criteria/strict_episode_scoring.py`. Track-B uses each model's
 native sensor rig; Track-C is single-front-camera. **&dagger;OpenEMMA** is a
 full-planning VLM-E2E — unlike the Track-C `vlm` controller (which answers a
-per-tick STOP/GO/SLOW/HOLD), OpenEMMA *plans a trajectory*: a single forward
+STOP/GO/SLOW/HOLD token that is held between queries), OpenEMMA *plans a trajectory*: a single forward
 camera feeds a Qwen2-VL chain-of-thought (*scene → objects → intent →
 speed/curvature*) that outputs future waypoints, tracked by pure-pursuit. It is
 the planning-based middle point between Track-B geometry E2E and the Track-C
-per-tick VLM. These numbers were measured after the stimulus-integrity pass
+query-and-hold VLM. These numbers were measured after the stimulus-integrity pass
 (lane-correct signal pins verified against the post-tick world state, a real
 light-only baseline, signed stop-line telemetry) and after the officer
 hand-signals were corrected to authentic US traffic-direction poses (see
-*Officer hand signals*), so they supersede every earlier sweep; every model has
+*Officer hand signals*); every model has
 **INVALID = 0** (no telemetry gaps, no stimulus mismatches). All rows are one
 full closed-loop sweep per model; Track-C VLM rows are a single API pass (see
 the Table 2 note).</sub>
@@ -1304,11 +1283,12 @@ scope so it can be cited without over-reach.
    feasible; the remaining failures arise inside the evaluated system stack. A controlled
    attribution — the oracle-assist ablation ladder, which injects ground-truth
    perception, authority validity, directive semantics, temporal state, the expected
-   action, and finally the oracle's own per-tick policy into the VLM prompt — localizes
+   action, and finally the oracle's own policy token (computed every tick, delivered at each query) into the
+   VLM prompt — localizes
    the bottleneck: every knowledge rung, up to and including the episode answer key,
    leaves the model in the 1–7/25 band (scene ground truth flips its dominant failure
    from under-compliance to parking at spawn), yet the SAME model executes an externally
-   supplied per-tick plan at **17/25**, failing only where the token vocabulary is
+   supplied query-time plan at **17/25**, failing only where the token vocabulary is
    structurally inexpressive (lane-change DETOURs) or too coarse for metre-level stop
    geometry. The same ladder replicated on a planner wiring (assisted OpenEMMA,
    byte-identical assist text injected into its trajectory-regression prompts) shows the
@@ -1317,10 +1297,10 @@ scope so it can be cited without over-reach.
    strictly worse, than no assist, monotonically increasing park-at-spawn — while the
    externally supplied plan reaches **13/25** with STOP-family freezes down to one
    (three proceed-against-the-rule cells stay frozen: the regressor's traffic prior
-   overrides an explicit per-tick GO). Two non-cumulative control cells complete the
+   overrides an explicit GO token). Two non-cumulative control cells complete the
    2×2: a length-matched **zero-scene-content** block reproduces the unassisted result
    exactly on both wirings (same counts, same pass sets — the flip is caused by scene
-   content, not prompt length), and the per-tick plan **alone** reproduces the full
+   content, not prompt length), and the query-time plan **alone** reproduces the full
    policy-rung effect (16/25 QA, 15/25 planner) — on top of the plan, knowledge adds
    nothing (QA) or subtracts (planner). A query-cadence control (each wiring re-run at
    the other's cadence) shows the freeze elimination is cadence-robust while the scores
@@ -1350,14 +1330,14 @@ scope so it can be cited without over-reach.
 
 3. **Whether a model can *use* its authority-reading ability is decided by the control
    interface — not the backbone, the sensor modality, or the parameter count.** The same
-   VLM capability reads the officer when queried per-tick (STOP/GO/SLOW/HOLD) but goes
+   VLM capability reads the officer when queried for an action token (STOP/GO/SLOW/HOLD) but goes
    authority-blind when the model regresses a *trajectory* from a normal-driving prior
    (logging the officer as "a pedestrian on the sidewalk" and following the green light):
-   the per-tick VLMs clear 3–4 of the 12 override cells while the trajectory-planning
+   the token-answering VLMs clear 3–4 of the 12 override cells while the trajectory-planning
    wiring of a comparable backbone (OpenEMMA) clears 2, and classical control clears
    override cells only where its prior coincides with the directive — so in this
    tail the differentiator is **reasoning/interface, not modality or scale**. *(Scope:
-   demonstrated across our specific per-tick vs full-planning wirings; Track-C is
+   demonstrated across our specific query-and-hold vs full-planning wirings; Track-C is
    single-sample.)*
 
 4. **Measuring this capability requires an engagement-gated, authority-weighted continuous

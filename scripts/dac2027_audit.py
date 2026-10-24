@@ -7,7 +7,7 @@ measurement -> component credit -> episode credit -> scenario -> suite score.
 
     python scripts/dac2027_audit.py all [--dev-root DIR] [--out DIR]
 
-Subcommands: score-trace, aggregate, cases, rescore-variant, leaderboard, timing, geometry, figures, tables, all.
+Subcommands: score-trace, aggregate, cases, rescore-variant, leaderboard, inventory, open-items, timing, geometry, figures, tables, all.
 Run from the `marshal` conda env (needs carla only for the scenario registry
 import, matplotlib for figures).
 """
@@ -17,9 +17,11 @@ import argparse
 import contextlib
 import csv
 import glob
+import hashlib
 import json
 import math
 import os
+import re
 import statistics as st
 import sys
 from collections import Counter
@@ -1140,10 +1142,400 @@ def leaderboard_tables(summary: List[Dict[str, Any]], cells: List[Dict[str, Any]
     return lines
 
 
+# --------------------------------------------------------------- inventory
+EXPERIMENTS = [  # (group id, path regex relative to the workspace, purpose, status, where it is used)
+    ("leaderboard_sweep", r"^tmp/(_reference_sweep_runs/reference_(oracle|baseline)_[a-z_]+|_transfuser_sweep_runs/transfuser_[a-z_]+|_phase3_new_runs/[a-z]+_[a-z_]+|_openemma_runs/openemma_[a-z_]+|vlm_runs/vlm_(zai-org|Qwen)_[^/]+)$",
+     "published 25-scenario leaderboard, 14 systems x 25 scenarios", "included", "README Tables 1-2; 07, T3, T6-T8"),
+    ("reference_multiseed_july", r"^tmp/_reference_sweep_runs/reference_(oracle|baseline)_[a-z_]+_s[123]$",
+     "oracle/baseline 3-seed repeats on 3 scenarios (July build)", "excluded: earlier stop-line geometry", "-"),
+    ("glm_assist_ablation", r"^tmp/vlm_runs/vlm_ablate-[^/]+$",
+     "GLM-4.5V assist-injection ladder + controls; uncapped queries every 1.5 s (arm 'none' = no assist)", "included (VLM query-cap comparison)", "08 section 3, T10"),
+    ("openemma_assist_ablation", r"^tmp/_openemma_runs/ablate-[^/]+$",
+     "OpenEMMA assist-injection ladder + controls", "included (planner-cap comparison)", "08 section 3, T10"),
+    ("authority_directive", r"^outputs/authority_directive_comparison/runs/[^/]+/[^/]+/[^/]+$",
+     "green_stop police STOP / PROCEED / absent / civilian STOP / civilian PROCEED (+7 m near), 25 s, no early termination, VLM uncapped", "included", "04 section 3, 03, 08, T9, T11"),
+    ("perception_intervention", r"^outputs/authority_directive_comparison/runs_intervention/.+$",
+     "Qwen3-VL with ground-truth perception text vs filler vs none", "included (separate study)", "reports/perception_behavior_validation section 11; 08"),
+    ("authority_invalid_or_superseded", r"^outputs/authority_directive_comparison/(_invalid_runs|_superseded_[^/]+)/.+$",
+     "ghost-officer runs, fake-vest walker without gestures, drawn vest", "excluded: invalid stimulus", "-"),
+    ("greenstop_diag_panel", r"^analysis/green_stop_diagnostic/source_logs/[^/]+$",
+     "2026-10 green_stop diagnostic panel (G_STOP / NONSTOP / ABSENT / CIVILIAN, seeds)", "included (archived copies)", "08; earlier package"),
+    ("greenstop_diag_raw", r"^tmp/_greenstop_diag(_v2)?/.+$",
+     "raw run folders of the diagnostic panel", "duplicate of greenstop_diag_panel", "-"),
+    ("tcp_paired_controls", r"^tmp/_tcp_pair/.+$", "TCP STOP / PROCEED / absent x 3 seeds", "included", "08 section 2"),
+    ("tcp_postprocess_and_long_episode", r"^tmp/_gs_followup/.+$",
+     "TCP throttle post-processing on/off; oracle/Qwen3/TCP without early termination (E4)", "included", "08 section 2"),
+    ("greenstop_extended_approach", r"^tmp/_greenstop_far/.+$", "green_stop with spawn moved 25 m back (all systems)",
+     "included (staging sensitivity)", "08 section 2"),
+    ("openemma_gpt4o", r"^tmp/_openemma_gpt_runs/.+$", "OpenEMMA with a GPT-4o backend, 25 scenarios",
+     "included (backend comparison)", "08 section 2"),
+    ("audit_instrumented", r"^outputs/dac2027_audit/runs/(leaderboard_wiring|authority_wiring)/.+$",
+     "5 instrumented timing runs (this audit)", "included", "03, 04"),
+    ("audit_oracle_from_rest", r"^outputs/dac2027_audit/runs/oracle_from_rest/.+$",
+     "oracle started from rest, 25 scenarios (this audit)", "included", "08 section 4"),
+    ("audit_hold_check", r"^outputs/dac2027_audit/runs/hold_check/.+$",
+     "25 s hold checks without early termination: oracle dual_authority_handoff; oracle, CILRS, InterFuser, GLM-4.5V flagger_slow_then_stop (this audit)", "included", "08 section 4.2"),
+    ("audit_superseded", r"^outputs/dac2027_audit/runs_superseded_tuple_variant/.+$",
+     "first recording of the instrumented runs (pre-fix instrumentation)", "excluded: superseded", "-"),
+    ("leaderboard_remeasure_oracle", r"^outputs/leaderboard_remeasure/oracle_fixed/.+$",
+     "oracle re-measured on all 25 scenarios with the current code", "included (oracle reproducibility)", "08 section 4"),
+    ("leaderboard_remeasure_regression", r"^outputs/leaderboard_remeasure/regress_default/.+$",
+     "current-code repeat of oracle and TCP on all 25 scenarios (leaderboard wiring)", "included (repeat stability)", "08 section 4"),
+    ("leaderboard_remeasure_superseded", r"^outputs/leaderboard_remeasure/(oracle_current|regress_default_pre_failclosed|_superseded_[^/]+|_crashed|pytest_[^/]+)/.+$",
+     "oracle before the far-directive fix; pre-fail-closed regression; vest-walker runs without gestures", "excluded: superseded or invalid stimulus", "-"),
+    ("authority_regression_checks", r"^outputs/authority_directive_comparison/regression/.+$",
+     "regression checks of the authority-experiment wiring", "excluded: wiring checks", "-"),
+    ("development_regression_gates", r"^(MARSHAL/outputs/benchmark|outputs/benchmark|MARSHAL/tmp/townfix[^/]*|MARSHAL/outputs/marshal_runs|outputs/cap)(/.+)?$",
+     "per-build regression gates and town-fix checks during development", "excluded: development builds", "-"),
+    ("oracle_demo", r"^(MARSHAL/)?outputs/oracle_demo_runs/.+$", "oracle runs recorded for the README demo GIFs",
+     "excluded: demo media", "-"),
+    ("archived_copies", r"^analysis/outputs/green_stop_behavior_audit/.+$",
+     "copies of episodes packaged with the 2026-10-16 green_stop audit", "duplicate (copies)", "-"),
+    ("test_fixtures", r"^(MARSHAL/tmp/(pytest[^/]*|_codex[^/]*|_label_parse[^/]*)|outputs/(codex_vest_pytest[^/]*|pbv-suite-[^/]*|pytest[^/]*))/.+$",
+     "unit-test fixtures", "excluded: tests", "-"),
+    ("multi_town_calibration", r"^MARSHAL/outputs/calibration/.+$", "station calibration in Town01-10HD (generalization gates)",
+     "excluded: other towns", "-"),
+    ("other_development_runs", r"^.+$", "remaining one-off development runs (older builds, demos, smoke tests)",
+     "excluded: development builds", "-"),
+]
+CONDITION_GROUPS = {"authority_directive", "perception_intervention", "greenstop_diag_panel", "tcp_paired_controls",
+                    "tcp_postprocess_and_long_episode", "audit_instrumented"}
+NOT_SCORED = {"multi_town_calibration", "development_regression_gates", "oracle_demo", "archived_copies", "test_fixtures",
+              "authority_regression_checks", "leaderboard_remeasure_superseded", "other_development_runs",
+              "reference_multiseed_july", "authority_invalid_or_superseded", "greenstop_diag_raw", "audit_superseded"}
+NON_EPISODE_EVIDENCE = [
+    ("brake_calibration", "analysis/outputs/green_stop_behavior_audit/ (share_2026-10-16.md, stop_feasibility.csv)",
+     "stopping distance vs speed, Tesla Model 3, brake 1.0", "included", "02 section 5"),
+    ("gesture_recognition_offline", "MARSHAL/reports/perception_behavior_validation/",
+     "offline VLM gesture-recognition queries (2,060 requests) on controlled and episode frames", "included (separate study)", "04 section 6; 08"),
+    ("threshold_formulation_study", "notes/FORMULATION_2026-08-12.md, analysis/formulation_data/",
+     "threshold sensitivity of the strict/graded rules (earlier build)", "superseded by the current scorer", "-"),
+    ("multirun_variance", "MARSHAL/outputs/multirun_aggregate.json",
+     "3-sweep run-to-run variance on the earlier 21-scenario build", "cited as a provisional tie band", "README, docs/reproducibility.md"),
+]
+CONDITION_RE = re.compile(r"(police_stop_near|police_proceed_near|police_stop|police_proceed|no_police|civilian_stop|civilian_proceed|"
+                          r"fake_vest_stop|ppoff_absent|ppoff_stop|ppon_absent|ppon_stop|ppon_proceed|gnonstop|gabsent|gcivilian|gstop|"
+                          r"G_NONSTOP|G_ABSENT|G_CIVILIAN|G_STOP|absent|proceed|stop)(?=_s\d|/|$)")
+
+
+def _model_of(rel: str) -> str:
+    name = rel.lower()
+    for key, label in (("gpt4o", "openemma-gpt4o"), ("_openemma_gpt_runs", "openemma-gpt4o"), ("glm", "glm-4.5v"),
+                       ("qwen2.5", "qwen2.5-vl"), ("qwen25", "qwen2.5-vl"), ("qwen3", "qwen3-vl"), ("oracle", "oracle"),
+                       ("baseline", "baseline"), ("transfuser", "transfuser"), ("interfuser", "interfuser"), ("tcp", "tcp"),
+                       ("neat", "neat"), ("cilrs", "cilrs"), ("aim_", "aim"), ("/aim", "aim"), ("pid", "pid"), ("mpc", "mpc"),
+                       ("openemma", "openemma")):
+        if key in name:
+            return label
+    return "?"
+
+
+def _scenario_of(rel: str, scen: List[str]) -> Optional[str]:
+    leaf = re.sub(r"_s\d+$", "", rel.rsplit("/", 1)[-1])
+    return next((s for s in sorted(scen, key=len, reverse=True) if leaf.endswith(s)), None)
+
+
+def _expected(scenario: str, condition: str, registry: Dict[str, Any]) -> str:
+    if scenario == "green_stop" and condition:
+        c = condition.lower()
+        return "STOP" if c in ("police_stop", "police_stop_near", "gstop", "g_stop", "stop", "ppoff_stop", "ppon_stop") else "PROCEED"
+    return registry[scenario]["expect"]
+
+
+def cmd_inventory(dev: Path, out: Path) -> None:
+    """Every recorded experiment on disk, mapped to the report and re-scored with the current scorers."""
+    import _run_vlm_test as vlm
+    scen = list(vlm.SCENARIO_ORDER)
+    rows, groups = [], {g[0]: [] for g in EXPERIMENTS}
+    unassigned = 0
+    for p in sorted(glob.glob(str(dev / "**" / "strict_telemetry.json"), recursive=True)):
+        rel = os.path.relpath(os.path.dirname(p), dev).replace("\\", "/")
+        if rel.startswith(("CARLA_", "Models/")):
+            continue
+        gid = next((g[0] for g in EXPERIMENTS if re.match(g[1], rel)), None)
+        if gid is None:
+            unassigned += 1
+            continue
+        if gid in NOT_SCORED:
+            groups[gid].append({"rel": rel})
+            continue
+        ep = Episode(Path(os.path.dirname(p)), _model_of(rel), gid)
+        sc = (_scenario_of(rel, scen) or ep.metadata.get("scenario") or ep.result.get("scenario")
+              or ("green_stop" if gid == "greenstop_diag_panel" else None))
+        sc = str(sc).removeprefix("marshal_") if sc else sc
+        cond_m = CONDITION_RE.search(re.sub(r"green_stop", "green_signal", rel))  # the scenario name is not a condition
+        condition = cond_m.group(1) if cond_m and gid in CONDITION_GROUPS else ""
+        seed = (re.search(r"_s(\d+)(?=/|$)", rel) or [None, ""])[1]
+        arm = (re.search(r"ablate-([a-z_]+?)(?:_qp[0-9.]+)?_", rel) or [None, ""])[1]
+        raw = Path(p).read_bytes()
+        row = {"group": gid, "episode": rel, "model": ep.label, "scenario": sc, "condition": condition, "arm": arm,
+               "seed": seed, "rows": len(ep.rows), "stored_strict": ep.stored_strict.get("verdict"),
+               "telemetry_sha256": hashlib.sha256(raw).hexdigest(), "telemetry_bytes": len(raw)}
+        if sc in vlm.SCENARIOS and ep.rows:
+            act = _expected(sc, condition, vlm.SCENARIOS)
+            try:
+                s, g = score(ep, action=act, scenario=sc)
+                row.update({"expected_action": act, "strict": s.get("verdict"), "credit": g.get("credit"),
+                            "strict_reason": s.get("reason")})
+            except Exception as exc:  # noqa: BLE001
+                row.update({"expected_action": act, "strict": "ERROR", "strict_reason": repr(exc)[:120]})
+        rows.append(row)
+        groups[gid].append(row)
+    write_csv(out / "experiment_episodes.csv", rows)
+    inv = []
+    for gid, pat, purpose, status, used in EXPERIMENTS:
+        g = groups[gid]
+        scored = [r for r in g if r.get("strict") in ("PASS", "FAIL", "INVALID")]
+        inv.append({"experiment": gid, "purpose": purpose, "episodes": len(g),
+                    "models": ";".join(sorted({r.get("model", "") for r in g if r.get("model")})),
+                    "scenarios": len({r.get("scenario") for r in g if r.get("scenario")}),
+                    "strict_pass": sum(r.get("strict") == "PASS" for r in scored) if scored else "",
+                    "strict_invalid": sum(r.get("strict") == "INVALID" for r in scored) if scored else "",
+                    "status": status, "used_in": used, "location": pat.removeprefix("^").removesuffix("$"),
+                    "in_repository": "no (workspace only)"})
+    for gid, loc, purpose, status, used in NON_EPISODE_EVIDENCE:
+        inv.append({"experiment": gid, "purpose": purpose, "episodes": "n/a", "status": status, "used_in": used,
+                    "location": loc, "in_repository": "yes" if loc.startswith("MARSHAL/") else "no (workspace only)"})
+    write_csv(out / "experiment_inventory.csv", inv)
+    uniq = len({r["telemetry_sha256"] for r in rows})
+    print(f"inventory: {len(rows)} episodes re-scored ({uniq} unique telemetry files) in included groups; "
+          f"{sum(len(g) for k, g in groups.items() if k in NOT_SCORED)} folders listed only; unassigned dirs: {unassigned}")
+
+
+# -------------------------------------------------------------- open items
+def _stale_input_ticks(ep_dir: Path) -> Optional[int]:
+    """Adapter ticks after the first that repeated the previous control because the inputs were stale."""
+    for p in glob.glob(str(ep_dir / "*_debug" / "*_trace.csv")):
+        with open(p, encoding="utf-8") as fh:
+            rows = list(csv.DictReader(fh))
+        if rows and "mode" in rows[0]:
+            return sum(1 for r in rows if r["mode"] == "no_synced_sensors" and float(r["sim_time"]) > 0.06)
+    return None
+
+
+def _truncated_at_window_end(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    _, _, active_end = S._stop_hold_window(rows)
+    return [r for r in rows if float(r["sim_time"]) <= active_end + 1e-9]
+
+
+def cmd_open_items(dev: Path, out: Path) -> None:
+    """Evidence for the open evaluation items, from recorded episodes only."""
+    import _run_vlm_test as vlm
+    with (out / "experiment_episodes.csv").open(encoding="utf-8") as fh:
+        eps = list(csv.DictReader(fh))
+    f_ = lambda x: float(x) if x not in ("", None) else 0.0  # noqa: E731
+    lines: List[str] = []
+
+    # T9 authority experiment by model x condition (condition-specific expected action)
+    auth = [e for e in eps if e["group"] == "authority_directive"]
+    t9 = []
+    for key in sorted({(e["model"], e["condition"]) for e in auth}):
+        g = [e for e in auth if (e["model"], e["condition"]) == key]
+        cr = [f_(e["credit"]) for e in g]
+        t9.append({"model": key[0], "condition": key[1], "expected": g[0]["expected_action"], "n": len(g),
+                   "strict_pass": sum(e["strict"] == "PASS" for e in g), "credit_mean": st.mean(cr),
+                   "credit_sd": st.stdev(cr) if len(cr) > 1 else None})
+    write_csv(out / "authority_condition_summary.csv", t9)
+
+    # T10 VLM / planner query cap: leaderboard (cap 3 / planner 3 s) vs uncapped diagnostic wiring, same 25 scenarios
+    def suite(group, model, arm=""):
+        g = [e for e in eps if e["group"] == group and e["model"] == model and e["arm"] == arm]
+        return g
+    t10 = []
+    for label, a, b in (("GLM-4.5V: 3 queries vs every 1.5 s", suite("leaderboard_sweep", "glm-4.5v"), suite("glm_assist_ablation", "glm-4.5v", "none")),
+                        ("OpenEMMA: leaderboard vs diagnostic wiring, no assist", suite("leaderboard_sweep", "openemma"), suite("openemma_assist_ablation", "openemma", "none"))):
+        sa = {e["scenario"]: e for e in a}
+        sb = {e["scenario"]: e for e in b}
+        common = sorted(set(sa) & set(sb))
+        flips = [sc for sc in common if sa[sc]["strict"] != sb[sc]["strict"]]
+        t10.append({"comparison": label, "scenarios": len(common),
+                    "strict_pass_capped": sum(sa[s]["strict"] == "PASS" for s in common),
+                    "strict_pass_uncapped": sum(sb[s]["strict"] == "PASS" for s in common),
+                    "graded_capped": G.aggregate_graded_scores([{"scenario": s, "credit": f_(sa[s]["credit"])} for s in common])["marshal_graded"],
+                    "graded_uncapped": G.aggregate_graded_scores([{"scenario": s, "credit": f_(sb[s]["credit"])} for s in common])["marshal_graded"],
+                    "verdict_flips": len(flips), "flipped": ";".join(f"{s}:{sa[s]['strict'][0]}>{sb[s]['strict'][0]}" for s in flips)})
+    q_lb = [e for e in eps if e["group"] == "leaderboard_sweep" and e["model"] == "qwen3-vl" and e["scenario"] == "green_stop"]
+    q_un = [e for e in auth if e["model"] == "qwen3-vl" and e["condition"] == "police_stop"]
+    t10.append({"comparison": "Qwen3-VL green_stop: 3 queries (leaderboard) vs every 1.5 s (authority runs, 3 seeds, 25 s)",
+                "scenarios": 1, "strict_pass_capped": sum(e["strict"] == "PASS" for e in q_lb),
+                "strict_pass_uncapped": f"{sum(e['strict'] == 'PASS' for e in q_un)}/{len(q_un)}"})
+    write_csv(out / "query_cap_comparison.csv", t10)
+
+    # T11 repeat stability
+    lb = {(e["model"], e["scenario"]): e for e in eps if e["group"] == "leaderboard_sweep"}
+    t11 = []
+    for grp, model in (("leaderboard_remeasure_regression", "oracle"), ("leaderboard_remeasure_regression", "tcp"),
+                       ("leaderboard_remeasure_oracle", "oracle")):
+        g = [e for e in eps if e["group"] == grp and e["model"] == model]
+        same = sum(1 for e in g if (model, e["scenario"]) in lb and lb[(model, e["scenario"])]["strict"] == e["strict"])
+        dc = [abs(f_(e["credit"]) - f_(lb[(model, e["scenario"])]["credit"])) for e in g if (model, e["scenario"]) in lb]
+        t11.append({"repeat": f"{grp}:{model}", "cells": len(g), "same_strict_verdict": same,
+                    "max_abs_credit_diff": max(dc) if dc else None, "mean_abs_credit_diff": st.mean(dc) if dc else None})
+    seen_sha, capped, uncapped = set(), [], []
+    for e in eps:  # unique recordings only (archived copies share the telemetry hash)
+        if (e["model"] != "qwen3-vl" or e["scenario"] != "green_stop" or e["telemetry_sha256"] in seen_sha
+                or e["group"] not in ("leaderboard_sweep", "audit_instrumented", "greenstop_diag_panel", "authority_directive")
+                or e["condition"] not in ("", "stop", "gstop", "G_STOP", "police_stop")):
+            continue
+        seen_sha.add(e["telemetry_sha256"])
+        (uncapped if e["group"] == "authority_directive" else capped).append(e)
+    t11.append({"repeat": "qwen3-vl green_stop, officer at 13 m, leaderboard wiring (3 queries), unique recordings",
+                "cells": len(capped), "same_strict_verdict": f"{sum(e['strict'] == 'PASS' for e in capped)} PASS / {len(capped)}"})
+    t11.append({"repeat": "qwen3-vl green_stop, officer at 13 m, uncapped queries (25 s)",
+                "cells": len(uncapped), "same_strict_verdict": f"{sum(e['strict'] == 'PASS' for e in uncapped)} PASS / {len(uncapped)}"})
+    for key in sorted({(r["model"], r["condition"]) for r in t9}):
+        r = next(x for x in t9 if (x["model"], x["condition"]) == key)
+        if r["n"] >= 3:
+            t11.append({"repeat": f"authority 3 seeds: {key[0]} {key[1]}", "cells": r["n"],
+                        "same_strict_verdict": f"{r['strict_pass']} PASS / {r['n']}", "credit_sd": r["credit_sd"]})
+    write_csv(out / "repeat_stability.csv", t11)
+
+    # T12 movement-evidence window: STOP/HOLD scored only on telemetry up to the end of the directive window
+    t12 = []
+    for e in eps:
+        if e["group"] not in ("leaderboard_sweep", "authority_directive") or e["expected_action"] not in ("STOP", "HOLD"):
+            continue
+        ep = Episode(dev / e["episode"], e["model"], e["group"])
+        inner = dict(ep.result or {"scenario": e["scenario"]})
+        kw = scorer_kwargs(ep, e["scenario"], e["expected_action"])
+        # full-episode scoring unchanged; only the movement evidence is restricted to [0, directive end]
+        s0 = S.score_episode_from_telemetry(inner, ep.rows, **kw)
+        g0 = G.score_episode_from_telemetry(inner, ep.rows, **kw)
+        engaged_in_window = S._engagement(_truncated_at_window_end(ep.rows))["engaged"]
+        s1 = dict(s0)
+        g1 = dict(g0)
+        if not engaged_in_window:
+            if s0.get("verdict") == "PASS":
+                s1 = {**s0, "verdict": "FAIL", "reason": "no movement evidence before the directive ended"}
+            g1 = {**g0, "credit": 0.0}
+        if s1.get("verdict") != s0.get("verdict") or abs((g1.get("credit") or 0) - (g0.get("credit") or 0)) > 1e-9:
+            t12.append({"group": e["group"], "model": e["model"], "scenario": e["scenario"], "condition": e["condition"],
+                        "seed": e["seed"], "strict_current": e["strict"], "strict_window_only": s1.get("verdict"),
+                        "credit_current": g0.get("credit"), "credit_window_only": g1.get("credit"),
+                        "reason_window_only": s1.get("reason")})
+    write_csv(out / "variant_movement_window.csv", t12)
+
+    # T13 leaderboard STOP/HOLD passes whose hold was verified only until early termination
+    t13 = []
+    for (model, sc), e in sorted(lb.items()):
+        if e["strict"] != "PASS" or e["expected_action"] not in ("STOP", "HOLD"):
+            continue
+        ep = Episode(dev / e["episode"], model, "leaderboard_sweep")
+        on, duration, active_end = S._stop_hold_window(ep.rows)  # enforced (last STOP/HOLD) phase
+        t_end = float(ep.rows[-1]["sim_time"])
+        phases = S._directive_phases(ep.rows)
+        enforced = [ph for ph in phases if ph["gesture"] in ("STOP", "HOLD")]
+        release = next((ph.get("eff_onset", ph["onset"]) for ph in phases
+                        if ph.get("eff_onset", ph["onset"]) > on and ph["gesture"] in ("PROCEED", "GO", "IDLE")), None)
+        if enforced and enforced[-1]["gesture"] == "HOLD" and release is None:
+            nominal_end, kind = None, "HOLD binds to episode end"
+        elif duration is not None:
+            nominal_end = on + duration if release is None else min(on + duration, release)
+            kind = "STOP onset + duration" if release is None else "explicit release"
+        else:
+            nominal_end, kind = None, "no duration (binds to episode end)"
+        verified = (t_end + 1e-6 >= nominal_end) if nominal_end is not None else ep.terminated == "timeout"
+        t13.append({"model": model, "scenario": sc, "terminated": ep.terminated, "episode_end_s": t_end,
+                    "enforced_onset_s": on, "directive_end_s": nominal_end, "directive_end_rule": kind,
+                    "hold_checked_s": max(0.0, min(t_end, active_end) - (on + ep.budget)),
+                    "hold_to_directive_end_verified": verified})
+    write_csv(out / "hold_verification.csv", t13)
+
+    # stale-input flag over every scored episode with an adapter trace
+    t14 = []
+    for e in eps:
+        if e["group"] in ("leaderboard_sweep", "authority_directive", "audit_instrumented", "leaderboard_remeasure_regression"):
+            n = _stale_input_ticks(dev / e["episode"])
+            if n:
+                t14.append({"group": e["group"], "episode": e["episode"], "stale_input_ticks_after_t0": n,
+                            "flag": "re-run" if n >= 5 else "note"})
+    write_csv(out / "stale_input_flags.csv", t14)
+    lb_or = {e["scenario"]: e for e in eps if e["group"] == "leaderboard_sweep" and e["model"] == "oracle"}
+    rest = [{"scenario": e["scenario"], "leaderboard_strict": lb_or.get(e["scenario"], {}).get("strict"),
+             "from_rest_strict": e["strict"], "from_rest_credit": f_(e["credit"]), "from_rest_reason": e["strict_reason"]}
+            for e in eps if e["group"] == "audit_oracle_from_rest"]
+    write_csv(out / "oracle_from_rest.csv", sorted(rest, key=lambda r: r["scenario"]))
+    print(f"open-items: T9 {len(t9)} rows, T10 {len(t10)}, T11 {len(t11)}, movement-window changes {len(t12)}, "
+          f"leaderboard STOP/HOLD passes {len(t13)} (hold to directive end verified: {sum(r['hold_to_directive_end_verified'] for r in t13)}), "
+          f"stale-input episodes {len(t14)}")
+
+
 # ------------------------------------------------------------------ tables
 def _r(v: Any, n: int = 2) -> str:
     x = f(v)
     return "-" if x is None else f"{x:.{n}f}"
+
+
+def inventory_tables(out: Path) -> List[str]:
+    """T9-T15: experiment inventory and the evidence tables for the open evaluation items."""
+    def rd(name):
+        p = out / name
+        if not p.exists():
+            return []
+        with p.open(encoding="utf-8") as fh:
+            return list(csv.DictReader(fh))
+    lines: List[str] = []
+    inv = rd("experiment_inventory.csv")
+    if inv:
+        lines += ["", "## T9. Every recorded experiment on disk and where it is used", "",
+                  "Episodes are re-scored with the current scorers where scored; counts are episodes, not runs of the whole suite.", "",
+                  "| Experiment | Purpose | Episodes | Scenarios | Strict PASS | Status | Used in |", "|" + "---|" * 7]
+        for x in inv:
+            lines.append(f"| {x['experiment']} | {x['purpose']} | {x['episodes']} | {x.get('scenarios') or '-'} | "
+                         f"{x.get('strict_pass') or '-'} | {x['status']} | {x['used_in']} |")
+    t = rd("authority_condition_summary.csv")
+    if t:
+        lines += ["", "## T10. Authority experiment (green_stop staging, 25 s, no early termination, VLM uncapped)", "",
+                  "Expected action: STOP for a police STOP (13 m or 7 m), PROCEED otherwise.", "",
+                  "| Model | Condition | Expected | Strict PASS | Graded mean (SD) |", "|---|---|---|---|---|"]
+        for x in t:
+            sd = f" ({_r(x['credit_sd'], 2)})" if x.get("credit_sd") else ""
+            lines.append(f"| {x['model']} | {x['condition']} | {x['expected']} | {x['strict_pass']}/{x['n']} | {_r(x['credit_mean'], 2)}{sd} |")
+    t = rd("query_cap_comparison.csv")
+    if t:
+        lines += ["", "## T11. Decision cadence: leaderboard query cap vs uncapped diagnostic wiring (same scenarios)", "",
+                  "| Comparison | Scenarios | Strict PASS capped | Strict PASS uncapped | Graded capped | Graded uncapped | Verdict flips |",
+                  "|---|---|---|---|---|---|---|"]
+        for x in t:
+            lines.append(f"| {x['comparison']} | {x['scenarios']} | {x['strict_pass_capped']} | {x['strict_pass_uncapped']} | "
+                         f"{x.get('graded_capped') or '-'} | {x.get('graded_uncapped') or '-'} | {x.get('flipped') or x.get('verdict_flips') or '-'} |")
+    t = rd("repeat_stability.csv")
+    if t:
+        lines += ["", "## T12. Repeat stability", "", "| Repeat | Cells / runs | Same strict verdict as leaderboard, or PASS count | Max / mean abs credit difference | Credit SD |",
+                  "|---|---|---|---|---|"]
+        for x in t:
+            diff = f"{_r(x['max_abs_credit_diff'], 3)} / {_r(x['mean_abs_credit_diff'], 3)}" if x.get("max_abs_credit_diff") else "-"
+            lines.append(f"| {x['repeat']} | {x['cells']} | {x['same_strict_verdict']} | {diff} | {_r(x.get('credit_sd'), 3) if x.get('credit_sd') else '-'} |")
+    t = rd("hold_verification.csv")
+    if t:
+        short = [x for x in t if x["hold_to_directive_end_verified"] != "True"]
+        lines += ["", "## T13. Leaderboard STOP/HOLD passes and how long the hold was verified", "",
+                  f"{len(t)} STOP/HOLD cells PASS on the leaderboard; {len(t) - len(short)} were observed through the end of the "
+                  f"directive. In the {len(short)} below the episode ended first (early termination, or a 14 s episode shorter "
+                  f"than the directive):", "",
+                  "| Model | Scenario | Ended by | Episode end (s) | Directive end (s) | Hold checked (s) |", "|---|---|---|---|---|---|"]
+        for x in short:
+            lines.append(f"| {x['model']} | {x['scenario']} | {x['terminated']} | {_r(x['episode_end_s'])} | {_r(x['directive_end_s'])} | {_r(x['hold_checked_s'])} |")
+    t = rd("variant_movement_window.csv")
+    lines += ["", "## T14. Movement evidence counted only up to the end of the directive window (variant)", "",
+              f"Episodes whose strict verdict or graded credit would change: {len(t)} "
+              "(leaderboard cells: " + str(sum(1 for x in t if x['group'] == 'leaderboard_sweep')) + ")."]
+    for x in t:
+        lines.append(f"- {x['group']} / {x['model']} / {x['scenario']} {x['condition']} s{x['seed']}: "
+                     f"{x['strict_current']} -> {x['strict_window_only']} ({x['reason_window_only']})")
+    t = rd("stale_input_flags.csv")
+    if t:
+        lines += ["", "## T15. Episodes with stale-input fallback ticks after the first tick", "",
+                  "| Episode | Stale ticks | Flag |", "|---|---|---|"]
+        for x in t:
+            lines.append(f"| {x['episode']} | {x['stale_input_ticks_after_t0']} | {x['flag']} |")
+    t = rd("oracle_from_rest.csv")
+    if t:
+        lines += ["", "## T16. Oracle started from rest vs the leaderboard oracle (seeded 1.8 m/s rolling start)", "",
+                  "| Scenario | Leaderboard (rolling start) | From rest | From-rest credit | From-rest reason |", "|---|---|---|---|---|"]
+        for x in t:
+            lines.append(f"| {x['scenario']} | {x['leaderboard_strict']} | {x['from_rest_strict']} | {_r(x['from_rest_credit'], 3)} | {x['from_rest_reason']} |")
+    return lines
 
 
 def geometry_tables(summary: List[Dict[str, Any]], series: List[Dict[str, Any]],
@@ -1214,6 +1606,7 @@ def cmd_tables(dev: Path, out: Path) -> None:
                      f"{x['published_graded']} | {x['published_marshal_score']} | {x['matches_published']} |")
     if (out / "leaderboard_summary.csv").exists():
         lines += leaderboard_tables(rd("leaderboard_summary.csv"), rd("leaderboard_cells.csv"))
+    lines += inventory_tables(out)
     if (out / "green_stop_geometry_summary.csv").exists():
         lines += geometry_tables(rd("green_stop_geometry_summary.csv"), rd("green_stop_geometry_per_second.csv"))
     (out.parent / "tables.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -1222,14 +1615,14 @@ def cmd_tables(dev: Path, out: Path) -> None:
 # -------------------------------------------------------------------- main
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("command", choices=["score-trace", "aggregate", "cases", "rescore-variant", "leaderboard", "timing", "geometry", "figures", "tables", "all"])
+    ap.add_argument("command", choices=["score-trace", "aggregate", "cases", "rescore-variant", "leaderboard", "inventory", "open-items", "timing", "geometry", "figures", "tables", "all"])
     ap.add_argument("--dev-root", default=str(REPO.parent), help="workspace that holds tmp/ and outputs/ episode artifacts")
     ap.add_argument("--out", default=str(REPO / "reports" / "dac2027_audit" / "data"))
     a = ap.parse_args(argv)
     dev, out = Path(a.dev_root), Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     cmds = {"score-trace": cmd_score_trace, "aggregate": cmd_aggregate, "cases": cmd_cases,
-            "rescore-variant": cmd_rescore_variant, "leaderboard": cmd_leaderboard, "timing": cmd_timing, "geometry": cmd_geometry, "figures": cmd_figures,
+            "rescore-variant": cmd_rescore_variant, "leaderboard": cmd_leaderboard, "inventory": cmd_inventory, "open-items": cmd_open_items, "timing": cmd_timing, "geometry": cmd_geometry, "figures": cmd_figures,
             "tables": cmd_tables}
     for name in (cmds if a.command == "all" else [a.command]):
         cmds[name](dev, out)

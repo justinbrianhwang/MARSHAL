@@ -1,0 +1,4 @@
+comparison,scenarios,strict_pass_capped,strict_pass_uncapped,graded_capped,graded_uncapped,verdict_flips,flipped
+GLM-4.5V: 3 queries vs every 1.5 s,25,6,1,27.13,8.9,5,flagger_control:P>F;flagger_slow_then_stop:P>F;night_signal_officer_conflict:P>F;red_proceed:P>F;unauthorized_go:P>F
+"OpenEMMA: leaderboard vs diagnostic wiring, no assist",25,3,3,14.32,14.56,0,
+"Qwen3-VL green_stop: 3 queries (leaderboard) vs every 1.5 s (authority runs, 3 seeds, 25 s)",1,1,0/3,,,,

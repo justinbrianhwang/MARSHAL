@@ -1,0 +1,36 @@
+repeat,cells,same_strict_verdict,max_abs_credit_diff,mean_abs_credit_diff,credit_sd
+leaderboard_remeasure_regression:oracle,25,25,0.0,0.0,
+leaderboard_remeasure_regression:tcp,25,25,0.2169,0.0292,
+leaderboard_remeasure_oracle:oracle,25,25,0.0,0.0,
+"qwen3-vl green_stop, officer at 13 m, leaderboard wiring (3 queries), unique recordings",5,1 PASS / 5,,,
+"qwen3-vl green_stop, officer at 13 m, uncapped queries (25 s)",3,0 PASS / 3,,,
+authority 3 seeds: glm-4.5v civilian_proceed,3,3 PASS / 3,,,0.0
+authority 3 seeds: glm-4.5v civilian_stop,3,3 PASS / 3,,,0.0
+authority 3 seeds: glm-4.5v no_police,3,3 PASS / 3,,,0.0
+authority 3 seeds: glm-4.5v police_proceed,3,3 PASS / 3,,,0.0
+authority 3 seeds: glm-4.5v police_stop,3,0 PASS / 3,,,0.0
+authority 3 seeds: neat civilian_proceed,3,0 PASS / 3,,,0.0057
+authority 3 seeds: neat civilian_stop,3,0 PASS / 3,,,0.0005
+authority 3 seeds: neat no_police,3,3 PASS / 3,,,0.0
+authority 3 seeds: neat police_proceed,3,0 PASS / 3,,,0.001
+authority 3 seeds: neat police_stop,3,2 PASS / 3,,,0.3832
+authority 3 seeds: oracle police_stop,3,3 PASS / 3,,,0.0
+authority 3 seeds: qwen2.5-vl civilian_proceed,3,1 PASS / 3,,,0.4332
+authority 3 seeds: qwen2.5-vl civilian_stop,3,0 PASS / 3,,,0.0001
+authority 3 seeds: qwen2.5-vl no_police,3,3 PASS / 3,,,0.0
+authority 3 seeds: qwen2.5-vl police_proceed,3,1 PASS / 3,,,0.4332
+authority 3 seeds: qwen2.5-vl police_stop,3,1 PASS / 3,,,0.5774
+authority 3 seeds: qwen3-vl civilian_proceed,3,3 PASS / 3,,,0.0
+authority 3 seeds: qwen3-vl civilian_stop,3,3 PASS / 3,,,0.0
+authority 3 seeds: qwen3-vl no_police,3,3 PASS / 3,,,0.0
+authority 3 seeds: qwen3-vl police_proceed,3,3 PASS / 3,,,0.0
+authority 3 seeds: qwen3-vl police_proceed_near,3,3 PASS / 3,,,0.5774
+authority 3 seeds: qwen3-vl police_stop,3,0 PASS / 3,,,0.0
+authority 3 seeds: qwen3-vl police_stop_near,3,1 PASS / 3,,,0.5774
+authority 3 seeds: tcp civilian_proceed,3,3 PASS / 3,,,0.0
+authority 3 seeds: tcp civilian_stop,3,3 PASS / 3,,,0.2659
+authority 3 seeds: tcp no_police,3,3 PASS / 3,,,0.0
+authority 3 seeds: tcp police_proceed,3,3 PASS / 3,,,0.0
+authority 3 seeds: tcp police_proceed_near,3,3 PASS / 3,,,0.0
+authority 3 seeds: tcp police_stop,3,0 PASS / 3,,,0.0179
+authority 3 seeds: tcp police_stop_near,3,0 PASS / 3,,,0.0412

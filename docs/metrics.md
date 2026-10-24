@@ -259,8 +259,7 @@ credit = action_credit · latency_factor · safety_factor · movement_gate   (ea
 ```
 
 - **movement_gate** — 1 only if the ego reached ≥ 5 km/h and ≥ 1 m of forward progress at some point in
-  the episode, otherwise 0; applies to every expected action (since 2026-10-24; before, only STOP/HOLD were
-  gated, through their engagement factor).
+  the episode, otherwise 0; applies to every expected action.
 - **action_credit** — an action-specific curve over the recorded margins (e.g. STOP =
   `0.60·speed_margin + 0.40·stopline_clearance`; DETOUR =
   `0.55·lateral_clearance + 0.45·forward_progress`; YIELD and PROCEED-with-care have

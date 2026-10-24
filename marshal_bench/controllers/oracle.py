@@ -198,7 +198,11 @@ class OracleController(EpisodeController):
                 # throttle alone does not break static resistance on every
                 # CARLA map (notably Town10HD), which made compliant STOP/HOLD
                 # episodes indistinguishable from a frozen controller.
-                self._seed_initial_velocity(1.8)
+                # MARSHAL_ORACLE_FROM_REST=1 (diagnostic only): start from rest
+                # like every evaluated controller, to measure what the rolling
+                # start contributes to the oracle's 25/25.
+                if os.environ.get("MARSHAL_ORACLE_FROM_REST") != "1":
+                    self._seed_initial_velocity(1.8)
                 ego.apply_control(
                     carla.VehicleControl(throttle=0.70, brake=0.0, steer=0.0)
                 )

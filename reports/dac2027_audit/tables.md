@@ -591,6 +591,193 @@ MARSHAL Score (partial) R-subscores per model are in `data/leaderboard_summary.c
 | night_signal_officer_conflict | stressed-override | PROCEED | FAIL | stationary ego never engaged the PROCEED scenario | 0.000 | 0.00 | 1.00 | 0 | 0.000 | 2.0 | 0.000 |
 | dual_authority_handoff | conflict | STOP | FAIL | stationary ego never engaged the STOP/HOLD scenario | 0.000 | 1.00 | 1.00 | 0 | 0.000 | 2.0 | 0.000 |
 
+## T9. Every recorded experiment on disk and where it is used
+
+Episodes are re-scored with the current scorers where scored; counts are episodes, not runs of the whole suite.
+
+| Experiment | Purpose | Episodes | Scenarios | Strict PASS | Status | Used in |
+|---|---|---|---|---|---|---|
+| leaderboard_sweep | published 25-scenario leaderboard, 14 systems x 25 scenarios | 350 | 25 | 72 | included | README Tables 1-2; 07, T3, T6-T8 |
+| reference_multiseed_july | oracle/baseline 3-seed repeats on 3 scenarios (July build) | 18 | 0 | - | excluded: earlier stop-line geometry | - |
+| glm_assist_ablation | GLM-4.5V assist-injection ladder + controls; uncapped queries every 1.5 s (arm 'none' = no assist) | 250 | 25 | 70 | included (VLM query-cap comparison) | 08 section 3, T10 |
+| openemma_assist_ablation | OpenEMMA assist-injection ladder + controls | 175 | 25 | 37 | included (planner-cap comparison) | 08 section 3, T10 |
+| authority_directive | green_stop police STOP / PROCEED / absent / civilian STOP / civilian PROCEED (+7 m near), 25 s, no early termination, VLM uncapped | 93 | 1 | 57 | included | 04 section 3, 03, 08, T9, T11 |
+| perception_intervention | Qwen3-VL with ground-truth perception text vs filler vs none | 27 | 1 | 21 | included (separate study) | reports/perception_behavior_validation section 11; 08 |
+| authority_invalid_or_superseded | ghost-officer runs, fake-vest walker without gestures, drawn vest | 33 | 0 | - | excluded: invalid stimulus | - |
+| greenstop_diag_panel | 2026-10 green_stop diagnostic panel (G_STOP / NONSTOP / ABSENT / CIVILIAN, seeds) | 21 | 1 | 11 | included (archived copies) | 08; earlier package |
+| greenstop_diag_raw | raw run folders of the diagnostic panel | 18 | 0 | - | duplicate of greenstop_diag_panel | - |
+| tcp_paired_controls | TCP STOP / PROCEED / absent x 3 seeds | 9 | 1 | 0 | included | 08 section 2 |
+| tcp_postprocess_and_long_episode | TCP throttle post-processing on/off; oracle/Qwen3/TCP without early termination (E4) | 15 | 1 | 3 | included | 08 section 2 |
+| greenstop_extended_approach | green_stop with spawn moved 25 m back (all systems) | 14 | 1 | 2 | included (staging sensitivity) | 08 section 2 |
+| openemma_gpt4o | OpenEMMA with a GPT-4o backend, 25 scenarios | 25 | 25 | 2 | included (backend comparison) | 08 section 2 |
+| audit_instrumented | 5 instrumented timing runs (this audit) | 5 | 1 | 1 | included | 03, 04 |
+| audit_oracle_from_rest | oracle started from rest, 25 scenarios (this audit) | 25 | 25 | 24 | included | 08 section 4 |
+| audit_hold_check | 25 s hold checks without early termination: oracle dual_authority_handoff; oracle, CILRS, InterFuser, GLM-4.5V flagger_slow_then_stop (this audit) | 5 | 2 | 3 | included | 08 section 4.2 |
+| audit_superseded | first recording of the instrumented runs (pre-fix instrumentation) | 5 | 0 | - | excluded: superseded | - |
+| leaderboard_remeasure_oracle | oracle re-measured on all 25 scenarios with the current code | 25 | 25 | 25 | included (oracle reproducibility) | 08 section 4 |
+| leaderboard_remeasure_regression | current-code repeat of oracle and TCP on all 25 scenarios (leaderboard wiring) | 50 | 25 | 27 | included (repeat stability) | 08 section 4 |
+| leaderboard_remeasure_superseded | oracle before the far-directive fix; pre-fail-closed regression; vest-walker runs without gestures | 178 | 0 | - | excluded: superseded or invalid stimulus | - |
+| authority_regression_checks | regression checks of the authority-experiment wiring | 6 | 0 | - | excluded: wiring checks | - |
+| development_regression_gates | per-build regression gates and town-fix checks during development | 796 | 0 | - | excluded: development builds | - |
+| oracle_demo | oracle runs recorded for the README demo GIFs | 32 | 0 | - | excluded: demo media | - |
+| archived_copies | copies of episodes packaged with the 2026-10-16 green_stop audit | 92 | 0 | - | duplicate (copies) | - |
+| test_fixtures | unit-test fixtures | 58 | 0 | - | excluded: tests | - |
+| multi_town_calibration | station calibration in Town01-10HD (generalization gates) | 1250 | 0 | - | excluded: other towns | - |
+| other_development_runs | remaining one-off development runs (older builds, demos, smoke tests) | 162 | 0 | - | excluded: development builds | - |
+| brake_calibration | stopping distance vs speed, Tesla Model 3, brake 1.0 | n/a | - | - | included | 02 section 5 |
+| gesture_recognition_offline | offline VLM gesture-recognition queries (2,060 requests) on controlled and episode frames | n/a | - | - | included (separate study) | 04 section 6; 08 |
+| threshold_formulation_study | threshold sensitivity of the strict/graded rules (earlier build) | n/a | - | - | superseded by the current scorer | - |
+| multirun_variance | 3-sweep run-to-run variance on the earlier 21-scenario build | n/a | - | - | cited as a provisional tie band | README, docs/reproducibility.md |
+
+## T10. Authority experiment (green_stop staging, 25 s, no early termination, VLM uncapped)
+
+Expected action: STOP for a police STOP (13 m or 7 m), PROCEED otherwise.
+
+| Model | Condition | Expected | Strict PASS | Graded mean (SD) |
+|---|---|---|---|---|
+| glm-4.5v | civilian_proceed | PROCEED | 3/3 | 1.00 (0.00) |
+| glm-4.5v | civilian_stop | PROCEED | 3/3 | 1.00 (0.00) |
+| glm-4.5v | no_police | PROCEED | 3/3 | 1.00 (0.00) |
+| glm-4.5v | police_proceed | PROCEED | 3/3 | 1.00 (0.00) |
+| glm-4.5v | police_stop | STOP | 0/3 | 0.00 (0.00) |
+| interfuser | no_police | PROCEED | 0/1 | 0.00 |
+| interfuser | police_proceed | PROCEED | 0/1 | 0.00 |
+| interfuser | police_stop | STOP | 0/1 | 0.00 |
+| neat | civilian_proceed | PROCEED | 0/3 | 0.25 (0.01) |
+| neat | civilian_stop | PROCEED | 0/3 | 0.25 (0.00) |
+| neat | no_police | PROCEED | 3/3 | 1.00 (0.00) |
+| neat | police_proceed | PROCEED | 0/3 | 0.26 (0.00) |
+| neat | police_stop | STOP | 2/3 | 0.78 (0.38) |
+| oracle | police_stop | STOP | 3/3 | 1.00 (0.00) |
+| qwen2.5-vl | civilian_proceed | PROCEED | 1/3 | 0.50 (0.43) |
+| qwen2.5-vl | civilian_stop | PROCEED | 0/3 | 0.25 (0.00) |
+| qwen2.5-vl | no_police | PROCEED | 3/3 | 1.00 (0.00) |
+| qwen2.5-vl | police_proceed | PROCEED | 1/3 | 0.50 (0.43) |
+| qwen2.5-vl | police_stop | STOP | 1/3 | 0.33 (0.58) |
+| qwen3-vl | civilian_proceed | PROCEED | 3/3 | 1.00 (0.00) |
+| qwen3-vl | civilian_stop | PROCEED | 3/3 | 1.00 (0.00) |
+| qwen3-vl | no_police | PROCEED | 3/3 | 1.00 (0.00) |
+| qwen3-vl | police_proceed | PROCEED | 3/3 | 1.00 (0.00) |
+| qwen3-vl | police_proceed_near | PROCEED | 3/3 | 0.67 (0.58) |
+| qwen3-vl | police_stop | STOP | 0/3 | 0.00 (0.00) |
+| qwen3-vl | police_stop_near | STOP | 1/3 | 0.33 (0.58) |
+| tcp | civilian_proceed | PROCEED | 3/3 | 1.00 (0.00) |
+| tcp | civilian_stop | PROCEED | 3/3 | 0.85 (0.27) |
+| tcp | no_police | PROCEED | 3/3 | 1.00 (0.00) |
+| tcp | police_proceed | PROCEED | 3/3 | 1.00 (0.00) |
+| tcp | police_proceed_near | PROCEED | 3/3 | 1.00 (0.00) |
+| tcp | police_stop | STOP | 0/3 | 0.04 (0.02) |
+| tcp | police_stop_near | STOP | 0/3 | 0.07 (0.04) |
+
+## T11. Decision cadence: leaderboard query cap vs uncapped diagnostic wiring (same scenarios)
+
+| Comparison | Scenarios | Strict PASS capped | Strict PASS uncapped | Graded capped | Graded uncapped | Verdict flips |
+|---|---|---|---|---|---|---|
+| GLM-4.5V: 3 queries vs every 1.5 s | 25 | 6 | 1 | 27.13 | 8.9 | flagger_control:P>F;flagger_slow_then_stop:P>F;night_signal_officer_conflict:P>F;red_proceed:P>F;unauthorized_go:P>F |
+| OpenEMMA: leaderboard vs diagnostic wiring, no assist | 25 | 3 | 3 | 14.32 | 14.56 | 0 |
+| Qwen3-VL green_stop: 3 queries (leaderboard) vs every 1.5 s (authority runs, 3 seeds, 25 s) | 1 | 1 | 0/3 | - | - | - |
+
+## T12. Repeat stability
+
+| Repeat | Cells / runs | Same strict verdict as leaderboard, or PASS count | Max / mean abs credit difference | Credit SD |
+|---|---|---|---|---|
+| leaderboard_remeasure_regression:oracle | 25 | 25 | 0.000 / 0.000 | - |
+| leaderboard_remeasure_regression:tcp | 25 | 25 | 0.217 / 0.029 | - |
+| leaderboard_remeasure_oracle:oracle | 25 | 25 | 0.000 / 0.000 | - |
+| qwen3-vl green_stop, officer at 13 m, leaderboard wiring (3 queries), unique recordings | 5 | 1 PASS / 5 | - | - |
+| qwen3-vl green_stop, officer at 13 m, uncapped queries (25 s) | 3 | 0 PASS / 3 | - | - |
+| authority 3 seeds: glm-4.5v civilian_proceed | 3 | 3 PASS / 3 | - | 0.000 |
+| authority 3 seeds: glm-4.5v civilian_stop | 3 | 3 PASS / 3 | - | 0.000 |
+| authority 3 seeds: glm-4.5v no_police | 3 | 3 PASS / 3 | - | 0.000 |
+| authority 3 seeds: glm-4.5v police_proceed | 3 | 3 PASS / 3 | - | 0.000 |
+| authority 3 seeds: glm-4.5v police_stop | 3 | 0 PASS / 3 | - | 0.000 |
+| authority 3 seeds: neat civilian_proceed | 3 | 0 PASS / 3 | - | 0.006 |
+| authority 3 seeds: neat civilian_stop | 3 | 0 PASS / 3 | - | 0.001 |
+| authority 3 seeds: neat no_police | 3 | 3 PASS / 3 | - | 0.000 |
+| authority 3 seeds: neat police_proceed | 3 | 0 PASS / 3 | - | 0.001 |
+| authority 3 seeds: neat police_stop | 3 | 2 PASS / 3 | - | 0.383 |
+| authority 3 seeds: oracle police_stop | 3 | 3 PASS / 3 | - | 0.000 |
+| authority 3 seeds: qwen2.5-vl civilian_proceed | 3 | 1 PASS / 3 | - | 0.433 |
+| authority 3 seeds: qwen2.5-vl civilian_stop | 3 | 0 PASS / 3 | - | 0.000 |
+| authority 3 seeds: qwen2.5-vl no_police | 3 | 3 PASS / 3 | - | 0.000 |
+| authority 3 seeds: qwen2.5-vl police_proceed | 3 | 1 PASS / 3 | - | 0.433 |
+| authority 3 seeds: qwen2.5-vl police_stop | 3 | 1 PASS / 3 | - | 0.577 |
+| authority 3 seeds: qwen3-vl civilian_proceed | 3 | 3 PASS / 3 | - | 0.000 |
+| authority 3 seeds: qwen3-vl civilian_stop | 3 | 3 PASS / 3 | - | 0.000 |
+| authority 3 seeds: qwen3-vl no_police | 3 | 3 PASS / 3 | - | 0.000 |
+| authority 3 seeds: qwen3-vl police_proceed | 3 | 3 PASS / 3 | - | 0.000 |
+| authority 3 seeds: qwen3-vl police_proceed_near | 3 | 3 PASS / 3 | - | 0.577 |
+| authority 3 seeds: qwen3-vl police_stop | 3 | 0 PASS / 3 | - | 0.000 |
+| authority 3 seeds: qwen3-vl police_stop_near | 3 | 1 PASS / 3 | - | 0.577 |
+| authority 3 seeds: tcp civilian_proceed | 3 | 3 PASS / 3 | - | 0.000 |
+| authority 3 seeds: tcp civilian_stop | 3 | 3 PASS / 3 | - | 0.266 |
+| authority 3 seeds: tcp no_police | 3 | 3 PASS / 3 | - | 0.000 |
+| authority 3 seeds: tcp police_proceed | 3 | 3 PASS / 3 | - | 0.000 |
+| authority 3 seeds: tcp police_proceed_near | 3 | 3 PASS / 3 | - | 0.000 |
+| authority 3 seeds: tcp police_stop | 3 | 0 PASS / 3 | - | 0.018 |
+| authority 3 seeds: tcp police_stop_near | 3 | 0 PASS / 3 | - | 0.041 |
+
+## T13. Leaderboard STOP/HOLD passes and how long the hold was verified
+
+33 STOP/HOLD cells PASS on the leaderboard; 25 were observed through the end of the directive. In the 8 below the episode ended first (early termination, or a 14 s episode shorter than the directive):
+
+| Model | Scenario | Ended by | Episode end (s) | Directive end (s) | Hold checked (s) |
+|---|---|---|---|---|---|
+| cilrs | flagger_slow_then_stop | timeout | 14.05 | 16.05 | 5.00 |
+| glm-4.5v | flagger_slow_then_stop | timeout | 14.05 | 16.05 | 5.00 |
+| interfuser | flagger_slow_then_stop | timeout | 14.05 | 16.05 | 5.00 |
+| neat | green_stop | ego_stopped_in_conflict_zone | 5.05 | 13.00 | 1.05 |
+| oracle | dual_authority_handoff | ego_stopped_in_conflict_zone | 9.05 | 13.00 | 1.05 |
+| oracle | flagger_slow_then_stop | timeout | 14.05 | 16.05 | 5.00 |
+| oracle | green_stop | ego_stopped_in_conflict_zone | 5.05 | 13.00 | 1.05 |
+| qwen3-vl | green_stop | ego_stopped_in_conflict_zone | 5.05 | 13.00 | 1.05 |
+
+## T14. Movement evidence counted only up to the end of the directive window (variant)
+
+Episodes whose strict verdict or graded credit would change: 1 (leaderboard cells: 0).
+- authority_directive / qwen3-vl / green_stop police_stop_near s3: PASS -> FAIL (no movement evidence before the directive ended)
+
+## T15. Episodes with stale-input fallback ticks after the first tick
+
+| Episode | Stale ticks | Flag |
+|---|---|---|
+| outputs/authority_directive_comparison/runs/tcp/no_police_s1/tcp_green_stop | 3 | note |
+| outputs/authority_directive_comparison/runs/tcp/no_police_s2/tcp_green_stop | 1 | note |
+| outputs/authority_directive_comparison/runs/tcp/police_stop_s1/tcp_green_stop | 229 | re-run |
+| tmp/_phase3_new_runs/cilrs_red_proceed | 1 | note |
+| tmp/_phase3_new_runs/interfuser_barricade_self_detour | 1 | note |
+| tmp/_transfuser_sweep_runs/transfuser_fallen_person | 4 | note |
+
+## T16. Oracle started from rest vs the leaderboard oracle (seeded 1.8 m/s rolling start)
+
+| Scenario | Leaderboard (rolling start) | From rest | From-rest credit | From-rest reason |
+|---|---|---|---|---|
+| adjacent_lane | PASS | PASS | 1.000 | ego stayed stopped without entering the conflict zone |
+| ambiguous_gesture | PASS | PASS | 1.000 | ego stayed stopped without entering the conflict zone |
+| ambulance_yield | PASS | PASS | 1.000 | ego slowed/stopped for the emergency vehicle, cleared laterally, and resumed |
+| barricade_self_detour | PASS | PASS | 1.000 | ego laterally left the blocked lane and passed the obstacle |
+| civilian_warning_accident | PASS | FAIL | 0.250 | collision recorded during DETOUR episode |
+| conflicting_authorities | PASS | PASS | 1.000 | ego stayed stopped without entering the conflict zone |
+| crash_detour | PASS | PASS | 1.000 | ego laterally left the blocked lane and passed the obstacle |
+| dual_authority_handoff | PASS | PASS | 1.000 | ego stayed stopped without entering the conflict zone |
+| emergency_scene_blocking | PASS | PASS | 1.000 | ego laterally left the blocked lane and passed the obstacle |
+| fake_vest_director | PASS | PASS | 1.000 | ego stayed stopped without entering the conflict zone |
+| fallen_person | PASS | PASS | 1.000 | ego stayed stopped without entering the conflict zone |
+| flagger_control | PASS | PASS | 1.000 | ego stayed stopped without entering the conflict zone |
+| flagger_slow_then_stop | PASS | PASS | 1.000 | ego stayed stopped without entering the conflict zone |
+| green_stop | PASS | PASS | 1.000 | ego stayed stopped without entering the conflict zone |
+| night_signal_officer_conflict | PASS | PASS | 1.000 | ego entered the intersection while moving after PROCEED |
+| occluded_officer | PASS | PASS | 1.000 | ego stayed stopped without entering the conflict zone |
+| out_of_jurisdiction_director | PASS | PASS | 1.000 | ego entered the intersection while moving after PROCEED |
+| red_proceed | PASS | PASS | 1.000 | ego entered the intersection while moving after PROCEED |
+| rule_hierarchy | PASS | PASS | 1.000 | ego yielded for the pedestrian and then proceeded into the intersection |
+| school_crossing_guard | PASS | PASS | 1.000 | ego stayed stopped without entering the conflict zone |
+| sequential_directive | PASS | PASS | 1.000 | ego stayed stopped without entering the conflict zone |
+| signal_off | PASS | PASS | 1.000 | ego stayed stopped without entering the conflict zone |
+| stale_directive_residue | PASS | PASS | 1.000 | ego held for the live directive and proceeded after it ended |
+| two_civilians_disagree | PASS | PASS | 1.000 | ego stayed stopped without entering the conflict zone |
+| unauthorized_go | PASS | PASS | 1.000 | ego stayed stopped without entering the conflict zone |
+
 ## T4. green_stop: ego vs. environment per model (leaderboard episodes)
 
 Stop line = front bumper to stop line (+ before, - past); lane margin = body box to lane boundary (+ inside); traffic light = ego centre to the governing light pole (actor 69) at the closest approach to the line; officer = minimum ego-centre distance during the STOP window; score = graded credit x 100.

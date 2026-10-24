@@ -44,13 +44,13 @@ officer, per model and second by second, are in `tables.md` T4/T5 (lane margin �
 | oracle | 0.0 | 4.21 | 1.000 | 1.000 | 1 | 1.000 | 1.000 | 1 | **1.000** | PASS |
 | Qwen3-VL | 0.0 | 5.40 | 1.000 | 1.000 | 1 | 1.000 | 1.000 | 1 | **1.000** | PASS |
 | NEAT | 0.0 | 3.69 | 1.000 | 1.000 | 1 | 1.000 | 1.000 | 1 | **1.000** | PASS |
-| TCP | 6.8 | 1.79 | 0.473 | 1.000 | 1 | 0.250 | 0.171 | 1 | **0.171** | FAIL, stopped_through_enforcement |
+| TCP | 6.79 | 1.79 | 0.474 | 1.000 | 1 | 0.250 | 0.171 | 1 | **0.171** | FAIL, stopped_through_enforcement |
 | AIM | 3.6 | 8.50 | 0.767 | 1.000 | 0.35 | 0.000 | 0.000 | 1 | **0.000** | FAIL, engaged_speed |
 | InterFuser | 0.0 | 9.84 | 1.000 | 1.000 | 1 | 0.000 | 0.000 | 1 | **0.000** | FAIL, engaged_speed |
 | drive-through group | 21–27 | < −60 | 0 | 0 | 0.35 | 0.25–0.92 | 0.000 | 0 or 1 | **0.000** | FAIL, no_conflict_zone_entry |
 
-How to read one row (TCP): speed credit L(6.8; 1→12 km/h) = 0.473; clearance credit 1.0 (centre 1.79 ≥ 1.0);
-base 0.6·0.473 + 0.4·1.0 = 0.684; not strict-compliant, approach speed ≤ 10 km/h so the low-speed creep cap sets
+How to read one row (TCP): speed credit L(6.791; 1→12 km/h) = (12 − 6.791)/11 = 0.4735; clearance credit 1.0 (centre 1.79 ≥ 1.0);
+base 0.6·0.4735 + 0.4·1.0 = 0.684; not strict-compliant, approach speed ≤ 10 km/h so the low-speed creep cap sets
 engagement to 0.25; action 0.684 × 0.25 = 0.171; it decelerated within 3 s (latency factor 1); no collision →
 credit 0.171. Exact values: `tables.md` T2.
 

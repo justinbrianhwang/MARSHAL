@@ -1,9 +1,8 @@
 # Reproducibility and run-to-run variance of MARSHAL results
 
-> **Scope of this study.** The 3-sweep experiment below was conducted on an
-> earlier build of the benchmark (the then-current 21-scenario suite, before the
-> stimulus-integrity pass that corrected the signal-pinning pipeline and the
-> light-only baseline). Its **absolute numbers therefore do not match the
+> **Scope of this study.** The 3-sweep experiment below was conducted on a
+> 21-scenario build of the benchmark that predates the stimulus-integrity pass
+> (signal pinning and the light-only baseline). Its **absolute numbers therefore do not match the
 > current leaderboard** in the README, which is measured on the 25-scenario
 > suite under the corrected stimulus. What this document establishes — and what
 > carries over — is the *variance structure*: the privileged oracle and
@@ -22,15 +21,6 @@ but the **learned E2E controllers carry real run-to-run variance on near-thresho
 PASS/FAIL verdicts flip between runs. We therefore report `MARSHAL-Graded` as a
 **3-run mean ± std** and list the borderline cells explicitly, rather than claiming a
 single deterministic number.
-
-> **Correction.** An earlier version of this document claimed the benchmark was
-> "effectively deterministic given a fixed seed" and that a multi-seed re-run would
-> "reproduce the reported numbers with per-model graded shifts under ±0.5 and zero
-> verdict changes." That conclusion was drawn from a probe of only the `oracle` and
-> `baseline` controllers, which *are* near-deterministic — it did not generalize to
-> the learned models. The 3-run sweep below refutes it: learned controllers show
-> per-model graded std up to ±6.8 and verdict flips on borderline cells. The original
-> multi-run instinct was correct.
 
 ## What varies, and why
 

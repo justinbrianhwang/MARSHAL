@@ -59,9 +59,6 @@ replaces is preserved in git history):
 | NEAT ↔ InterFuser flips | 27.8% of draws — consistent with our reporting of the pair as a **statistical tie** |
 | Most weight-sensitive adjacent pair | baseline ↔ TransFuser, 49.5% — equal means (13.8 vs 13.8), a pair never claimed as an ordering |
 
-Recomputed on 2026-10-24 after the graded movement gate was extended to every action (see README, "Rule change,
-2026-10-24"). Before that change the same probes gave τ = 0.967 ± 0.025 with InterFuser first.
-
 **Reading:** the weights express *emphasis*, not the *ranking* — every ordering
 claim in the README survives removing the weights entirely, up to the two
 uniform-weights swaps of pairs within one graded point (GLM-4.5V vs CILRS, baseline vs

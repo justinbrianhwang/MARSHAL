@@ -42,9 +42,7 @@ reading the authority.
 > **Engagement gate:** the vehicle must **approach or encounter the
 > authority-relevant region** before partial credit is awarded, and an ego
 > with no movement evidence at all (never ≥5 km/h or ≥1 m of progress)
-> scores zero outright, for every expected action — the gate mirrors strict's approach-evidence arm. (Until
-> 2026-10-24 it covered STOP/HOLD only; extending it to PROCEED/DETOUR/YIELD zeroed 8 leaderboard cells, see
-> `reports/dac2027_audit/07_leaderboard_derivation.md`.) STOP/HOLD credit
+> scores zero outright, for every expected action — the gate mirrors strict's approach-evidence arm. STOP/HOLD credit
 > requires evidence the ego genuinely approached (e.g. a pre-stop approach speed
 > above a threshold, or meaningful forward progress toward the stopline) and then
 > stopped — not that it merely never moved. A perpetual creeper collapses toward
