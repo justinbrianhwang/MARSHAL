@@ -72,8 +72,8 @@ trajectory*: a single forward camera feeds a Qwen2-VL chain-of-thought
 (*scene → critical objects → intent → speed/curvature*) that emits future waypoints
 (a "full-planning VLM-E2E"). The locally run checkpoints (TransFuser, InterFuser, TCP, CILRS, AIM, NEAT and
 OpenEMMA's model) are loaded **original and unchanged** (no quantization, no fp16, no layer removal); the three
-Track-C VLMs are served through a hosted API, whose serving precision is not known to us. None of the systems
-ever sees the privileged ground truth.
+Track-C VLMs are served through a hosted API, whose serving precision is not known to us. None of the Track-B
+stacks, the baseline or the Track-C VLMs ever sees the privileged ground truth; only the Track-A oracle reads it.
 
 **Scoring is strict and telemetry-grounded.** An episode passes only when the
 recorded ego trajectory (speed, position, junction entry, lateral offset,
@@ -433,14 +433,15 @@ Only the stop-line, speed and officer terms are scored today.
 
 - **Lane margins have no rule yet.** Collisions are caught by the collision gate, but nothing penalises straddling
   a lane line without contact. The natural bound is a margin ≥ 0 (the body stays inside its lane). It is a
-  proposal, not implemented. Every green_stop leaderboard episode already meets it (minimum 0.30 m), so adopting
-  it would not change any green_stop score.
+  proposal, not implemented. In the lane-aligned calculation (these logs have no yaw) all 14 green_stop
+  leaderboard episodes have margins ≥ 0 (minimum 0.30 m), so a rule computed the same way would not change their
+  scores; whether the body left its lane at its actual pose is not verified by these logs.
 - **The traffic-light distance needs no separate rule.** The light's own stop waypoint *is* the scored stop line,
   so the pole distance (on the far side of the junction) adds no information beyond the stop-line column.
 
 | Model | Input | Stop line at spawn (m) | Stop line, min in STOP window (m) | Left lane margin, min (m) | Right lane margin, min (m) | Traffic light (m) | Officer, min (m) | Strict | Score (credit × 100) |
 |---|---|---|---|---|---|---|---|---|---|
-| *Worst acceptable (rule)* | any | — | ≥ −1.40 (centre ≥ 1.0), stopped from 4.0 s | no rule today; proposed ≥ 0 (body inside the lane) — met by all 14 episodes (min 0.30) | no rule today; proposed ≥ 0 — met by all 14 (min 0.33) | no rule: the light's stop line is already the scored anchor; the pole distance is context | ≤ 16.59 (or within 16.59 of the line) | PASS | 100 |
+| *Worst acceptable (rule)* | any | — | ≥ −1.40 (centre ≥ 1.0), stopped from 4.0 s | no rule today; proposed ≥ 0 (body inside the lane) — ≥ 0 for all 14 episodes in the lane-aligned calculation (min 0.30) | no rule today; proposed ≥ 0 — ≥ 0 for all 14 in the lane-aligned calculation (min 0.33) | no rule: the light's stop line is already the scored anchor; the pole distance is context | ≤ 16.59 (or within 16.59 of the line) | PASS | 100 |
 | oracle (best case) | privileged ground truth | 7.26 | **1.82** | 0.66 | 0.67 | 36.8 | 8.1 | PASS | **100** |
 | Qwen3-VL | 1 dash-cam RGB | 7.44 | **3.01** | 0.65 | 0.68 | 38.0 | 9.2 | PASS | **100** |
 | NEAT | 3 RGB + IMU | 7.44 | **1.30** | 0.65 | 0.67 | 36.3 | 7.6 | PASS | **100** |
