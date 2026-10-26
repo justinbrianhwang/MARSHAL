@@ -31,7 +31,7 @@ Strict thresholds (`STRICT_THRESHOLDS`), quoted from the code:
 
 | Action | Physical proof required | Threshold |
 |---|---|---|
-| STOP / HOLD | speed falls to ~0 and the stop line is not crossed | `stop_speed_kmh = 1.0`, `stopline_clearance_m = 1.0` |
+| STOP / HOLD | speed falls to ~0 and the vehicle front stays ≥ 1.0 m before the stop line (protocol v2; `dual_authority_handoff` uses its handoff band, `fallen_person` its hazard) | `stop_speed_kmh = 1.0`, front clearance 1.0 m |
 | STOP / HOLD engagement | the ego must actually approach: come within the engagement band of the stop line or the directing human, with real movement (≥5 km/h and ≥1 m progress) | `stopline_engagement_m = hazard_engagement_m = 16.59` — physics-derived, v·t_r + v²/(2a) at the 25 km/h cruise (t_r = 1.0 s, a = 2.5 m/s²) |
 | PROCEED | ego actually moves through the junction | `proceed_speed_kmh = 2.0` |
 | YIELD | slows below the yield speed, then may resume | `yield_stop_speed_kmh = 3.0`, `yield_resume_speed_kmh = 5.0` |
@@ -272,14 +272,16 @@ credit = action_credit · latency_factor · safety_factor · movement_gate   (ea
   approach/engagement factor (approach speed × forward progress, or near-stopline
   progress) so a controller that only partially stops cannot harvest easy credit
   from stop-line clearance alone. An ego with **no movement evidence at all**
-  (never ≥5 km/h or ≥1 m of forward progress over the whole episode) receives
+  (never ≥5 km/h or ≥1 m of travel along the route axis — for STOP/HOLD up to the end
+  of the directive, otherwise within the 25 s horizon) receives
   **zero** credit outright — the graded scorer inherits strict's approach-evidence
   arm, so parking at spawn earns nothing on either scale. A **strict-compliant** stop receives full
   credit only when it would also pass strict — which requires movement evidence
   (the binary gate above) AND engagement with a stop anchor (within the
   engagement band of the stop line, the directing human, or the staged hazard);
-  a stop parked far upstream satisfies neither and scores zero. The scorer is
-  calibrated so the privileged oracle scores 100.0. Residual stop-bias is
+  a stop parked far upstream satisfies neither and scores zero. Stop-line clearance is
+  measured at the front bumper with a 1.0 m margin (protocol v2; not applied to
+  `dual_authority_handoff` or the stop-line-free `fallen_person`). Residual stop-bias is
   additionally corrected **cross-scenario** (the authority weighting below plus
   the PROCEED/DETOUR scenarios that a stop-everything policy fails).
 - **INVALID telemetry → `0.0`.**
@@ -292,8 +294,8 @@ sequential scenarios at `2.00`), normalized so the reported maximum is `100`:
 MARSHAL-Graded = 100 · Σ_s (weight[s] · credit[s]) / Σ_s weight[s]
 ```
 
-The scorer is calibrated so the privileged **oracle scores 100.0**; no learned or
-subjective model is used anywhere in the curve.
+The thresholds were set against the privileged oracle, which scores **96.9** under protocol v2 (24 of 25
+scenarios); no learned or subjective model is used anywhere in the curve.
 
 ---
 
@@ -309,7 +311,7 @@ subjective model is used anywhere in the curve.
   condition-grid run set exists (`scripts/report_robustness.py`); R9 is still
   not instrumented; OCC
   and DRM are binary until finer traces are logged; SBO has no near-miss signal yet;
-  results are single-seed. These are surfaced in the output, not hidden.
+  deterministic driving stacks are run once, VLM-based controllers five times (seeds 0–4). These are surfaced in the output, not hidden.
 - **Two scores, one telemetry.** The strict pass-rate, MARSHAL-Graded, and per-model
   MARSHAL Score are computed from the *same* recorded telemetry, so they can be
   re-derived offline without re-running CARLA.

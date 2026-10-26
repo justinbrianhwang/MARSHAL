@@ -140,6 +140,8 @@ def main():
             if not isinstance(inner, dict):
                 inner = {"scenario": sc}
             inner.setdefault("scenario", sc)
+            if "v2" in (inner.get("protocol_version"), (strict or {}).get("protocol_version")):
+                raise SystemExit(f"{epdir}: protocol v2 episode in the v1 sweep; collect it with collect_protocol_v2.py")
             inner.setdefault("strict_scoring", strict)
             budget = (inner.get("ground_truth") or {}).get("max_reaction_time_sec")
             # Re-score strict under the CURRENT scorer whenever telemetry

@@ -2,9 +2,12 @@
 
 **Task name: Traffic Authority Decision QA.**
 
-Track C evaluates whether a vision-language model can read traffic authority from
-images and choose the correct ego action. It is a **visual decision-QA** task, not
-a closed-loop driving score (see [tracks.md](tracks.md)).
+This document defines a **visual decision-QA** task: one answer per image (or
+frame set), compared with the expected action, without the car moving. It is a
+task definition only; **no results are reported for it**. The reported Track-C
+results are driving results of the **VLM-based closed-loop controller** (see
+[tracks.md](tracks.md) and [evaluation_protocol_v2.md](evaluation_protocol_v2.md)),
+which uses the same VLMs but drives the car.
 
 ## Task definition
 
@@ -43,10 +46,9 @@ STOP, PROCEED, SLOW, HOLD, YIELD, DETOUR.
 - *(Optional)* **Rule-hierarchy subscore** — did it apply safety > authorized
   human command > device when cues conflicted?
 
-**Clarification.** Track-C is **not** a closed-loop driving score unless the VLM
-is wrapped as a controller and tested under **Track B**. A high Track-C score
-means the model reads authority from images; it does not by itself establish that
-the model can drive.
+**Clarification.** A visual decision-QA score is not a driving score: a correct
+answer per image does not establish that the model can drive. The closed-loop
+controller results are the driving measurement.
 
 ## Input Protocol
 
@@ -67,13 +69,13 @@ Track-C result should report:
 > text), they must be reported for every Track-C row so comparisons — especially
 > against closed-loop Track-B agents — are fair.
 
-### Current MARSHAL Track-C setup (as measured)
+### Input protocol of the VLM-based closed-loop controller (protocol v2)
 
 | field | value |
 |-------|-------|
 | number of frames | per-tick single frame (the controller queries on a fixed period) |
-| frame sampling interval | query period ≈ 1.5 s (see results integrity lines) |
-| query budget | leaderboard wiring: the FIRST 3 queries only (t ≈ 0 / 1.5 / 3.0 s); the last returned decision is held for the rest of the episode. Diagnostic (oracle-ablation) runs lift this to an unbounded budget — those rows are never leaderboard rows. |
+| frame sampling interval | 1.5 simulation seconds |
+| query budget | a query at 0.05 s and then every 1.5 s until the 25 s horizon (17 per episode), no cap; the latest answered decision stays active until the next one. The green_stop query-cap comparison repeats the same runs with a 3-query cap. |
 | camera view | single forward ego RGB |
 | image resolution | 1280×720, 90° FOV |
 | frame timing vs gesture onset | live, during the episode (frames span before/through/after onset) |

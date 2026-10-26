@@ -246,6 +246,12 @@ def _apply_cli_overrides(config: dict, args: argparse.Namespace) -> dict:
         config["controller"] = args.controller
     if args.fps is not None:
         config["fps"] = float(args.fps)
+    # Evaluation protocol (docs/evaluation_protocol_v2.md): v2 observes every
+    # scenario for a fixed 25 s; v1 keeps the per-scenario YAML timeout.
+    protocol = os.environ.get("MARSHAL_PROTOCOL") or "v2"
+    config["protocol_version"] = protocol
+    if protocol == "v2":
+        config["timeout_sec"] = 25.0
     if args.timeout is not None:
         config["timeout_sec"] = float(args.timeout)
     merge_condition_config(config, args.weather, args.weather_params)

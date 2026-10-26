@@ -41,7 +41,7 @@ must:
    adjacent lane).
 
 It evaluates this on two tracks: **closed-loop control in CARLA (Track-B)** and
-**visual decision QA (Track-C)** — see [tracks.md](tracks.md) — with **strict,
+**VLM-based closed-loop control (Track-C)** — see [tracks.md](tracks.md) — with **strict,
 telemetry-grounded, oracle-calibrated** scoring, an authority-STOP subset, and a
 per-**conflict-type** failure profile (override / stressed-override / validity /
 conflict / scene / safety). The scenario set is principled, not ad-hoc (seven

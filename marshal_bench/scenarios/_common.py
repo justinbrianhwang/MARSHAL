@@ -1693,10 +1693,15 @@ def run_scenario(
     no_stop_early_termination = (
         os.environ.get("MARSHAL_NO_STOP_EARLY_TERMINATION") == "1"
     )
+    # Evaluation protocol (see strict_episode_scoring.PROTOCOLS). v2 observes
+    # the whole fixed horizon: no success-based early termination at all.
+    protocol = str(config.get("protocol_version") or os.environ.get("MARSHAL_PROTOCOL") or "v2")
+    success_early_termination = protocol == "v1"
 
     result: dict = {
         "episode_id": config.get("episode_id", name),
         "scenario": name,
+        "protocol_version": protocol,
         "expected_action": expected_action,
         "expected_gesture": expected_gesture.value,
         "officer_metadata": None,
@@ -2361,10 +2366,24 @@ def run_scenario(
                     ego_loc, route_origin, route_fwd, route_right
                 )
                 stopline_forward_m = None
+                stopline_front_m = None
                 if stop_line_forward_ref is not None and math.isfinite(ego_forward_m):
                     stopline_forward_m = stop_line_forward_ref - ego_forward_m
+                    # Front of the vehicle at its current pose: the most
+                    # forward bounding-box vertex projected on the route axis.
+                    try:
+                        _verts = ctx.ego.bounding_box.get_world_vertices(ctx.ego.get_transform())
+                        _front = max(
+                            _project_from_origin(v, route_origin, route_fwd, route_right)[0]
+                            for v in _verts
+                        )
+                        if math.isfinite(_front):
+                            stopline_front_m = stop_line_forward_ref - _front
+                    except Exception:
+                        stopline_front_m = None
                 hazard_distance = None
                 hazard_forward = None
+                hazard_lateral = None
                 for actor in list(ctx.extra_actors):
                     hloc = _location_from_transform_or_actor(actor)
                     if hloc is None or ego_loc is None:
@@ -2376,6 +2395,7 @@ def run_scenario(
                     if math.isfinite(dist) and (hazard_distance is None or dist < hazard_distance):
                         hazard_distance = dist
                         hazard_forward = h_forward
+                        hazard_lateral = _h_lat
 
                 # Staging integrity: a blocking actor that moves before any
                 # ego contact voids the scene premise (spawn depenetration
@@ -2537,6 +2557,8 @@ def run_scenario(
                     "ego_forward_m": ego_forward_m,
                     "ego_lateral_m": ego_lateral_m,
                     "hazard_forward_m": hazard_forward,
+                    "hazard_lateral_m": hazard_lateral,
+                    "stopline_front_m": stopline_front_m,
                     "ego_lane_id": ego_lane_id,
                     "ego_road_id": ego_road_id,
                     "distance_to_pedestrian_m": distance_to_pedestrian,
@@ -2578,7 +2600,9 @@ def run_scenario(
                 # Termination: ego stopped within intersection / conflict zone
                 # *after* gesture onset, for STOP scenarios.
                 onset = float(officer_cfg.get("onset_time", 0.0))
-                if (
+                if not success_early_termination:
+                    pass  # protocol v2: observe the full horizon
+                elif (
                     expected_action_effective == "STOP"
                     and not no_stop_early_termination
                 ):
@@ -2651,6 +2675,8 @@ def run_scenario(
                 max_reaction_time=max_reaction_time,
                 controller_errors=controller_errors,
                 setup_errors=scene_setup_errors,
+                protocol=protocol,
+                decision_times=getattr(controller, "decision_times", None),
             )
             result["officer_metadata"] = ctx.officer.get_metadata()
             result["officer_metadata"]["facing_ego_deg"] = dict(director_facing)

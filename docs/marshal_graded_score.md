@@ -25,7 +25,7 @@ Partial credit is computed from per-episode telemetry margins, including:
 - **residual speed** — speed remaining when a STOP/HOLD was required;
 - **reaction latency** — time from gesture onset to the first valid response;
 - **lateral clearance** — clearance to hazards / pedestrians on a PROCEED/DETOUR;
-- **collision status** — any contact zeroes safety-bounded credit;
+- **collision status** — the safety factor is 1.0 / 0.25 / 0.10 / 0 for 0 / 1 / 2–5 / more than 5 collisions;
 - **rule compliance** — did the executed action match the authority-aware
   expectation.
 
@@ -67,7 +67,8 @@ For a policy $\pi$ evaluated over the $N$ scenarios:
 
 > **Note on the gate's form.** Two layers. First, a **binary movement-evidence
 > gate** precedes everything: an ego that never reaches 5 km/h or 1 m of
-> forward progress over the whole episode scores **zero** — the graded scorer
+> travel along the route axis (protocol v2: for STOP/HOLD up to the end of the directive, otherwise within the
+> 25 s horizon) scores **zero** — the graded scorer
 > inherits strict's approach-evidence arm, so parking at spawn earns nothing
 > on either scale. Past that gate, the engagement factor is *continuous*,
 > $e_s \in [0,1]$, applied **only to non-strict STOP/HOLD partial credit**:
@@ -83,13 +84,14 @@ For a policy $\pi$ evaluated over the $N$ scenarios:
 - [x] Scorer module (`marshal_bench/criteria/graded_episode_scoring.py`).
 - [x] **Approach/engagement gate wired in** (`_stop_hold_engagement_factor`), so
       creep-and-stop no longer banks full STOP clearance credit.
-- [x] **Calibrated: the privileged oracle scores 100.0**; current reference
-      sweep (single sweep, ties read at few-point resolution): NEAT
-      39.3, InterFuser 38.4, TCP 28.1, GLM-4.5V 27.1, … PID 11.9 (full tables in README.md).
-- [x] Graded ranking tracks the strict ordering — the graded leaders carry
-      the top strict counts.
-- [x] **Published in `README.md`** as the primary metric (single current
-      reference sweep; a multi-sweep re-measurement is planned).
+- [x] **Thresholds set against the privileged oracle**, which scores 96.9 under protocol v2 (24 of 25;
+      one collision in `civilian_warning_accident`). Protocol-v2 leaderboard (ties read at few-point
+      resolution): InterFuser 43.5, NEAT 42.9, TCP 30.3, CILRS 24.6, Qwen2.5-VL 20.8 ± 3.4, … baseline 7.7
+      (full tables in README.md).
+- [x] The graded leader carries the top strict count (InterFuser, 8/25); further down graded and strict
+      differ where partial credit accrues on unpassed cells (TCP 30.3 with 3/25 above CILRS 24.6 with 5/25).
+- [x] **Published in `README.md`** as the primary metric (protocol v2: one run per deterministic
+      driving stack, five runs per VLM-based controller).
 
 The **strict verdict logic is shared, not duplicated**: graded inherits
 strict's approach-evidence arm and its engagement anchors, and adds

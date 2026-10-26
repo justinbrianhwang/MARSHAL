@@ -224,7 +224,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--weather-params", type=parse_weather_params, default=None,
                    metavar="K=V,K=V",
                    help="Float weather parameters applied over --weather.")
-    p.add_argument("--episode-timeout", type=float, default=300.0,
+    p.add_argument("--episode-timeout", type=float, default=1200.0,
                    help="Wall-clock seconds before an episode is abandoned.")
     p.add_argument("--out", default=os.path.join(_THIS, "outputs", "benchmark"),
                    help="Output root; results go to <out>/<tag>/.")

@@ -97,9 +97,9 @@ reported separately (full definitions in [tracks.md](tracks.md)):
   calibrated against. Not a deployable model.
 - **Track B — Closed-loop driving agent.** Emits `VehicleControl` every tick on its
   native sensor rig; scored from telemetry.
-- **Track C — Visual Decision QA.** Answers the ego action from front-camera frames;
-  a measure of whether a VLM reads authority from images, not a closed-loop driving
-  score.
+- **Track C — VLM-based closed-loop controller.** A VLM picks STOP / GO / SLOW / HOLD
+  from the dash-cam every 1.5 s and a fixed low-level controller drives the car;
+  scored from telemetry like Track B (a driving result, not a visual decision-QA score).
 
 ## Current status (honest scope)
 

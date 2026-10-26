@@ -1049,7 +1049,7 @@ def cmd_leaderboard(dev: Path, out: Path) -> None:
     from marshal_bench.criteria.marshal_metrics import (
         CONFLICT_TYPE, CONFLICT_TYPE_ORDER, aggregate, compute_episode_metrics)
     scen = list(vlm.SCENARIO_ORDER)
-    pub = published_from_readme(REPO / "README.md")
+    pub = published_from_readme(REPO / "docs" / "results_protocol_v1.md")
     cells, summary = [], []
     for label in LB_LABELS:
         scores, metrics, rows_m = [], [], []
@@ -1102,7 +1102,7 @@ def leaderboard_tables(summary: List[Dict[str, Any]], cells: List[Dict[str, Any]
     lines = ["", "## T6. Leaderboard numbers re-derived from the 350 episode cells", "",
              "MARSHAL-Graded = 100 x (sum of weight x credit) / (sum of weights); scenarios passed = strict PASS count; "
              "override cells = strict PASS on the 6 override + 6 stressed-override scenarios. "
-             "README columns are parsed from README.md and compared automatically.", "",
+             "Published columns are parsed from docs/results_protocol_v1.md (protocol v1) and compared automatically.", "",
              "| Model | Sum w x credit | Sum w | Graded | README graded | Passed | README passed | Override cells | README override | Failure profile (override / stressed / validity / conflict / scene / safety) | README profile | MARSHAL Score (partial) | All README numbers reproduced |",
              "|" + "---|" * 13]
     for x in summary:
@@ -1191,7 +1191,7 @@ EXPERIMENTS = [  # (group id, path regex relative to the workspace, purpose, sta
      "excluded: demo media", "-"),
     ("archived_copies", r"^analysis/outputs/green_stop_behavior_audit/.+$",
      "copies of episodes packaged with the 2026-10-16 green_stop audit", "duplicate (copies)", "-"),
-    ("test_fixtures", r"^(MARSHAL/tmp/(pytest[^/]*|_codex[^/]*|_label_parse[^/]*)|outputs/(codex_vest_pytest[^/]*|pbv-suite-[^/]*|pytest[^/]*))/.+$",
+    ("test_fixtures", r"^(MARSHAL/tmp/(pytest[^/]*|_[a-z]+_(T\d+_manual_tests|drop_vest_pytest_\d+)|_label_parse[^/]*)|outputs/([a-z]+_vest_pytest[^/]*|pbv-suite-[^/]*|pytest[^/]*))/.+$",
      "unit-test fixtures", "excluded: tests", "-"),
     ("multi_town_calibration", r"^MARSHAL/outputs/calibration/.+$", "station calibration in Town01-10HD (generalization gates)",
      "excluded: other towns", "-"),

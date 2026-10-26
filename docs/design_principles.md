@@ -102,9 +102,8 @@ decision record: [taxonomy_decision.md](taxonomy_decision.md).
   authority decisions, not navigation quality.
 - MARSHAL does **not** claim that VLMs are complete driving systems by
   themselves.
-- **Track-C (Visual Decision QA)** evaluates decision reasoning from visual
-  observations — *not* closed-loop vehicle control. A VLM's Track-C score is a
-  measure of whether it reads authority from images, not a driving score, unless
-  it is wrapped as a controller and evaluated under Track-B. See
+- **Track-C (VLM-based closed-loop controller)** evaluates a VLM that chooses the
+  high-level action from visual observations while a fixed low-level controller
+  drives the car — a closed-loop driving result, distinct from visual decision QA. See
   [tracks.md](tracks.md) and
   [track_c_visual_decision_qa.md](track_c_visual_decision_qa.md).

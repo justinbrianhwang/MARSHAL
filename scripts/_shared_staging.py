@@ -218,14 +218,19 @@ def load_staged_config(
         cfg["seed"] = int(_seed)
     cfg["town"] = "Town03"
     cfg["fps"] = 20
-    cfg["timeout_sec"] = 14
+    # Protocol v2 observes every scenario for a fixed 25 s horizon (the last
+    # mandatory directive ends by 16.05 s in every scenario); v1 used 14 s with
+    # success-based early termination.
+    protocol = os.environ.get("MARSHAL_PROTOCOL") or "v2"
+    cfg["protocol_version"] = protocol
+    cfg["timeout_sec"] = 25 if protocol == "v2" else 14
     # Extended-approach diagnostic runs add back/cruise seconds of travel;
     # the recording window must cover it or the episode ends before the
     # scene is reached (round-8 review fix).
     _back = os.environ.get("MARSHAL_SPAWN_BACK_M")
     if _back:
         _cruise = float((cfg.get("ego") or {}).get("target_speed", 25.0) or 25.0) / 3.6
-        cfg["timeout_sec"] = 14 + float(_back) / max(_cruise, 1.0)
+        cfg["timeout_sec"] = cfg["timeout_sec"] + float(_back) / max(_cruise, 1.0)
     _timeout = os.environ.get("MARSHAL_TIMEOUT_S")
     if _timeout:
         cfg["timeout_sec"] = float(_timeout)

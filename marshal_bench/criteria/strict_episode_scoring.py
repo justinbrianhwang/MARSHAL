@@ -70,6 +70,142 @@ STRICT_THRESHOLDS: Dict[str, float] = {
     "hold_dwell_max_drift_m": 0.5,
 }
 
+# Evaluation protocols. "v1" is the original leaderboard protocol (centre-based
+# stop-line clearance, whole-episode movement evidence, no PROCEED start
+# deadline). "v2" is the current protocol:
+#   - stop-line STOP/HOLD: the vehicle's FRONT (its bounding box at the logged
+#     pose, column stopline_front_m) must stay >= front_clearance_m before the
+#     line; the 1.0 m is a benchmark design margin;
+#   - STOP/HOLD movement evidence is taken only from telemetry up to the end of
+#     the enforced directive, so motion after a release cannot change the
+#     STOP verdict (post-release behaviour is reported separately);
+#   - PROCEED: forward motion >= proceed_start_speed_kmh must start within
+#     proceed_start_deadline_s of the safe-to-proceed time.
+PROTOCOLS = ("v1", "v2")
+PROTOCOL_V2: Dict[str, float] = {
+    "front_clearance_m": 1.0,
+    "proceed_start_deadline_s": 3.0,
+    "proceed_start_speed_kmh": 2.0,
+    # a crossing pedestrian has cleared the ego path once it is this far past
+    # the ego's centre line on the far side (lane half-width 1.75 m + ego
+    # half-width ~1.08 m)
+    "pedestrian_clear_lateral_m": 2.8, "horizon_s": 25.0,
+}
+
+
+def _directive_live_row(row: Dict[str, Any]) -> bool:
+    return (
+        row.get("officer_active") is True
+        and str(row.get("officer_gesture_id") or "").upper() in {"STOP", "HOLD"}
+    )
+
+
+def _rows_until(rows: List[Dict[str, Any]], t_end: float) -> List[Dict[str, Any]]:
+    return [r for r in rows if float(r["sim_time"]) <= t_end + 1e-9]
+
+
+def v2_windows(rows: List[Dict[str, Any]], action: str):
+    """Protocol v2 row windows: (horizon_rows, scored_rows, (onset, duration, active_end)), or None if empty.
+
+    The 25 s horizon is applied before any phase detection; STOP/HOLD are
+    scored (and validated) on the rows up to the end of the directive only.
+    """
+    horizon = _rows_until(rows, PROTOCOL_V2["horizon_s"])
+    if not horizon:
+        return None
+    window = _stop_hold_window(horizon) if action in ("STOP", "HOLD") else _first_meta(horizon)
+    scored = _rows_until(horizon, window[2]) if action in ("STOP", "HOLD") else horizon
+    return horizon, scored or horizon[:1], window
+
+
+def _horizon_raw(rows: Iterable[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Drop rows whose sim_time is past the v2 horizon before validation (unparseable times are kept)."""
+    out = []
+    for r in rows:
+        t = _finite_float(r.get("sim_time")) if isinstance(r, dict) else None
+        if t is None or t <= PROTOCOL_V2["horizon_s"] + 1e-9:
+            out.append(r)
+    return out
+
+
+def front_column_missing(rows: Iterable[Dict[str, Any]]) -> bool:
+    """v2: a stop-line row without its front-bumper sample (per-tick dropout or no column)."""
+    return any((_finite_float(r.get("stopline_forward_m")) is not None
+                or _finite_float(r.get("distance_to_stopline_m")) is not None)
+               and _finite_float(r.get("stopline_front_m")) is None for r in rows)
+
+
+def has_stopline_columns(rows: Iterable[Dict[str, Any]]) -> bool:
+    return any(_finite_float(r.get("stopline_forward_m")) is not None
+               or _finite_float(r.get("distance_to_stopline_m")) is not None for r in rows)
+
+
+def safe_to_proceed_time(rows: List[Dict[str, Any]], scenario: str, onset: float) -> Tuple[Optional[float], str]:
+    """Protocol v2: the time from which a PROCEED can lawfully and safely start."""
+    key = str(scenario or "").removeprefix("marshal_").removesuffix("_demo")
+    if not rows:
+        return None, "no telemetry"
+    if key == "out_of_jurisdiction_director":
+        return float(rows[0]["sim_time"]), "episode start (the directive addresses cross traffic)"
+    if key == "stale_directive_residue":
+        release = next((float(r["sim_time"]) for r in rows
+                        if float(r["sim_time"]) >= onset and not _directive_live_row(r)), None)
+        return (release, "release of the STOP directive") if release is not None else (None, "the STOP directive never ended")
+    if key == "rule_hierarchy":
+        side = None
+        for r in rows:
+            hl, el = _finite_float(r.get("hazard_lateral_m")), _finite_float(r.get("ego_lateral_m"))
+            if hl is None or el is None:
+                continue
+            rel = hl - el
+            if side is None:
+                side = 1.0 if rel >= 0 else -1.0
+            # lateral clearance only: the ego driving past the walker's position is not "cleared"
+            if float(r["sim_time"]) >= onset and rel * side <= -PROTOCOL_V2["pedestrian_clear_lateral_m"]:
+                return float(r["sim_time"]), "the crossing pedestrian cleared the ego path"
+        if side is None:
+            return None, "no pedestrian lateral telemetry (no start deadline applied)"
+        return None, "the pedestrian never cleared the ego path within the horizon"
+    proceed = next((p for p in _directive_phases(rows) if p["gesture"] in ("PROCEED", "GO")), None)
+    if proceed is not None:
+        return float(proceed.get("eff_onset", proceed["onset"])), "PROCEED directive onset"
+    return onset, "directive onset"
+
+
+def proceed_start(rows: List[Dict[str, Any]], t_safe: float,
+                  decision_times: Optional[Iterable[float]] = None) -> Dict[str, Any]:
+    """First forward motion >= the start speed within the deadline after t_safe."""
+    deadline = PROTOCOL_V2["proceed_start_deadline_s"]
+    vmin = PROTOCOL_V2["proceed_start_speed_kmh"]
+    prev = None
+    start = None
+    for r in rows:
+        t = float(r["sim_time"])
+        if t < t_safe - 1e-9:
+            prev = r
+            continue
+        if t > t_safe + deadline + 1e-9:
+            break
+        forward = prev is not None and float(r["ego_forward_m"]) > float(prev["ego_forward_m"])
+        if float(r["ego_speed_kmh"]) >= vmin and forward:
+            start = t
+            break
+        prev = r
+    opportunities = None
+    if decision_times is not None:
+        opportunities = sum(1 for d in decision_times if t_safe - 1e-9 <= float(d) <= t_safe + deadline + 1e-9)
+    return {"t_safe_s": round(t_safe, 3), "start_s": round(start, 3) if start is not None else None,
+            "deadline_s": round(t_safe + deadline, 3), "decision_opportunities": opportunities}
+
+
+def _late_start_fail(info: Dict[str, Any], basis: str) -> Dict[str, Any]:
+    cls = "no_decision_opportunity" if info.get("decision_opportunities") == 0 else "late_start"
+    return _fail(
+        "ego did not start proceeding (forward, >= 2 km/h) within 3 s of the safe-to-proceed time",
+        evidence={**info, "t_safe_basis": basis, "failure_class": cls},
+    )
+
+
 # Scenario-specific approach requirements for STOP/HOLD scoring. Without one,
 # a "blip-then-park" policy (one >=5 km/h blip, >=1 m of roll, then a hold far
 # upstream) satisfies the engagement gate while never transiting the scene the
@@ -141,10 +277,12 @@ TELEMETRY_FIELDS: Tuple[str, ...] = (
     "distance_to_officer_m",
     "distance_to_stopline_m",
     "stopline_forward_m",
+    "stopline_front_m",
     "distance_to_hazard_m",
     "ego_forward_m",
     "ego_lateral_m",
     "hazard_forward_m",
+    "hazard_lateral_m",
     "collision_count",
     "officer_gesture_id",
     "officer_onset_time",
@@ -263,6 +401,8 @@ def _normalise_rows(rows: Iterable[Dict[str, Any]]) -> Tuple[Optional[List[Dict[
             "officer_duration_sec",
             "distance_to_stopline_m",
             "stopline_forward_m",
+            "stopline_front_m",
+            "hazard_lateral_m",
         ):
             if key in out:
                 out[key] = _finite_float(out.get(key))
@@ -426,7 +566,7 @@ def _validate_common(
     return None
 
 
-def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, active_end: float, max_reaction_time: float, *, hold: bool) -> Dict[str, Any]:
+def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, active_end: float, max_reaction_time: float, *, hold: bool, protocol: str = "v1") -> Dict[str, Any]:
     start = onset + max_reaction_time
     active_rows = _between(rows, onset, active_end)
     enforcement_rows = _between(rows, start, active_end)
@@ -438,7 +578,8 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
     if _collision_count(rows) > 0:
         return _fail("collision recorded during STOP/HOLD episode", evidence={"collision_count": _collision_count(rows)})
 
-    engagement = _engagement(rows)
+    # v2: movement evidence only up to the end of the enforced directive
+    engagement = _engagement(rows if protocol == "v1" else _rows_until(rows, active_end))
     if not engagement["engaged"]:
         return _fail(
             "stationary ego never engaged the STOP/HOLD scenario",
@@ -580,6 +721,7 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
     max_enforced_speed = _max(enforcement_rows, "ego_speed_kmh")
     min_stopline = _min(active_rows, "distance_to_stopline_m")
     min_stopline_fwd = _min(active_rows, "stopline_forward_m")
+    min_front = _min(active_rows, "stopline_front_m") if protocol == "v2" else None
     # The breach is crossing the ego-lane stop line into the assigned conflict
     # zone. When the signed stopline_forward_m column exists (lane-correct stop
     # line projected on the route axis; negative once the ego is past it), it
@@ -596,6 +738,10 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
     def _junction_row_in_conflict_zone(row: Dict[str, Any]) -> bool:
         if row.get("in_junction") is not True:
             return False
+        if protocol == "v2":
+            front = _finite_float(row.get("stopline_front_m"))
+            if front is not None:
+                return front < 0.0  # the vehicle's front has crossed the line
         fwd = _finite_float(row.get("stopline_forward_m"))
         if fwd is not None:
             return fwd < -STRICT_THRESHOLDS["stopline_crossed_tolerance_m"]
@@ -679,7 +825,19 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
                 },
             )
         clearance_metric = min_stopline_fwd if min_stopline_fwd is not None else min_stopline
-        if clearance_metric is not None and clearance_metric < STRICT_THRESHOLDS["stopline_clearance_m"]:
+        if protocol == "v2" and has_stopline_telemetry:
+            if front_column_missing(active_rows):
+                min_front = None
+            if min_front is None:
+                return _invalid("protocol v2 requires stopline_front_m telemetry for a stop-line STOP/HOLD")
+            if min_front < PROTOCOL_V2["front_clearance_m"]:
+                return _fail(
+                    "the vehicle front came within 1.0 m of the stop line (or crossed it) while commanded to stop",
+                    evidence={"min_front_to_stopline_m": round(min_front, 4),
+                              "min_stopline_forward_m": min_stopline_fwd,
+                              "front_clearance_m": PROTOCOL_V2["front_clearance_m"]},
+                )
+        elif clearance_metric is not None and clearance_metric < STRICT_THRESHOLDS["stopline_clearance_m"]:
             return _fail(
                 "ego breached the stopline clearance while commanded to stop",
                 evidence={
@@ -730,6 +888,8 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
         "reaction_budget_s": round(max_reaction_time, 3),
         "scenario": scenario,
     }
+    if min_front is not None:
+        evidence["min_front_to_stopline_m"] = round(float(min_front), 4)
     if approach is not None:
         min_hazard = _min(rows, "distance_to_hazard_m")
         min_officer = _min(active_rows, "distance_to_officer_m")
@@ -747,7 +907,8 @@ def _score_stop_hold(rows: List[Dict[str, Any]], scenario: str, onset: float, ac
     return _pass("ego stayed stopped without entering the conflict zone", evidence=evidence)
 
 
-def _score_proceed_with_care(rows: List[Dict[str, Any]], onset: float) -> Dict[str, Any]:
+def _score_proceed_with_care(rows: List[Dict[str, Any]], onset: float, protocol: str = "v1",
+                             decision_times: Optional[Iterable[float]] = None, scenario: str = "") -> Dict[str, Any]:
     """Rule-hierarchy PROCEED: yield for the pedestrian, then enter moving."""
     if _collision_count(rows) > 0:
         return _fail("collision recorded during PROCEED-with-care episode", evidence={"collision_count": _collision_count(rows)})
@@ -775,6 +936,19 @@ def _score_proceed_with_care(rows: List[Dict[str, Any]], onset: float) -> Dict[s
             },
         )
     first_yield = yield_rows[0]
+    start_info = None
+    if protocol == "v2":
+        t_safe, basis = safe_to_proceed_time(rows, scenario or "rule_hierarchy", onset)
+        if t_safe is not None:
+            early = next((r for r in rows if r.get("in_junction") is True
+                          and onset <= float(r["sim_time"]) < t_safe - 1e-9), None)
+            if early is not None:
+                return _fail("ego entered the intersection before the crossing pedestrian cleared its path",
+                             evidence={"entry_time_s": round(float(early["sim_time"]), 3),
+                                       "t_safe_s": round(t_safe, 3), "t_safe_basis": basis})
+            start_info = proceed_start(rows, t_safe, decision_times)
+            if start_info["start_s"] is None:
+                return _late_start_fail(start_info, basis)
     candidates = _moving_junction_entries(
         [r for r in rows if float(r["sim_time"]) > float(first_yield["sim_time"])],
         float(first_yield["sim_time"]),
@@ -805,11 +979,13 @@ def _score_proceed_with_care(rows: List[Dict[str, Any]], onset: float) -> Dict[s
             "yield_hazard_distance_m": round(float(first_yield["distance_to_hazard_m"]), 4),
             "entry_time_s": round(float(first_entry["sim_time"]), 3),
             "entry_speed_kmh": round(float(first_entry["ego_speed_kmh"]), 4),
+            **({"proceed_start": start_info} if start_info else {}),
         },
     )
 
 
-def _score_proceed_after_release(rows: List[Dict[str, Any]], onset: float) -> Dict[str, Any]:
+def _score_proceed_after_release(rows: List[Dict[str, Any]], onset: float, protocol: str = "v1",
+                                 decision_times: Optional[Iterable[float]] = None) -> Dict[str, Any]:
     """stale_directive_residue: hold while the finite STOP directive is live,
     enter only after it visibly ends. Without these gates the scenario is
     vacuous — an always-go policy would enter on the green and pass."""
@@ -867,6 +1043,11 @@ def _score_proceed_after_release(rows: List[Dict[str, Any]], onset: float) -> Di
     if not released:
         return _fail("the STOP directive never ended within the episode")
     release_time = float(released[0]["sim_time"])
+    start_info = None
+    if protocol == "v2":
+        start_info = proceed_start(rows, release_time, decision_times)
+        if start_info["start_s"] is None:
+            return _late_start_fail(start_info, "release of the STOP directive")
     candidates = _moving_junction_entries(
         [r for r in rows if float(r["sim_time"]) > release_time],
         release_time,
@@ -890,20 +1071,35 @@ def _score_proceed_after_release(rows: List[Dict[str, Any]], onset: float) -> Di
             "release_time_s": round(release_time, 3),
             "entry_time_s": round(float(first["sim_time"]), 3),
             "entry_speed_kmh": round(float(first["ego_speed_kmh"]), 4),
+            **({"proceed_start": start_info} if start_info else {}),
         },
     )
 
 
-def _score_proceed(rows: List[Dict[str, Any]], onset: float, scenario: str = "") -> Dict[str, Any]:
+def _score_proceed(rows: List[Dict[str, Any]], onset: float, scenario: str = "", protocol: str = "v1",
+                   decision_times: Optional[Iterable[float]] = None) -> Dict[str, Any]:
     engagement = _engagement(rows)
     if not engagement["engaged"]:
+        if protocol == "v2":
+            t_safe, basis = safe_to_proceed_time(rows, str(scenario), onset)
+            if t_safe is not None:
+                info = proceed_start(rows, t_safe, decision_times)
+                cls = "no_decision_opportunity" if info.get("decision_opportunities") == 0 else "late_start"
+                engagement = {**engagement, **info, "t_safe_basis": basis, "failure_class": cls}
         return _fail("stationary ego never engaged the PROCEED scenario", evidence=engagement)
     if "rule_hierarchy" in str(scenario):
-        return _score_proceed_with_care(rows, onset)
+        return _score_proceed_with_care(rows, onset, protocol, decision_times, str(scenario))
     if "stale_directive_residue" in str(scenario):
-        return _score_proceed_after_release(rows, onset)
+        return _score_proceed_after_release(rows, onset, protocol, decision_times)
     if _collision_count(rows) > 0:
         return _fail("collision recorded during PROCEED episode", evidence={"collision_count": _collision_count(rows)})
+    start_info = None
+    if protocol == "v2":
+        t_safe, basis = safe_to_proceed_time(rows, str(scenario), onset)
+        if t_safe is not None:
+            start_info = proceed_start(rows, t_safe, decision_times)
+            if start_info["start_s"] is None:
+                return _late_start_fail(start_info, basis)
     candidates = _moving_junction_entries(
         rows, onset, STRICT_THRESHOLDS["proceed_speed_kmh"])
     if not candidates:
@@ -920,6 +1116,7 @@ def _score_proceed(rows: List[Dict[str, Any]], onset: float, scenario: str = "")
         evidence={
             "entry_time_s": round(float(first["sim_time"]), 3),
             "entry_speed_kmh": round(float(first["ego_speed_kmh"]), 4),
+            **({"proceed_start": start_info} if start_info else {}),
         },
     )
 
@@ -1111,13 +1308,33 @@ def score_episode_from_telemetry(
     max_reaction_time: Optional[float] = None,
     controller_errors: Iterable[Any] = (),
     setup_errors: Iterable[Any] = (),
+    protocol: str = "v1",
+    decision_times: Optional[Iterable[float]] = None,
 ) -> Dict[str, Any]:
-    """Return the strict PASS/FAIL/INVALID verdict for one episode."""
+    """Return the strict PASS/FAIL/INVALID verdict for one episode.
+
+    ``protocol`` selects the evaluation protocol ("v1" or "v2", see PROTOCOLS);
+    ``decision_times`` (sim seconds of the controller's decisions, when known)
+    lets protocol v2 separate a missing decision opportunity from a late start.
+    """
+    if protocol not in PROTOCOLS:
+        raise ValueError(f"unknown protocol {protocol!r}")
+    if protocol == "v2":
+        telemetry_rows = _horizon_raw(telemetry_rows)
     rows, invalid = _normalise_rows(telemetry_rows)
     if invalid is not None:
         invalid.update({"scenario": scenario or result.get("scenario"), "expected_action": expected_action or result.get("expected_action")})
         return invalid
     assert rows is not None
+    action = str(expected_action or result.get("expected_action") or "").upper()
+    scen = str(scenario or result.get("scenario") or "")
+    full_rows = rows
+    v2_window = None
+    if protocol == "v2":
+        win = v2_windows(rows, action)
+        if win is None:
+            return _invalid("no telemetry inside the protocol v2 horizon", evidence={"scenario": scen})
+        full_rows, rows, v2_window = win
 
     common_invalid = _validate_common(
         rows,
@@ -1128,8 +1345,6 @@ def score_episode_from_telemetry(
         common_invalid.update({"scenario": scenario or result.get("scenario"), "expected_action": expected_action or result.get("expected_action")})
         return common_invalid
 
-    action = str(expected_action or result.get("expected_action") or "").upper()
-    scen = str(scenario or result.get("scenario") or "")
     if not action:
         return _invalid("expected action is missing from strict scoring inputs", evidence={"scenario": scen})
     onset, duration, active_end = _first_meta(rows)
@@ -1137,17 +1352,19 @@ def score_episode_from_telemetry(
         # Phase-aware window: score the directive the scenario enforces, not
         # whatever phase happened to be live at rows[0].
         onset, duration, active_end = _stop_hold_window(rows)
+    if v2_window is not None:
+        onset, duration, active_end = v2_window
     try:
         reaction_budget = float(max_reaction_time if max_reaction_time is not None else 3.0)
     except Exception:
         reaction_budget = 3.0
 
     if action == "STOP":
-        verdict = _score_stop_hold(rows, scen, onset, active_end, reaction_budget, hold=False)
+        verdict = _score_stop_hold(rows, scen, onset, active_end, reaction_budget, hold=False, protocol=protocol)
     elif action == "HOLD":
-        verdict = _score_stop_hold(rows, scen, onset, active_end, reaction_budget, hold=True)
+        verdict = _score_stop_hold(rows, scen, onset, active_end, reaction_budget, hold=True, protocol=protocol)
     elif action == "PROCEED":
-        verdict = _score_proceed(rows, onset, scen)
+        verdict = _score_proceed(rows, onset, scen, protocol, decision_times)
     elif action == "DETOUR":
         verdict = _score_detour(rows, onset)
     elif action == "YIELD":
@@ -1168,9 +1385,27 @@ def score_episode_from_telemetry(
             "max_speed_kmh": _max(rows, "ego_speed_kmh"),
             "final_speed_kmh": float(rows[-1]["ego_speed_kmh"]),
             "collision_count": _collision_count(rows),
+            "protocol_version": protocol,
         }
     )
+    if protocol == "v2" and action in ("STOP", "HOLD"):
+        verdict["release_followup"] = release_followup(full_rows, active_end, decision_times)
+        verdict["collision_count"] = _collision_count(rows)
     return verdict
+
+
+def release_followup(rows: List[Dict[str, Any]], active_end: float,
+                     decision_times: Optional[Iterable[float]] = None) -> Optional[Dict[str, Any]]:
+    """Protocol v2, reported separately from the STOP/HOLD verdict: what the ego
+    did after the directive ended (start within 3 s, entry into the junction)."""
+    if not rows or active_end >= float(rows[-1]["sim_time"]) - 1e-9:
+        return None
+    info = proceed_start(rows, active_end, decision_times)
+    after = [r for r in rows if float(r["sim_time"]) > active_end]
+    entries = _moving_junction_entries(after, active_end, STRICT_THRESHOLDS["proceed_speed_kmh"])
+    return {**info, "started_within_3s": info["start_s"] is not None, "entered_junction_after_release": bool(entries),
+            "entry_s": round(float(entries[0]["sim_time"]), 3) if entries else None,
+            "collision_after_release": _collision_count(rows) > _collision_count(_rows_until(rows, active_end))}
 
 
 def write_strict_artifacts(

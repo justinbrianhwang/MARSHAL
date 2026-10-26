@@ -63,6 +63,8 @@ class OracleController(EpisodeController):
 
     def __init__(self, config: Optional[dict] = None) -> None:
         self.config = config or {}
+        self._protocol = str(self.config.get("protocol_version")
+                             or os.environ.get("MARSHAL_PROTOCOL") or "v2")
         self.world = None
         self.ego = None
         self.gt: Dict[str, Any] = {}
@@ -112,6 +114,7 @@ class OracleController(EpisodeController):
         # Per-episode reset: the far-directive latch must never leak
         # across episodes when a controller instance is reused.
         self._far_directive_mode = False
+        self._pull_up = None
         self.world = world
         self.ego = ego
         self.gt = ground_truth or {}
@@ -198,10 +201,11 @@ class OracleController(EpisodeController):
                 # throttle alone does not break static resistance on every
                 # CARLA map (notably Town10HD), which made compliant STOP/HOLD
                 # episodes indistinguishable from a frozen controller.
-                # MARSHAL_ORACLE_FROM_REST=1 (diagnostic only): start from rest
-                # like every evaluated controller, to measure what the rolling
-                # start contributes to the oracle's 25/25.
-                if os.environ.get("MARSHAL_ORACLE_FROM_REST") != "1":
+                # Protocol v2: the oracle starts from rest like every evaluated
+                # controller. Protocol v1 (original leaderboard) seeded a 1.8 m/s
+                # rolling start; MARSHAL_ORACLE_FROM_REST=1 forces rest under v1.
+                if (self._protocol == "v1"
+                        and os.environ.get("MARSHAL_ORACLE_FROM_REST") != "1"):
                     self._seed_initial_velocity(1.8)
                 ego.apply_control(
                     carla.VehicleControl(throttle=0.70, brake=0.0, steer=0.0)
@@ -430,6 +434,34 @@ class OracleController(EpisodeController):
         ctrl.brake = 1.0 if speed > 0.25 else 0.85
         return ctrl
 
+    def _stop_target_m(self) -> float:
+        """Centre-to-stop-line distance the oracle aims to stop at.
+
+        v1: 2.5 m (strict centre clearance 1.0 m + 1.5 m for control latency and
+        brake ramp). v2 scores the vehicle front with a 1.0 m design margin, so
+        the target adds the ego's half-length (from its own bounding box).
+        """
+        if self._protocol == "v1":
+            return 2.5
+        # Spawned already inside the normal stop margin (front < 4.0 m from the
+        # line, at rest): pull up to 1.3 m at a walking pace instead of
+        # staying parked short of the scene.
+        return (1.3 if getattr(self, "_pull_up", False) else 2.5) + self._half_length()
+
+    def _pull_up_control(self, base: Any, speed: float, throttle: float) -> Any:
+        ctrl = self._copy_control(base)
+        ctrl.brake = 0.0
+        ctrl.throttle = throttle
+        if getattr(self, "_pull_up", False) and speed > 2.0:
+            ctrl.throttle = 0.0  # cap the pull-up at ~7 km/h
+        return ctrl
+
+    def _half_length(self) -> float:
+        try:
+            return float(self.ego.bounding_box.extent.x)
+        except Exception:
+            return 2.4
+
     def _stop_control(
         self, base: Any, sim_time: float, speed: float,
         obs: Optional[Dict[str, Any]] = None,
@@ -449,8 +481,14 @@ class OracleController(EpisodeController):
                 dstop = None
             if dstop is None:
                 return False
-            stop_envelope_m = (speed * speed) / (2.0 * 3.5) + speed * 0.25
-            return dstop - 2.5 <= stop_envelope_m
+            if self._protocol == "v2" and getattr(self, "_pull_up", None) is None:
+                self._pull_up = speed < 0.5 and dstop - self._half_length() < 4.0
+            if getattr(self, "_pull_up", False):
+                # walking-pace pull-up: short latency term, firm braking
+                stop_envelope_m = (speed * speed) / (2.0 * 6.0) + speed * 0.05
+            else:
+                stop_envelope_m = (speed * speed) / (2.0 * 3.5) + speed * 0.25
+            return dstop - self._stop_target_m() <= stop_envelope_m
 
         if self._is_no_officer_stop():
             if getattr(self, "_stop_roll_anchor", None) is None:
@@ -465,10 +503,7 @@ class OracleController(EpisodeController):
                 except Exception:
                     advanced = 0.0
             if advanced < 2.0 and not _stopline_envelope_hit():
-                ctrl = self._copy_control(base)
-                ctrl.throttle = 0.70
-                ctrl.brake = 0.0
-                return ctrl
+                return self._pull_up_control(base, speed, 0.70)
         if sim_time < self._onset_time:
             # Stop-line-aware cruise: several stations put the ego-lane stop
             # line only metres past the gesture-onset point, so an unmetered
@@ -482,9 +517,7 @@ class OracleController(EpisodeController):
                 ctrl.throttle = 0.0
                 ctrl.brake = 1.0 if speed > 0.25 else 0.85
                 return ctrl
-            ctrl.throttle = min(max(float(getattr(base, "throttle", 0.0)), 0.65), 0.75)
-            ctrl.brake = 0.0
-            return ctrl
+            return self._pull_up_control(base, speed, min(max(float(getattr(base, "throttle", 0.0)), 0.65), 0.75))
 
         ctrl = self._copy_control(base)
         # A directive received far upstream (extended-approach stagings): the
@@ -496,6 +529,8 @@ class OracleController(EpisodeController):
         # unreachable (near stagings put the onset at <15 m), so leaderboard
         # behavior is unchanged.
         if not _stopline_envelope_hit():
+            if getattr(self, "_pull_up", False):
+                return self._pull_up_control(base, speed, 0.65)
             try:
                 _raw = (obs or {}).get("distance_to_stopline_m")
                 _dstop = float(_raw) if _raw is not None else None
@@ -537,7 +572,7 @@ class OracleController(EpisodeController):
                 self._far_directive_mode = True
             if _dstop is not None and (
                 _both_far
-                or (self._far_directive_mode and _dstop > 2.5)
+                or (self._far_directive_mode and _dstop > self._stop_target_m())
             ):
                 ctrl.throttle = min(max(float(getattr(base, "throttle", 0.0)), 0.65), 0.75)
                 ctrl.brake = 0.0

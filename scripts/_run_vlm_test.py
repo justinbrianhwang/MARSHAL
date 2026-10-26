@@ -1,9 +1,9 @@
 """Run a Track-C VLM-in-the-loop comparison against live CARLA.
 
 Usage:
-  C:/Users/sunju/miniconda3/envs/marshal/python.exe scripts/_run_vlm_test.py
-  C:/Users/sunju/miniconda3/envs/marshal/python.exe scripts/_run_vlm_test.py --model zai-org/GLM-4.5V
-  C:/Users/sunju/miniconda3/envs/marshal/python.exe scripts/_run_vlm_test.py --scenario-set smoke
+  python scripts/_run_vlm_test.py
+  python scripts/_run_vlm_test.py --model zai-org/GLM-4.5V
+  python scripts/_run_vlm_test.py --scenario-set smoke
 
 Requires a running CARLA server on 127.0.0.1:2000 with Town03 loaded.
 """
@@ -371,8 +371,11 @@ def _query_period_override(diagnostic: bool) -> Tuple[float, str]:
 def _max_queries_override(diagnostic: bool) -> Tuple[Optional[int], str, bool]:
     """Return (effective cap, episode-id tag, explicitly overridden)."""
     raw = os.environ.get("MARSHAL_VLM_MAX_QUERIES")
+    # Protocol v2 evaluates the VLM controller continuously (a query every
+    # 1.5 s, no per-episode cap); v1 (the original leaderboard) capped it at 3.
+    v1 = (os.environ.get("MARSHAL_PROTOCOL") or "v2") == "v1"
     if diagnostic or raw is None:
-        return (None if diagnostic else 3), "", False
+        return (None if (diagnostic or not v1) else 3), "", False
     text = raw.strip().lower()
     if text == "none":
         return None, "mqinf_", True

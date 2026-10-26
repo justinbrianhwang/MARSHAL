@@ -45,7 +45,7 @@ r_hand, etc.), confirmed by inspecting the FBX.
 
 ## Python validation (run in the `marshal` env once PIE is up)
 ```
-C:/Users/sunju/miniconda3/envs/marshal/python.exe scripts/_validate_police_walker.py
+python scripts/_validate_police_walker.py
 ```
 This finds the new walker blueprint, spawns it, checks `get_bones()` returns the
 Mixamo bones our engine needs, and applies a STOP pose to confirm `set_bones`

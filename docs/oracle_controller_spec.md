@@ -68,13 +68,13 @@ tl_state, in_junction (bool), ground_truth (same dict as above)
 
 ## Constraints
 - CARLA **0.9.16**. Run everything in the conda env **`marshal`**:
-  `C:/Users/sunju/miniconda3/envs/marshal/python.exe`.
+  the `marshal` conda env interpreter (`python`).
 - Use the `carla` module handed to `setup` (don't re-import a different one).
 - Author for synchronous mode at 20 Hz; `step` must be cheap (no blocking).
 
 ## How to test (CARLA must be running on Town03, port 2000)
 ```
-C:/Users/sunju/miniconda3/envs/marshal/python.exe scripts/run_marshal_officer_demo.py \
+python scripts/run_marshal_officer_demo.py \
     --scenario green_stop --town Town03 --controller oracle
 ```
 Then inspect `outputs/marshal_runs/<episode_id>/result.json` → `marshal_metrics`.

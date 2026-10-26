@@ -26,7 +26,15 @@ import math
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 from .strict_episode_scoring import (
+    PROTOCOL_V2,
+    PROTOCOLS,
+    has_stopline_columns,
+    front_column_missing,
+    _horizon_raw,
+    v2_windows,
     STRICT_THRESHOLDS,
+    _rows_until,
+    safe_to_proceed_time,
     _approach_requirement_for,
     _has_settled_dwell,
     _stop_hold_window,
@@ -518,6 +526,8 @@ def _stop_hold_engagement_factor(
     min_stopline: Optional[float],
     min_stopline_fwd: Optional[float] = None,
     entered_junction: bool,
+    movement_rows: Optional[Sequence[Dict[str, Any]]] = None,
+    front_clearance: Optional[float] = None,
 ) -> Tuple[float, Dict[str, float], Dict[str, Any]]:
     """Gate non-strict STOP/HOLD partial credit on real scenario engagement.
 
@@ -571,12 +581,13 @@ def _stop_hold_engagement_factor(
         # strict-compliant shortcut nor partial credit may certify it — the
         # round-7 leaderboard carried 41 cells at credit 1.0 whose strict
         # verdict was "stationary ego never engaged" (formulation audit).
+        mrows = rows if movement_rows is None else movement_rows
         fwd_vals = [
-            v for v in (_finite_float(r.get("ego_forward_m")) for r in rows)
+            v for v in (_finite_float(r.get("ego_forward_m")) for r in mrows)
             if v is not None
         ]
         progress = (max(fwd_vals) - min(fwd_vals)) if fwd_vals else 0.0
-        max_speed_all = _max(rows, "ego_speed_kmh") or 0.0
+        max_speed_all = _max(mrows, "ego_speed_kmh") or 0.0
         return (
             max_speed_all >= STRICT_THRESHOLDS["engagement_speed_kmh"]
             and progress >= STRICT_THRESHOLDS["engagement_progress_m"]
@@ -598,21 +609,18 @@ def _stop_hold_engagement_factor(
         }
         return 0.0, components, evidence
 
+    if front_clearance is not None:
+        line_ok = front_clearance >= PROTOCOL_V2["front_clearance_m"]
+    else:
+        line_ok = (
+            (min_stopline is None or min_stopline >= GRADED_THRESHOLDS["stopline_clearance_m"])
+            and (min_stopline_fwd is None or min_stopline_fwd >= GRADED_THRESHOLDS["stopline_clearance_m"])
+        )
     strict_stop_compliant = (
         bool(enforcement_rows)
         and not entered_junction
-        and (
-            min_stopline is None
-            or min_stopline >= GRADED_THRESHOLDS["stopline_clearance_m"]
-        )
+        and line_ok
         and (min_stopline is not None or _no_stopline_hazard_engaged())
-        and (
-            # The signed column must agree: a lateral crossing keeps the
-            # euclidean minimum above the clearance while the signed value
-            # proves the line was breached (adversarial review).
-            min_stopline_fwd is None
-            or min_stopline_fwd >= GRADED_THRESHOLDS["stopline_clearance_m"]
-        )
         and _stop_anchor_engaged()
         and _movement_engaged()
         and max_scored_speed is not None
@@ -851,7 +859,7 @@ def _stop_hold_approach_factor(
     }
 
 
-def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: float, reaction_budget: float, scenario: Optional[str] = None) -> Tuple[float, Dict[str, float], Dict[str, Any], str]:
+def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: float, reaction_budget: float, scenario: Optional[str] = None, protocol: str = "v1") -> Tuple[float, Dict[str, float], Dict[str, Any], str]:
     active_rows = _between(rows, onset, active_end)
     enforcement_rows = _between(rows, onset + reaction_budget, active_end)
     fallback_rows = enforcement_rows or active_rows
@@ -874,6 +882,10 @@ def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: f
     def _junction_row_in_conflict_zone(row: Dict[str, Any]) -> bool:
         if row.get("in_junction") is not True:
             return False
+        if protocol == "v2":
+            front = _finite_float(row.get("stopline_front_m"))
+            if front is not None:
+                return front < 0.0
         fwd = _finite_float(row.get("stopline_forward_m"))
         if fwd is not None:
             return fwd < -GRADED_THRESHOLDS["stopline_crossed_tolerance_m"]
@@ -908,11 +920,17 @@ def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: f
         GRADED_THRESHOLDS["stop_speed_zero_kmh"],
     )
     clearance_metric = min_stopline_fwd if min_stopline_fwd is not None else min_stopline
+    min_front = _min(active_rows, "stopline_front_m") if protocol == "v2" else None
+    clearance_full = GRADED_THRESHOLDS["stopline_clearance_m"]
+    if min_front is not None:
+        # v2: front-bumper clearance, full credit at the 1.0 m design margin
+        clearance_metric = min_front
+        clearance_full = PROTOCOL_V2["front_clearance_m"]
     if approach_required:
         clearance_metric = None
     clearance_credit = _linear_credit(
         clearance_metric,
-        GRADED_THRESHOLDS["stopline_clearance_m"],
+        clearance_full,
         GRADED_THRESHOLDS["stopline_zero_clearance_m"],
     )
     conflict_factor = 0.35 if entered_junction else 1.0
@@ -937,6 +955,8 @@ def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: f
         min_stopline=None if approach_required else min_stopline,
         min_stopline_fwd=None if approach_required else min_stopline_fwd,
         entered_junction=entered_junction,
+        movement_rows=None if protocol == "v1" else _rows_until(list(rows), active_end),
+        front_clearance=None if (approach_required or min_front is None) else min_front,
     )
     approach_factor, approach_evidence = _stop_hold_approach_factor(rows, active_rows, enforcement_rows, scenario)
     action_credit = base * conflict_factor * evidence_factor * engagement_factor * approach_factor
@@ -959,6 +979,7 @@ def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: f
         "max_scored_speed_kmh": _round(max_speed),
         "min_distance_to_stopline_m": _round(min_stopline),
         "min_stopline_forward_m": _round(min_stopline_fwd),
+        "min_front_to_stopline_m": _round(min_front),
         "entered_junction": entered_junction,
         "active_rows": len(active_rows),
         "enforcement_rows": len(enforcement_rows),
@@ -1298,12 +1319,16 @@ def score_episode_from_telemetry(
     max_reaction_time: Optional[float] = None,
     controller_errors: Iterable[Any] = (),
     setup_errors: Iterable[Any] = (),
+    protocol: str = "v1",
+    decision_times: Optional[Iterable[float]] = None,
 ) -> Dict[str, Any]:
-    """Return a continuous [0, 1] grade for one episode.
+    """Return a continuous [0, 1] grade for one episode (``protocol`` "v1" or "v2").
 
     The inputs intentionally mirror ``strict_episode_scoring`` so existing
     telemetry artifacts can be re-scored without loading CARLA.
     """
+    if protocol == "v2":
+        telemetry_rows = _horizon_raw(telemetry_rows)
     rows, invalid = _normalise_rows(telemetry_rows)
     scen = canonical_scenario_name(scenario or result.get("scenario"))
     action = str(expected_action or result.get("expected_action") or result.get("expected") or "").upper()
@@ -1311,6 +1336,17 @@ def score_episode_from_telemetry(
         invalid.update({"scenario": scen, "expected_action": action})
         return invalid
     assert rows is not None
+    if protocol not in PROTOCOLS:
+        raise ValueError(f"unknown protocol {protocol!r}")
+    v2_window = None
+    if protocol == "v2":
+        # Same windows as the strict scorer (horizon first; STOP/HOLD up to the directive end).
+        win = v2_windows(rows, action)
+        if win is None:
+            verdict = _invalid("no telemetry inside the protocol v2 horizon")
+            verdict.update({"scenario": scen, "expected_action": action, "protocol_version": protocol})
+            return verdict
+        rows, v2_window = win[1], win[2]
 
     common_invalid = _validate_common(rows, controller_errors=controller_errors, setup_errors=setup_errors)
     if common_invalid is not None:
@@ -1339,8 +1375,21 @@ def score_episode_from_telemetry(
     except Exception:
         reaction_budget = 3.0
 
+    if v2_window is not None:
+        onset, duration, active_end = v2_window
+        if action in {"STOP", "HOLD"}:
+            active = [r for r in rows if float(r["sim_time"]) >= onset]
+            if (_approach_requirement_for(scen) is None and has_stopline_columns(active)
+                    and (front_column_missing(active) or _min(active, "stopline_front_m") is None)):
+                verdict = _invalid("protocol v2 requires stopline_front_m telemetry for a stop-line STOP/HOLD")
+                verdict.update({"scenario": scen, "expected_action": action, "protocol_version": protocol})
+                return verdict
+    if protocol == "v2" and action == "PROCEED" and scen not in ("rule_hierarchy", "stale_directive_residue"):
+        t_safe, _basis = safe_to_proceed_time(list(rows), scen, onset)
+        if t_safe is not None:
+            onset = t_safe  # promptness is measured from the safe-to-proceed time
     if action in {"STOP", "HOLD"}:
-        action_credit, components, evidence, reason = _score_stop_hold(rows, onset, active_end, reaction_budget, scenario=scen)
+        action_credit, components, evidence, reason = _score_stop_hold(rows, onset, active_end, reaction_budget, scenario=scen, protocol=protocol)
     elif action == "PROCEED" and scen == "rule_hierarchy":
         action_credit, components, evidence, reason = _score_proceed_with_care(rows, onset)
     elif action == "PROCEED" and scen == "stale_directive_residue":
@@ -1396,6 +1445,7 @@ def score_episode_from_telemetry(
             "max_speed_kmh": _max(rows, "ego_speed_kmh"),
             "final_speed_kmh": float(rows[-1]["ego_speed_kmh"]),
             "collision_count": _collision_count(rows),
+            "protocol_version": protocol,
         }
     )
     return verdict

@@ -25,7 +25,8 @@ from marshal_bench.utils.conditions import parse_weather_params
 SCEN = list(vlm.SCENARIO_ORDER)  # full registered suite (derived, currently 25)
 RESTART_EVERY = 12
 PER_EP_TIMEOUT = 900  # seconds (VLM API episodes can be slow)
-ENV = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8", PYTHONPATH=ROOT)
+# The legacy sweep is protocol v1 (outputs/full_sweep_results.json); v2 runs use run_protocol_v2.py.
+ENV = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8", PYTHONPATH=ROOT, MARSHAL_PROTOCOL="v1")
 
 # Each model's sweep runs in the conda env that has its deps:
 #   marshal       -> pure-python + carla + HF-API VLMs (no torch)

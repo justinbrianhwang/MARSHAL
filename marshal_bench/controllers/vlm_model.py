@@ -212,6 +212,10 @@ class _HFBackend:
                 ],
             }],
         }
+        if os.environ.get("MARSHAL_SEED"):
+            # Common run seed forwarded to the provider; responses are still
+            # not assumed reproducible (every run is recorded separately).
+            body["seed"] = int(os.environ["MARSHAL_SEED"])
         req = urllib.request.Request(
             _HF_ROUTER, data=json.dumps(body).encode(),
             headers={"Authorization": "Bearer " + self.key,
@@ -491,6 +495,11 @@ class VLMController(EpisodeController):
             base, control,
         )
         return control
+
+    @property
+    def decision_times(self) -> list:
+        """Sim times of every query issued (protocol v2 decision-opportunity check)."""
+        return list(self._query_times)
 
     def report_target(self) -> Optional[str]:
         return self._predicted_target
