@@ -688,7 +688,7 @@ def _child_output_path(model: str, scenario_key: str) -> str:
     )
 
 
-def _run_one_isolated(model: str, scenario_key: str, timeout_s: float = 720.0) -> Dict[str, Any]:
+def _run_one_isolated(model: str, scenario_key: str, timeout_s: float = 3000.0) -> Dict[str, Any]:
     child_out = _child_output_path(model, scenario_key)
     try:
         os.remove(child_out)
@@ -1058,7 +1058,8 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--ablation",
         choices=("none", "perception", "authority", "semantics", "temporal",
-                 "action", "policy", "neutral", "policy_only"),
+                 "action", "policy", "neutral", "policy_only",
+                 "role", "gesture", "role_gesture"),
         default=None,
         help="Oracle-assist ablation level (privileged DIAGNOSTIC runs; "
              "separate episode ids and results files; unbounded query "

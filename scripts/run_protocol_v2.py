@@ -3,6 +3,8 @@
     python scripts/run_protocol_v2.py --models oracle tcp qwen3-vl --scenarios green_stop red_proceed --seeds 0
     python scripts/run_protocol_v2.py --all                      # full v2 suite (VLMs seeds 0-4, others seed 0)
     python scripts/run_protocol_v2.py --vlm-cap-comparison       # green_stop, VLMs, 3-query cap, seeds 0-4
+    python scripts/run_protocol_v2.py --ablation-study           # oracle-assist ladder + controls, seed 0
+    python scripts/run_protocol_v2.py --factorial-study          # GLM-4.5V, role x gesture GT, seeds 0-4
 
 Run from the workspace root (the directory holding scripts/, marshal_bench/ and CARLA_0.9.16/). Every episode
 runs in its own child process with MARSHAL_PROTOCOL=v2 and MARSHAL_SEED=<seed>; output goes to
@@ -45,7 +47,25 @@ MODELS = ["oracle", "baseline", "transfuser", "tcp", "interfuser", "cilrs", "aim
           "openemma", "glm-4.5v", "qwen2.5-vl", "qwen3-vl"]
 
 
-def command(model: str, scenario: str, out: Path) -> list:
+# Oracle-assist ablation cells (docs/oracle_ablation.md): (model, level, query period or None = native cadence).
+ABLATION_CELLS = (
+    [("glm-4.5v", lvl, None) for lvl in ("none", "perception", "authority", "semantics", "temporal", "action", "policy",
+                                          "neutral", "policy_only")]
+    + [("glm-4.5v", "policy_only", 3.0)]
+    + [("openemma", lvl, None) for lvl in ("none", "perception", "semantics", "action", "policy", "neutral", "policy_only")]
+    + [("openemma", "policy_only", 1.5)]
+)
+
+
+# Role x gesture factorial (docs/oracle_ablation.md): GLM-4.5V, four cells, the leaderboard's five seeds.
+FACTORIAL_CELLS = [("glm-4.5v", lvl, None) for lvl in ("none", "role", "gesture", "role_gesture")]
+
+
+def cell_name(model: str, level: str, period) -> str:
+    return f"{model}_abl-{level}" + (f"_qp{period:g}" if period else "")
+
+
+def command(model: str, scenario: str, out: Path, ablation=None, period=None) -> list:
     if model in ("oracle", "baseline"):
         return [PY["marshal"], "scripts/_run_reference_staging_sweep.py", scenario, "--controller", model]
     if model == "transfuser":
@@ -55,12 +75,14 @@ def command(model: str, scenario: str, out: Path) -> list:
         env = "interfuser_fl" if model == "interfuser" else "transfuser_ui"
         return [PY[env], "scripts/_run_more_e2e_sweep.py", scenario, "--models", model, "--wall-timeout", "1800",
                 "--results-json", str(out / "_results.json"), "--report", str(out / "_report.md")]
+    diag = (["--ablation", ablation] if ablation else []) + (["--query-period-s", f"{period:g}"] if period else [])
     if model == "openemma":
         return [PY["openemma"], "scripts/_run_fullplanner_sweep.py", scenario, "--controller", "openemma",
-                "--out-root", str(out), "--results-json", str(out / "_results.json"), "--report", str(out / "_report.md")]
+                "--out-root", str(out), "--results-json", str(out / "_results.json"), "--report", str(out / "_report.md"),
+                *diag]
     if model in VLM:
         return [PY["marshal"], "scripts/_run_vlm_test.py", scenario, "--model", VLM[model],
-                "--results-json", str(out / "_results.json"), "--report", str(out / "_report.md")]
+                "--results-json", str(out / "_results.json"), "--report", str(out / "_report.md"), *diag]
     raise SystemExit(f"unknown model {model}")
 
 
@@ -131,6 +153,12 @@ def main() -> int:
     ap.add_argument("--seeds", nargs="*", type=int, default=None)
     ap.add_argument("--all", action="store_true", help="full suite: VLMs seeds 0-4, every other model seed 0")
     ap.add_argument("--vlm-cap-comparison", action="store_true", help="green_stop, the three VLMs, 3-query cap, seeds 0-4")
+    ap.add_argument("--ablation-study", action="store_true",
+                    help="oracle-assist ladder and control cells (ABLATION_CELLS), 25 scenarios, seed 0; "
+                         "default out root tmp/_protocol_v2_ablation")
+    ap.add_argument("--factorial-study", action="store_true",
+                    help="role x gesture factorial (FACTORIAL_CELLS), 25 scenarios, seeds 0-4, cells interleaved; "
+                         "default out root tmp/_protocol_v2_factorial")
     ap.add_argument("--out-root", default="tmp/_protocol_v2")
     ap.add_argument("--restart-every", type=int, default=8)
     ap.add_argument("--log", default="outputs/protocol_v2/run_log.jsonl")
@@ -139,13 +167,22 @@ def main() -> int:
     sys.path.insert(0, str(ROOT / "scripts"))
     import _run_vlm_test as vlm  # scenario registry
     scenarios = a.scenarios or list(vlm.SCENARIO_ORDER)
-    jobs = []
-    if a.vlm_cap_comparison:
-        jobs = [(m, "green_stop", s, True) for s in range(5) for m in VLM]
+    jobs = []  # (model, scenario, seed, cap3, ablation, period)
+    if a.factorial_study:
+        if a.out_root == "tmp/_protocol_v2":
+            a.out_root = "tmp/_protocol_v2_factorial"
+        # cells innermost, so API drift over the run hits all four cells alike
+        jobs = [(m, sc, s, False, lvl, per) for s in range(5) for sc in scenarios for (m, lvl, per) in FACTORIAL_CELLS]
+    elif a.ablation_study:
+        if a.out_root == "tmp/_protocol_v2":
+            a.out_root = "tmp/_protocol_v2_ablation"
+        jobs = [(m, sc, 0, False, lvl, per) for (m, lvl, per) in ABLATION_CELLS for sc in scenarios]
+    elif a.vlm_cap_comparison:
+        jobs = [(m, "green_stop", s, True, None, None) for s in range(5) for m in VLM]
     else:
         for m in (a.models or MODELS):
             seeds = a.seeds if a.seeds is not None else (list(range(5)) if (a.all and m in VLM) else [0])
-            jobs += [(m, sc, s, False) for s in seeds for sc in scenarios]
+            jobs += [(m, sc, s, False, None, None) for s in seeds for sc in scenarios]
     Path(a.log).parent.mkdir(parents=True, exist_ok=True)
 
     def log(rec):
@@ -157,8 +194,9 @@ def main() -> int:
     base_env.update({"PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1", "PYTHONPATH": str(ROOT), "MARSHAL_PROTOCOL": "v2"})
     since_restart, carla_up, failures = 10 ** 6, False, 0
     log({"event": "batch_start", "jobs": len(jobs)})
-    for i, (model, sc, seed, cap3) in enumerate(jobs, 1):
-        out = Path(a.out_root) / (model + ("_cap3" if cap3 else "")) / f"s{seed}"
+    for i, (model, sc, seed, cap3, ablation, period) in enumerate(jobs, 1):
+        name = cell_name(model, ablation, period) if ablation else model + ("_cap3" if cap3 else "")
+        out = Path(a.out_root) / name / f"s{seed}"
         out.mkdir(parents=True, exist_ok=True)
         if complete(out, sc):
             continue
@@ -174,14 +212,15 @@ def main() -> int:
         t0 = time.time()
         with open(out / f"_{sc}.log", "w", encoding="utf-8") as fh:
             try:
-                rc = subprocess.run(command(model, sc, out), env=env, stdout=fh, stderr=subprocess.STDOUT,
-                                    timeout=2400).returncode
+                rc = subprocess.run(command(model, sc, out, ablation, period), env=env, stdout=fh, stderr=subprocess.STDOUT,
+                                    timeout=3600).returncode
             except subprocess.TimeoutExpired:
                 rc = "timeout"
         ok = complete(out, sc)
         since_restart += 1
         log({"event": "episode", "i": i, "of": len(jobs), "model": model, "scenario": sc, "seed": seed,
-             "cap3": cap3, "rc": rc, "complete": ok, "wall_s": round(time.time() - t0, 1)})
+             "cap3": cap3, "ablation": ablation, "period": period, "rc": rc, "complete": ok,
+             "wall_s": round(time.time() - t0, 1)})
         if not ok:
             failures += 1
             carla_up = False  # fresh server before the next episode

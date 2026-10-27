@@ -608,7 +608,8 @@ def _parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     parser.add_argument(
         "--ablation",
         choices=("none", "perception", "authority", "semantics", "temporal",
-                 "action", "policy", "neutral", "policy_only"),
+                 "action", "policy", "neutral", "policy_only",
+                 "role", "gesture", "role_gesture"),
         default=None,
         help="Oracle-assist ablation level (privileged DIAGNOSTIC runs; "
              "separate episode ids and results files). OpenEMMA controller "

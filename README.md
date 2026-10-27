@@ -628,7 +628,8 @@ Every run writes a `scoreboard.json` with `suite`, `r_scores`,
 
 - $c_s(\pi) \in [0,1]$ — the per-episode **telemetry credit**: action correctness,
   reaction latency, safety (collision-free), and maneuver quality, all read off the
-  realized trajectory. Invalid or malformed telemetry scores `0`.
+  realized trajectory. Invalid or malformed telemetry scores `0`. Every formula is written out in
+  [How the graded credit is computed](#how-the-graded-credit-is-computed-all-formulas).
 - $w_s > 0$ — the **scenario authority weight**. Authority-override scenarios are
   deliberately weighted above 1.0 (1.5–2.0×): normatively, they are where the legal
   hierarchy *safety > authorized human > device* actually binds; diagnostically, they
@@ -997,6 +998,187 @@ The latency factor depends on the action:
 In every case the factor is L(latency; max(3, budget), max(3, budget) + 5). If no response is detected, the factor is
 1 when the action credit is already ≥ 0.999 and 0 otherwise. The safety factor is 1, 0.25, 0.10 or 0 for 0, 1, 2–5
 or more than 5 collisions.
+
+### How the graded credit is computed (all formulas)
+
+Every episode's credit is the product of four terms:
+
+```math
+\text{Credit} \times 100 \;=\; 100 \times \text{Action Credit} \times \text{Latency Factor} \times \text{Safety Factor} \times \text{Movement Gate}
+```
+
+```math
+\text{MARSHAL-Graded} \;=\; 100 \times \frac{\sum_{s} w_s \,\text{Credit}_s}{\sum_{s} w_s}, \qquad \textstyle\sum_s w_s = 42.5
+```
+
+An INVALID episode gets Credit = 0. Every partial term uses the linear ramp
+
+```math
+L(x;\,a,\,b) \;=\; \mathrm{clip}\!\left(\frac{x-b}{a-b},\,0,\,1\right)
+\qquad (=1 \text{ at or beyond } a,\; =0 \text{ at or beyond } b)
+```
+
+Units: speeds v in km/h, distances in m, times in s.
+
+**Movement Gate** (every action; for STOP/HOLD over the rows up to the directive end, otherwise the 25 s horizon):
+
+```math
+G_{\text{move}} \;=\; \mathbb{1}\!\left[\max_t v(t) \ge 5 \;\wedge\; \max_t x(t) - \min_t x(t) \ge 1\right]
+```
+
+Here x is the position along the route axis fixed at spawn.
+
+**Safety Factor** (collision count n):
+
+```math
+F_{\text{safe}} =
+\begin{cases}
+1 & n = 0\\
+0.25 & n = 1\\
+0.10 & 2 \le n \le 5\\
+0 & n > 5
+\end{cases}
+```
+
+**Latency Factor.** τ is the time from the onset (PROCEED: from t_safe) to the first response listed in the latency
+table above, and B is the scenario's reaction budget (3 s unless the scenario sets more):
+
+```math
+F_{\text{lat}} =
+\begin{cases}
+L\bigl(\tau;\ T,\ T+5\bigr),\quad T = \max(3, B) & \text{a response was detected}\\
+1 & \text{no response, STOP/HOLD with Action Credit} \ge 0.999\\
+0 & \text{otherwise}
+\end{cases}
+```
+
+**Action Credit — STOP / HOLD.** The STOP window is [onset, end of the directive]. The enforcement window is
+[onset + B, end of the directive].
+
+```math
+\begin{aligned}
+\text{base} &= 0.60\,L(v_{\max};\,1,\,12) + 0.40\,L(f_{\min};\,1,\,-2)\\
+A &= \text{base} \times 0.35^{[\text{conflict-zone entry}]} \times 0.75^{[\text{no enforcement rows}]} \times e \times a
+\end{aligned}
+```
+
+- v_max is the maximum speed in the enforcement window, or in the STOP window when the enforcement window has no rows.
+- f_min is the minimum front-bumper distance to the stop line in the STOP window.
+- A conflict-zone entry is a junction row with f < 0.
+- `fallen_person` has no stop line, so base = L(v_max; 1, 12).
+- `dual_authority_handoff` uses base = L(v_max; 1, 12) with no conflict term. Its approach factor a is the product of
+  the band terms in the table above; a = 1 in every other scenario.
+
+The engagement factor e is 1 when the episode meets the strict STOP/HOLD conditions. It is 0 when the ego shows no
+movement. Otherwise:
+
+```math
+e = \max\Bigl(L(v_{\text{app}};\,10,\,5)\cdot L(d_{\text{app}};\,10,\,1),\;\; \min\bigl(L(d_{\text{app}};\,10,\,1)\cdot L(d_{\text{line}};\,15,\,40),\ c\bigr)\Bigr)
+```
+
+- c = 0.25 when L(v_app; 10, 5) = 0 (a creep), otherwise c = 1.
+- v_app is the maximum speed up to the first stop (≤ 1 km/h) after onset, or up to onset + B if there is no stop.
+- d_app is the stop-line distance at onset minus its minimum.
+- d_line is the minimum stop-line distance.
+
+**Action Credit — PROCEED** (`red_proceed`, `out_of_jurisdiction_director`, `night_signal_officer_conflict`).
+t_move is the first tick at or after t_safe with v ≥ 2. v_entry is the speed at the first junction row past the
+stop line.
+
+```math
+A =
+\begin{cases}
+0.65\,L(v_{\text{entry}};\,2,\,0) + 0.35\,L(t_{\text{move}} - t_{\text{safe}};\,3,\,8) & \text{entered the junction}\\[2pt]
+0.20\,L(v_{\max};\,2,\,0) + 0.10\,L(x_{\max};\,10,\,0) & \text{no entry (at most 0.30)}
+\end{cases}
+```
+
+**Action Credit — PROCEED with care** (`rule_hierarchy`):
+
+```math
+A = 0.45\,L(v_{\min};\,3,\,12) + 0.45\,L(v_{\text{entry}};\,2,\,0) + 0.10\,O
+```
+
+- v_min is the minimum post-onset speed within 14 m of the pedestrian; if the ego never comes within 14 m, it is the
+  minimum over all post-onset rows that carry a pedestrian distance.
+- v_entry is measured at the first junction entry after the yield.
+- O = 1 if a post-onset tick is ≤ 3 km/h, otherwise 0.
+
+**Action Credit — PROCEED after release** (`stale_directive_residue`). A_PROCEED is the PROCEED formula, timed from
+the release. v_min and the settled-dwell search use only the rows where the STOP/HOLD directive is live, from
+onset + 2 s.
+
+```math
+A = A_{\text{PROCEED}} \times h,\qquad
+h =
+\begin{cases}
+0 & \text{entered the junction while the directive was live}\\
+1 & \text{settled dwell } (\le 3 \text{ km/h for} \ge 2\text{ s},\ \le 0.5\text{ m drift})\\
+0.3 & v_{\min} \le 3 \text{ without a settled dwell}\\
+L(v_{\min};\,3,\,12) & \text{otherwise}
+\end{cases}
+```
+
+**Action Credit — DETOUR.** y is the lateral offset after onset, x is the forward position, and x_obs is the
+obstacle position.
+
+```math
+A = 0.55\,L\bigl(\max|y|;\,1.5,\,0\bigr) + 0.45\,L\bigl(x_{\max};\,x_{\text{obs}} + 4,\,1\bigr)
+```
+
+**Action Credit — YIELD** (`ambulance_yield`):
+
+```math
+A = 0.20\,\alpha + 0.35\,\alpha\,L(v_{\min};\,3,\,12) + 0.25\,L\bigl(\max|y|_{\text{after slowdown}};\,1,\,0\bigr) + 0.20\,L(v_{\text{resume}};\,5,\,0),
+\qquad \alpha = L(v_{\text{pre}};\,5,\,0)
+```
+
+- v_pre is the maximum speed up to onset + 1 s.
+- v_min is the minimum speed inside the ambulance's active window. The strict rule accepts the ≤ 3 km/h slowdown at
+  any time after onset.
+- v_resume is the maximum speed after the slowdown.
+
+**Why most episodes score exactly 0 or 1.** The curves are anchored to the strict thresholds. As a result, an
+episode that meets the strict conditions without a collision gets credit 1. The one exception is `ambulance_yield`:
+its v_min is read inside the active window, so 7 strict YIELD passes whose slowdown came after that window earn
+0.70–0.93. Every episode with credit 1 is a strict PASS.
+
+Because the four terms multiply, a single zero term zeroes the episode. The zeros come from four sources:
+
+- an ego that never moves (Movement Gate = 0);
+- a drive-through at speed (speed and clearance terms both 0, so Action Credit = 0);
+- repeated collisions (Safety Factor = 0);
+- a response later than T + 5 s (Latency Factor = 0).
+
+Partial credit is left only for near misses, such as a slow roll inside the enforcement window or a stop a few metres
+past the line.
+
+**Episodes by credit and by the first zero term** (generated). The zero columns are assigned in the order
+movement gate → action credit → latency → safety. All 650 leaderboard episodes are counted; VLM-based controllers
+have five runs each.
+
+<!-- v2:credit_distribution -->
+
+| model | episodes | credit = 1 | 0 < credit < 1 | 0: movement gate | 0: action credit | 0: latency | 0: safety | invalid |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| oracle (privileged) | 25 | 24 | 1 | 0 | 0 | 0 | 0 | 0 |
+| InterFuser | 25 | 7 | 7 | 7 | 2 | 0 | 2 | 0 |
+| NEAT | 25 | 5 | 16 | 0 | 4 | 0 | 0 | 0 |
+| TCP | 25 | 3 | 17 | 0 | 1 | 0 | 4 | 0 |
+| CILRS | 25 | 5 | 4 | 0 | 13 | 0 | 3 | 0 |
+| Qwen2.5-VL-72B | 125 | 21 | 25 | 36 | 27 | 1 | 15 | 0 |
+| TransFuser | 25 | 2 | 2 | 18 | 3 | 0 | 0 | 0 |
+| AIM | 25 | 1 | 12 | 9 | 3 | 0 | 0 | 0 |
+| MPC (control) | 25 | 3 | 1 | 0 | 14 | 0 | 7 | 0 |
+| PID (control) | 25 | 3 | 0 | 0 | 14 | 1 | 7 | 0 |
+| Qwen3-VL-235B-A22B | 125 | 10 | 11 | 55 | 30 | 2 | 17 | 0 |
+| OpenEMMA | 25 | 2 | 3 | 7 | 8 | 0 | 5 | 0 |
+| GLM-4.5V | 125 | 9 | 11 | 83 | 16 | 3 | 3 | 0 |
+| baseline (light-only, officer-blind) | 25 | 0 | 4 | 2 | 11 | 1 | 7 | 0 |
+| **non-privileged, all** | 625 | 71 | 113 | 217 | 146 | 8 | 70 | 0 |
+| **all** | 650 | 95 | 114 | 217 | 146 | 8 | 70 | 0 |
+
+<!-- /v2:credit_distribution -->
 
 Source: `marshal_bench/criteria/strict_episode_scoring.py` and `graded_episode_scoring.py` (`protocol="v2"`). Each
 rule is pinned by tests under `tests/` (`tests/test_protocol_v2.py` for the v2 rules).

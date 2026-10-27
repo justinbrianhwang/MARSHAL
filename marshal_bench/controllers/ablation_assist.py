@@ -31,6 +31,18 @@ close the two reviewer-attacked caveats on the published measurement:
                   cumulative ladder cannot separate from knowledge). Needs
                   privileged GT and the shadow oracle exactly like policy.
 
+A 2x2 factorial over the two perception facts an authority-aware driver must
+get right (FACTOR_LEVELS; non-cumulative, no rank):
+
+    role         - who the director is and whether they are a legally valid
+                   traffic authority (no gesture, no light, no meaning)
+    gesture      - which hand signal is being shown at this instant (no
+                   appearance, no legal class, no meaning)
+    role_gesture - both blocks, byte-identical to the two single-factor cells
+                   (role lines first)
+
+`none` is the fourth cell of the factorial.
+
 The injected text must be IDENTICAL across wirings (per-tick VLM, trajectory
 planners, ...) or the ladder is not comparable, so every controller builds it
 through :class:`AblationAssist` and nothing else. The truthfulness rules are
@@ -50,6 +62,10 @@ ABLATION_LEVELS = ("none", "perception", "authority", "semantics", "temporal",
 # accepts them everywhere the ladder levels are accepted, but they have no
 # rank and never change the semantics/order of the ladder above.
 CONTROL_LEVELS = ("neutral", "policy_only")
+
+# 2x2 factorial cells (role x gesture), also outside the ladder; `none` is the
+# fourth cell. See the module docstring.
+FACTOR_LEVELS = ("role", "gesture", "role_gesture")
 
 # The neutral cell's fixed filler block. Length-matched to the strongest
 # knowledge block of the ladder: the mean character length of the `action`
@@ -136,7 +152,7 @@ class AblationAssist:
 
     def __init__(self, level: str) -> None:
         level = str(level or "none").lower()
-        valid = ABLATION_LEVELS + CONTROL_LEVELS
+        valid = ABLATION_LEVELS + CONTROL_LEVELS + FACTOR_LEVELS
         if level not in valid:
             raise ValueError(
                 f"ablation={level!r} is not one of {valid}")
@@ -214,6 +230,15 @@ class AblationAssist:
             if y not in _EXPECTED_ACTION_DESC:
                 problems.append(
                     f"Y_expected_action {y!r} has no honest description")
+        if self.level in FACTOR_LEVELS:
+            # The factorial cells state the gesture as a fact; a defaulted
+            # gesture would be a silently false assist.
+            if atype is not None and not str(gt.get("G_gesture") or "").strip():
+                problems.append("G_gesture missing for a present director")
+            if second is not None and not str(second.get("gesture") or "").strip():
+                problems.append("A_second_authority.gesture missing")
+            if second is not None and atype is None:
+                problems.append("A_second_authority present without a primary director")
         if problems:
             raise ValueError(
                 "ablation ground truth is malformed (refusing to run a "
@@ -304,6 +329,8 @@ class AblationAssist:
             # The per-tick oracle token line ALONE (plan without knowledge).
             line = self._policy_line()
             return f"{line}\n" if line else ""
+        if self.level in FACTOR_LEVELS:
+            return self._factor_assist(sim_time)
         if self.rank <= 0:
             return ""
         gt = self.gt
@@ -453,6 +480,60 @@ class AblationAssist:
                 lines.append(line)
         return "\n".join(lines) + "\n"
 
+    def _factor_assist(self, sim_time: float) -> str:
+        """role / gesture / role_gesture blocks (2x2 factorial cells).
+
+        Role never names the gesture; gesture never names the appearance or
+        the legal class. role_gesture is the role lines then the gesture
+        lines, byte-identical to the single-factor cells.
+        """
+        gt = self.gt
+        authority = gt.get("A_authority") or {}
+        atype = authority.get("type")
+        if atype in ("none", ""):
+            atype = None
+        second = gt.get("A_second_authority") or None
+        gesture, onset_f, end_f = self.gesture_window()
+        live = self.live_officer_state()
+        officer_gone = (atype is not None and live is not None
+                        and not live.get("present", True))
+        role, sign = [], []
+        if atype:
+            appearance = str(gt.get("A_appearance")
+                             or _APPEARANCE.get(str(atype).lower(), ""))
+            who = f"a person {appearance}" if appearance else f"a {atype}"
+            verdict = "IS" if authority.get("valid") else "is NOT"
+            where = ("was directing here earlier but is NO LONGER PRESENT"
+                     if officer_gone else "is present in the scene")
+            role.append(f"- Role: {who} {where}; this {atype} {verdict} a "
+                        "legally valid traffic authority.")
+            if officer_gone or (end_f is not None and sim_time > end_f):
+                sign.append(f"- Gesture: no hand signal is being shown now "
+                            f"(a {gesture} hand signal was shown earlier).")
+            elif onset_f is not None and sim_time < onset_f:
+                sign.append("- Gesture: no hand signal is being shown at "
+                            "this moment.")
+            else:
+                sign.append(f"- Gesture: a {gesture} hand signal is being "
+                            "shown at this moment.")
+        else:
+            role.append("- Role: no human director is present in this scene.")
+            sign.append("- Gesture: no hand signal is being shown in this "
+                        "scene.")
+        if second is not None:
+            t2 = second.get("type")
+            app2 = _APPEARANCE.get(str(t2).lower(), "")
+            who2 = f"a person {app2}" if app2 else f"a {t2}"
+            verdict = "IS" if second.get("valid") else "is NOT"
+            role.append(f"- Role: a second person, {who2}, is also present; "
+                        f"this {t2} {verdict} a legally valid traffic "
+                        "authority.")
+            sign.append(f"- Gesture: a second hand signal is also given in "
+                        f"the scene: {str(second.get('gesture') or 'IDLE').upper()} "
+                        "(when given).")
+        body = {"role": role, "gesture": sign, "role_gesture": role + sign}[self.level]
+        return "\n".join(["GROUND-TRUTH ASSISTS (diagnostic ablation study):", *body]) + "\n"
+
     @staticmethod
     def control_to_token(throttle: float, brake: float,
                          speed_mps: float) -> str:
@@ -464,5 +545,5 @@ class AblationAssist:
         return "GO"
 
 
-__all__ = ["ABLATION_LEVELS", "CONTROL_LEVELS", "NEUTRAL_ASSIST_TEXT",
+__all__ = ["ABLATION_LEVELS", "CONTROL_LEVELS", "FACTOR_LEVELS", "NEUTRAL_ASSIST_TEXT",
            "AblationAssist"]

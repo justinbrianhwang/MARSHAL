@@ -13,6 +13,7 @@ need the exported Town03 OpenDRIVE map (scripts/dac2027_carla_util.py export-map
 from __future__ import annotations
 
 import argparse
+import collections
 import csv
 import json
 import math
@@ -143,6 +144,34 @@ def cap_table(cap):
             for c in cap]
     return md(["model", "query schedule", "runs (seeds 0–4)", "queries per episode", "strict PASS",
                "credit mean", "credit SD"], rows)
+
+
+def credit_distribution(cells, board):
+    """Episodes by credit: 1, strictly between 0 and 1, and 0 split by the first zero factor
+    (movement gate, then action credit, then latency, then safety; credit is their product)."""
+    def bucket(c):
+        if c.get("graded_invalid") == "True":
+            return "invalid"
+        if c["credit"] >= 0.999999:
+            return "full"
+        if c["credit"] > 0:
+            return "partial"
+        if c["movement_gate"] == "0":
+            return "move"
+        for k in ("action_credit", "latency_factor", "safety_factor"):
+            if (_f(c[k]) or 0.0) == 0:
+                return k
+        return "invalid"
+    keys = ("full", "partial", "move", "action_credit", "latency_factor", "safety_factor", "invalid")
+    def row(label, cs):
+        n = collections.Counter(bucket(c) for c in cs)
+        return [label, len(cs), *[n[k] for k in keys]]
+    models = [r["model"] for r in board["leaderboard"]]  # leaderboard rows only (no cap-3 or ablation cells)
+    rows = [row(NAME[m], [c for c in cells if c["model"] == m]) for m in models]
+    rows.append(row("**non-privileged, all**", [c for c in cells if c["model"] in models and c["model"] != "oracle"]))
+    rows.append(row("**all**", [c for c in cells if c["model"] in models]))
+    return md(["model", "episodes", "credit = 1", "0 < credit < 1", "0: movement gate", "0: action credit",
+               "0: latency", "0: safety", "invalid"], rows)
 
 
 def proceed_table(cells):
@@ -363,6 +392,7 @@ def main() -> int:
         "failure_profile": profile(board),
         "matrix": matrix(cells, board),
         "query_cap_green_stop": cap_table(cap),
+        "credit_distribution": credit_distribution(cells, board),
         "proceed_start": proceed_table(cells),
         "release_followup": release_table(cells),
         "green_stop_runs": green_stop_summary(cells, geo),

@@ -49,18 +49,26 @@ def _decision_times(ep: Path):
         return [float(r["sim_time"]) for r in csv.DictReader(fh) if r.get("queried_this_tick") == "True"]
 
 
-def _schedule_problem(dts, capped: bool):
-    """v2 VLM schedule: first query at 0.05 s, then every 1.5 s (one tick of jitter), to the horizon unless capped at 3."""
+def _cell(name: str):
+    """Model-directory name -> (base model, ablation level or None, query period s, capped)."""
+    base, _, rest = name.partition("_abl-")
+    level, period = (rest.split("_qp") + [None])[:2] if rest else (None, None)
+    base = base.replace("_cap3", "")
+    return base, level, float(period) if period else 1.5, name.endswith("_cap3")
+
+
+def _schedule_problem(dts, capped: bool, period: float = 1.5):
+    """v2 VLM schedule: first query at 0.05 s, then every `period` s (one tick of jitter), to the horizon unless capped at 3."""
     if not dts:
         return "no query trace (vlm_debug/vlm_trace.csv)"
     if dts[0] > 0.1 + 1e-9:
         return f"first query at {dts[0]:.2f} s"
     gaps = [b - a for a, b in zip(dts, dts[1:])]
-    if any(not 1.45 <= g <= 1.55 + 1e-6 for g in gaps):
+    if any(not period - 0.05 <= g <= period + 0.05 + 1e-6 for g in gaps):
         return f"query intervals {sorted({round(g, 2) for g in gaps})}"
     if capped and len(dts) != 3:
         return f"{len(dts)} queries with the 3-query cap"
-    if not capped and dts[-1] < S.PROTOCOL_V2["horizon_s"] - 1.55 - 1e-6:
+    if not capped and dts[-1] < S.PROTOCOL_V2["horizon_s"] - period - 0.05 - 1e-6:
         return f"last query at {dts[-1]:.2f} s (uncapped schedule must run to the horizon)"
     return None
 
@@ -75,7 +83,8 @@ def _flat(d, prefix=""):
     return out
 
 
-def score_episode(ep: Path, scenario: str, registry, is_vlm: bool = False, is_cap: bool = False) -> dict:
+def score_episode(ep: Path, scenario: str, registry, is_vlm: bool = False, is_cap: bool = False,
+                  period: float = 1.5) -> dict:
     tel = _json(ep / "strict_telemetry.json") or {}
     rows = tel.get("telemetry") if isinstance(tel, dict) else tel
     res = _json(ep / "result.json") or {}
@@ -101,7 +110,7 @@ def score_episode(ep: Path, scenario: str, registry, is_vlm: bool = False, is_ca
               or ((meta.get("config") or {}).get("expected_behavior") or {}).get("max_reaction_time_sec") or 3.0)
     dts = _decision_times(ep)
     if is_vlm:
-        bad = _schedule_problem(dts, capped=is_cap)
+        bad = _schedule_problem(dts, capped=is_cap, period=period)
         if bad:
             return {"accepted": False, "reason": f"VLM query schedule: {bad}"}
     kw = dict(scenario=scenario, expected_action=registry[scenario]["expect"], max_reaction_time=budget,
@@ -121,6 +130,10 @@ def score_episode(ep: Path, scenario: str, registry, is_vlm: bool = False, is_ca
     mv = gev.get("movement_gate") or {}
     gstop = gev.get("engagement") or {}
     return {"accepted": True, "strict": s.get("verdict"), "strict_reason": s.get("reason"), "credit": g.get("credit"),
+            # credit = action_credit x latency_factor x safety_factor x movement_gate (0 for an INVALID episode)
+            "graded_invalid": bool(g.get("invalid")) or s.get("verdict") == "INVALID",
+            "action_credit": g.get("raw_action_credit"), "latency_factor": g.get("latency_factor"),
+            "safety_factor": g.get("safety_factor"), "movement_gate": int(bool(mv.get("engaged"))) if mv else None,
             "stored_strict": stored.get("verdict"), "rows": len(rows or []),
             "t_end_s": float(rows[-1]["sim_time"]) if rows else None, "terminated": res.get("terminated_reason"),
             "min_front_to_stopline_m": ev.get("min_front_to_stopline_m"),
@@ -158,8 +171,8 @@ def main() -> int:
                 ep = find_episode(seed_dir, sc)
                 if ep is None:
                     continue
-                r = score_episode(ep, sc, vlm.SCENARIOS, is_vlm=model_dir.name.replace("_cap3", "") in VLM_MODELS,
-                                  is_cap=model_dir.name.endswith("_cap3"))
+                base, _lvl, period, capped = _cell(model_dir.name)
+                r = score_episode(ep, sc, vlm.SCENARIOS, is_vlm=base in VLM_MODELS, is_cap=capped, period=period)
                 if not r.pop("accepted"):
                     refused.append({"episode": str(ep), **r})
                     continue
@@ -209,7 +222,8 @@ def main() -> int:
             "complete": not missing,
             "strict_pass_by_scenario": ";".join(f"{s}={cell_pass[s]}/{n}" for s in scen) if n else None,
         })
-    board = [r for r in board if not r["model"].endswith("_cap3")]  # cap-3 runs only feed the comparison below
+    # cap-3 and ablation cells are not leaderboard rows (they feed the comparison / ablation table below)
+    board = [r for r in board if not r["model"].endswith("_cap3") and "_abl-" not in r["model"]]
     board.sort(key=lambda r: (not r["complete"], -(r["graded_mean"] or -1)))
     with (out / "leaderboard_v2.csv").open("w", encoding="utf-8", newline="") as fh:
         if board:
@@ -249,6 +263,25 @@ def main() -> int:
             w = csv.DictWriter(fh, fieldnames=list(comp[0].keys()))
             w.writeheader()
             w.writerows(comp)
+    # oracle-assist ablation cells (run_protocol_v2.py --ablation-study): strict count, freezes, graded per cell
+    abl = []
+    for name in sorted({c["model"] for c in cells if "_abl-" in c["model"]}):
+        base, level, period, _ = _cell(name)
+        cs = [c for c in cells if c["model"] == name]
+        abl.append({"cell": name, "model": base, "level": level, "query_period_s": period if base in VLM_MODELS
+                    else (period if "_qp" in name else 3.0), "episodes": len(cs),
+                    "strict_pass": sum(c["strict"] == "PASS" for c in cs),
+                    "freezes": sum("never engaged" in str(c["strict_reason"]) for c in cs),
+                    "graded": round(100.0 * sum(weights[c["scenario"]] * float(c["credit"] or 0) for c in cs)
+                                    / sum(weights[c["scenario"]] for c in cs), 2) if cs else None,
+                    "pass_set": ";".join(sorted(c["scenario"] for c in cs if c["strict"] == "PASS"))})
+    if abl:
+        with (out / "ablation_v2.csv").open("w", encoding="utf-8", newline="") as fh:
+            w = csv.DictWriter(fh, fieldnames=list(abl[0].keys()))
+            w.writeheader()
+            w.writerows(abl)
+        for r in abl:
+            print(f"  {r['cell']:32s} {r['strict_pass']:2d}/{r['episodes']} freezes={r['freezes']} graded={r['graded']}")
     print(f"v2: {len(cells)} episodes accepted, {len(refused)} refused; {len(board)} models")
     for r in board:
         print(f"  {r['model']:16s} seeds={r['seeds']} graded={r['graded_mean']} sd={r['graded_sd']} strict={r['strict_pass_mean']} ({r['strict_pass_total']})")
