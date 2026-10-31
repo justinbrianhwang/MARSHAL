@@ -1,0 +1,57 @@
+set,model,ref,min,q25,q75,max,rank ref,rank median,rank p05-p95
+"reference applicability, full simplex",oracle,100.0,100.0,100.0,100.0,100.0,1,1,1-1
+"reference applicability, full simplex",NEAT,81.14,65.62,76.74,85.63,97.55,2,3,2-7
+"reference applicability, full simplex",AIM,80.16,59.34,76.03,85.17,95.57,3,3,2-8
+"reference applicability, full simplex",TransFuser,78.45,28.32,72.93,86.77,95.32,4,3,2-14
+"reference applicability, full simplex",InterFuser,78.01,70.88,75.98,80.04,88.98,5,5,3-7
+"reference applicability, full simplex",Qwen2.5-VL,75.36,65.37,72.03,78.27,92.1,6,6,3-8
+"reference applicability, full simplex",GLM-4.5V,74.88,42.1,70.95,79.96,92.27,7,6,3-12
+"reference applicability, full simplex",Qwen3-VL,68.47,44.77,64.75,72.41,89.65,8,8,7-13
+"reference applicability, full simplex",TCP,68.13,27.97,59.61,78.8,95.34,9,9,3-12
+"reference applicability, full simplex",OpenEMMA,63.59,50.21,58.97,67.81,89.79,10,10,9-11
+"reference applicability, full simplex",baseline,59.09,43.91,52.59,64.71,91.13,11,11,6-12
+"reference applicability, full simplex",CILRS,53.6,27.15,44.33,62.69,93.82,12,12,7-12
+"reference applicability, full simplex",MPC,45.5,15.67,35.64,54.98,88.1,13,13,10-14
+"reference applicability, full simplex",PID,44.65,16.39,35.06,53.5,87.89,14,14,11-14
+"reference applicability, grid region",oracle,100.0,100.0,100.0,100.0,100.0,1,1,1-1
+"reference applicability, grid region",NEAT,81.14,75.69,82.77,87.85,93.69,2,3,2-5
+"reference applicability, grid region",AIM,80.16,79.12,85.4,89.16,94.45,3,2,2-3
+"reference applicability, grid region",TransFuser,78.45,54.89,77.95,87.9,93.57,4,4,2-7
+"reference applicability, grid region",InterFuser,78.01,74.73,77.39,79.66,84.39,5,6,4-7
+"reference applicability, grid region",Qwen2.5-VL,75.36,67.68,71.95,76.21,85.7,6,7,6-8
+"reference applicability, grid region",GLM-4.5V,74.88,58.45,72.95,79.57,88.5,7,7,5-8
+"reference applicability, grid region",Qwen3-VL,68.47,55.72,65.38,71.33,82.64,8,9,8-11
+"reference applicability, grid region",TCP,68.13,54.06,74.79,83.57,92.39,9,5,4-9
+"reference applicability, grid region",OpenEMMA,63.59,54.16,59.44,65.17,76.64,10,10,10-10
+"reference applicability, grid region",baseline,59.09,44.56,51.46,59.54,73.2,11,11,9-11
+"reference applicability, grid region",CILRS,53.6,28.49,39.85,51.44,66.46,12,12,12-12
+"reference applicability, grid region",MPC,45.5,21.93,34.9,46.65,63.61,13,13,13-14
+"reference applicability, grid region",PID,44.65,22.16,34.41,45.49,63.0,14,14,13-14
+"RH_app + C_cond + P_cond, full simplex",oracle,100.0,100.0,100.0,100.0,100.0,1,1,1-1
+"RH_app + C_cond + P_cond, full simplex",NEAT,75.01,62.84,71.56,78.71,86.84,2,2,2-4
+"RH_app + C_cond + P_cond, full simplex",AIM,68.42,38.28,62.98,75.14,89.61,3,3,2-4
+"RH_app + C_cond + P_cond, full simplex",TransFuser,37.34,2.65,22.82,51.9,86.75,9,9,5-14
+"RH_app + C_cond + P_cond, full simplex",InterFuser,61.01,48.42,56.76,65.57,76.48,4,4,3-5
+"RH_app + C_cond + P_cond, full simplex",Qwen2.5-VL,51.91,38.5,47.43,56.07,69.83,6,6,5-8
+"RH_app + C_cond + P_cond, full simplex",GLM-4.5V,39.02,13.68,28.74,49.0,75.46,8,8,7-10
+"RH_app + C_cond + P_cond, full simplex",Qwen3-VL,31.11,6.41,21.13,40.97,65.46,11,11,9-13
+"RH_app + C_cond + P_cond, full simplex",TCP,58.64,23.55,49.45,69.2,85.46,5,5,3-7
+"RH_app + C_cond + P_cond, full simplex",OpenEMMA,33.13,13.18,26.79,39.88,55.73,10,10,8-11
+"RH_app + C_cond + P_cond, full simplex",baseline,42.36,33.76,40.95,43.95,51.25,7,7,6-11
+"RH_app + C_cond + P_cond, full simplex",CILRS,30.39,25.3,29.18,31.63,34.6,12,11,8-12
+"RH_app + C_cond + P_cond, full simplex",MPC,19.91,9.62,17.02,23.09,31.29,14,13,12-14
+"RH_app + C_cond + P_cond, full simplex",PID,19.91,9.37,17.35,22.86,30.44,13,13,11-14
+"RH_app + C_cond + P_cond, grid region",oracle,100.0,100.0,100.0,100.0,100.0,1,1,1-1
+"RH_app + C_cond + P_cond, grid region",NEAT,75.01,74.31,80.18,83.82,87.69,2,2,2-4
+"RH_app + C_cond + P_cond, grid region",AIM,68.42,69.5,79.43,84.6,90.88,3,3,2-3
+"RH_app + C_cond + P_cond, grid region",TransFuser,37.34,37.72,54.67,70.22,87.96,9,6,4-8
+"RH_app + C_cond + P_cond, grid region",InterFuser,61.01,61.62,66.99,71.47,76.46,4,5,4-6
+"RH_app + C_cond + P_cond, grid region",Qwen2.5-VL,51.91,53.02,58.83,64.17,71.05,6,7,6-8
+"RH_app + C_cond + P_cond, grid region",GLM-4.5V,39.02,39.78,51.9,63.58,75.71,8,8,7-8
+"RH_app + C_cond + P_cond, grid region",Qwen3-VL,31.11,31.32,43.06,54.18,66.13,11,9,9-11
+"RH_app + C_cond + P_cond, grid region",TCP,58.64,51.54,69.98,79.02,85.45,5,4,4-5
+"RH_app + C_cond + P_cond, grid region",OpenEMMA,33.13,31.91,42.16,48.92,55.93,10,10,10-11
+"RH_app + C_cond + P_cond, grid region",baseline,42.36,40.32,43.89,45.72,48.08,7,11,8-11
+"RH_app + C_cond + P_cond, grid region",CILRS,30.39,27.64,29.07,30.25,31.56,12,12,12-12
+"RH_app + C_cond + P_cond, grid region",MPC,19.91,18.95,22.56,25.8,29.4,14,13,13-14
+"RH_app + C_cond + P_cond, grid region",PID,19.91,18.75,22.48,25.62,29.16,13,14,13-14

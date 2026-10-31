@@ -33,6 +33,47 @@ _CAMERA_KEYS = ("rgb", "rgb_left", "rgb_right")
 _SENSOR_KEYS = ("rgb", "rgb_left", "rgb_right", "lidar", "imu")
 _IMAGENET_MEAN = (0.485, 0.456, 0.406)
 _IMAGENET_STD = (0.229, 0.224, 0.225)
+# Attributes the InterFuser leaderboard AgentWrapper.setup_sensors sets on top of the agent's sensor spec.
+_LEADERBOARD_CAMERA_ATTRS = {
+    "lens_circle_multiplier": "3.0",
+    "lens_circle_falloff": "3.0",
+    "chromatic_aberration_intensity": "0.5",
+    "chromatic_aberration_offset": "0",
+}
+_LEADERBOARD_LIDAR_ATTRS = {
+    "range": "85",
+    "rotation_frequency": "10",
+    "channels": "64",
+    "upper_fov": "10",
+    "lower_fov": "-30",
+    "points_per_second": "600000",
+    "atmosphere_attenuation_rate": "0.004",
+    "dropoff_general_rate": "0.45",
+    "dropoff_intensity_limit": "0.8",
+    "dropoff_zero_intensity": "0.4",
+}
+
+
+def forward_speed(velocity: Any, rotation: Any) -> float:
+    """Leaderboard SpeedometerReader._get_forward_speed: velocity dotted with the (pitch, yaw) forward axis."""
+    pitch, yaw = math.radians(rotation.pitch), math.radians(rotation.yaw)
+    return (velocity.x * math.cos(pitch) * math.cos(yaw) + velocity.y * math.cos(pitch) * math.sin(yaw)
+            + velocity.z * math.sin(pitch))
+
+
+def downsample_route_ids(points: list, sample_factor: float) -> list[int]:
+    """Leaderboard `downsample_route` for a single-option (lane-follow) route of (x, y) points: keep the first
+    point, then a point whenever the distance travelled since the last kept one exceeds `sample_factor`, and
+    the last point."""
+    ids: list[int] = []
+    dist = 0.0
+    for i, point in enumerate(points):
+        if i == 0 or dist > sample_factor or i == len(points) - 1:
+            ids.append(i)
+            dist = 0.0
+        else:
+            dist += math.dist(point, points[i - 1])
+    return ids
 
 
 def _find_workspace_root() -> Path:
@@ -122,6 +163,29 @@ class InterFuserController(EpisodeController):
             self.icfg.get("route_refresh_distance_m", 45.0)
         )
         self.route_refresh_period_s = float(self.icfg.get("route_refresh_period_s", 2.0))
+        # Defaults reproduce the original leaderboard agent's inputs, except that the benchmark has no global route:
+        # the 160 m lane-follow route is rebuilt from the ego when it is within 45 m of its end (after >= 115 m of
+        # travel), which re-phases the 50 m target spacing from that point on. The protocol-v2 leaderboard ran with
+        # {"route_sample_m": 0, "sensor_profile": "carla_default", "step_on_sensor_data": false,
+        #  "hold_odd_step_control": false, "speed_input": "3d"}; set those to reproduce it. The first fixed
+        # re-measurement (all of the above restored, but 3-D speed) is {"speed_input": "3d"}.
+        # Leaderboard `set_global_plan` downsamples the dense route to <= 50 m spacing before RoutePlanner(4, 50).
+        self.route_sample_m = float(self.icfg.get("route_sample_m", 50.0))
+        # "leaderboard" = the attributes the InterFuser leaderboard wrapper sets; "carla_default" = blueprint defaults.
+        self.sensor_profile = str(self.icfg.get("sensor_profile", "leaderboard"))
+        if self.sensor_profile not in ("leaderboard", "carla_default"):
+            raise ValueError(f"unknown InterFuser sensor_profile {self.sensor_profile!r}")
+        # The leaderboard calls run_step only with sensor data, so agent step 0 is the first sensor frame. The agent
+        # keeps the LiDAR of even steps only (10 Hz rotation = half sweep per 20 Hz tick); counting a sensorless tick
+        # flips that parity and feeds the rear half-sweep, i.e. an almost empty front BEV.
+        self.step_on_sensor_data = bool(self.icfg.get("step_on_sensor_data", True))
+        # The original agent returns the previous (even-step) control on odd steps after step 4.
+        self.hold_odd_step_control = bool(self.icfg.get("hold_odd_step_control", True))
+        # Model/controller speed input: "forward" = the leaderboard speedometer (velocity projected on the vehicle's
+        # pitch/yaw forward axis); "3d" = |v| (earlier adapter setting, which counts the spawn fall as speed).
+        self.speed_input = str(self.icfg.get("speed_input", "forward"))
+        if self.speed_input not in ("forward", "3d"):
+            raise ValueError(f"unknown InterFuser speed_input {self.speed_input!r}")
 
         self._step_count = -1
         self._inference_count = 0
@@ -139,6 +203,11 @@ class InterFuserController(EpisodeController):
         self._debug_save_every_n = int(self.icfg.get("save_debug_every_n", 20))
         self._debug_max_frames = int(self.icfg.get("max_debug_frames", 8))
         self._log_every_n = int(self.icfg.get("log_every_n", 10))
+        # Debug-only per-tick model/safety-controller dump (needs a debug dir); off by default.
+        self._verbose = bool(self.icfg.get("verbose_trace")) or os.environ.get(
+            "MARSHAL_INTERFUSER_VERBOSE", ""
+        ) not in ("", "0")
+        self._verbose_fh = None
 
     def setup(
         self,
@@ -198,6 +267,8 @@ class InterFuserController(EpisodeController):
         self._wait_for_synced_sensors(frame, self.sensor_timeout_s)
         samples = self._latest_synced_sensors(frame)
         if samples is None:
+            if self.step_on_sensor_data:
+                self._step_count -= 1  # the leaderboard never calls run_step without sensor data
             control = self._copy_control(self._last_control) or self._fallback_control()
             self._write_trace(
                 sim_time=sim_time,
@@ -219,6 +290,11 @@ class InterFuserController(EpisodeController):
         try:
             tick_data = self._build_tick_data(samples)
             model_input = self._model_input(tick_data)
+            if self._verbose_fh is not None and self._step_count in (2, 40, 200):
+                self.torch.save(
+                    {k: v.detach().cpu() for k, v in model_input.items()},
+                    os.path.join(self._debug_dir, f"model_input_step{self._step_count:04d}.pt"),
+                )
             with self.torch.no_grad():
                 (
                     traffic_meta,
@@ -262,6 +338,11 @@ class InterFuserController(EpisodeController):
                 traffic_meta_smooth,
             )
             safety_meta = self._safety_trace_meta(meta_infos)
+            if self._verbose_fh is not None:
+                self._write_verbose(
+                    sim_time, frame, tick_data, pred_waypoints_np, is_junction_p, traffic_light_p,
+                    stop_sign_p, traffic_meta_np, traffic_meta_smooth, steer, throttle, brake, meta_infos,
+                )
             if float(brake) < 0.05:
                 brake = 0.0
             if float(brake) > 0.1:
@@ -286,6 +367,14 @@ class InterFuserController(EpisodeController):
                 control = self._copy_control(self._last_control) or self._fallback_control(
                     brake=0.7
                 )
+            elif (
+                self.hold_odd_step_control
+                and self._step_count % 2 != 0
+                and self._step_count > 4
+                and self._prev_control is not None
+            ):
+                control = self._copy_control(self._prev_control)
+                self._last_control = self._copy_control(control)
             else:
                 self._last_control = self._copy_control(control)
                 self._prev_control = self._copy_control(control)
@@ -332,6 +421,9 @@ class InterFuserController(EpisodeController):
                 pass
         self._trace_fh = None
         self._trace_writer = None
+        if self._verbose_fh is not None:
+            self._verbose_fh.close()
+            self._verbose_fh = None
         try:
             if self.torch is not None and str(self.device).startswith("cuda"):
                 self.torch.cuda.empty_cache()
@@ -410,6 +502,9 @@ class InterFuserController(EpisodeController):
             bp.set_attribute("image_size_x", str(width))
             bp.set_attribute("image_size_y", str(height))
             bp.set_attribute("fov", str(fov))
+            if self.sensor_profile == "leaderboard":
+                for key, value in _LEADERBOARD_CAMERA_ATTRS.items():
+                    bp.set_attribute(key, value)
             if bp.has_attribute("sensor_tick"):
                 bp.set_attribute("sensor_tick", str(self.sim_dt))
             camera = world.spawn_actor(
@@ -421,6 +516,9 @@ class InterFuserController(EpisodeController):
             self._sensor_actors.append(camera)
 
         lidar_bp = bp_lib.find("sensor.lidar.ray_cast")
+        if self.sensor_profile == "leaderboard":
+            for key, value in _LEADERBOARD_LIDAR_ATTRS.items():
+                lidar_bp.set_attribute(key, value)
         if lidar_bp.has_attribute("sensor_tick"):
             lidar_bp.set_attribute("sensor_tick", str(self.sim_dt))
         lidar = world.spawn_actor(
@@ -464,7 +562,11 @@ class InterFuserController(EpisodeController):
         )
         if self._route_planner is None:
             self._route_planner = RoutePlanner(4.0, 50.0)
-        self._route_planner.set_route(plan.gps_plan, True)
+        gps_plan = plan.gps_plan
+        if self.route_sample_m > 0:
+            pts = [(t.location.x, t.location.y) for t, _ in plan.world_plan]
+            gps_plan = [gps_plan[i] for i in downsample_route_ids(pts, self.route_sample_m)]
+        self._route_planner.set_route(gps_plan, True)
         self._route_end = plan.route_end
         self._last_route_update_t = float(sim_time)
         end = self._route_end
@@ -472,6 +574,7 @@ class InterFuserController(EpisodeController):
             "interfuser_route",
             t=sim_time,
             waypoints=len(plan.world_plan),
+            planner_waypoints=len(gps_plan),
             end=(
                 {"x": float(end.x), "y": float(end.y), "z": float(end.z)}
                 if end is not None
@@ -551,7 +654,7 @@ class InterFuserController(EpisodeController):
         rgb_left = samples["rgb_left"][1]
         rgb_right = samples["rgb_right"][1]
         compass = float(samples["imu"][1])
-        speed = self._ego_speed_mps()
+        speed = self._ego_forward_speed_mps() if self.speed_input == "forward" else self._ego_speed_mps()
         gps = self._ego_gps()
         pos = self._planner_position(gps)
 
@@ -669,6 +772,10 @@ class InterFuserController(EpisodeController):
         )
         self._trace_writer.writeheader()
         self._trace_fh.flush()
+        if self._verbose:
+            self._verbose_fh = open(
+                os.path.join(self._debug_dir, "interfuser_verbose.jsonl"), "w", encoding="utf-8"
+            )
 
     def _write_trace(
         self,
@@ -727,6 +834,66 @@ class InterFuserController(EpisodeController):
                 stale,
                 error or "-",
             )
+
+    def _write_verbose(
+        self, sim_time, frame, tick_data, pred_waypoints, junction_p, light_p, stop_sign_p,
+        meta_raw, meta_smooth, steer, throttle, brake, meta_infos,
+    ) -> None:
+        """Debug-only: raw heads, recomputed safety distances and controller state for one tick."""
+        import json
+
+        from team_code.interfuser_controller import downsample_waypoints, get_max_safe_distance
+
+        ctl = self.controller
+        wps = downsample_waypoints(pred_waypoints)
+        dist = {
+            f"d_{t:g}": float(
+                get_max_safe_distance(meta_smooth, wps, t=t, collision_buffer=ctl.collision_buffer,
+                                      threshold=ctl.detect_threshold)
+            )
+            for t in (0, 0.5, 0.75, 1, 1.5, 2)
+        }
+        speed = float(tick_data["speed"])
+        reasons = []
+        if max(0.0, dist["d_0"] - 2.0) < max(3.0, speed):
+            reasons.append("safe_distance")
+        elif light_p > 0.3:
+            reasons.append("red_light")
+        if ctl.in_stop_sign_effect:
+            reasons.append("stop_sign")
+        rec = {
+            "t": round(float(sim_time), 3),
+            "frame": frame,
+            "step": self._step_count,
+            "speed": round(speed, 4),
+            "gps": [float(x) for x in tick_data["gps"]],
+            "compass": float(tick_data["compass"]),
+            "target_point": [float(x) for x in tick_data["target_point"]],
+            "next_command": int(tick_data["next_command"]),
+            "pred_waypoints": np.round(np.asarray(pred_waypoints, dtype=float), 3).tolist(),
+            "junction_p": round(junction_p, 4),
+            "red_light_p": round(light_p, 4),
+            "not_stop_sign_p": round(stop_sign_p, 4),
+            "obj_raw_max": round(float(np.max(meta_raw[..., 0])), 4),
+            "obj_raw_n_gt_0_4": int(np.sum(meta_raw[..., 0] > 0.4)),
+            "obj_smooth_n_gt_0_4": int(np.sum(np.asarray(meta_smooth)[:, 0] > 0.4)),
+            # occupied cells of the smoothed 20x20 object map as (x lateral m, y forward m, prob); render.py grid
+            "obj_cells": [
+                [float(j) - 9.5, 17.5 - float(i), round(float(p), 2)]
+                for (i, j), p in np.ndenumerate(np.asarray(meta_smooth)[:, 0].reshape(20, 20))
+                if p > 0.4
+            ],
+            "lidar_points_bev": float(np.asarray(tick_data["lidar"])[2].sum()),
+            **{k: round(v, 3) for k, v in dist.items()},
+            "stop_sign_effect": bool(ctl.in_stop_sign_effect),
+            "red_light_steps": int(ctl.red_light_steps),
+            "stop_steps": int(ctl.stop_steps),
+            "brake_reasons": reasons,
+            "meta_infos": [str(x) for x in meta_infos[:3]],
+            "requested": {"steer": float(steer), "throttle": float(throttle), "brake": float(brake)},
+        }
+        self._verbose_fh.write(json.dumps(rec) + "\n")
+        self._verbose_fh.flush()
 
     @staticmethod
     def _safety_trace_meta(meta_infos: Any) -> dict[str, Any]:
@@ -844,6 +1011,12 @@ class InterFuserController(EpisodeController):
             return int(self.world.get_snapshot().frame)
         except Exception:
             return None
+
+    def _ego_forward_speed_mps(self) -> float:
+        try:
+            return forward_speed(self.ego.get_velocity(), self.ego.get_transform().rotation)
+        except Exception:
+            return 0.0
 
     def _ego_speed_mps(self) -> float:
         try:

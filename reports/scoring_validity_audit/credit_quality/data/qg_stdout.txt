@@ -1,0 +1,53 @@
+episodes 700 Q-gate scope (STOP/HOLD) 392 FAIL 349 fixtures 18
+{'suite tau(final, Q-gate) all / non-priv': '0.626 / 0.545', 'STOP/HOLD tau(final, Q-gate) all / non-priv': '0.8 / 0.815'}
+excluded {'InterFuser protocol-v2 run (excluded: integration defect)': {'suite_final': 40.68, 'suite_qgate': 45.35}}
+K {'STOP/HOLD PASS (in scope)': 43, 'K < 0.5': 5, 'K = 0': 5, 'K=0 with a_obs_max > A_MAX': 5, 'K=0 with tick before onset': 0, 'K_with_pre_onset < K': 5, 'K_to_actual_stop_point: K < 0.5 / K = 0': '39 / 38', 'median a_obs_max (m/s^2)': 9.9}
+fixture order broken in settings: {'weights': 0, 'caps': 0}
+F2 {'best policy final': 69.63, 'above best non-priv final': 37, 'best non-priv final': 39.82, 'best policy Q-gate': 71.56, 'best policy name Q-gate': 'lurch 2.5 m, go 20 km/h at 16.5 s', 'above best non-priv Q-gate': 37, 'best non-priv Q-gate': 53.84}
+{'set': 'STOP/HOLD in scope, all', 'score': 'v2.2-final', 'n': 392, 'zero': 305, 'partial': 44, 'full': 43, 'deciles [0,.1)..[.9,1]': '315 13 9 7 3 1 1 0 0 43'}
+{'set': 'STOP/HOLD in scope, all', 'score': 'Q-gate', 'n': 392, 'zero': 263, 'partial': 125, 'full': 4, 'deciles [0,.1)..[.9,1]': '270 38 6 0 1 5 7 13 10 42'}
+{'set': 'STOP/HOLD in scope, FAIL', 'score': 'v2.2-final', 'n': 349, 'zero': 305, 'partial': 44, 'full': 0, 'deciles [0,.1)..[.9,1]': '315 13 9 7 3 1 1 0 0 0'}
+{'set': 'STOP/HOLD in scope, FAIL', 'score': 'Q-gate', 'n': 349, 'zero': 263, 'partial': 86, 'full': 0, 'deciles [0,.1)..[.9,1]': '270 38 6 0 1 5 7 13 5 4'}
+{'set': 'suite (Q-gate STOP/HOLD + v2.2-final other)', 'score': 'v2.2-final', 'n': 700, 'zero': 416, 'partial': 168, 'full': 116, 'deciles [0,.1)..[.9,1]': '476 49 20 20 5 4 2 1 3 120'}
+{'set': 'suite (Q-gate STOP/HOLD + v2.2-final other)', 'score': 'Q-gate', 'n': 700, 'zero': 374, 'partial': 249, 'full': 77, 'deciles [0,.1)..[.9,1]': '431 74 17 13 3 8 8 14 13 119'}
+{'score': 'v2.2-final', 'same-scenario (FAIL, PASS) pairs with FAIL >= PASS': 0, 'FAIL max': 0.677, 'FAIL episodes above the lowest PASS': 0, 'distinct levels, STOP/HOLD all (4 dp)': 42, 'distinct levels, STOP/HOLD FAIL (4 dp)': 41, 'distinct levels, STOP/HOLD FAIL (2 dp)': 27, 'FAIL zero share': 0.874, 'PASS n / min / max / SD': '43 / 1.000 / 1.000 / 0.000', 'different-label FAIL pairs tied': '30018/43844 (0.685)', 'eta^2 label -> score (FAIL)': 0.47, 'median within-label range (FAIL labels with n>1)': 0.1, 'fixture replicate range (max over 6 behaviours, 3 seeds)': 0.028, 'fixture behaviour means': '0.000 / 0.000 / 0.031 / 0.355 / 1.000 / 1.000'}
+{'score': 'Q-gate', 'same-scenario (FAIL, PASS) pairs with FAIL >= PASS': 3, 'FAIL max': 0.976, 'FAIL episodes above the lowest PASS': 8, 'distinct levels, STOP/HOLD all (4 dp)': 107, 'distinct levels, STOP/HOLD FAIL (4 dp)': 78, 'distinct levels, STOP/HOLD FAIL (2 dp)': 37, 'FAIL zero share': 0.754, 'PASS n / min / max / SD': '43 / 0.833 / 1.000 / 0.049', 'different-label FAIL pairs tied': '18397/43844 (0.420)', 'eta^2 label -> score (FAIL)': 0.825, 'median within-label range (FAIL labels with n>1)': 0.116, 'fixture replicate range (max over 6 behaviours, 3 seeds)': 0.0189, 'fixture behaviour means': '0.000 / 0.000 / 0.177 / 0.726 / 0.957 / 0.984'}
+{'score': 'v2.2-final', 'set': 'leaderboard STOP/HOLD', 'dominance pairs': 1793, 'violations': 12, 'examples': 'glm-4.5v/s1/signal_off (0.1622) < glm-4.5v/s2/signal_off (0.172); glm-4.5v/s1/signal_off (0.1622) < openemma/s0/signal_off (0.296); glm-4.5v/s1/signal_off (0.1622) < qwen2.5-vl/s2/signal_off (0.292); glm-4.5v/s1/signal_off (0.1622) < qwen2.5-vl/s4/signal_off (0.32)'}
+{'score': 'v2.2-final', 'set': 'green_stop fixtures', 'dominance pairs': 99, 'violations': 0, 'examples': ''}
+{'score': 'v2.2-final', 'set': 'leaderboard green_stop + fixtures', 'dominance pairs': 690, 'violations': 0, 'examples': ''}
+{'score': 'Q-gate', 'set': 'leaderboard STOP/HOLD', 'dominance pairs': 1793, 'violations': 9, 'examples': 'oracle/s0/adjacent_lane (0.9772) < tcp/s0/adjacent_lane (0.9931); qwen2.5-vl/s1/flagger_control (0.9713) < interfuser/s1/flagger_control (0.9715); qwen2.5-vl/s2/flagger_control (0.9712) < interfuser/s1/flagger_control (0.9715); qwen2.5-vl/s4/flagger_control (0.9709) < interfuser/s1/flagger_control (0.9715)'}
+{'score': 'Q-gate', 'set': 'green_stop fixtures', 'dominance pairs': 99, 'violations': 3, 'examples': 'fixture:scripted_lurch_then_stop/s1 (0.9837) < fixture:scripted_lurch_then_stop/s2 (0.9848); fixture:scripted_normal_stop/s0 (0.9572) < fixture:scripted_normal_stop/s1 (0.9575); fixture:scripted_normal_stop/s0 (0.9572) < fixture:scripted_normal_stop/s2 (0.9573)'}
+{'score': 'Q-gate', 'set': 'leaderboard green_stop + fixtures', 'dominance pairs': 690, 'violations': 16, 'examples': 'oracle/s0/green_stop (0.9405) < fixture:scripted_lurch_then_stop/s2 (0.9848); oracle/s0/green_stop (0.9405) < fixture:scripted_normal_stop/s0 (0.9572); oracle/s0/green_stop (0.9405) < fixture:scripted_normal_stop/s1 (0.9575); oracle/s0/green_stop (0.9405) < fixture:scripted_normal_stop/s2 (0.9573)'}
+{'score': 'Q-gate without K (diagnostic)', 'set': 'leaderboard STOP/HOLD', 'dominance pairs': 1793, 'violations': 4, 'examples': 'tcp/s0/signal_off (0.1276) < qwen2.5-vl/s0/signal_off (0.1346); tcp/s0/signal_off (0.1276) < qwen2.5-vl/s1/signal_off (0.1346); tcp/s0/ambiguous_gesture (0.1262) < openemma/s0/ambiguous_gesture (0.1313); tcp/s0/school_crossing_guard (0.1282) < interfuser/s2/school_crossing_guard (0.1366)'}
+{'score': 'Q-gate without K (diagnostic)', 'set': 'green_stop fixtures', 'dominance pairs': 99, 'violations': 0, 'examples': ''}
+{'score': 'Q-gate without K (diagnostic)', 'set': 'leaderboard green_stop + fixtures', 'dominance pairs': 690, 'violations': 0, 'examples': ''}
+{'label (STOP/HOLD in scope)': 'DRIVE_THROUGH', 'n': 114, 'episodes gaining': 0, 'episodes losing': 0, 'max gain': 0.0, 'sum gain': 0.0, 'Q-gate > 0': 0}
+{'label (STOP/HOLD in scope)': 'CRAWL_THROUGH', 'n': 3, 'episodes gaining': 0, 'episodes losing': 0, 'max gain': 0.0, 'sum gain': 0.0, 'Q-gate > 0': 0}
+{'label (STOP/HOLD in scope)': 'COLLISION', 'n': 11, 'episodes gaining': 1, 'episodes losing': 3, 'max gain': 0.0983, 'sum gain': 0.049, 'Q-gate > 0': 4}
+{'label (STOP/HOLD in scope)': 'EARLY_ENTRY', 'n': 0, 'episodes gaining': 0, 'episodes losing': 0, 'max gain': '', 'sum gain': '', 'Q-gate > 0': 0}
+{'label (STOP/HOLD in scope)': 'CREEP_NO_STOP', 'n': 20, 'episodes gaining': 20, 'episodes losing': 0, 'max gain': 0.1787, 'sum gain': 2.918, 'Q-gate > 0': 20}
+{'label (STOP/HOLD in scope)': 'STOP_NOT_HELD', 'n': 24, 'episodes gaining': 24, 'episodes losing': 0, 'max gain': 0.958, 'sum gain': 9.055, 'Q-gate > 0': 24}
+{'label (STOP/HOLD in scope)': 'OVERRUN_THEN_STOP', 'n': 17, 'episodes gaining': 16, 'episodes losing': 1, 'max gain': 0.2137, 'sum gain': 1.908, 'Q-gate > 0': 17}
+{'label (STOP/HOLD in scope)': 'LATE_STOP', 'n': 20, 'episodes gaining': 20, 'episodes losing': 0, 'max gain': 0.932, 'sum gain': 9.975, 'Q-gate > 0': 20}
+{'label (STOP/HOLD in scope)': 'NO_START', 'n': 139, 'episodes gaining': 0, 'episodes losing': 0, 'max gain': 0.0, 'sum gain': 0.0, 'Q-gate > 0': 0}
+{'label (STOP/HOLD in scope)': 'STOP_POSITION', 'n': 1, 'episodes gaining': 1, 'episodes losing': 0, 'max gain': 0.3759, 'sum gain': 0.376, 'Q-gate > 0': 1}
+{'sweep': 'weights', 'tau vs reference': 'suite all', 'min': 0.758, 'p05': 0.846, 'median': 0.89, 'max': 1.0, 'share tau = 1': 0.005}
+{'sweep': 'weights', 'tau vs reference': 'suite non-priv', 'min': 0.758, 'p05': 0.848, 'median': 0.939, 'max': 1.0, 'share tau = 1': 0.097}
+{'sweep': 'weights', 'tau vs reference': 'STOP/HOLD all', 'min': 0.933, 'p05': 0.956, 'median': 0.978, 'max': 1.0, 'share tau = 1': 0.152}
+{'sweep': 'caps', 'tau vs reference': 'suite all', 'min': 0.89, 'p05': 0.89, 'median': 0.956, 'max': 1.0, 'share tau = 1': 0.167}
+{'sweep': 'caps', 'tau vs reference': 'suite non-priv', 'min': 0.879, 'p05': 0.879, 'median': 0.97, 'max': 1.0, 'share tau = 1': 0.25}
+{'sweep': 'caps', 'tau vs reference': 'STOP/HOLD all', 'min': 0.956, 'p05': 0.956, 'median': 0.978, 'max': 1.0, 'share tau = 1': 0.25}
+oracle 96.91 1 94.44 1 100.0 95.67
+InterFuser 39.82 2 42.97 3 30.02 35.53
+NEAT 33.62 3 53.84 2 28.02 63.46
+CILRS 26.05 4 25.68 7 17.83 17.19
+Qwen2.5-VL 21.86 5 25.98 6 18.55 25.77
+TCP 20.68 6 29.27 4 6.19 21.25
+TransFuser 14.32 7 14.32 9 0.0 0.0
+MPC 14.1 8 14.5 8 0.13 0.84
+PID 13.51 9 13.51 13 0.0 0.0
+Qwen3-VL 13.47 10 13.91 12 1.83 2.61
+OpenEMMA 11.87 11 14.3 10 1.83 6.08
+AIM 11.59 12 28.52 5 4.86 34.53
+baseline 9.11 13 14.21 11 11.35 20.29
+GLM-4.5V 8.43 14 10.33 14 0.78 4.1

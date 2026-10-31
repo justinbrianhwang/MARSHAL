@@ -1,0 +1,23 @@
+family,version,credits,violations,steps
+stop clearance 6/4/2/1/0.5 m,final,1.000 | 1.000 | 1.000 | 1.000 | 0.525,0,
+stop clearance 6/4/2/1/0.5 m,D,1.000 | 1.000 | 1.000 | 1.000 | 0.525,0,
+overshoot at 5 km/h,final,0.206 | 0.067 | 0.054 | 0.016 | 0.000 | 0.000,0,
+overshoot at 5 km/h,D,0.308 | 0.104 | 0.091 | 0.049 | 0.000 | 0.000,0,
+overshoot at 25 km/h,final,0.486 | 0.168 | 0.157 | 0.118 | 0.055 | 0.000,0,
+overshoot at 25 km/h,D,0.486 | 0.168 | 0.157 | 0.118 | 0.058 | 0.000,0,
+approach start 0/0.5/1/1.5/3 s,final,0.477 | 0.577 | 0.533 | 0.375 | 0.214,1,0.0 s -> 0.5 s
+approach start 0/0.5/1/1.5/3 s,D,0.477 | 0.577 | 0.538 | 0.378 | 0.216,1,0.0 s -> 0.5 s
+collision events 0.5 s apart 0/1/3/6,final,1.000 | 0.250 | 0.250 | 0.250,0,
+collision events 0.5 s apart 0/1/3/6,D,1.000 | 0.250 | 0.250 | 0.250,0,
+collision events 1.5 s apart 0/1/3/6,final,1.000 | 0.250 | 0.100 | 0.000,0,
+collision events 1.5 s apart 0/1/3/6,D,1.000 | 0.250 | 0.100 | 0.000,0,
+later braking from 8 km/h,final,1.000 | 0.408 | 0.028 | 0.012,0,
+later braking from 8 km/h,D,1.000 | 0.408 | 0.032 | 0.024,0,
+PROCEED start delay,final,1.000 | 1.000 | 0.960 | 0.907 | 0.463 | 0.000,0,
+PROCEED start delay,D,1.000 | 1.000 | 0.960 | 0.907 | 0.463 | 0.000,0,
+stop then go at 14 s vs hold (equal),final,1.000 | 1.000,0,
+stop then go at 14 s vs hold (equal),D,1.000 | 1.000,0,
+F4: 25 km/h <= 5 km/h at equal overshoot,final,0.486<=0.206 | 0.168<=0.067 | 0.157<=0.054 | 0.118<=0.016 | 0.055<=0.000 | 0.000<=0.000,5,0.0 m; 0.1 m; 0.5 m; 2.0 m; 10.0 m
+F4: 25 km/h <= 5 km/h at equal overshoot,D,0.486<=0.308 | 0.168<=0.104 | 0.157<=0.091 | 0.118<=0.049 | 0.058<=0.000 | 0.000<=0.000,5,0.0 m; 0.1 m; 0.5 m; 2.0 m; 10.0 m
+stale_directive: minimum speed during the live STOP 0/2.9/3.5/6/9 km/h,final,1.000 | 0.300 | 0.944 | 0.667 | 0.000,1,2.9 -> 3.5 km/h
+stale_directive: minimum speed during the live STOP 0/2.9/3.5/6/9 km/h,D,1.000 | 0.000 | 0.000 | 0.000 | 0.000,0,

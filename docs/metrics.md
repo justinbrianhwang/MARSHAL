@@ -232,7 +232,7 @@ rather than silently treated as zero or as passing. This is the single most impo
 honesty caveat of the score and is repeated in
 [what_is_marshal.md](what_is_marshal.md#current-status-honest-scope).
 
-The 14x21 sweep collector (`scripts/_collect_sweep.py`) now emits this per-model
+The 14x21 sweep collector (`scripts/_collect_sweep.py`) emits this per-model
 MARSHAL Score alongside strict pass-rate and MARSHAL-Graded, including each model's
 `marshal_score`, `r_scores`, and metric `suite`.
 
@@ -265,9 +265,10 @@ credit = action_credit · latency_factor · safety_factor · movement_gate   (ea
   `0.55·lateral_clearance + 0.45·forward_progress`; YIELD and PROCEED-with-care have
   their own arcs).
 - **latency_factor** — full credit through the 3 s strict reaction budget, then decays
-  linearly to zero by 8 s.
-- **safety_factor** — `1.0` with no collision, dropping to `0.25 / 0.10 / 0.0` as
-  collisions accumulate.
+  linearly to zero by 8 s. Under protocol v2 a STOP/HOLD response is the first held stop
+  (2.0 s at ≤ 1 km/h with ≤ 0.5 m drift); without one the factor is 0.
+- **safety_factor** — `1.0` with no collision, dropping to `0.25 / 0.10 / 0.0` for 1 / 2–5 / more
+  than 5 distinct contacts (callbacks with the same other actor at most 1.0 s apart are one contact).
 - **Engagement gate.** *Non-strict* STOP/HOLD partial credit is multiplied by an
   approach/engagement factor (approach speed × forward progress, or near-stopline
   progress) so a controller that only partially stops cannot harvest easy credit

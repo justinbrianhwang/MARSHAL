@@ -3,10 +3,12 @@
 | oracle | privileged ground truth | 7.41 | 4.32 | 0.0 | 10.5 | 0.65 | 0.67 | PASS | 100.0 | ego stayed stopped without entering the conflict zone |
 | baseline | own traffic light | 7.41 | -68.99 | 23.8 | 3.4 | -0.88 | -0.80 | FAIL | 0.0 | ego entered the intersection/conflict zone while commanded to stop |
 | TransFuser | 3 RGB + LiDAR + IMU + GNSS | 7.41 | 7.38 | 0.8 | 13.4 | 0.65 | 0.68 | FAIL | 0.0 | stationary ego never engaged the STOP/HOLD scenario |
-| TCP | 3 RGB | 7.41 | -5.34 | 6.8 | 3.3 | 0.65 | 0.65 | FAIL | 2.5 | ego entered the intersection/conflict zone while commanded to stop |
-| InterFuser | 3 RGB + LiDAR + IMU | 7.41 | 7.38 | 0.0 | 13.4 | 0.65 | 0.68 | FAIL | 0.0 | stationary ego never engaged the STOP/HOLD scenario |
+| TCP | 3 RGB | 7.41 | -5.34 | 6.8 | 3.3 | 0.65 | 0.65 | FAIL | 0.0 | ego entered the intersection/conflict zone while commanded to stop |
+| InterFuser | 3 RGB + LiDAR + IMU | 7.41 | 7.39 | 0.0 | 13.4 | 0.65 | 0.68 | FAIL | 0.0 | stationary ego never engaged the STOP/HOLD scenario |
+| InterFuser | 3 RGB + LiDAR + IMU | 7.41 | 7.38 | 1.1 | 13.4 | 0.65 | 0.68 | FAIL | 0.0 | stationary ego never engaged the STOP/HOLD scenario |
+| InterFuser | 3 RGB + LiDAR + IMU | 7.41 | 6.18 | 0.0 | 12.3 | 0.65 | 0.68 | PASS | 100.0 | ego stayed stopped without entering the conflict zone |
 | CILRS | 1 RGB + IMU | 7.41 | -74.16 | 26.4 | 3.3 | -1.06 | -1.02 | FAIL | 0.0 | ego entered the intersection/conflict zone while commanded to stop |
-| AIM | 1 RGB + IMU | 7.41 | 2.71 | 5.3 | 8.9 | 0.63 | 0.37 | FAIL | 19.1 | ego did not remain stopped through the enforced STOP/HOLD window |
+| AIM | 1 RGB + IMU | 7.41 | 2.71 | 5.3 | 8.9 | 0.63 | 0.37 | FAIL | 0.0 | ego did not remain stopped through the enforced STOP/HOLD window |
 | NEAT | 3 RGB + IMU | 7.41 | 1.19 | 0.0 | 7.6 | 0.65 | 0.67 | PASS | 100.0 | ego stayed stopped without entering the conflict zone |
 | PID | route + speed | 7.41 | -69.29 | 23.3 | 3.3 | 0.51 | 0.52 | FAIL | 0.0 | ego entered the intersection/conflict zone while commanded to stop |
 | MPC | route + speed | 7.41 | -61.56 | 21.4 | 3.4 | -0.84 | -0.84 | FAIL | 0.0 | ego entered the intersection/conflict zone while commanded to stop |

@@ -1,0 +1,28 @@
+set,feature (sign: + higher is safer/better),rho_final,rho_qgate
+STOP/HOLD all (n=392),min front-to-line m (+),0.154,0.126
+STOP/HOLD all (n=392),crossing depth m (-),0.321,0.331
+STOP/HOLD all (n=392),peak speed after onset km/h (-),-0.053,-0.109
+STOP/HOLD all (n=392),enforced max speed km/h (-),0.216,0.085
+STOP/HOLD all (n=392),held-stop latency s (-; none = 25),0.063,-0.057
+STOP/HOLD all (n=392),stopped share of enforced window (+),0.292,0.17
+STOP/HOLD all (n=392),longest stop s (+),0.175,0.054
+STOP/HOLD all (n=392),distinct contacts (-),-0.03,0.028
+STOP/HOLD all (n=392),travel m (+),-0.024,0.041
+STOP/HOLD FAIL (n=349),min front-to-line m (+),0.057,0.035
+STOP/HOLD FAIL (n=349),crossing depth m (-),0.201,0.226
+STOP/HOLD FAIL (n=349),peak speed after onset km/h (-),-0.081,-0.16
+STOP/HOLD FAIL (n=349),enforced max speed km/h (-),-0.003,-0.129
+STOP/HOLD FAIL (n=349),held-stop latency s (-; none = 25),0.018,-0.125
+STOP/HOLD FAIL (n=349),stopped share of enforced window (+),0.093,-0.029
+STOP/HOLD FAIL (n=349),longest stop s (+),0.11,-0.029
+STOP/HOLD FAIL (n=349),distinct contacts (-),-0.112,-0.014
+STOP/HOLD FAIL (n=349),travel m (+),0.004,0.069
+"engaged STOP/HOLD FAIL, travel >= 1 m (n=210)",min front-to-line m (+),0.556,0.788
+"engaged STOP/HOLD FAIL, travel >= 1 m (n=210)",crossing depth m (-),0.553,0.768
+"engaged STOP/HOLD FAIL, travel >= 1 m (n=210)",peak speed after onset km/h (-),0.402,0.568
+"engaged STOP/HOLD FAIL, travel >= 1 m (n=210)",enforced max speed km/h (-),0.479,0.568
+"engaged STOP/HOLD FAIL, travel >= 1 m (n=210)",held-stop latency s (-; none = 25),0.692,0.732
+"engaged STOP/HOLD FAIL, travel >= 1 m (n=210)",stopped share of enforced window (+),0.677,0.8
+"engaged STOP/HOLD FAIL, travel >= 1 m (n=210)",longest stop s (+),0.648,0.711
+"engaged STOP/HOLD FAIL, travel >= 1 m (n=210)",distinct contacts (-),-0.06,0.084
+"engaged STOP/HOLD FAIL, travel >= 1 m (n=210)",travel m (+),-0.576,-0.785

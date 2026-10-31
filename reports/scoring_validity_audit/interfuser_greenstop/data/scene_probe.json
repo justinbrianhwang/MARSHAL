@@ -1,0 +1,7828 @@
+{
+ "ego_blueprint": "vehicle.tesla.model3",
+ "stations": {
+  "green_stop": {
+   "spawn": {
+    "x": -74.3,
+    "y": 29.6,
+    "z": 0.5,
+    "yaw": 269.8,
+    "tl_id": 66,
+    "lanes": 2
+   },
+   "settled": {
+    "x": -74.303,
+    "y": 29.041,
+    "z": 0.101,
+    "pitch": -0.812,
+    "roll": 0.094,
+    "yaw": -90.233
+   },
+   "lane": {
+    "road": 4,
+    "lane": 3,
+    "lane_width": 3.5,
+    "right_lane_marking": "Solid",
+    "offset_from_centre": 0.02
+   },
+   "semantic_share": {
+    "rgb": {
+     "road": 0.3897,
+     "sidewalk": 0.0701,
+     "building": 0.2299,
+     "wall": 0.002,
+     "pole": 0.026,
+     "traffic_light": 0.0003,
+     "vegetation": 0.0003,
+     "terrain": 0.0002,
+     "sky": 0.2671,
+     "static": 0.0011,
+     "dynamic": 0.0004,
+     "roadline": 0.0124,
+     "railtrack": 0.0005
+    },
+    "rgb_left": {
+     "road": 0.4368,
+     "sidewalk": 0.0154,
+     "building": 0.1348,
+     "pole": 0.0186,
+     "traffic_light": 0.0031,
+     "vegetation": 0.0471,
+     "terrain": 0.0013,
+     "sky": 0.3195,
+     "static": 0.0013,
+     "dynamic": 0.0008,
+     "roadline": 0.0136,
+     "railtrack": 0.0077
+    },
+    "rgb_right": {
+     "road": 0.2376,
+     "sidewalk": 0.1705,
+     "building": 0.4579,
+     "wall": 0.001,
+     "pole": 0.0168,
+     "traffic_light": 0.0002,
+     "vegetation": 0.0003,
+     "sky": 0.1054,
+     "static": 0.001,
+     "roadline": 0.0093
+    }
+   },
+   "near": [
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "flecha_recto_i_giro_fixed14_121_SM_0",
+     "x_right": 0.26,
+     "y_fwd": -3.64,
+     "z": -0.02,
+     "extent": [
+      1.1,
+      1.62,
+      0.09
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "flecha_recto_i_giro_fixed15_SM_0",
+     "x_right": -3.68,
+     "y_fwd": -3.57,
+     "z": -0.02,
+     "extent": [
+      -1.1,
+      1.62,
+      0.09
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "TrafficLight",
+     "name": "BP_TrafficLight2_8700_TrafficLight_2",
+     "x_right": -8.25,
+     "y_fwd": 0.9,
+     "z": 5.99,
+     "extent": [
+      0.14,
+      0.19,
+      0.44
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple37_SM_0",
+     "x_right": 0.16,
+     "y_fwd": 9.84,
+     "z": 10.77,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple37_SM_1",
+     "x_right": 0.16,
+     "y_fwd": 9.84,
+     "z": 10.77,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple40_SM_0",
+     "x_right": 0.18,
+     "y_fwd": -10.16,
+     "z": 11.05,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple40_SM_1",
+     "x_right": 0.18,
+     "y_fwd": -10.16,
+     "z": 11.05,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple37_SM_2",
+     "x_right": 3.7,
+     "y_fwd": 9.83,
+     "z": 5.5,
+     "extent": [
+      3.94,
+      0.37,
+      5.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple40_SM_2",
+     "x_right": 3.71,
+     "y_fwd": -10.17,
+     "z": 5.79,
+     "extent": [
+      3.94,
+      0.37,
+      5.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "TrafficLight",
+     "name": "BP_TrafficLight2_8700_TrafficLight_0",
+     "x_right": -11.75,
+     "y_fwd": 0.91,
+     "z": 5.99,
+     "extent": [
+      0.14,
+      0.19,
+      0.44
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple52_SM_0",
+     "x_right": -12.68,
+     "y_fwd": -1.83,
+     "z": 10.88,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple52_SM_1",
+     "x_right": -12.68,
+     "y_fwd": -1.83,
+     "z": 10.89,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_TrafficLight2_8700_Poles_3",
+     "x_right": -13.9,
+     "y_fwd": 0.69,
+     "z": 4.23,
+     "extent": [
+      6.03,
+      0.22,
+      4.22
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "TrafficLight",
+     "name": "BP_TrafficLight2_8700_TrafficLight_1",
+     "x_right": -14.75,
+     "y_fwd": 0.93,
+     "z": 5.99,
+     "extent": [
+      0.14,
+      0.19,
+      0.44
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "Road_marking_Town03_66_SM_0",
+     "x_right": 1.83,
+     "y_fwd": 14.76,
+     "z": -0.05,
+     "extent": [
+      7.47,
+      14.27,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Roads",
+     "name": "Road_Road_Town03_85_SM_0",
+     "x_right": 1.84,
+     "y_fwd": 14.76,
+     "z": -0.07,
+     "extent": [
+      14.27,
+      7.47,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Curb_Town03_153_SM_0",
+     "x_right": 4.56,
+     "y_fwd": -14.88,
+     "z": 0.39,
+     "extent": [
+      36.1,
+      0.42,
+      0.49
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_67_SM_0",
+     "x_right": 5.88,
+     "y_fwd": -14.88,
+     "z": 0.47,
+     "extent": [
+      36.1,
+      1.1,
+      0.42
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple52_SM_2",
+     "x_right": -16.22,
+     "y_fwd": -1.81,
+     "z": 5.62,
+     "extent": [
+      3.94,
+      0.37,
+      5.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "NONE",
+     "name": "Road_Crosswalk_Town03_12_SM_0",
+     "x_right": -8.15,
+     "y_fwd": 14.43,
+     "z": -0.05,
+     "extent": [
+      19.78,
+      1.3,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple36_23_SM_0",
+     "x_right": 0.21,
+     "y_fwd": 19.84,
+     "z": 10.76,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple36_23_SM_1",
+     "x_right": 0.21,
+     "y_fwd": 19.84,
+     "z": 10.76,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple36_23_SM_2",
+     "x_right": 3.74,
+     "y_fwd": 19.83,
+     "z": 5.49,
+     "extent": [
+      3.94,
+      0.37,
+      5.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Curb_Town03_137_SM_0",
+     "x_right": -22.5,
+     "y_fwd": 3.01,
+     "z": 0.02,
+     "extent": [
+      2.46,
+      4.28,
+      0.12
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_61_SM_0",
+     "x_right": -22.59,
+     "y_fwd": 2.69,
+     "z": 0.1,
+     "extent": [
+      2.14,
+      3.73,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "SM_MetallicDoor4_SM_0",
+     "x_right": 22.84,
+     "y_fwd": 1.12,
+     "z": 1.14,
+     "extent": [
+      0.34,
+      7.73,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "Road_marking_Town03_51_SM_0",
+     "x_right": -18.87,
+     "y_fwd": 14.83,
+     "z": -0.05,
+     "extent": [
+      13.24,
+      14.29,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "SM_MetallicDoor2_SM_0",
+     "x_right": 11.09,
+     "y_fwd": -21.3,
+     "z": 1.16,
+     "extent": [
+      0.34,
+      7.72,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Roads",
+     "name": "Road_Road_Town03_71_SM_0",
+     "x_right": -19.03,
+     "y_fwd": 14.83,
+     "z": -0.06,
+     "extent": [
+      14.29,
+      13.39,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_71_SM_0",
+     "x_right": 7.13,
+     "y_fwd": 23.39,
+     "z": 0.05,
+     "extent": [
+      2.19,
+      2.19,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "NONE",
+     "name": "Road_Crosswalk_Town03_10_SM_0",
+     "x_right": -21.43,
+     "y_fwd": 12.11,
+     "z": -0.04,
+     "extent": [
+      11.71,
+      1.69,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Curb_Town03_162_SM_0",
+     "x_right": 6.82,
+     "y_fwd": 23.71,
+     "z": -0.02,
+     "extent": [
+      2.51,
+      2.51,
+      0.08
+     ]
+    }
+   ]
+  },
+  "signal_off": {
+   "spawn": {
+    "x": 44.0,
+    "y": 130.5,
+    "z": 0.5,
+    "yaw": 179.2,
+    "tl_id": 71,
+    "lanes": 1
+   },
+   "settled": {
+    "x": 44.0,
+    "y": 130.501,
+    "z": 0.001,
+    "pitch": 0.008,
+    "roll": -0.006,
+    "yaw": 179.2
+   },
+   "lane": {
+    "road": 76,
+    "lane": 1,
+    "lane_width": 3.5,
+    "right_lane_marking": "Solid",
+    "offset_from_centre": 0.04
+   },
+   "semantic_share": {
+    "rgb": {
+     "road": 0.3974,
+     "sidewalk": 0.0095,
+     "building": 0.0834,
+     "wall": 0.0032,
+     "fence": 0.0061,
+     "pole": 0.0094,
+     "traffic_light": 0.0005,
+     "traffic_sign": 0.0,
+     "vegetation": 0.1191,
+     "terrain": 0.0191,
+     "sky": 0.3236,
+     "car": 0.0004,
+     "truck": 0.0,
+     "static": 0.0003,
+     "dynamic": 0.0004,
+     "roadline": 0.0078,
+     "ground": 0.0155,
+     "railtrack": 0.0044
+    },
+    "rgb_left": {
+     "road": 0.3699,
+     "sidewalk": 0.0112,
+     "building": 0.0676,
+     "wall": 0.0274,
+     "pole": 0.0151,
+     "traffic_light": 0.0004,
+     "vegetation": 0.088,
+     "terrain": 0.0191,
+     "sky": 0.3606,
+     "car": 0.0007,
+     "static": 0.0029,
+     "dynamic": 0.0089,
+     "roadline": 0.0061,
+     "ground": 0.0175,
+     "railtrack": 0.0046
+    },
+    "rgb_right": {
+     "road": 0.3426,
+     "sidewalk": 0.0152,
+     "building": 0.1416,
+     "wall": 0.0035,
+     "fence": 0.0289,
+     "pole": 0.0073,
+     "traffic_light": 0.0003,
+     "vegetation": 0.1952,
+     "terrain": 0.0292,
+     "sky": 0.2008,
+     "car": 0.0001,
+     "dynamic": 0.0001,
+     "roadline": 0.01,
+     "ground": 0.0253
+    }
+   },
+   "near": [
+    {
+     "kind": "env",
+     "label": "Roads",
+     "name": "Road_Road_Town03_50_SM_0",
+     "x_right": -1.71,
+     "y_fwd": -6.54,
+     "z": 0.02,
+     "extent": [
+      7.42,
+      29.44,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Ground",
+     "name": "Road_Curb_Town03_96_SM_0",
+     "x_right": 5.61,
+     "y_fwd": -4.78,
+     "z": 0.1,
+     "extent": [
+      0.76,
+      31.3,
+      0.1
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Terrain",
+     "name": "Road_Grass_Town03_6_SM_0",
+     "x_right": 6.92,
+     "y_fwd": -4.79,
+     "z": 0.17,
+     "extent": [
+      1.45,
+      31.32,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_2_SM_0",
+     "x_right": 7.29,
+     "y_fwd": 4.33,
+     "z": 3.6,
+     "extent": [
+      0.97,
+      1.09,
+      0.16
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_2_SM_1",
+     "x_right": 7.29,
+     "y_fwd": 4.33,
+     "z": 3.6,
+     "extent": [
+      0.97,
+      1.09,
+      0.16
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_2_SM_2",
+     "x_right": 7.29,
+     "y_fwd": 4.33,
+     "z": 2.49,
+     "extent": [
+      1.03,
+      1.15,
+      2.34
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_Garbage8_214_SM_0",
+     "x_right": -9.86,
+     "y_fwd": 0.69,
+     "z": 0.17,
+     "extent": [
+      0.11,
+      0.14,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_Garbage6_217_SM_0",
+     "x_right": -10.0,
+     "y_fwd": 0.57,
+     "z": 0.22,
+     "extent": [
+      0.12,
+      0.12,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_TrasdhBag19_204_SM_0",
+     "x_right": -9.99,
+     "y_fwd": 1.14,
+     "z": 0.4,
+     "extent": [
+      0.19,
+      0.21,
+      0.35
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_Garbage01_207_SM_0",
+     "x_right": -10.07,
+     "y_fwd": 0.86,
+     "z": 0.26,
+     "extent": [
+      0.07,
+      0.07,
+      0.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_39_SM_0",
+     "x_right": 8.92,
+     "y_fwd": -4.79,
+     "z": 0.17,
+     "extent": [
+      1.45,
+      31.33,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_TrashCan26_182_SM_0",
+     "x_right": -9.95,
+     "y_fwd": 2.06,
+     "z": 0.57,
+     "extent": [
+      0.32,
+      0.28,
+      0.42
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_Garbage2_SM_0",
+     "x_right": -10.14,
+     "y_fwd": 0.71,
+     "z": 0.26,
+     "extent": [
+      0.07,
+      0.07,
+      0.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_Garbage7_211_SM_0",
+     "x_right": -10.25,
+     "y_fwd": 0.5,
+     "z": 0.19,
+     "extent": [
+      0.18,
+      0.11,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_Garbage07_198_SM_0",
+     "x_right": -9.77,
+     "y_fwd": 3.44,
+     "z": 0.17,
+     "extent": [
+      0.11,
+      0.14,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_Bin6_173_SM_0",
+     "x_right": -10.26,
+     "y_fwd": 1.52,
+     "z": 0.68,
+     "extent": [
+      -0.27,
+      0.32,
+      0.53
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_TrasdhBag17_185_SM_0",
+     "x_right": -10.14,
+     "y_fwd": 2.45,
+     "z": 0.5,
+     "extent": [
+      0.19,
+      0.21,
+      0.35
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_Barrel5_170_SM_0",
+     "x_right": -10.41,
+     "y_fwd": 0.94,
+     "z": 0.55,
+     "extent": [
+      0.23,
+      0.24,
+      0.4
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_Garbage05_192_SM_0",
+     "x_right": -9.84,
+     "y_fwd": 3.63,
+     "z": 0.18,
+     "extent": [
+      0.12,
+      0.12,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline27_Inst_10_10",
+     "x_right": 10.41,
+     "y_fwd": 1.94,
+     "z": 0.79,
+     "extent": [
+      -1.2,
+      0.02,
+      0.79
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_Garbage06_195_SM_0",
+     "x_right": -9.94,
+     "y_fwd": 3.88,
+     "z": 0.19,
+     "extent": [
+      0.18,
+      0.11,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_8_SM_0",
+     "x_right": -10.64,
+     "y_fwd": -0.98,
+     "z": 3.6,
+     "extent": [
+      0.97,
+      1.09,
+      0.16
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_8_SM_1",
+     "x_right": -10.64,
+     "y_fwd": -0.98,
+     "z": 3.6,
+     "extent": [
+      0.97,
+      1.09,
+      0.16
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_8_SM_2",
+     "x_right": -10.64,
+     "y_fwd": -0.98,
+     "z": 2.49,
+     "extent": [
+      1.03,
+      1.15,
+      2.34
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_TrashCan24_176_SM_0",
+     "x_right": -10.57,
+     "y_fwd": 2.05,
+     "z": 0.57,
+     "extent": [
+      0.32,
+      0.28,
+      0.42
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_TrashCan25_179_SM_0",
+     "x_right": -10.3,
+     "y_fwd": 3.42,
+     "z": 0.62,
+     "extent": [
+      0.31,
+      0.27,
+      0.47
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_TrasdhBag18_SM_0",
+     "x_right": -10.25,
+     "y_fwd": 3.85,
+     "z": 0.5,
+     "extent": [
+      0.19,
+      0.21,
+      0.35
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Ground",
+     "name": "Road_Curb_Town03_97_SM_0",
+     "x_right": -9.03,
+     "y_fwd": -6.53,
+     "z": 0.1,
+     "extent": [
+      0.74,
+      29.34,
+      0.1
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline27_Inst_9_9",
+     "x_right": 10.44,
+     "y_fwd": 4.09,
+     "z": 0.78,
+     "extent": [
+      -1.2,
+      0.02,
+      0.79
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Static",
+     "name": "BP_RepSpline187_12294_Inst_0_0",
+     "x_right": 11.24,
+     "y_fwd": 1.0,
+     "z": 0.38,
+     "extent": [
+      0.71,
+      0.22,
+      0.24
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "longLeavesBush_v5_21_SM_0",
+     "x_right": 11.29,
+     "y_fwd": 1.14,
+     "z": 0.67,
+     "extent": [
+      0.76,
+      0.7,
+      0.5
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline184_Inst_0_0",
+     "x_right": 10.01,
+     "y_fwd": -6.23,
+     "z": 0.9,
+     "extent": [
+      1.3,
+      0.02,
+      0.79
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Terrain",
+     "name": "SM_Square_3_SM_0",
+     "x_right": 10.92,
+     "y_fwd": -4.81,
+     "z": 0.16,
+     "extent": [
+      1.45,
+      31.35,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Terrain",
+     "name": "Road_Grass_Town03_7_SM_0",
+     "x_right": -10.35,
+     "y_fwd": -6.53,
+     "z": 0.17,
+     "extent": [
+      1.42,
+      29.34,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "longLeavesBush_v7_30_SM_0",
+     "x_right": 11.06,
+     "y_fwd": -5.35,
+     "z": 0.65,
+     "extent": [
+      0.72,
+      0.77,
+      0.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Static",
+     "name": "BP_RepSpline186_Inst_0_0",
+     "x_right": 11.15,
+     "y_fwd": -5.22,
+     "z": 0.38,
+     "extent": [
+      0.71,
+      0.22,
+      0.24
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "SM_Wall18_SM_0",
+     "x_right": 10.21,
+     "y_fwd": 7.17,
+     "z": 0.59,
+     "extent": [
+      1.8,
+      0.14,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline182_Inst_16_16",
+     "x_right": 10.95,
+     "y_fwd": 6.14,
+     "z": 0.95,
+     "extent": [
+      1.2,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline181_Inst_8_8",
+     "x_right": 11.45,
+     "y_fwd": 5.48,
+     "z": 0.62,
+     "extent": [
+      1.27,
+      0.14,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline27_Inst_8_8",
+     "x_right": 11.67,
+     "y_fwd": 5.27,
+     "z": 0.79,
+     "extent": [
+      -1.21,
+      0.02,
+      0.79
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Static",
+     "name": "SM_StreetCounter_17_SM_0",
+     "x_right": -13.02,
+     "y_fwd": -0.38,
+     "z": 0.75,
+     "extent": [
+      0.3,
+      0.37,
+      0.66
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline184_Inst_1_1",
+     "x_right": 10.09,
+     "y_fwd": -8.59,
+     "z": 0.87,
+     "extent": [
+      1.3,
+      0.02,
+      0.79
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline182_Inst_17_17",
+     "x_right": 10.96,
+     "y_fwd": 8.02,
+     "z": 0.95,
+     "extent": [
+      1.2,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline182_Inst_15_15",
+     "x_right": 12.17,
+     "y_fwd": 6.17,
+     "z": 0.95,
+     "extent": [
+      0.82,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "Custom_pine_beech_02_LOD1_962_SM_0",
+     "x_right": 13.42,
+     "y_fwd": 3.14,
+     "z": 9.54,
+     "extent": [
+      8.02,
+      7.67,
+      9.41
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_40_SM_0",
+     "x_right": -12.35,
+     "y_fwd": -6.51,
+     "z": 0.17,
+     "extent": [
+      1.42,
+      29.32,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Walls",
+     "name": "BP_RepSpline50_3170_Inst_7_7",
+     "x_right": -13.7,
+     "y_fwd": -3.2,
+     "z": 1.52,
+     "extent": [
+      0.37,
+      3.01,
+      1.28
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "SM_Wall20_SM_0",
+     "x_right": 11.69,
+     "y_fwd": 7.98,
+     "z": 0.62,
+     "extent": [
+      1.07,
+      0.14,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline49_Inst_32_32",
+     "x_right": -14.17,
+     "y_fwd": 0.72,
+     "z": 1.08,
+     "extent": [
+      0.95,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "longLeavesBush_v6_24_SM_0",
+     "x_right": 14.16,
+     "y_fwd": 1.08,
+     "z": 0.66,
+     "extent": [
+      0.76,
+      0.7,
+      0.5
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Static",
+     "name": "BP_RepSpline187_12294_Inst_1_1",
+     "x_right": 14.18,
+     "y_fwd": 0.96,
+     "z": 0.34,
+     "extent": [
+      0.71,
+      0.22,
+      0.24
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline49_Inst_33_33",
+     "x_right": -14.08,
+     "y_fwd": 1.94,
+     "z": 1.08,
+     "extent": [
+      0.95,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "SM_Wall19_SM_0",
+     "x_right": 10.96,
+     "y_fwd": 9.06,
+     "z": 0.62,
+     "extent": [
+      0.9,
+      0.14,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline180_Inst_8_8",
+     "x_right": 12.7,
+     "y_fwd": 6.87,
+     "z": 0.62,
+     "extent": [
+      1.27,
+      0.14,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline49_Inst_34_34",
+     "x_right": -14.12,
+     "y_fwd": 3.33,
+     "z": 1.08,
+     "extent": [
+      0.95,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline182_Inst_14_14",
+     "x_right": 13.47,
+     "y_fwd": 6.2,
+     "z": 0.96,
+     "extent": [
+      0.82,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline49_Inst_35_35",
+     "x_right": -14.07,
+     "y_fwd": 4.74,
+     "z": 1.08,
+     "extent": [
+      0.95,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline181_Inst_7_7",
+     "x_right": 13.89,
+     "y_fwd": 5.48,
+     "z": 0.63,
+     "extent": [
+      1.27,
+      0.14,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline27_Inst_7_7",
+     "x_right": 14.1,
+     "y_fwd": 5.21,
+     "z": 0.8,
+     "extent": [
+      -1.21,
+      0.02,
+      0.79
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Static",
+     "name": "BP_RepSpline186_Inst_1_1",
+     "x_right": 14.1,
+     "y_fwd": -5.26,
+     "z": 0.34,
+     "extent": [
+      0.71,
+      0.22,
+      0.24
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "longLeavesBush_v2_27_SM_0",
+     "x_right": 14.09,
+     "y_fwd": -5.39,
+     "z": 0.62,
+     "extent": [
+      0.72,
+      0.77,
+      0.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline49_Inst_31_31",
+     "x_right": -15.24,
+     "y_fwd": 0.61,
+     "z": 1.08,
+     "extent": [
+      0.83,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline49_Inst_36_36",
+     "x_right": -14.09,
+     "y_fwd": 6.06,
+     "z": 1.08,
+     "extent": [
+      0.95,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "BP_RepSpline185_11054_Inst_2_2",
+     "x_right": 11.23,
+     "y_fwd": -11.03,
+     "z": 0.16,
+     "extent": [
+      1.31,
+      1.19,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Terrain",
+     "name": "SM_Square_6_SM_0",
+     "x_right": -14.35,
+     "y_fwd": -6.49,
+     "z": 0.16,
+     "extent": [
+      1.42,
+      29.31,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline49_Inst_37_37",
+     "x_right": -14.07,
+     "y_fwd": 7.39,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Roads",
+     "name": "SM_Ramp12_SM_0",
+     "x_right": 15.8,
+     "y_fwd": -2.27,
+     "z": 0.12,
+     "extent": [
+      2.9,
+      10.56,
+      0.36
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline182_Inst_13_13",
+     "x_right": 14.72,
+     "y_fwd": 6.22,
+     "z": 0.96,
+     "extent": [
+      0.82,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Walls",
+     "name": "BP_RepSpline50_3170_Inst_8_8",
+     "x_right": -13.65,
+     "y_fwd": -8.54,
+     "z": 1.53,
+     "extent": [
+      0.37,
+      3.01,
+      1.28
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Walls",
+     "name": "BP_RepSpline50_3170_Inst_6_6",
+     "x_right": -16.21,
+     "y_fwd": -0.21,
+     "z": 1.5,
+     "extent": [
+      0.38,
+      3.01,
+      1.28
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline49_Inst_30_30",
+     "x_right": -16.44,
+     "y_fwd": 0.68,
+     "z": 1.08,
+     "extent": [
+      0.83,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline180_Inst_7_7",
+     "x_right": 14.98,
+     "y_fwd": 6.87,
+     "z": 0.63,
+     "extent": [
+      1.27,
+      0.14,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Static",
+     "name": "BP_RepSpline187_12294_Inst_2_2",
+     "x_right": 17.13,
+     "y_fwd": 0.91,
+     "z": 0.31,
+     "extent": [
+      0.53,
+      0.22,
+      0.24
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline182_Inst_12_12",
+     "x_right": 16.0,
+     "y_fwd": 6.23,
+     "z": 0.97,
+     "extent": [
+      0.82,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline181_Inst_6_6",
+     "x_right": 16.33,
+     "y_fwd": 5.47,
+     "z": 0.64,
+     "extent": [
+      1.27,
+      0.14,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "longLeavesBush_v8_SM_0",
+     "x_right": 17.25,
+     "y_fwd": 1.04,
+     "z": 0.66,
+     "extent": [
+      0.76,
+      0.7,
+      0.5
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline27_Inst_6_6",
+     "x_right": 16.52,
+     "y_fwd": 5.15,
+     "z": 0.81,
+     "extent": [
+      -1.21,
+      0.02,
+      0.79
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline49_Inst_29_29",
+     "x_right": -17.53,
+     "y_fwd": 0.64,
+     "z": 1.08,
+     "extent": [
+      0.83,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "BP_RepSpline185_11054_Inst_1_1",
+     "x_right": 13.85,
+     "y_fwd": -10.93,
+     "z": 0.16,
+     "extent": [
+      1.31,
+      1.19,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_1_Inst_3_3",
+     "x_right": -14.75,
+     "y_fwd": 9.81,
+     "z": 0.16,
+     "extent": [
+      1.34,
+      1.19,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Static",
+     "name": "BP_RepSpline186_Inst_2_2",
+     "x_right": 17.04,
+     "y_fwd": -5.31,
+     "z": 0.31,
+     "extent": [
+      0.53,
+      0.22,
+      0.24
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "longLeavesBush_v9_SM_0",
+     "x_right": 17.08,
+     "y_fwd": -5.43,
+     "z": 0.62,
+     "extent": [
+      0.72,
+      0.77,
+      0.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline182_Inst_11_11",
+     "x_right": 17.22,
+     "y_fwd": 6.23,
+     "z": 0.97,
+     "extent": [
+      0.82,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "SM_Wall11_SM_0",
+     "x_right": 10.85,
+     "y_fwd": 14.87,
+     "z": 0.62,
+     "extent": [
+      0.9,
+      0.14,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline180_Inst_6_6",
+     "x_right": 17.26,
+     "y_fwd": 6.86,
+     "z": 0.64,
+     "extent": [
+      1.27,
+      0.14,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline49_Inst_28_28",
+     "x_right": -18.76,
+     "y_fwd": 0.76,
+     "z": 1.08,
+     "extent": [
+      0.83,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline177_Inst_1_1",
+     "x_right": 10.02,
+     "y_fwd": 15.96,
+     "z": 0.63,
+     "extent": [
+      1.22,
+      0.14,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline26_Inst_17_17",
+     "x_right": 10.11,
+     "y_fwd": -15.96,
+     "z": 0.69,
+     "extent": [
+      2.38,
+      0.02,
+      0.79
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline48_Inst_45_45",
+     "x_right": -14.19,
+     "y_fwd": 12.64,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline179_Inst_3_3",
+     "x_right": 10.74,
+     "y_fwd": 15.78,
+     "z": 0.95,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_3_SM_0",
+     "x_right": 6.98,
+     "y_fwd": -17.83,
+     "z": 3.6,
+     "extent": [
+      0.97,
+      1.09,
+      0.16
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_3_SM_1",
+     "x_right": 6.98,
+     "y_fwd": -17.83,
+     "z": 3.6,
+     "extent": [
+      0.97,
+      1.09,
+      0.16
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_3_SM_2",
+     "x_right": 6.98,
+     "y_fwd": -17.83,
+     "z": 2.49,
+     "extent": [
+      1.03,
+      1.15,
+      2.34
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_Table_20_SM_0",
+     "x_right": -18.59,
+     "y_fwd": -4.65,
+     "z": 0.56,
+     "extent": [
+      1.08,
+      1.08,
+      0.42
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Roads",
+     "name": "SM_Ramp13_SM_0",
+     "x_right": 15.5,
+     "y_fwd": 11.83,
+     "z": 0.12,
+     "extent": [
+      2.9,
+      10.56,
+      0.36
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline182_Inst_10_10",
+     "x_right": 18.48,
+     "y_fwd": 6.24,
+     "z": 0.97,
+     "extent": [
+      0.82,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline181_Inst_5_5",
+     "x_right": 18.76,
+     "y_fwd": 5.46,
+     "z": 0.64,
+     "extent": [
+      1.27,
+      0.14,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "BP_RepSpline17_Inst_4_4",
+     "x_right": -14.51,
+     "y_fwd": -13.17,
+     "z": 0.16,
+     "extent": [
+      1.28,
+      1.19,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "BP_RepSpline185_11054_Inst_0_0",
+     "x_right": 16.46,
+     "y_fwd": -10.65,
+     "z": 0.16,
+     "extent": [
+      1.31,
+      1.19,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline27_Inst_5_5",
+     "x_right": 18.95,
+     "y_fwd": 5.1,
+     "z": 0.83,
+     "extent": [
+      -1.21,
+      0.02,
+      0.79
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline179_Inst_2_2",
+     "x_right": 10.69,
+     "y_fwd": 16.64,
+     "z": 0.97,
+     "extent": [
+      1.0,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline176_Inst_1_1",
+     "x_right": 11.64,
+     "y_fwd": 15.99,
+     "z": 0.63,
+     "extent": [
+      1.22,
+      0.14,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline48_Inst_44_44",
+     "x_right": -14.24,
+     "y_fwd": 13.77,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline49_Inst_27_27",
+     "x_right": -20.0,
+     "y_fwd": 0.69,
+     "z": 1.08,
+     "extent": [
+      0.83,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_1_Inst_2_2",
+     "x_right": -17.41,
+     "y_fwd": 10.08,
+     "z": 0.16,
+     "extent": [
+      1.34,
+      1.19,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "Japanese_Maple_01_LOD10_8_SM_0",
+     "x_right": 12.01,
+     "y_fwd": -16.26,
+     "z": 9.62,
+     "extent": [
+      6.71,
+      7.41,
+      9.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "Veg_Tree_AcerSaccharum_v5_690_SM_0",
+     "x_right": -20.04,
+     "y_fwd": 4.05,
+     "z": 5.88,
+     "extent": [
+      2.28,
+      2.51,
+      5.76
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline179_Inst_1_1",
+     "x_right": 10.63,
+     "y_fwd": 17.49,
+     "z": 0.99,
+     "extent": [
+      1.0,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline48_Inst_43_43",
+     "x_right": -14.22,
+     "y_fwd": 14.96,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline182_Inst_9_9",
+     "x_right": 19.75,
+     "y_fwd": 6.24,
+     "z": 0.98,
+     "extent": [
+      0.82,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline180_Inst_5_5",
+     "x_right": 19.55,
+     "y_fwd": 6.86,
+     "z": 0.64,
+     "extent": [
+      1.27,
+      0.14,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Car",
+     "name": "Vh_Car_MiniCooperS4_836_SM_0",
+     "x_right": 16.93,
+     "y_fwd": 11.96,
+     "z": 1.08,
+     "extent": [
+      1.9,
+      0.99,
+      0.74
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Static",
+     "name": "SM_PlantPot07_9_SM_0",
+     "x_right": -13.92,
+     "y_fwd": -15.52,
+     "z": 0.63,
+     "extent": [
+      0.43,
+      0.42,
+      0.49
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline177_Inst_0_0",
+     "x_right": 10.01,
+     "y_fwd": 18.29,
+     "z": 0.66,
+     "extent": [
+      1.22,
+      0.14,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "longLeavesBush_v3_13_SM_0",
+     "x_right": -13.99,
+     "y_fwd": -15.48,
+     "z": 1.1,
+     "extent": [
+      0.76,
+      0.7,
+      0.5
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline49_Inst_26_26",
+     "x_right": -21.12,
+     "y_fwd": 0.76,
+     "z": 1.08,
+     "extent": [
+      0.83,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline179_Inst_0_0",
+     "x_right": 10.57,
+     "y_fwd": 18.35,
+     "z": 1.01,
+     "extent": [
+      1.0,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "BP_RepSpline17_Inst_3_3",
+     "x_right": -17.05,
+     "y_fwd": -12.78,
+     "z": 0.16,
+     "extent": [
+      1.28,
+      1.19,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline48_Inst_42_42",
+     "x_right": -14.21,
+     "y_fwd": 15.97,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline26_Inst_16_16",
+     "x_right": 11.28,
+     "y_fwd": -18.39,
+     "z": 0.69,
+     "extent": [
+      1.22,
+      0.02,
+      0.79
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Walls",
+     "name": "BP_RepSpline50_3170_Inst_5_5",
+     "x_right": -21.64,
+     "y_fwd": -0.14,
+     "z": 1.47,
+     "extent": [
+      0.38,
+      3.01,
+      1.28
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline176_Inst_0_0",
+     "x_right": 11.57,
+     "y_fwd": 18.33,
+     "z": 0.66,
+     "extent": [
+      1.22,
+      0.14,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Walls",
+     "name": "BP_RepSpline192_Inst_8_8",
+     "x_right": 11.01,
+     "y_fwd": -18.73,
+     "z": 0.79,
+     "extent": [
+      1.32,
+      0.14,
+      0.69
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline181_Inst_4_4",
+     "x_right": 21.2,
+     "y_fwd": 5.46,
+     "z": 0.65,
+     "extent": [
+      1.27,
+      0.14,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline182_Inst_8_8",
+     "x_right": 20.99,
+     "y_fwd": 6.24,
+     "z": 0.98,
+     "extent": [
+      0.82,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline27_Inst_4_4",
+     "x_right": 21.38,
+     "y_fwd": 5.05,
+     "z": 0.83,
+     "extent": [
+      -1.21,
+      0.02,
+      0.79
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "Road_marking_Town03_228_SM_0",
+     "x_right": -5.26,
+     "y_fwd": 21.47,
+     "z": 0.03,
+     "extent": [
+      8.51,
+      0.18,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline49_Inst_25_25",
+     "x_right": -22.16,
+     "y_fwd": 0.73,
+     "z": 1.08,
+     "extent": [
+      0.83,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "SM_Wall10_SM_0",
+     "x_right": 10.76,
+     "y_fwd": 19.41,
+     "z": 0.68,
+     "extent": [
+      0.9,
+      0.14,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Walls",
+     "name": "BP_RepSpline192_Inst_9_9",
+     "x_right": 9.88,
+     "y_fwd": -19.9,
+     "z": 0.79,
+     "extent": [
+      1.21,
+      0.14,
+      0.69
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "Road_marking_Town03_227_SM_0",
+     "x_right": 2.29,
+     "y_fwd": 22.15,
+     "z": 0.01,
+     "extent": [
+      8.51,
+      0.18,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline48_Inst_41_41",
+     "x_right": -14.36,
+     "y_fwd": 17.13,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Terrain",
+     "name": "SM_Square_78_SM_0",
+     "x_right": -22.21,
+     "y_fwd": -2.93,
+     "z": 0.26,
+     "extent": [
+      7.33,
+      32.76,
+      0.13
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_1_Inst_1_1",
+     "x_right": -20.08,
+     "y_fwd": 10.21,
+     "z": 0.16,
+     "extent": [
+      1.34,
+      1.19,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "BP_RepSpline17_Inst_2_2",
+     "x_right": -19.4,
+     "y_fwd": -11.6,
+     "z": 0.16,
+     "extent": [
+      1.56,
+      1.19,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline180_Inst_4_4",
+     "x_right": 21.83,
+     "y_fwd": 6.85,
+     "z": 0.65,
+     "extent": [
+      1.27,
+      0.14,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline26_Inst_15_15",
+     "x_right": 13.71,
+     "y_fwd": -18.47,
+     "z": 0.7,
+     "extent": [
+      1.22,
+      0.02,
+      0.79
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Walls",
+     "name": "BP_RepSpline192_Inst_7_7",
+     "x_right": 13.45,
+     "y_fwd": -18.81,
+     "z": 0.79,
+     "extent": [
+      1.32,
+      0.14,
+      0.69
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline182_Inst_7_7",
+     "x_right": 22.3,
+     "y_fwd": 6.28,
+     "z": 0.99,
+     "extent": [
+      0.82,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline48_Inst_40_40",
+     "x_right": -14.36,
+     "y_fwd": 18.29,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline49_Inst_24_24",
+     "x_right": -23.39,
+     "y_fwd": 0.73,
+     "z": 1.08,
+     "extent": [
+      0.83,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_7_SM_0",
+     "x_right": -10.33,
+     "y_fwd": 21.15,
+     "z": 3.6,
+     "extent": [
+      0.97,
+      1.09,
+      0.16
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_7_SM_1",
+     "x_right": -10.33,
+     "y_fwd": 21.15,
+     "z": 3.6,
+     "extent": [
+      0.97,
+      1.09,
+      0.16
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_7_SM_2",
+     "x_right": -10.33,
+     "y_fwd": 21.15,
+     "z": 2.49,
+     "extent": [
+      1.03,
+      1.15,
+      2.34
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "SM_House_45_SM_0",
+     "x_right": 22.61,
+     "y_fwd": -7.02,
+     "z": 4.12,
+     "extent": [
+      8.52,
+      4.87,
+      3.84
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "BP_RepSpline17_Inst_1_1",
+     "x_right": -21.8,
+     "y_fwd": -9.61,
+     "z": 0.16,
+     "extent": [
+      1.56,
+      1.19,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "BP_RepSpline183_Inst_2_2",
+     "x_right": 11.03,
+     "y_fwd": 21.14,
+     "z": 0.16,
+     "extent": [
+      1.3,
+      1.19,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline48_Inst_39_39",
+     "x_right": -14.35,
+     "y_fwd": 19.41,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Walls",
+     "name": "BP_RepSpline192_Inst_10_10",
+     "x_right": 9.85,
+     "y_fwd": -22.14,
+     "z": 0.79,
+     "extent": [
+      1.21,
+      0.14,
+      0.69
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline181_Inst_3_3",
+     "x_right": 23.63,
+     "y_fwd": 5.45,
+     "z": 0.66,
+     "extent": [
+      1.27,
+      0.14,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline27_Inst_3_3",
+     "x_right": 23.81,
+     "y_fwd": 4.99,
+     "z": 0.85,
+     "extent": [
+      -1.21,
+      0.02,
+      0.79
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline182_Inst_6_6",
+     "x_right": 23.54,
+     "y_fwd": 6.21,
+     "z": 0.99,
+     "extent": [
+      0.82,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline49_Inst_23_23",
+     "x_right": -24.49,
+     "y_fwd": 0.81,
+     "z": 1.08,
+     "extent": [
+      0.83,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_DogHouse_2_SM_0",
+     "x_right": -20.94,
+     "y_fwd": 12.86,
+     "z": 0.63,
+     "extent": [
+      -0.54,
+      0.64,
+      0.55
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Fences",
+     "name": "BP_RepSpline26_Inst_14_14",
+     "x_right": 16.14,
+     "y_fwd": -18.56,
+     "z": 0.72,
+     "extent": [
+      1.22,
+      0.02,
+      0.79
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Walls",
+     "name": "BP_RepSpline192_Inst_6_6",
+     "x_right": 15.88,
+     "y_fwd": -18.88,
+     "z": 0.79,
+     "extent": [
+      1.32,
+      0.14,
+      0.69
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_1_Inst_0_0",
+     "x_right": -22.75,
+     "y_fwd": 10.13,
+     "z": 0.16,
+     "extent": [
+      1.34,
+      1.19,
+      0.05
+     ]
+    }
+   ]
+  },
+  "ambiguous_gesture": {
+   "spawn": {
+    "x": 40.1,
+    "y": -196.5,
+    "z": 0.5,
+    "yaw": 1.4,
+    "tl_id": 159,
+    "lanes": 2
+   },
+   "settled": {
+    "x": 40.1,
+    "y": -196.502,
+    "z": 0.001,
+    "pitch": 0.008,
+    "roll": -0.006,
+    "yaw": 1.4
+   },
+   "lane": {
+    "road": 1,
+    "lane": 2,
+    "lane_width": 3.5,
+    "right_lane_marking": "Broken",
+    "offset_from_centre": 0.01
+   },
+   "semantic_share": {
+    "rgb": {
+     "road": 0.4097,
+     "sidewalk": 0.0202,
+     "building": 0.1256,
+     "wall": 0.0249,
+     "pole": 0.0264,
+     "traffic_light": 0.0004,
+     "terrain": 0.0001,
+     "sky": 0.3455,
+     "car": 0.0003,
+     "dynamic": 0.0006,
+     "roadline": 0.0162,
+     "ground": 0.0005,
+     "bridge": 0.0009,
+     "railtrack": 0.0287
+    },
+    "rgb_left": {
+     "road": 0.4032,
+     "sidewalk": 0.0153,
+     "building": 0.0614,
+     "wall": 0.0668,
+     "pole": 0.0323,
+     "traffic_light": 0.0007,
+     "terrain": 0.0001,
+     "sky": 0.2891,
+     "car": 0.0003,
+     "dynamic": 0.0007,
+     "roadline": 0.0225,
+     "ground": 0.0012,
+     "railtrack": 0.1064
+    },
+    "rgb_right": {
+     "road": 0.3464,
+     "sidewalk": 0.0765,
+     "building": 0.2682,
+     "wall": 0.0014,
+     "pole": 0.0093,
+     "sky": 0.287,
+     "roadline": 0.0111,
+     "ground": 0.0001
+    }
+   },
+   "near": [
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple87_SM_0",
+     "x_right": 3.18,
+     "y_fwd": -3.21,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple87_SM_1",
+     "x_right": 3.18,
+     "y_fwd": -3.21,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Roads",
+     "name": "Road_Road_Town03_215_SM_0",
+     "x_right": -3.49,
+     "y_fwd": 5.99,
+     "z": -0.0,
+     "extent": [
+      11.89,
+      25.73,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "flecha_recto_i_giro_fixed7_90_SM_0",
+     "x_right": -6.8,
+     "y_fwd": -2.23,
+     "z": -0.08,
+     "extent": [
+      -1.09,
+      1.61,
+      0.09
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple87_SM_2",
+     "x_right": 6.72,
+     "y_fwd": -3.13,
+     "z": 5.59,
+     "extent": [
+      3.94,
+      0.37,
+      5.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "Road_marking_Town03_186_SM_0",
+     "x_right": -4.71,
+     "y_fwd": 6.06,
+     "z": 0.01,
+     "extent": [
+      25.57,
+      10.67,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Curb_Town03_384_SM_0",
+     "x_right": 8.08,
+     "y_fwd": 6.35,
+     "z": 0.07,
+     "extent": [
+      0.97,
+      25.82,
+      0.08
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "flecha_recto_fixed9_93_SM_0",
+     "x_right": -10.57,
+     "y_fwd": -2.19,
+     "z": -0.04,
+     "extent": [
+      0.45,
+      1.61,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_184_SM_0",
+     "x_right": 9.39,
+     "y_fwd": 6.35,
+     "z": 0.15,
+     "extent": [
+      1.65,
+      25.83,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple84_SM_0",
+     "x_right": -11.15,
+     "y_fwd": 6.61,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple84_SM_1",
+     "x_right": -11.15,
+     "y_fwd": 6.61,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "flecha_recto_fixed7_69_SM_0",
+     "x_right": -0.0,
+     "y_fwd": 14.07,
+     "z": -0.04,
+     "extent": [
+      0.45,
+      1.61,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "flecha_recto_i_giro_fixed_SM_0",
+     "x_right": 3.76,
+     "y_fwd": 14.14,
+     "z": -0.08,
+     "extent": [
+      1.1,
+      1.62,
+      0.09
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "BP_Apartment02_15_SM_0",
+     "x_right": 14.95,
+     "y_fwd": -2.52,
+     "z": 4.07,
+     "extent": [
+      -6.05,
+      4.69,
+      3.82
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Curb_Town03_385_SM_0",
+     "x_right": -15.07,
+     "y_fwd": -4.51,
+     "z": 0.07,
+     "extent": [
+      1.22,
+      35.96,
+      0.08
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple84_SM_2",
+     "x_right": -14.68,
+     "y_fwd": 6.52,
+     "z": 5.59,
+     "extent": [
+      3.94,
+      0.37,
+      5.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_185_SM_0",
+     "x_right": -16.38,
+     "y_fwd": -4.52,
+     "z": 0.15,
+     "extent": [
+      1.9,
+      35.98,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple83_SM_0",
+     "x_right": 2.69,
+     "y_fwd": 16.78,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple83_SM_1",
+     "x_right": 2.69,
+     "y_fwd": 16.78,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple86_SM_0",
+     "x_right": -11.09,
+     "y_fwd": -13.39,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple86_SM_1",
+     "x_right": -11.09,
+     "y_fwd": -13.39,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Walls",
+     "name": "BP_RepSpline14_7904_Inst_8_8",
+     "x_right": -17.69,
+     "y_fwd": 0.49,
+     "z": 1.33,
+     "extent": [
+      0.2,
+      2.72,
+      1.18
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple83_SM_2",
+     "x_right": 6.23,
+     "y_fwd": 16.87,
+     "z": 5.59,
+     "extent": [
+      3.94,
+      0.37,
+      5.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Walls",
+     "name": "BP_RepSpline14_7904_Inst_9_9",
+     "x_right": -17.71,
+     "y_fwd": -4.98,
+     "z": 1.33,
+     "extent": [
+      0.2,
+      2.72,
+      1.18
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Walls",
+     "name": "BP_RepSpline14_7904_Inst_7_7",
+     "x_right": -17.67,
+     "y_fwd": 5.96,
+     "z": 1.33,
+     "extent": [
+      0.2,
+      2.72,
+      1.18
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_TrafficLight47_38658_Poles_2",
+     "x_right": 3.23,
+     "y_fwd": -19.51,
+     "z": 4.37,
+     "extent": [
+      6.03,
+      0.22,
+      4.22
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "TrafficLight",
+     "name": "BP_TrafficLight47_38658_TrafficLight_0",
+     "x_right": 1.08,
+     "y_fwd": -19.8,
+     "z": 6.13,
+     "extent": [
+      0.19,
+      0.14,
+      0.44
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple86_SM_2",
+     "x_right": -14.62,
+     "y_fwd": -13.48,
+     "z": 5.59,
+     "extent": [
+      3.94,
+      0.37,
+      5.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "TrafficLight",
+     "name": "BP_TrafficLight47_38658_TrafficLight_1",
+     "x_right": 4.08,
+     "y_fwd": -19.73,
+     "z": 6.13,
+     "extent": [
+      0.19,
+      0.14,
+      0.44
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Walls",
+     "name": "BP_RepSpline14_7904_Inst_10_10",
+     "x_right": -17.72,
+     "y_fwd": -10.45,
+     "z": 1.34,
+     "extent": [
+      0.2,
+      2.72,
+      1.18
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "BP_Apartment02_57_SM_0",
+     "x_right": 15.24,
+     "y_fwd": -14.19,
+     "z": 4.07,
+     "extent": [
+      6.05,
+      4.69,
+      3.82
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Walls",
+     "name": "BP_RepSpline14_7904_Inst_6_6",
+     "x_right": -17.66,
+     "y_fwd": 11.42,
+     "z": 1.33,
+     "extent": [
+      0.2,
+      2.72,
+      1.18
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "NONE",
+     "name": "Road_Crosswalk_Town03_49_SM_0",
+     "x_right": -3.26,
+     "y_fwd": -20.89,
+     "z": 0.01,
+     "extent": [
+      14.82,
+      1.92,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "BP_Apartment02_14_SM_0",
+     "x_right": 14.62,
+     "y_fwd": 16.59,
+     "z": 3.94,
+     "extent": [
+      6.05,
+      4.69,
+      3.82
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_tall41_SM_0",
+     "x_right": 22.47,
+     "y_fwd": 4.03,
+     "z": 6.52,
+     "extent": [
+      0.97,
+      1.09,
+      0.16
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_tall41_SM_1",
+     "x_right": 22.47,
+     "y_fwd": 4.03,
+     "z": 6.52,
+     "extent": [
+      0.97,
+      1.09,
+      0.16
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_tall41_SM_2",
+     "x_right": 22.47,
+     "y_fwd": 4.04,
+     "z": 5.41,
+     "extent": [
+      1.03,
+      1.15,
+      2.34
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Walls",
+     "name": "BP_RepSpline14_7904_Inst_11_11",
+     "x_right": -17.74,
+     "y_fwd": -15.92,
+     "z": 1.34,
+     "extent": [
+      0.2,
+      2.72,
+      1.18
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_187_SM_0",
+     "x_right": 10.58,
+     "y_fwd": -21.65,
+     "z": 0.15,
+     "extent": [
+      2.15,
+      2.24,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Curb_Town03_387_SM_0",
+     "x_right": 10.25,
+     "y_fwd": -21.97,
+     "z": 0.07,
+     "extent": [
+      2.45,
+      2.56,
+      0.08
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Walls",
+     "name": "BP_RepSpline14_7904_Inst_5_5",
+     "x_right": -17.63,
+     "y_fwd": 16.89,
+     "z": 1.33,
+     "extent": [
+      0.2,
+      2.72,
+      1.18
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_tall40_2_SM_0",
+     "x_right": 22.31,
+     "y_fwd": 10.71,
+     "z": 6.52,
+     "extent": [
+      0.97,
+      1.09,
+      0.16
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_tall40_2_SM_1",
+     "x_right": 22.31,
+     "y_fwd": 10.71,
+     "z": 6.52,
+     "extent": [
+      0.97,
+      1.09,
+      0.16
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_tall40_2_SM_2",
+     "x_right": 22.31,
+     "y_fwd": 10.71,
+     "z": 5.41,
+     "extent": [
+      1.03,
+      1.15,
+      2.34
+     ]
+    }
+   ]
+  },
+  "fake_vest_director": {
+   "spawn": {
+    "x": -129.7,
+    "y": 0.2,
+    "z": 0.3,
+    "yaw": 0.3,
+    "tl_id": 1475,
+    "lanes": 1
+   },
+   "settled": {
+    "x": -129.7,
+    "y": 0.199,
+    "z": 0.001,
+    "pitch": 0.008,
+    "roll": -0.006,
+    "yaw": 0.3
+   },
+   "lane": {
+    "road": 62,
+    "lane": 1,
+    "lane_width": 3.5,
+    "right_lane_marking": "Solid",
+    "offset_from_centre": 0.02
+   },
+   "semantic_share": {
+    "rgb": {
+     "road": 0.2603,
+     "sidewalk": 0.1195,
+     "building": 0.154,
+     "wall": 0.0015,
+     "fence": 0.0,
+     "pole": 0.0255,
+     "traffic_light": 0.0002,
+     "vegetation": 0.1723,
+     "terrain": 0.0178,
+     "sky": 0.2288,
+     "static": 0.0024,
+     "dynamic": 0.0,
+     "water": 0.0,
+     "roadline": 0.0173,
+     "ground": 0.0001,
+     "railtrack": 0.0
+    },
+    "rgb_left": {
+     "road": 0.2873,
+     "sidewalk": 0.1068,
+     "building": 0.4175,
+     "wall": 0.0004,
+     "pole": 0.0597,
+     "traffic_light": 0.0001,
+     "vegetation": 0.0007,
+     "sky": 0.0913,
+     "static": 0.0003,
+     "roadline": 0.0225,
+     "railtrack": 0.0132
+    },
+    "rgb_right": {
+     "road": 0.0807,
+     "sidewalk": 0.1988,
+     "building": 0.0285,
+     "wall": 0.0002,
+     "pole": 0.0129,
+     "traffic_light": 0.0001,
+     "vegetation": 0.3607,
+     "terrain": 0.0514,
+     "sky": 0.2164,
+     "static": 0.0239,
+     "roadline": 0.0087,
+     "railtrack": 0.0178
+    }
+   },
+   "near": [
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple60_102_SM_0",
+     "x_right": -0.09,
+     "y_fwd": -0.71,
+     "z": 10.85,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple60_102_SM_1",
+     "x_right": -0.09,
+     "y_fwd": -0.71,
+     "z": 10.85,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple60_102_SM_2",
+     "x_right": -3.63,
+     "y_fwd": -0.73,
+     "z": 5.59,
+     "extent": [
+      3.94,
+      0.37,
+      5.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Static",
+     "name": "SM_Bench7_SM_0",
+     "x_right": 5.6,
+     "y_fwd": 1.23,
+     "z": 0.72,
+     "extent": [
+      1.12,
+      0.4,
+      0.63
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_23_23",
+     "x_right": 6.9,
+     "y_fwd": 0.08,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_24_24",
+     "x_right": 6.91,
+     "y_fwd": -1.16,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_22_22",
+     "x_right": 6.9,
+     "y_fwd": 1.31,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_25_25",
+     "x_right": 6.92,
+     "y_fwd": -2.4,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_21_21",
+     "x_right": 6.89,
+     "y_fwd": 2.55,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_26_26",
+     "x_right": 6.92,
+     "y_fwd": -3.64,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_20_20",
+     "x_right": 6.88,
+     "y_fwd": 3.79,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_27_27",
+     "x_right": 6.94,
+     "y_fwd": -4.86,
+     "z": 1.08,
+     "extent": [
+      0.86,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_19_19",
+     "x_right": 6.88,
+     "y_fwd": 5.02,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "NONE",
+     "name": "Road_Crosswalk_Town03_53_SM_0",
+     "x_right": -2.7,
+     "y_fwd": -8.2,
+     "z": 0.05,
+     "extent": [
+      8.05,
+      1.69,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_63_SM_0",
+     "x_right": 5.1,
+     "y_fwd": -7.21,
+     "z": 0.15,
+     "extent": [
+      2.18,
+      2.19,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Curb_Town03_139_SM_0",
+     "x_right": 4.78,
+     "y_fwd": -7.52,
+     "z": 0.07,
+     "extent": [
+      2.5,
+      2.51,
+      0.08
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple57_100_SM_0",
+     "x_right": -0.14,
+     "y_fwd": 9.29,
+     "z": 10.85,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple57_100_SM_1",
+     "x_right": -0.14,
+     "y_fwd": 9.29,
+     "z": 10.85,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_18_18",
+     "x_right": 6.87,
+     "y_fwd": 6.26,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_28_28",
+     "x_right": 8.26,
+     "y_fwd": -4.85,
+     "z": 1.08,
+     "extent": [
+      0.86,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple57_100_SM_2",
+     "x_right": -3.68,
+     "y_fwd": 9.27,
+     "z": 5.59,
+     "extent": [
+      3.94,
+      0.37,
+      5.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_17_17",
+     "x_right": 6.86,
+     "y_fwd": 7.5,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_29_29",
+     "x_right": 9.58,
+     "y_fwd": -4.85,
+     "z": 1.08,
+     "extent": [
+      0.86,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_16_16",
+     "x_right": 6.86,
+     "y_fwd": 8.73,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Curb_Town03_246_SM_0",
+     "x_right": -8.22,
+     "y_fwd": -7.61,
+     "z": 0.07,
+     "extent": [
+      2.5,
+      2.49,
+      0.08
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_107_SM_0",
+     "x_right": -8.54,
+     "y_fwd": -7.29,
+     "z": 0.15,
+     "extent": [
+      2.18,
+      2.18,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Static",
+     "name": "SM_Bench8_SM_0",
+     "x_right": 9.84,
+     "y_fwd": -6.45,
+     "z": 0.72,
+     "extent": [
+      1.12,
+      0.4,
+      0.63
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_30_30",
+     "x_right": 10.9,
+     "y_fwd": -4.84,
+     "z": 1.08,
+     "extent": [
+      0.86,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_15_15",
+     "x_right": 6.85,
+     "y_fwd": 9.97,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "Arbusto_Willowleaf_01_LOD2_127_SM_0",
+     "x_right": 12.45,
+     "y_fwd": -0.31,
+     "z": 0.99,
+     "extent": [
+      1.07,
+      0.93,
+      0.99
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_14_14",
+     "x_right": 6.84,
+     "y_fwd": 11.21,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_31_31",
+     "x_right": 12.22,
+     "y_fwd": -4.83,
+     "z": 1.08,
+     "extent": [
+      0.86,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Roads",
+     "name": "Road_Road_Town03_68_SM_0",
+     "x_right": 1.05,
+     "y_fwd": 13.49,
+     "z": -0.0,
+     "extent": [
+      1.32,
+      18.52,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "Road_marking_Town03_48_SM_0",
+     "x_right": 1.77,
+     "y_fwd": 13.49,
+     "z": 0.01,
+     "extent": [
+      18.51,
+      0.16,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Curb_Town03_132_SM_0",
+     "x_right": 2.58,
+     "y_fwd": 13.56,
+     "z": 0.07,
+     "extent": [
+      0.41,
+      18.59,
+      0.08
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Roads",
+     "name": "Road_Road_Town03_131_SM_0",
+     "x_right": -3.05,
+     "y_fwd": 13.49,
+     "z": -0.0,
+     "extent": [
+      2.78,
+      18.53,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "Road_marking_Town03_108_SM_0",
+     "x_right": -3.42,
+     "y_fwd": 13.49,
+     "z": 0.01,
+     "extent": [
+      18.52,
+      1.97,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_57_SM_0",
+     "x_right": 3.9,
+     "y_fwd": 13.56,
+     "z": 0.15,
+     "extent": [
+      1.1,
+      18.59,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_13_13",
+     "x_right": 6.84,
+     "y_fwd": 12.45,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_32_32",
+     "x_right": 13.54,
+     "y_fwd": -4.83,
+     "z": 1.08,
+     "extent": [
+      0.86,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Curb_Town03_241_SM_0",
+     "x_right": -6.05,
+     "y_fwd": 13.45,
+     "z": 0.07,
+     "extent": [
+      0.41,
+      18.56,
+      0.08
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "TrafficLight",
+     "name": "BP_TrafficLight5_5626_TrafficLight_1",
+     "x_right": -9.75,
+     "y_fwd": -11.46,
+     "z": 6.13,
+     "extent": [
+      0.14,
+      0.19,
+      0.44
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_12_12",
+     "x_right": 6.83,
+     "y_fwd": 13.68,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_104_SM_0",
+     "x_right": -7.37,
+     "y_fwd": 13.45,
+     "z": 0.15,
+     "extent": [
+      1.1,
+      18.56,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_33_33",
+     "x_right": 14.86,
+     "y_fwd": -4.82,
+     "z": 1.08,
+     "extent": [
+      0.86,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "SM_Block6_SM_0",
+     "x_right": -15.51,
+     "y_fwd": 2.23,
+     "z": 8.82,
+     "extent": [
+      -4.21,
+      4.3,
+      8.71
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_TrafficLight5_5626_Poles_2",
+     "x_right": -9.98,
+     "y_fwd": -12.3,
+     "z": 4.37,
+     "extent": [
+      6.03,
+      0.22,
+      4.22
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_11_11",
+     "x_right": 6.83,
+     "y_fwd": 14.92,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_34_34",
+     "x_right": 16.18,
+     "y_fwd": -4.81,
+     "z": 1.08,
+     "extent": [
+      0.86,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "TrafficLight",
+     "name": "BP_TrafficLight5_5626_TrafficLight_0",
+     "x_right": -9.73,
+     "y_fwd": -14.46,
+     "z": 6.13,
+     "extent": [
+      0.14,
+      0.19,
+      0.44
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_10_10",
+     "x_right": 6.82,
+     "y_fwd": 16.16,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Static",
+     "name": "SM_Bench4_SM_0",
+     "x_right": 17.49,
+     "y_fwd": 1.39,
+     "z": 0.48,
+     "extent": [
+      1.19,
+      0.38,
+      0.38
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "Platanus_Ash_01_LOD0_109_SM_0",
+     "x_right": 12.02,
+     "y_fwd": 12.83,
+     "z": 13.4,
+     "extent": [
+      6.97,
+      6.92,
+      15.07
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "NONE",
+     "name": "Road_Crosswalk_Town03_55_SM_0",
+     "x_right": 3.78,
+     "y_fwd": -17.39,
+     "z": 0.0,
+     "extent": [
+      10.8,
+      1.43,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Roads",
+     "name": "Road_Road_Town03_73_SM_0",
+     "x_right": 3.61,
+     "y_fwd": -17.55,
+     "z": -0.0,
+     "extent": [
+      3.72,
+      12.55,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "Road_marking_Town03_53_SM_0",
+     "x_right": 3.61,
+     "y_fwd": -17.56,
+     "z": 0.01,
+     "extent": [
+      12.54,
+      3.72,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "TrafficLight",
+     "name": "BP_TrafficLight6_6215_TrafficLight_2",
+     "x_right": 6.74,
+     "y_fwd": -16.79,
+     "z": 5.98,
+     "extent": [
+      0.14,
+      0.19,
+      0.44
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_35_35",
+     "x_right": 17.5,
+     "y_fwd": -4.81,
+     "z": 1.08,
+     "extent": [
+      0.86,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Static",
+     "name": "SM_Bench03_149_SM_0",
+     "x_right": 15.96,
+     "y_fwd": 8.68,
+     "z": 0.48,
+     "extent": [
+      1.19,
+      0.38,
+      0.38
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "Road_marking_Town03_111_SM_0",
+     "x_right": -5.45,
+     "y_fwd": -17.58,
+     "z": 0.01,
+     "extent": [
+      12.55,
+      5.34,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Roads",
+     "name": "Road_Road_Town03_134_SM_0",
+     "x_right": -5.45,
+     "y_fwd": -17.58,
+     "z": -0.0,
+     "extent": [
+      5.34,
+      12.56,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_9_9",
+     "x_right": 6.81,
+     "y_fwd": 17.39,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RailTrack",
+     "name": "BP_RepSpline6_Inst_2_2",
+     "x_right": 8.64,
+     "y_fwd": -16.62,
+     "z": 11.74,
+     "extent": [
+      21.69,
+      10.84,
+      1.37
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_tall24_31_SM_0",
+     "x_right": 18.76,
+     "y_fwd": -0.5,
+     "z": 3.6,
+     "extent": [
+      0.97,
+      1.09,
+      0.16
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_tall24_31_SM_1",
+     "x_right": 18.76,
+     "y_fwd": -0.5,
+     "z": 3.6,
+     "extent": [
+      0.97,
+      1.09,
+      0.16
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_Lamppost_tall24_31_SM_2",
+     "x_right": 18.76,
+     "y_fwd": -0.5,
+     "z": 2.49,
+     "extent": [
+      1.03,
+      1.15,
+      2.34
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple123_SM_2",
+     "x_right": -15.51,
+     "y_fwd": -10.68,
+     "z": 5.59,
+     "extent": [
+      3.94,
+      0.37,
+      5.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "NONE",
+     "name": "Road_Crosswalk_Town03_56_SM_0",
+     "x_right": -7.29,
+     "y_fwd": -17.45,
+     "z": 0.0,
+     "extent": [
+      10.8,
+      1.5,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple56_98_SM_0",
+     "x_right": -0.19,
+     "y_fwd": 19.29,
+     "z": 10.85,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple56_98_SM_1",
+     "x_right": -0.19,
+     "y_fwd": 19.29,
+     "z": 10.85,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_36_36",
+     "x_right": 18.82,
+     "y_fwd": -4.8,
+     "z": 1.08,
+     "extent": [
+      0.86,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple56_98_SM_2",
+     "x_right": -3.73,
+     "y_fwd": 19.27,
+     "z": 5.59,
+     "extent": [
+      3.94,
+      0.37,
+      5.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "BP_Block06_9_Inst_1_0",
+     "x_right": -17.55,
+     "y_fwd": 9.13,
+     "z": 4.35,
+     "extent": [
+      2.8,
+      5.7,
+      1.37
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "BP_Block06_9_Inst_2_1",
+     "x_right": -17.55,
+     "y_fwd": 9.13,
+     "z": 6.85,
+     "extent": [
+      2.8,
+      5.7,
+      1.37
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "BP_Block06_9_Inst_3_2",
+     "x_right": -17.55,
+     "y_fwd": 9.13,
+     "z": 9.35,
+     "extent": [
+      2.8,
+      5.7,
+      1.37
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "BP_Block06_9_Inst_4_0",
+     "x_right": -17.55,
+     "y_fwd": 9.13,
+     "z": 13.15,
+     "extent": [
+      2.8,
+      5.7,
+      2.5
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_8_8",
+     "x_right": 6.81,
+     "y_fwd": 18.63,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "BP_Block06_9_Inst_0_0",
+     "x_right": -17.85,
+     "y_fwd": 9.11,
+     "z": 1.46,
+     "extent": [
+      2.79,
+      5.39,
+      1.78
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_4_Inst_4_4",
+     "x_right": 19.24,
+     "y_fwd": 6.87,
+     "z": 0.15,
+     "extent": [
+      1.54,
+      1.19,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_4_Inst_3_3",
+     "x_right": 20.13,
+     "y_fwd": 3.56,
+     "z": 0.15,
+     "extent": [
+      1.29,
+      1.19,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "Arbusto_Willowleaf_01_LOD1_124_SM_0",
+     "x_right": 15.38,
+     "y_fwd": 13.61,
+     "z": 0.99,
+     "extent": [
+      1.07,
+      0.93,
+      0.99
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Static",
+     "name": "SM_Bench6_SM_0",
+     "x_right": 5.5,
+     "y_fwd": 19.93,
+     "z": 0.72,
+     "extent": [
+      1.12,
+      0.4,
+      0.63
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_7_7",
+     "x_right": 6.8,
+     "y_fwd": 19.87,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple123_SM_0",
+     "x_right": -15.49,
+     "y_fwd": -14.21,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple123_SM_1",
+     "x_right": -15.49,
+     "y_fwd": -14.21,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_4_Inst_2_2",
+     "x_right": 21.02,
+     "y_fwd": 0.49,
+     "z": 0.15,
+     "extent": [
+      1.29,
+      1.19,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_4_Inst_5_5",
+     "x_right": 18.32,
+     "y_fwd": 10.57,
+     "z": 0.15,
+     "extent": [
+      1.54,
+      1.19,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "TrafficLight",
+     "name": "BP_TrafficLight6_6215_TrafficLight_0",
+     "x_right": 6.76,
+     "y_fwd": -20.29,
+     "z": 5.98,
+     "extent": [
+      0.14,
+      0.19,
+      0.44
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "Arbusto_pine_01_LOD0_130_SM_0",
+     "x_right": 9.99,
+     "y_fwd": 19.64,
+     "z": 3.27,
+     "extent": [
+      3.09,
+      3.22,
+      3.23
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_4_Inst_1_1",
+     "x_right": 21.9,
+     "y_fwd": -2.57,
+     "z": 0.15,
+     "extent": [
+      1.29,
+      1.19,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_6_6",
+     "x_right": 6.79,
+     "y_fwd": 21.1,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple134_42_SM_0",
+     "x_right": 7.77,
+     "y_fwd": -20.8,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple134_42_SM_1",
+     "x_right": 7.77,
+     "y_fwd": -20.8,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_RepSpline_163_Inst_4_4",
+     "x_right": 13.45,
+     "y_fwd": -17.8,
+     "z": 6.06,
+     "extent": [
+      0.92,
+      9.85,
+      5.9
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_4_Inst_6_6",
+     "x_right": 17.4,
+     "y_fwd": 14.26,
+     "z": 0.15,
+     "extent": [
+      1.54,
+      1.19,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_RepSpline_163_Inst_3_3",
+     "x_right": -13.85,
+     "y_fwd": -17.87,
+     "z": 6.06,
+     "extent": [
+      0.92,
+      9.85,
+      5.9
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "BP_Block06_10_Inst_1_0",
+     "x_right": -17.58,
+     "y_fwd": 14.87,
+     "z": 4.35,
+     "extent": [
+      -2.8,
+      5.7,
+      1.37
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "BP_Block06_10_Inst_2_1",
+     "x_right": -17.58,
+     "y_fwd": 14.87,
+     "z": 6.85,
+     "extent": [
+      -2.8,
+      5.7,
+      1.37
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "BP_Block06_10_Inst_3_2",
+     "x_right": -17.58,
+     "y_fwd": 14.87,
+     "z": 9.35,
+     "extent": [
+      -2.8,
+      5.7,
+      1.37
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "BP_Block06_10_Inst_4_0",
+     "x_right": -17.58,
+     "y_fwd": 14.87,
+     "z": 13.15,
+     "extent": [
+      -2.8,
+      5.7,
+      2.5
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "BP_Block06_10_Inst_0_0",
+     "x_right": -17.88,
+     "y_fwd": 14.88,
+     "z": 1.46,
+     "extent": [
+      -2.79,
+      5.39,
+      1.78
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Static",
+     "name": "SM_Bench5_SM_0",
+     "x_right": 21.86,
+     "y_fwd": 8.01,
+     "z": 0.48,
+     "extent": [
+      1.19,
+      0.38,
+      0.38
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_5_5",
+     "x_right": 6.79,
+     "y_fwd": 22.34,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_4_Inst_0_0",
+     "x_right": 22.78,
+     "y_fwd": -5.63,
+     "z": 0.15,
+     "extent": [
+      1.29,
+      1.19,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_TrafficLight6_6215_Poles_3",
+     "x_right": 7.01,
+     "y_fwd": -22.44,
+     "z": 4.22,
+     "extent": [
+      6.03,
+      0.22,
+      4.22
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "SM_Block5_SM_0",
+     "x_right": -23.5,
+     "y_fwd": 2.19,
+     "z": 8.82,
+     "extent": [
+      4.21,
+      4.3,
+      8.71
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "Custom_pine_beech_02_LOD0_105_SM_0",
+     "x_right": 23.58,
+     "y_fwd": 1.28,
+     "z": 7.11,
+     "extent": [
+      8.02,
+      7.67,
+      9.41
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "Arbusto_Willowleaf_01_LOD0_121_SM_0",
+     "x_right": 23.74,
+     "y_fwd": 0.35,
+     "z": 0.99,
+     "extent": [
+      1.07,
+      0.93,
+      0.99
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple118_SM_0",
+     "x_right": -12.23,
+     "y_fwd": -20.73,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple118_SM_1",
+     "x_right": -12.23,
+     "y_fwd": -20.73,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "TrafficLight",
+     "name": "BP_TrafficLight6_6215_TrafficLight_1",
+     "x_right": 6.77,
+     "y_fwd": -23.29,
+     "z": 5.98,
+     "extent": [
+      0.14,
+      0.19,
+      0.44
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_4_4",
+     "x_right": 6.78,
+     "y_fwd": 23.58,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_4_Inst_7_7",
+     "x_right": 17.65,
+     "y_fwd": 17.65,
+     "z": 0.15,
+     "extent": [
+      1.43,
+      1.19,
+      0.05
+     ]
+    }
+   ]
+  },
+  "red_proceed": {
+   "spawn": {
+    "x": -99.5,
+    "y": 0.4,
+    "z": 0.5,
+    "yaw": 0.3,
+    "tl_id": 77,
+    "lanes": 1
+   },
+   "settled": {
+    "x": -99.5,
+    "y": 0.399,
+    "z": 0.001,
+    "pitch": 0.008,
+    "roll": -0.006,
+    "yaw": 0.3
+   },
+   "lane": {
+    "road": 62,
+    "lane": 1,
+    "lane_width": 3.5,
+    "right_lane_marking": "Solid",
+    "offset_from_centre": -0.03
+   },
+   "semantic_share": {
+    "rgb": {
+     "road": 0.4157,
+     "sidewalk": 0.0154,
+     "building": 0.1914,
+     "wall": 0.0036,
+     "fence": 0.0001,
+     "pole": 0.0088,
+     "traffic_light": 0.0006,
+     "vegetation": 0.0058,
+     "terrain": 0.0001,
+     "sky": 0.3151,
+     "static": 0.0038,
+     "dynamic": 0.0,
+     "roadline": 0.0393,
+     "ground": 0.0002,
+     "railtrack": 0.0
+    },
+    "rgb_left": {
+     "road": 0.3272,
+     "sidewalk": 0.0801,
+     "building": 0.2465,
+     "wall": 0.0054,
+     "pole": 0.0557,
+     "traffic_light": 0.0014,
+     "vegetation": 0.005,
+     "sky": 0.243,
+     "static": 0.0019,
+     "dynamic": 0.0004,
+     "roadline": 0.0326,
+     "ground": 0.0,
+     "railtrack": 0.0008
+    },
+    "rgb_right": {
+     "road": 0.232,
+     "sidewalk": 0.1653,
+     "building": 0.1153,
+     "wall": 0.0004,
+     "pole": 0.0117,
+     "traffic_light": 0.0002,
+     "vegetation": 0.0098,
+     "terrain": 0.0303,
+     "sky": 0.3936,
+     "static": 0.0173,
+     "dynamic": 0.0,
+     "roadline": 0.0232,
+     "ground": 0.0,
+     "railtrack": 0.0007
+    }
+   },
+   "near": [
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple51_92_SM_0",
+     "x_right": -0.29,
+     "y_fwd": -0.91,
+     "z": 10.85,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple51_92_SM_1",
+     "x_right": -0.29,
+     "y_fwd": -0.91,
+     "z": 10.85,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple51_92_SM_2",
+     "x_right": -3.82,
+     "y_fwd": -0.93,
+     "z": 5.59,
+     "extent": [
+      3.94,
+      0.37,
+      5.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "TrafficLight",
+     "name": "BP_TrafficLight_3213_TrafficLight_0",
+     "x_right": -4.18,
+     "y_fwd": 1.97,
+     "z": 6.13,
+     "extent": [
+      0.19,
+      0.14,
+      0.44
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "NONE",
+     "name": "Road_Crosswalk_Town03_52_SM_0",
+     "x_right": -2.97,
+     "y_fwd": 4.39,
+     "z": 0.05,
+     "extent": [
+      8.05,
+      1.69,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_TrafficLight_3213_Poles_1",
+     "x_right": -5.67,
+     "y_fwd": 1.75,
+     "z": 4.22,
+     "extent": [
+      3.8,
+      0.34,
+      4.37
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_60_SM_0",
+     "x_right": 5.42,
+     "y_fwd": 2.8,
+     "z": 0.15,
+     "extent": [
+      2.57,
+      1.44,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Static",
+     "name": "SM_StreetFountain_143_SM_0",
+     "x_right": 6.23,
+     "y_fwd": -0.38,
+     "z": 1.18,
+     "extent": [
+      0.25,
+      0.58,
+      1.08
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Curb_Town03_136_SM_0",
+     "x_right": 5.32,
+     "y_fwd": 3.42,
+     "z": 0.07,
+     "extent": [
+      3.11,
+      1.46,
+      0.08
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_0_0",
+     "x_right": 6.71,
+     "y_fwd": -1.67,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline82_Inst_0_0",
+     "x_right": 6.92,
+     "y_fwd": -1.67,
+     "z": 1.08,
+     "extent": [
+      0.82,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_1_1",
+     "x_right": 6.72,
+     "y_fwd": -2.91,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_2_2",
+     "x_right": 6.73,
+     "y_fwd": -4.15,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline82_Inst_1_1",
+     "x_right": 7.81,
+     "y_fwd": -2.55,
+     "z": 1.08,
+     "extent": [
+      0.82,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_3_3",
+     "x_right": 6.73,
+     "y_fwd": -5.39,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Curb_Town03_244_SM_0",
+     "x_right": -8.3,
+     "y_fwd": 4.3,
+     "z": 0.05,
+     "extent": [
+      2.51,
+      2.51,
+      0.1
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline82_Inst_2_2",
+     "x_right": 8.71,
+     "y_fwd": -3.42,
+     "z": 1.08,
+     "extent": [
+      0.82,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_4_4",
+     "x_right": 6.74,
+     "y_fwd": -6.62,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_105_SM_0",
+     "x_right": -8.61,
+     "y_fwd": 3.98,
+     "z": 0.12,
+     "extent": [
+      2.19,
+      2.19,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "Arbusto_pine_01_LOD3_SM_0",
+     "x_right": 8.42,
+     "y_fwd": -4.57,
+     "z": 3.27,
+     "extent": [
+      3.09,
+      3.22,
+      3.23
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_5_5",
+     "x_right": 6.74,
+     "y_fwd": -7.86,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline82_Inst_3_3",
+     "x_right": 9.61,
+     "y_fwd": -4.3,
+     "z": 1.08,
+     "extent": [
+      0.82,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple56_98_SM_0",
+     "x_right": -0.24,
+     "y_fwd": -10.91,
+     "z": 10.85,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple56_98_SM_1",
+     "x_right": -0.24,
+     "y_fwd": -10.91,
+     "z": 10.85,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_6_6",
+     "x_right": 6.75,
+     "y_fwd": -9.1,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple56_98_SM_2",
+     "x_right": -3.77,
+     "y_fwd": -10.93,
+     "z": 5.59,
+     "extent": [
+      3.94,
+      0.37,
+      5.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Static",
+     "name": "SM_Bench6_SM_0",
+     "x_right": 5.46,
+     "y_fwd": -10.27,
+     "z": 0.72,
+     "extent": [
+      1.12,
+      0.4,
+      0.63
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline82_Inst_4_4",
+     "x_right": 10.5,
+     "y_fwd": -5.18,
+     "z": 1.08,
+     "extent": [
+      0.82,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Roads",
+     "name": "Road_Road_Town03_133_SM_0",
+     "x_right": -5.66,
+     "y_fwd": 10.62,
+     "z": -0.03,
+     "extent": [
+      5.21,
+      8.85,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "Road_marking_Town03_110_SM_0",
+     "x_right": -5.66,
+     "y_fwd": 10.63,
+     "z": -0.02,
+     "extent": [
+      8.85,
+      5.2,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_7_7",
+     "x_right": 6.76,
+     "y_fwd": -10.33,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline82_Inst_5_5",
+     "x_right": 11.4,
+     "y_fwd": -6.05,
+     "z": 1.08,
+     "extent": [
+      0.82,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_8_8",
+     "x_right": 6.76,
+     "y_fwd": -11.57,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Static",
+     "name": "SM_Bench01_146_SM_0",
+     "x_right": 12.63,
+     "y_fwd": -5.53,
+     "z": 0.72,
+     "extent": [
+      1.12,
+      0.4,
+      0.63
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "SM_Kiosk02_51_SM_0",
+     "x_right": -13.78,
+     "y_fwd": -1.62,
+     "z": 1.44,
+     "extent": [
+      2.25,
+      1.52,
+      1.45
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline82_Inst_6_6",
+     "x_right": 12.3,
+     "y_fwd": -6.93,
+     "z": 1.08,
+     "extent": [
+      0.82,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_9_9",
+     "x_right": 6.77,
+     "y_fwd": -12.81,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "Arbusto_pine_01_LOD0_130_SM_0",
+     "x_right": 9.95,
+     "y_fwd": -10.56,
+     "z": 3.27,
+     "extent": [
+      3.09,
+      3.22,
+      3.23
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Roads",
+     "name": "Road_Road_Town03_71_SM_0",
+     "x_right": 13.86,
+     "y_fwd": 6.18,
+     "z": 0.04,
+     "extent": [
+      14.29,
+      13.39,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "Road_marking_Town03_51_SM_0",
+     "x_right": 13.85,
+     "y_fwd": 6.34,
+     "z": 0.05,
+     "extent": [
+      13.24,
+      14.29,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline82_Inst_7_7",
+     "x_right": 13.19,
+     "y_fwd": -7.81,
+     "z": 1.08,
+     "extent": [
+      0.82,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_10_10",
+     "x_right": 6.78,
+     "y_fwd": -14.04,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline82_Inst_8_8",
+     "x_right": 14.09,
+     "y_fwd": -8.69,
+     "z": 1.08,
+     "extent": [
+      0.82,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_11_11",
+     "x_right": 6.78,
+     "y_fwd": -15.28,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Roads",
+     "name": "Road_Road_Town03_68_SM_0",
+     "x_right": 1.0,
+     "y_fwd": -16.71,
+     "z": -0.0,
+     "extent": [
+      1.32,
+      18.52,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "Road_marking_Town03_48_SM_0",
+     "x_right": 1.72,
+     "y_fwd": -16.71,
+     "z": 0.01,
+     "extent": [
+      18.51,
+      0.16,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Curb_Town03_132_SM_0",
+     "x_right": 2.54,
+     "y_fwd": -16.64,
+     "z": 0.07,
+     "extent": [
+      0.41,
+      18.59,
+      0.08
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "SM_Shop_9_SM_0",
+     "x_right": -16.87,
+     "y_fwd": -1.09,
+     "z": 1.48,
+     "extent": [
+      -1.59,
+      1.39,
+      1.59
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Roads",
+     "name": "Road_Road_Town03_131_SM_0",
+     "x_right": -3.09,
+     "y_fwd": -16.71,
+     "z": -0.0,
+     "extent": [
+      2.78,
+      18.53,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "NONE",
+     "name": "Road_Crosswalk_Town03_10_SM_0",
+     "x_right": 16.59,
+     "y_fwd": 3.8,
+     "z": 0.06,
+     "extent": [
+      11.71,
+      1.69,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "Road_marking_Town03_108_SM_0",
+     "x_right": -3.46,
+     "y_fwd": -16.71,
+     "z": 0.01,
+     "extent": [
+      18.52,
+      1.97,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_57_SM_0",
+     "x_right": 3.86,
+     "y_fwd": -16.64,
+     "z": 0.15,
+     "extent": [
+      1.1,
+      18.59,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "SM_Shop_5_SM_0",
+     "x_right": -16.85,
+     "y_fwd": -3.99,
+     "z": 1.48,
+     "extent": [
+      1.59,
+      1.39,
+      1.59
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline82_Inst_9_9",
+     "x_right": 14.99,
+     "y_fwd": -9.56,
+     "z": 1.08,
+     "extent": [
+      0.82,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Curb_Town03_241_SM_0",
+     "x_right": -6.09,
+     "y_fwd": -16.75,
+     "z": 0.07,
+     "extent": [
+      0.41,
+      18.56,
+      0.08
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_12_12",
+     "x_right": 6.79,
+     "y_fwd": -16.52,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_104_SM_0",
+     "x_right": -7.41,
+     "y_fwd": -16.75,
+     "z": 0.15,
+     "extent": [
+      1.1,
+      18.56,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "NONE",
+     "name": "Road_Crosswalk_Town03_11_SM_0",
+     "x_right": -7.56,
+     "y_fwd": 16.96,
+     "z": -0.02,
+     "extent": [
+      14.43,
+      1.49,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_13_13",
+     "x_right": 6.8,
+     "y_fwd": -17.76,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_14_14",
+     "x_right": 6.8,
+     "y_fwd": -18.99,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "SM_Shop_8_SM_0",
+     "x_right": -20.27,
+     "y_fwd": -1.11,
+     "z": 1.48,
+     "extent": [
+      -1.59,
+      1.39,
+      1.59
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "SM_Shop_4_SM_0",
+     "x_right": -20.35,
+     "y_fwd": -4.01,
+     "z": 1.48,
+     "extent": [
+      1.59,
+      1.39,
+      1.59
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple57_100_SM_0",
+     "x_right": -0.18,
+     "y_fwd": -20.91,
+     "z": 10.85,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple57_100_SM_1",
+     "x_right": -0.18,
+     "y_fwd": -20.91,
+     "z": 10.85,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "Platanus_Ash_01_LOD0_109_SM_0",
+     "x_right": 11.98,
+     "y_fwd": -17.37,
+     "z": 13.4,
+     "extent": [
+      6.97,
+      6.92,
+      15.07
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple57_100_SM_2",
+     "x_right": -3.72,
+     "y_fwd": -20.93,
+     "z": 5.59,
+     "extent": [
+      3.94,
+      0.37,
+      5.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_15_15",
+     "x_right": 6.81,
+     "y_fwd": -20.23,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_4_Inst_7_7",
+     "x_right": 17.61,
+     "y_fwd": -12.55,
+     "z": 0.15,
+     "extent": [
+      1.43,
+      1.19,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "NONE",
+     "name": "Road_Crosswalk_Town03_12_SM_0",
+     "x_right": 14.16,
+     "y_fwd": 17.07,
+     "z": 0.05,
+     "extent": [
+      19.78,
+      1.3,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple49_59_SM_2",
+     "x_right": -20.44,
+     "y_fwd": 8.75,
+     "z": 5.45,
+     "extent": [
+      3.94,
+      0.37,
+      5.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_16_16",
+     "x_right": 6.82,
+     "y_fwd": -21.47,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "Arbusto_Willowleaf_01_LOD1_124_SM_0",
+     "x_right": 15.33,
+     "y_fwd": -16.6,
+     "z": 0.99,
+     "extent": [
+      1.07,
+      0.93,
+      0.99
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple61_106_SM_0",
+     "x_right": 22.61,
+     "y_fwd": -5.62,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple61_106_SM_1",
+     "x_right": 22.61,
+     "y_fwd": -5.62,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "TrafficLight",
+     "name": "BP_TrafficLight01_8220_TrafficLight_2",
+     "x_right": -12.69,
+     "y_fwd": 19.58,
+     "z": 6.01,
+     "extent": [
+      0.14,
+      0.19,
+      0.44
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "BP_Block06_10_Inst_1_0",
+     "x_right": -17.62,
+     "y_fwd": -15.33,
+     "z": 4.35,
+     "extent": [
+      -2.8,
+      5.7,
+      1.37
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "BP_Block06_10_Inst_2_1",
+     "x_right": -17.62,
+     "y_fwd": -15.33,
+     "z": 6.85,
+     "extent": [
+      -2.8,
+      5.7,
+      1.37
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "BP_Block06_10_Inst_3_2",
+     "x_right": -17.62,
+     "y_fwd": -15.33,
+     "z": 9.35,
+     "extent": [
+      -2.8,
+      5.7,
+      1.37
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "BP_Block06_10_Inst_4_0",
+     "x_right": -17.62,
+     "y_fwd": -15.33,
+     "z": 13.15,
+     "extent": [
+      -2.8,
+      5.7,
+      2.5
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_4_Inst_6_6",
+     "x_right": 17.36,
+     "y_fwd": -15.94,
+     "z": 0.15,
+     "extent": [
+      1.54,
+      1.19,
+      0.05
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "BP_Block06_10_Inst_0_0",
+     "x_right": -17.92,
+     "y_fwd": -15.32,
+     "z": 1.46,
+     "extent": [
+      -2.79,
+      5.39,
+      1.78
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_17_17",
+     "x_right": 6.82,
+     "y_fwd": -22.7,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple49_59_SM_0",
+     "x_right": -20.46,
+     "y_fwd": 12.29,
+     "z": 10.71,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple49_59_SM_1",
+     "x_right": -20.46,
+     "y_fwd": 12.29,
+     "z": 10.71,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Vegetation",
+     "name": "BP_RepSpline81_4462_Inst_18_18",
+     "x_right": 6.83,
+     "y_fwd": -23.94,
+     "z": 1.08,
+     "extent": [
+      0.8,
+      0.65,
+      1.11
+     ]
+    }
+   ]
+  },
+  "unauthorized_go": {
+   "spawn": {
+    "x": -28.8,
+    "y": 134.6,
+    "z": 0.5,
+    "yaw": -1.3,
+    "tl_id": 74,
+    "lanes": 1
+   },
+   "settled": {
+    "x": -28.8,
+    "y": 134.598,
+    "z": 0.001,
+    "pitch": 0.008,
+    "roll": -0.006,
+    "yaw": -1.3
+   },
+   "lane": {
+    "road": 24,
+    "lane": -1,
+    "lane_width": 3.5,
+    "right_lane_marking": "Solid",
+    "offset_from_centre": 0.02
+   },
+   "semantic_share": {
+    "rgb": {
+     "road": 0.4032,
+     "sidewalk": 0.0301,
+     "building": 0.0418,
+     "wall": 0.0037,
+     "fence": 0.0059,
+     "pole": 0.0311,
+     "traffic_light": 0.0029,
+     "vegetation": 0.0558,
+     "terrain": 0.0013,
+     "sky": 0.3815,
+     "static": 0.0026,
+     "dynamic": 0.0007,
+     "roadline": 0.0235,
+     "ground": 0.0128,
+     "railtrack": 0.003
+    },
+    "rgb_left": {
+     "road": 0.3669,
+     "sidewalk": 0.0476,
+     "building": 0.2909,
+     "wall": 0.0005,
+     "fence": 0.0056,
+     "pole": 0.0269,
+     "traffic_light": 0.0023,
+     "vegetation": 0.0341,
+     "terrain": 0.0006,
+     "sky": 0.1949,
+     "static": 0.0003,
+     "dynamic": 0.0003,
+     "roadline": 0.0259,
+     "ground": 0.0031
+    },
+    "rgb_right": {
+     "road": 0.313,
+     "sidewalk": 0.0635,
+     "building": 0.1588,
+     "wall": 0.0033,
+     "fence": 0.0001,
+     "pole": 0.0226,
+     "traffic_light": 0.0008,
+     "vegetation": 0.0465,
+     "terrain": 0.0016,
+     "sky": 0.2996,
+     "car": 0.004,
+     "static": 0.0019,
+     "roadline": 0.0174,
+     "ground": 0.0598,
+     "railtrack": 0.0071
+    }
+   },
+   "near": [
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple31_16_SM_0",
+     "x_right": -5.23,
+     "y_fwd": -2.93,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple31_16_SM_1",
+     "x_right": -5.23,
+     "y_fwd": -2.93,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple34_SM_0",
+     "x_right": 1.75,
+     "y_fwd": 7.0,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple34_SM_1",
+     "x_right": 1.75,
+     "y_fwd": 7.0,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple34_SM_2",
+     "x_right": 5.29,
+     "y_fwd": 6.92,
+     "z": 5.59,
+     "extent": [
+      3.94,
+      0.37,
+      5.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple31_16_SM_2",
+     "x_right": -8.77,
+     "y_fwd": -2.85,
+     "z": 5.59,
+     "extent": [
+      3.94,
+      0.37,
+      5.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "Road_marking_Town03_27_SM_0",
+     "x_right": -1.73,
+     "y_fwd": -11.16,
+     "z": 0.01,
+     "extent": [
+      21.2,
+      7.54,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Roads",
+     "name": "Road_Road_Town03_44_SM_0",
+     "x_right": -1.73,
+     "y_fwd": -11.16,
+     "z": -0.0,
+     "extent": [
+      7.97,
+      21.21,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "Road_marking_Town03_218_SM_0",
+     "x_right": 1.25,
+     "y_fwd": -11.23,
+     "z": 0.01,
+     "extent": [
+      21.2,
+      7.54,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "TrafficLight",
+     "name": "BP_TrafficLight15_TrafficLight_2",
+     "x_right": 0.26,
+     "y_fwd": 11.97,
+     "z": 6.18,
+     "extent": [
+      0.18,
+      0.15,
+      0.44
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "Road_marking_Town03_217_SM_0",
+     "x_right": -4.83,
+     "y_fwd": -11.09,
+     "z": 0.1,
+     "extent": [
+      21.2,
+      7.54,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "TrafficLight",
+     "name": "BP_TrafficLight15_TrafficLight_0",
+     "x_right": -3.23,
+     "y_fwd": 11.75,
+     "z": 6.18,
+     "extent": [
+      0.18,
+      0.15,
+      0.44
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_TrafficLight15_Poles_3",
+     "x_right": -5.37,
+     "y_fwd": 11.37,
+     "z": 4.42,
+     "extent": [
+      6.03,
+      0.22,
+      4.22
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "TrafficLight",
+     "name": "BP_TrafficLight15_TrafficLight_1",
+     "x_right": -6.23,
+     "y_fwd": 11.55,
+     "z": 6.18,
+     "extent": [
+      0.18,
+      0.15,
+      0.44
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple32_SM_0",
+     "x_right": 1.37,
+     "y_fwd": -13.44,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple32_SM_1",
+     "x_right": 1.37,
+     "y_fwd": -13.44,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "NONE",
+     "name": "Road_Crosswalk_Town03_2_SM_0",
+     "x_right": -1.59,
+     "y_fwd": 13.61,
+     "z": 0.01,
+     "extent": [
+      12.86,
+      1.25,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple32_SM_2",
+     "x_right": 4.9,
+     "y_fwd": -13.52,
+     "z": 5.59,
+     "extent": [
+      3.94,
+      0.37,
+      5.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Curb_Town03_85_SM_0",
+     "x_right": -9.55,
+     "y_fwd": -10.96,
+     "z": 0.07,
+     "extent": [
+      0.8,
+      21.25,
+      0.08
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Curb_Town03_86_SM_0",
+     "x_right": 6.09,
+     "y_fwd": -13.48,
+     "z": 0.07,
+     "extent": [
+      0.85,
+      23.36,
+      0.08
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_36_SM_0",
+     "x_right": 8.63,
+     "y_fwd": 12.07,
+     "z": 0.15,
+     "extent": [
+      2.17,
+      2.23,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Curb_Town03_93_SM_0",
+     "x_right": 8.32,
+     "y_fwd": 12.38,
+     "z": 0.07,
+     "extent": [
+      2.49,
+      2.56,
+      0.08
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_31_SM_0",
+     "x_right": 7.41,
+     "y_fwd": -13.48,
+     "z": 0.15,
+     "extent": [
+      1.53,
+      23.38,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_30_SM_0",
+     "x_right": -10.86,
+     "y_fwd": -10.96,
+     "z": 0.15,
+     "extent": [
+      1.48,
+      21.27,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_wall57_SM_0",
+     "x_right": 13.98,
+     "y_fwd": 8.29,
+     "z": 4.83,
+     "extent": [
+      0.12,
+      1.15,
+      0.41
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_Container3_11_SM_0",
+     "x_right": 13.97,
+     "y_fwd": -8.4,
+     "z": 0.99,
+     "extent": [
+      0.97,
+      0.51,
+      0.86
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_wall55_SM_0",
+     "x_right": 17.04,
+     "y_fwd": -0.73,
+     "z": 4.83,
+     "extent": [
+      0.12,
+      1.15,
+      0.41
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_37_SM_0",
+     "x_right": -12.01,
+     "y_fwd": 12.45,
+     "z": 0.15,
+     "extent": [
+      2.2,
+      2.16,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Curb_Town03_94_SM_0",
+     "x_right": -11.69,
+     "y_fwd": 12.78,
+     "z": 0.07,
+     "extent": [
+      2.52,
+      2.45,
+      0.08
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_Container4_SM_0",
+     "x_right": 14.51,
+     "y_fwd": -10.18,
+     "z": 0.99,
+     "extent": [
+      0.97,
+      0.51,
+      0.86
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_RepSpline10_7116_Inst_2_2",
+     "x_right": 11.32,
+     "y_fwd": -13.82,
+     "z": 2.38,
+     "extent": [
+      0.86,
+      0.24,
+      2.23
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_wall56_SM_0",
+     "x_right": 16.08,
+     "y_fwd": 9.0,
+     "z": 4.83,
+     "extent": [
+      0.12,
+      1.15,
+      0.41
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Walls",
+     "name": "BP_RepSpline11_Inst_0_0",
+     "x_right": 8.42,
+     "y_fwd": -16.71,
+     "z": 1.34,
+     "extent": [
+      0.2,
+      2.72,
+      1.18
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_Box3_15_SM_0",
+     "x_right": 14.73,
+     "y_fwd": -11.54,
+     "z": 0.43,
+     "extent": [
+      0.32,
+      0.32,
+      0.32
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_box4_21_SM_0",
+     "x_right": 14.52,
+     "y_fwd": -11.85,
+     "z": 1.08,
+     "extent": [
+      0.33,
+      0.34,
+      0.32
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_wall54_SM_0",
+     "x_right": 19.13,
+     "y_fwd": -0.02,
+     "z": 4.83,
+     "extent": [
+      0.12,
+      1.15,
+      0.41
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Roads",
+     "name": "Road_Road_Town03_47_SM_0",
+     "x_right": -0.41,
+     "y_fwd": 19.25,
+     "z": -0.0,
+     "extent": [
+      15.46,
+      9.56,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "RoadLines",
+     "name": "Road_marking_Town03_30_SM_0",
+     "x_right": -0.4,
+     "y_fwd": 19.26,
+     "z": 0.01,
+     "extent": [
+      9.56,
+      15.44,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_RepSpline10_7116_Inst_1_1",
+     "x_right": 13.88,
+     "y_fwd": -13.74,
+     "z": 2.38,
+     "extent": [
+      0.86,
+      0.24,
+      2.23
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_Box2_18_SM_0",
+     "x_right": 15.27,
+     "y_fwd": -12.32,
+     "z": 0.45,
+     "extent": [
+      0.33,
+      0.33,
+      0.35
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "TrafficLight",
+     "name": "BP_TrafficLight17_3114_TrafficLight_1",
+     "x_right": 9.1,
+     "y_fwd": 18.4,
+     "z": 6.18,
+     "extent": [
+      0.14,
+      0.19,
+      0.44
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_428_33",
+     "x_right": 11.08,
+     "y_fwd": -18.09,
+     "z": 0.16,
+     "extent": [
+      0.12,
+      0.12,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Car",
+     "name": "Vh_Car_MiniCooperS3_8_SM_0",
+     "x_right": 20.96,
+     "y_fwd": 3.51,
+     "z": 0.79,
+     "extent": [
+      1.9,
+      0.99,
+      0.74
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_252_29",
+     "x_right": 10.68,
+     "y_fwd": -18.38,
+     "z": 0.17,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_672_28",
+     "x_right": 11.5,
+     "y_fwd": -17.89,
+     "z": 0.16,
+     "extent": [
+      0.27,
+      0.19,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_507_29",
+     "x_right": 11.22,
+     "y_fwd": -18.13,
+     "z": 0.17,
+     "extent": [
+      0.18,
+      0.11,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Ground",
+     "name": "Road_Grass_Town03_36_SM_0",
+     "x_right": 16.49,
+     "y_fwd": -13.56,
+     "z": 0.09,
+     "extent": [
+      8.61,
+      25.76,
+      0.06
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_RepSpline10_7116_Inst_0_0",
+     "x_right": 16.44,
+     "y_fwd": -13.65,
+     "z": 2.38,
+     "extent": [
+      0.86,
+      0.24,
+      2.23
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "SM_BigContainer_24_SM_0",
+     "x_right": 13.51,
+     "y_fwd": -16.56,
+     "z": 1.09,
+     "extent": [
+      1.84,
+      2.9,
+      0.93
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_TrafficLight17_3114_Poles_3",
+     "x_right": 9.35,
+     "y_fwd": 19.24,
+     "z": 4.42,
+     "extent": [
+      6.03,
+      0.22,
+      4.22
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_340_29",
+     "x_right": 11.59,
+     "y_fwd": -18.36,
+     "z": 0.16,
+     "extent": [
+      0.03,
+      0.03,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_165_31",
+     "x_right": 10.07,
+     "y_fwd": -19.29,
+     "z": 0.14,
+     "extent": [
+      0.03,
+      0.03,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_593_31",
+     "x_right": 11.1,
+     "y_fwd": -18.84,
+     "z": 0.16,
+     "extent": [
+      0.11,
+      0.14,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_341_30",
+     "x_right": 10.82,
+     "y_fwd": -19.01,
+     "z": 0.17,
+     "extent": [
+      0.03,
+      0.03,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_250_27",
+     "x_right": 11.33,
+     "y_fwd": -18.72,
+     "z": 0.17,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Sidewalk_Town03_35_SM_0",
+     "x_right": 17.62,
+     "y_fwd": 13.14,
+     "z": 0.15,
+     "extent": [
+      6.8,
+      1.04,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_505_27",
+     "x_right": 12.04,
+     "y_fwd": -18.4,
+     "z": 0.16,
+     "extent": [
+      0.18,
+      0.11,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_591_29",
+     "x_right": 12.54,
+     "y_fwd": -18.11,
+     "z": 0.15,
+     "extent": [
+      0.11,
+      0.14,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_166_32",
+     "x_right": 10.17,
+     "y_fwd": -19.56,
+     "z": 0.14,
+     "extent": [
+      0.03,
+      0.03,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_251_28",
+     "x_right": 11.3,
+     "y_fwd": -18.95,
+     "z": 0.17,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_337_26",
+     "x_right": 10.67,
+     "y_fwd": -19.32,
+     "z": 0.17,
+     "extent": [
+      0.03,
+      0.03,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_339_28",
+     "x_right": 11.16,
+     "y_fwd": -19.08,
+     "z": 0.16,
+     "extent": [
+      0.03,
+      0.03,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_423_28",
+     "x_right": 9.92,
+     "y_fwd": -19.78,
+     "z": 0.16,
+     "extent": [
+      0.12,
+      0.12,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_80_28",
+     "x_right": 11.16,
+     "y_fwd": -19.17,
+     "z": 0.17,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_342_31",
+     "x_right": 11.61,
+     "y_fwd": -18.97,
+     "z": 0.16,
+     "extent": [
+      0.03,
+      0.03,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_254_31",
+     "x_right": 12.44,
+     "y_fwd": -18.5,
+     "z": 0.16,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Car",
+     "name": "Vh_Car_BmwGranTourer_High_v001_Norig_2_SM_0",
+     "x_right": 20.3,
+     "y_fwd": 9.27,
+     "z": 0.95,
+     "extent": [
+      2.31,
+      1.12,
+      0.83
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_590_28",
+     "x_right": 11.19,
+     "y_fwd": -19.32,
+     "z": 0.16,
+     "extent": [
+      0.11,
+      0.14,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_592_30",
+     "x_right": 10.76,
+     "y_fwd": -19.57,
+     "z": 0.16,
+     "extent": [
+      0.11,
+      0.14,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_163_29",
+     "x_right": 11.13,
+     "y_fwd": -19.43,
+     "z": 0.14,
+     "extent": [
+      0.03,
+      0.03,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_161_27",
+     "x_right": 10.97,
+     "y_fwd": -19.59,
+     "z": 0.14,
+     "extent": [
+      0.03,
+      0.03,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_674_30",
+     "x_right": 10.43,
+     "y_fwd": -19.94,
+     "z": 0.16,
+     "extent": [
+      0.27,
+      0.19,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_504_26",
+     "x_right": 9.9,
+     "y_fwd": -20.25,
+     "z": 0.18,
+     "extent": [
+      0.18,
+      0.11,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_427_32",
+     "x_right": 10.53,
+     "y_fwd": -20.07,
+     "z": 0.16,
+     "extent": [
+      0.12,
+      0.12,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_588_26",
+     "x_right": 11.45,
+     "y_fwd": -19.62,
+     "z": 0.15,
+     "extent": [
+      0.11,
+      0.14,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_422_27",
+     "x_right": 10.34,
+     "y_fwd": -20.3,
+     "z": 0.16,
+     "extent": [
+      0.12,
+      0.12,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_425_30",
+     "x_right": 12.28,
+     "y_fwd": -19.19,
+     "z": 0.15,
+     "extent": [
+      0.12,
+      0.12,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_670_26",
+     "x_right": 12.16,
+     "y_fwd": -19.27,
+     "z": 0.15,
+     "extent": [
+      0.27,
+      0.19,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Walls",
+     "name": "BP_RepSpline11_Inst_1_1",
+     "x_right": 8.48,
+     "y_fwd": -21.16,
+     "z": 1.34,
+     "extent": [
+      0.2,
+      2.72,
+      1.18
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Sidewalks",
+     "name": "Road_Curb_Town03_92_SM_0",
+     "x_right": 17.64,
+     "y_fwd": 14.45,
+     "z": 0.07,
+     "extent": [
+      6.8,
+      0.36,
+      0.08
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_81_29",
+     "x_right": 9.66,
+     "y_fwd": -20.74,
+     "z": 0.18,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_160_26",
+     "x_right": 10.43,
+     "y_fwd": -20.38,
+     "z": 0.14,
+     "extent": [
+      0.03,
+      0.03,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_589_27",
+     "x_right": 12.92,
+     "y_fwd": -18.9,
+     "z": 0.15,
+     "extent": [
+      0.11,
+      0.14,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_669_25",
+     "x_right": 12.46,
+     "y_fwd": -19.32,
+     "z": 0.15,
+     "extent": [
+      0.27,
+      0.19,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_421_26",
+     "x_right": 12.51,
+     "y_fwd": -19.37,
+     "z": 0.15,
+     "extent": [
+      0.12,
+      0.12,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_510_32",
+     "x_right": 12.36,
+     "y_fwd": -19.53,
+     "z": 0.16,
+     "extent": [
+      0.18,
+      0.11,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_84_32",
+     "x_right": 11.46,
+     "y_fwd": -20.12,
+     "z": 0.17,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "TrafficLight",
+     "name": "BP_TrafficLight17_3114_TrafficLight_0",
+     "x_right": 9.17,
+     "y_fwd": 21.4,
+     "z": 6.18,
+     "extent": [
+      0.14,
+      0.19,
+      0.44
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_671_27",
+     "x_right": 11.38,
+     "y_fwd": -20.47,
+     "z": 0.16,
+     "extent": [
+      0.27,
+      0.19,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_78_26",
+     "x_right": 10.49,
+     "y_fwd": -20.98,
+     "z": 0.18,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_162_28",
+     "x_right": 11.51,
+     "y_fwd": -20.45,
+     "z": 0.13,
+     "extent": [
+      0.03,
+      0.03,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_82_30",
+     "x_right": 11.66,
+     "y_fwd": -20.42,
+     "z": 0.17,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_509_31",
+     "x_right": 10.4,
+     "y_fwd": -21.09,
+     "z": 0.17,
+     "extent": [
+      0.18,
+      0.11,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_435_40",
+     "x_right": 14.4,
+     "y_fwd": -18.6,
+     "z": 0.14,
+     "extent": [
+      0.12,
+      0.12,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple33_17_SM_0",
+     "x_right": -5.23,
+     "y_fwd": -22.94,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple33_17_SM_1",
+     "x_right": -5.23,
+     "y_fwd": -22.94,
+     "z": 10.86,
+     "extent": [
+      0.33,
+      0.24,
+      0.02
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_338_27",
+     "x_right": 12.25,
+     "y_fwd": -20.13,
+     "z": 0.16,
+     "extent": [
+      0.03,
+      0.03,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_506_28",
+     "x_right": 11.81,
+     "y_fwd": -20.56,
+     "z": 0.16,
+     "extent": [
+      0.18,
+      0.11,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_79_27",
+     "x_right": 11.99,
+     "y_fwd": -20.48,
+     "z": 0.17,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_426_31",
+     "x_right": 10.81,
+     "y_fwd": -21.13,
+     "z": 0.16,
+     "extent": [
+      0.12,
+      0.12,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_255_32",
+     "x_right": 11.78,
+     "y_fwd": -20.63,
+     "z": 0.17,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_259_36",
+     "x_right": 14.51,
+     "y_fwd": -18.87,
+     "z": 0.15,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_508_30",
+     "x_right": 11.49,
+     "y_fwd": -20.85,
+     "z": 0.17,
+     "extent": [
+      0.18,
+      0.11,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_167_33",
+     "x_right": 13.43,
+     "y_fwd": -19.73,
+     "z": 0.12,
+     "extent": [
+      0.03,
+      0.03,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_258_35",
+     "x_right": 14.42,
+     "y_fwd": -19.03,
+     "z": 0.15,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_253_30",
+     "x_right": 12.54,
+     "y_fwd": -20.35,
+     "z": 0.16,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_349_38",
+     "x_right": 15.04,
+     "y_fwd": -18.67,
+     "z": 0.14,
+     "extent": [
+      0.03,
+      0.03,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_171_37",
+     "x_right": 14.44,
+     "y_fwd": -19.16,
+     "z": 0.12,
+     "extent": [
+      0.03,
+      0.03,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_164_30",
+     "x_right": 10.97,
+     "y_fwd": -21.34,
+     "z": 0.14,
+     "extent": [
+      0.03,
+      0.03,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_511_33",
+     "x_right": 14.84,
+     "y_fwd": -18.89,
+     "z": 0.15,
+     "extent": [
+      0.18,
+      0.11,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_256_33",
+     "x_right": 12.27,
+     "y_fwd": -20.73,
+     "z": 0.16,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_83_31",
+     "x_right": 12.44,
+     "y_fwd": -20.67,
+     "z": 0.17,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_673_29",
+     "x_right": 12.29,
+     "y_fwd": -20.77,
+     "z": 0.15,
+     "extent": [
+      0.27,
+      0.19,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_434_39",
+     "x_right": 12.66,
+     "y_fwd": -20.56,
+     "z": 0.15,
+     "extent": [
+      0.12,
+      0.12,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_668_24",
+     "x_right": 11.73,
+     "y_fwd": -21.15,
+     "z": 0.16,
+     "extent": [
+      0.27,
+      0.19,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_343_32",
+     "x_right": 11.69,
+     "y_fwd": -21.23,
+     "z": 0.16,
+     "extent": [
+      0.03,
+      0.03,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_261_38",
+     "x_right": 15.01,
+     "y_fwd": -19.05,
+     "z": 0.15,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_263_40",
+     "x_right": 13.91,
+     "y_fwd": -19.92,
+     "z": 0.15,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_594_32",
+     "x_right": 11.21,
+     "y_fwd": -21.6,
+     "z": 0.15,
+     "extent": [
+      0.11,
+      0.14,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_91_39",
+     "x_right": 14.09,
+     "y_fwd": -19.86,
+     "z": 0.16,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_168_34",
+     "x_right": 13.04,
+     "y_fwd": -20.6,
+     "z": 0.12,
+     "extent": [
+      0.03,
+      0.03,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_424_29",
+     "x_right": 11.7,
+     "y_fwd": -21.39,
+     "z": 0.15,
+     "extent": [
+      0.12,
+      0.12,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Buildings",
+     "name": "Merged_Block01_T5_20_SM_0",
+     "x_right": -24.32,
+     "y_fwd": 1.75,
+     "z": 8.87,
+     "extent": [
+      8.31,
+      8.5,
+      8.72
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_170_36",
+     "x_right": 15.47,
+     "y_fwd": -18.88,
+     "z": 0.11,
+     "extent": [
+      0.03,
+      0.03,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_346_35",
+     "x_right": 13.36,
+     "y_fwd": -20.44,
+     "z": 0.15,
+     "extent": [
+      0.03,
+      0.03,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_675_31",
+     "x_right": 14.71,
+     "y_fwd": -19.53,
+     "z": 0.14,
+     "extent": [
+      0.27,
+      0.19,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Poles",
+     "name": "BP_StreetLight_simple33_17_SM_2",
+     "x_right": -8.76,
+     "y_fwd": -22.86,
+     "z": 5.59,
+     "extent": [
+      3.94,
+      0.37,
+      5.48
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_90_38",
+     "x_right": 13.64,
+     "y_fwd": -20.36,
+     "z": 0.16,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_517_39",
+     "x_right": 14.97,
+     "y_fwd": -19.62,
+     "z": 0.15,
+     "extent": [
+      0.18,
+      0.11,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_257_34",
+     "x_right": 13.6,
+     "y_fwd": -20.68,
+     "z": 0.16,
+     "extent": [
+      0.03,
+      0.03,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_681_37",
+     "x_right": 14.57,
+     "y_fwd": -20.02,
+     "z": 0.14,
+     "extent": [
+      0.27,
+      0.19,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_172_38",
+     "x_right": 14.94,
+     "y_fwd": -19.77,
+     "z": 0.11,
+     "extent": [
+      0.03,
+      0.03,
+      0.0
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_600_38",
+     "x_right": 14.04,
+     "y_fwd": -20.47,
+     "z": 0.14,
+     "extent": [
+      0.11,
+      0.14,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_678_34",
+     "x_right": 15.55,
+     "y_fwd": -19.5,
+     "z": 0.13,
+     "extent": [
+      0.27,
+      0.19,
+      0.03
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_514_36",
+     "x_right": 15.4,
+     "y_fwd": -19.62,
+     "z": 0.14,
+     "extent": [
+      0.18,
+      0.11,
+      0.04
+     ]
+    },
+    {
+     "kind": "env",
+     "label": "Dynamic",
+     "name": "InstancedFoliageActor_0_Inst_596_34",
+     "x_right": 13.75,
+     "y_fwd": -20.84,
+     "z": 0.14,
+     "extent": [
+      0.11,
+      0.14,
+      0.03
+     ]
+    }
+   ]
+  }
+ }
+}

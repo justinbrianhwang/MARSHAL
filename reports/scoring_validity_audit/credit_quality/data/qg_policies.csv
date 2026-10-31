@@ -1,0 +1,49 @@
+policy,graded_final,graded_qgate
+park,0.0,0.0
+"audit lurch (8 km/h, ~1.6 m)",59.83,63.14
+constant 20 km/h,18.12,18.12
+"lurch target 6 km/h, 1.2 m",64.48,63.9
+"lurch target 6 km/h, 1.6 m",59.9,63.36
+"lurch target 6 km/h, 2.0 m",65.83,68.96
+"lurch target 6 km/h, 2.5 m",64.32,67.03
+"lurch target 6 km/h, 3.0 m",64.75,67.1
+"lurch target 6 km/h, 4.0 m",61.01,65.04
+"lurch target 8 km/h, 1.2 m",64.48,63.89
+"lurch target 8 km/h, 1.6 m",59.86,63.19
+"lurch target 8 km/h, 2.0 m",66.13,69.08
+"lurch target 8 km/h, 2.5 m",64.51,69.22
+"lurch target 8 km/h, 3.0 m",64.7,66.86
+"lurch target 8 km/h, 4.0 m",60.97,64.85
+"lurch target 10 km/h, 1.2 m",64.48,63.89
+"lurch target 10 km/h, 1.6 m",59.86,63.19
+"lurch target 10 km/h, 2.0 m",65.94,68.89
+"lurch target 10 km/h, 2.5 m",64.3,66.71
+"lurch target 10 km/h, 3.0 m",64.7,66.69
+"lurch target 10 km/h, 4.0 m",60.98,64.71
+"lurch target 12 km/h, 1.2 m",64.48,63.89
+"lurch target 12 km/h, 1.6 m",59.86,63.19
+"lurch target 12 km/h, 2.0 m",65.94,68.89
+"lurch target 12 km/h, 2.5 m",64.3,66.71
+"lurch target 12 km/h, 3.0 m",64.7,66.69
+"lurch target 12 km/h, 4.0 m",61.03,64.65
+"lurch target 15 km/h, 1.2 m",64.48,63.89
+"lurch target 15 km/h, 1.6 m",59.86,63.19
+"lurch target 15 km/h, 2.0 m",65.94,68.89
+"lurch target 15 km/h, 2.5 m",64.3,66.71
+"lurch target 15 km/h, 3.0 m",64.7,66.69
+"lurch target 15 km/h, 4.0 m",61.03,64.65
+constant 5 km/h,18.03,22.94
+constant 10 km/h,18.12,18.12
+constant 30 km/h,18.12,18.12
+stop after 5 m at 20 km/h,60.67,62.08
+stop after 10 m at 20 km/h,53.69,60.42
+stop after 20 m at 20 km/h,30.44,45.99
+"lurch 2.5 m, go 20 km/h at 2 s",26.7,26.7
+"lurch 2.5 m, go 20 km/h at 4 s",26.21,32.44
+"lurch 2.5 m, go 20 km/h at 6 s",27.82,34.66
+"lurch 2.5 m, go 20 km/h at 8 s",27.96,35.53
+"lurch 2.5 m, go 20 km/h at 10 s",38.86,51.04
+"lurch 2.5 m, go 20 km/h at 13.5 s",53.59,67.28
+"lurch 2.5 m, go 20 km/h at 14.5 s",65.51,68.04
+"lurch 2.5 m, go 20 km/h at 16.5 s",69.63,71.56
+"lurch 2.5 m, go 20 km/h at 20 s",63.87,65.87

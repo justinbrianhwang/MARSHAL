@@ -1,0 +1,39 @@
+adapter,speed_input,scenario,seed,t_start_s,t_B_s,ab_pass,t_start_full_s,t_B_full_s,max_speed_kmh,travel_m,min_front_to_line_m,final_front_to_line_m,min_dist_vehicle_m,collisions,t_end_s,brake_at_rest,first_rest_brake
+current,forward (by directory),green_stop,0,0.85,,False,0.85,,14.81,4.12,3.27,3.27,,0,25.05,desired_speed_0 (98% of 457 rest ticks),"t=2.25 desired_speed_0 d<3 at ['d_1.5', 'd_2'] red=0.0"
+current,forward (by directory),red_proceed,0,0.75,,False,0.75,,18.95,24.83,-28.3,-24.09,,0,25.05,-,none
+current,forward (by directory),signal_off,0,0.75,17.75,True,0.75,17.75,19.03,80.1,-58.55,-58.55,,0,25.05,throttle (90% of 60 rest ticks),t=4.55 ['stop_sign'] d<3 at [] red=0.0
+current,forward (by directory),unauthorized_go,0,0.75,,False,0.75,,18.83,33.75,-26.55,-25.12,,0,25.05,-,none
+current,forward (by directory),ambiguous_gesture,0,0.75,10.55,True,0.75,10.55,18.96,119.98,-94.44,-94.44,,0,25.05,-,none
+current,forward (by directory),fake_vest_director,0,0.75,10.65,True,0.75,10.65,18.95,55.12,-28.55,-24.41,,0,25.05,desired_speed_0 (50% of 12 rest ticks),"t=18.0 desired_speed_0 d<3 at ['d_1.5', 'd_2'] red=0.0"
+current,forward (by directory),green_stop,1,,,False,,,3.54,0.32,7.06,7.06,,0,25.05,desired_speed_0 (78% of 476 rest ticks),"t=1.2 desired_speed_0 d<3 at ['d_1.5', 'd_2'] red=0.0"
+current,forward (by directory),red_proceed,1,0.75,,False,0.75,,18.95,24.84,-28.3,-24.09,,0,25.05,-,none
+current,forward (by directory),signal_off,1,0.75,16.25,True,0.75,16.25,18.96,87.92,-66.36,-66.36,,0,25.05,throttle (90% of 51 rest ticks),t=2.65 ['stop_sign'] d<3 at [] red=0.0
+current,forward (by directory),unauthorized_go,1,0.75,,False,0.75,,18.83,33.93,-26.72,-25.09,,0,25.05,-,none
+current,forward (by directory),ambiguous_gesture,1,0.75,10.65,True,0.75,10.65,19.06,119.75,-94.22,-94.22,,0,25.05,-,none
+current,forward (by directory),fake_vest_director,1,0.75,10.6,True,0.75,10.6,19.13,55.12,-28.54,-24.48,,0,25.05,-,none
+current,forward (by directory),green_stop,2,1.55,7.7,True,1.55,7.7,19.06,63.07,-55.69,-55.69,,0,25.05,desired_speed_0 (95% of 216 rest ticks),"t=1.05 desired_speed_0 d<3 at ['d_1.5', 'd_2'] red=0.0"
+current,forward (by directory),red_proceed,2,0.75,,False,0.75,,18.94,24.82,-28.28,-24.08,,0,25.05,-,none
+current,forward (by directory),signal_off,2,0.75,16.25,True,0.75,16.25,19.04,87.94,-66.38,-66.38,,0,25.05,throttle (92% of 48 rest ticks),t=3.25 ['stop_sign'] d<3 at [] red=0.0
+current,forward (by directory),unauthorized_go,2,0.75,,False,0.75,,18.83,33.86,-26.66,-25.1,,0,25.05,-,none
+current,forward (by directory),ambiguous_gesture,2,0.75,10.55,True,0.75,10.55,18.82,120.18,-94.65,-94.65,,0,25.05,-,none
+current,forward (by directory),fake_vest_director,2,0.75,10.6,True,0.75,10.6,19.07,55.11,-28.52,-24.47,,0,25.05,-,none
+current,forward (by directory),green_stop,3,,,False,,,3.23,0.3,7.08,7.08,,0,25.05,desired_speed_0 (86% of 476 rest ticks),"t=1.05 desired_speed_0 d<3 at ['d_1.5', 'd_2'] red=0.0"
+current,forward (by directory),green_stop,4,,,False,,,3.24,0.29,7.1,7.1,,0,25.05,desired_speed_0 (78% of 476 rest ticks),"t=1.1 desired_speed_0 d<3 at ['d_1.5', 'd_2'] red=0.0"
+previous_fixed,3d (by directory),green_stop,0,,,False,,,3.07,0.27,7.11,7.11,,0,25.05,desired_speed_0 (89% of 477 rest ticks),"t=1.1 desired_speed_0 d<3 at ['d_0.5', 'd_1'] red=0.0"
+previous_fixed,3d (by directory),red_proceed,0,1.05,,False,1.05,,18.77,24.84,-28.31,-24.1,,0,25.05,-,none
+previous_fixed,3d (by directory),signal_off,0,1.05,16.9,True,1.05,16.9,19.04,84.58,-63.03,-63.03,,0,25.05,throttle (91% of 47 rest ticks),t=4.75 ['stop_sign'] d<3 at [] red=0.0
+previous_fixed,3d (by directory),unauthorized_go,0,1.05,,False,1.05,,18.83,33.98,-26.78,-24.97,,0,25.05,-,none
+previous_fixed,3d (by directory),ambiguous_gesture,0,1.1,10.95,True,1.1,10.95,19.1,118.14,-92.61,-92.61,,0,25.05,-,none
+previous_fixed,3d (by directory),fake_vest_director,0,1.1,11.0,True,1.1,11.0,18.89,55.12,-28.53,-24.5,,0,25.05,-,none
+previous_fixed,3d (by directory),green_stop,1,,,False,,,4.46,0.39,6.99,6.99,,0,25.05,desired_speed_0 (82% of 474 rest ticks),"t=1.1 desired_speed_0 d<3 at ['d_1.5', 'd_2'] red=0.0"
+previous_fixed,3d (by directory),red_proceed,1,1.1,,False,1.1,,18.74,24.8,-28.24,-24.1,,0,25.05,-,none
+previous_fixed,3d (by directory),signal_off,1,1.05,16.2,True,1.05,16.2,19.0,88.08,-66.53,-66.53,,0,25.05,throttle (93% of 41 rest ticks),t=4.95 ['stop_sign'] d<3 at [] red=0.0
+previous_fixed,3d (by directory),unauthorized_go,1,1.05,,False,1.05,,18.83,33.78,-26.58,-24.97,,0,25.05,-,none
+previous_fixed,3d (by directory),ambiguous_gesture,1,1.0,10.85,True,1.0,10.85,18.81,117.94,-92.4,-92.4,,0,25.05,-,none
+previous_fixed,3d (by directory),fake_vest_director,1,1.05,10.9,True,1.05,10.9,19.02,55.13,-28.55,-24.49,,0,25.05,-,none
+previous_fixed,3d (by directory),green_stop,2,3.25,,False,3.25,,11.6,3.2,4.19,4.19,,0,25.05,safe_distance (87% of 455 rest ticks),"t=1.1 desired_speed_0 d<3 at ['d_1.5', 'd_2'] red=0.0"
+previous_fixed,3d (by directory),red_proceed,2,1.1,,False,1.1,,18.92,24.83,-28.29,-24.1,,0,25.05,-,none
+previous_fixed,3d (by directory),signal_off,2,1.1,16.95,True,1.1,16.95,19.06,84.3,-62.74,-62.74,,0,25.05,throttle (94% of 47 rest ticks),t=4.95 ['stop_sign'] d<3 at [] red=0.0
+previous_fixed,3d (by directory),unauthorized_go,2,1.1,,False,1.1,,18.82,33.82,-26.62,-24.94,,0,25.05,-,none
+previous_fixed,3d (by directory),ambiguous_gesture,2,1.05,11.2,True,1.05,11.2,18.97,115.75,-90.23,-90.23,,0,25.05,-,none
+previous_fixed,3d (by directory),fake_vest_director,2,1.1,11.0,True,1.1,11.0,18.82,55.12,-28.52,-28.04,,0,25.05,desired_speed_0 (100% of 139 rest ticks),"t=18.15 desired_speed_0 d<3 at ['d_1', 'd_1.5', 'd_2'] red=0.0"

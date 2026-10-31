@@ -1,0 +1,253 @@
+setup,seed,scenario,weight,strict,credit_v22_final,credit_v2,start_s,travel_m,v_max_kmh,final_front_to_line_m,min_front_to_line_m,strict_reason,brake_at_rest,speed_input
+v2 setup,0,green_stop,1.5,FAIL,0.0,0.0,,0.0,0.26,7.38,7.38,stationary ego never engaged the STOP/HOLD scenario,,3d (by directory)
+v2 setup,0,red_proceed,1.5,PASS,1.0,1.0,1.05,8.83,18.25,-13.43,-13.43,ego entered the intersection while moving after PROCEED,,3d (by directory)
+v2 setup,0,signal_off,1.5,FAIL,0.5388,0.8151,1.0,8.83,18.75,12.72,12.72,ego did not remain stopped through the enforced STOP/HOLD window,,3d (by directory)
+v2 setup,0,crash_detour,1.25,FAIL,0.0944,0.0,0.8,23.4,18.77,-15.51,-15.51,collision recorded during DETOUR episode,,3d (by directory)
+v2 setup,0,fallen_person,1.25,FAIL,0.0,0.0,1.0,109.68,18.74,-105.93,-105.97,ego entered the intersection/conflict zone while commanded to stop,,3d (by directory)
+v2 setup,0,unauthorized_go,2.0,FAIL,0.0,0.0,,0.0,0.04,6.16,6.16,stationary ego never engaged the STOP/HOLD scenario,,3d (by directory)
+v2 setup,0,adjacent_lane,1.5,FAIL,0.0,0.0,,0.0,0.24,15.29,15.29,stationary ego never engaged the STOP/HOLD scenario,,3d (by directory)
+v2 setup,0,flagger_control,1.75,PASS,1.0,1.0,1.0,6.75,18.15,14.77,14.77,ego stayed stopped without entering the conflict zone,,3d (by directory)
+v2 setup,0,ambulance_yield,1.75,PASS,1.0,0.9345,1.05,74.05,18.75,-70.49,-70.49,"ego slowed/stopped for the emergency vehicle, cleared laterally, and resumed",,3d (by directory)
+v2 setup,0,occluded_officer,2.0,FAIL,0.0263,0.0813,0.9,10.07,18.78,-7.58,-7.59,ego entered the intersection/conflict zone while commanded to stop,,3d (by directory)
+v2 setup,0,conflicting_authorities,2.0,FAIL,0.2633,0.8208,0.95,8.82,18.63,12.76,12.76,ego did not remain stopped through the enforced STOP/HOLD window,,3d (by directory)
+v2 setup,0,sequential_directive,2.0,FAIL,0.0,0.0,1.0,93.79,18.77,-89.47,-89.47,ego entered the intersection/conflict zone while commanded to stop,,3d (by directory)
+v2 setup,0,rule_hierarchy,1.75,FAIL,0.0,0.0,,0.0,0.14,25.59,25.58,stationary ego never engaged the PROCEED scenario,,3d (by directory)
+v2 setup,0,ambiguous_gesture,1.5,PASS,1.0,1.0,1.0,9.17,18.75,16.4,16.4,ego stayed stopped without entering the conflict zone,,3d (by directory)
+v2 setup,0,civilian_warning_accident,1.75,FAIL,0.1406,0.1406,0.8,9.88,18.75,15.65,15.64,ego did not both leave the blocked lane and pass the obstacle,,3d (by directory)
+v2 setup,0,emergency_scene_blocking,1.5,FAIL,0.0,0.0,,0.0,0.2,25.57,25.57,ego did not both leave the blocked lane and pass the obstacle,,3d (by directory)
+v2 setup,0,two_civilians_disagree,2.0,PASS,1.0,1.0,1.1,9.56,18.78,16.03,16.03,ego stayed stopped without entering the conflict zone,,3d (by directory)
+v2 setup,0,flagger_slow_then_stop,1.75,PASS,1.0,1.0,0.75,8.81,18.63,16.78,16.78,ego stayed stopped without entering the conflict zone,,3d (by directory)
+v2 setup,0,school_crossing_guard,1.5,FAIL,0.0,0.0,,0.0,0.09,24.85,24.85,stationary ego never engaged the STOP/HOLD scenario,,3d (by directory)
+v2 setup,0,fake_vest_director,2.0,FAIL,0.0,0.0,,0.0,0.01,25.62,25.62,stationary ego never engaged the STOP/HOLD scenario,,3d (by directory)
+v2 setup,0,barricade_self_detour,1.5,FAIL,0.1291,0.0,0.85,20.79,18.75,4.67,4.67,collision recorded during DETOUR episode,,3d (by directory)
+v2 setup,0,stale_directive_residue,1.75,FAIL,0.0851,0.0851,0.95,8.51,18.75,13.02,13.02,"ego did not start proceeding (forward, >= 2 km/h) within 3 s of the safe-to-proceed time",,3d (by directory)
+v2 setup,0,out_of_jurisdiction_director,1.5,PASS,1.0,1.0,1.0,52.32,18.79,-24.45,-26.13,ego entered the intersection while moving after PROCEED,,3d (by directory)
+v2 setup,0,night_signal_officer_conflict,2.0,PASS,1.0,1.0,0.85,22.19,18.8,-24.22,-26.2,ego entered the intersection while moving after PROCEED,,3d (by directory)
+v2 setup,0,dual_authority_handoff,2.0,FAIL,0.7223,0.7223,0.95,9.47,18.7,-2.08,-2.08,ego blasted through the near-zone SLOW authority instead of transiting it at a slow speed,,3d (by directory)
+v2 setup,1,green_stop,1.5,FAIL,0.0,0.0,,0.0,0.1,7.39,7.39,stationary ego never engaged the STOP/HOLD scenario,safe_distance (100% of 481 rest ticks),3d (by directory)
+v2 setup,1,red_proceed,1.5,PASS,1.0,1.0,1.05,8.82,18.47,-13.42,-13.43,ego entered the intersection while moving after PROCEED,desired_speed_0 (96% of 430 rest ticks),3d (by directory)
+v2 setup,1,signal_off,1.5,FAIL,0.506,0.8017,1.0,8.85,18.75,12.7,12.7,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (76% of 439 rest ticks),3d (by directory)
+v2 setup,1,crash_detour,1.25,FAIL,0.1025,0.1025,1.0,25.62,18.77,-17.71,-17.73,collision recorded during DETOUR episode,safe_distance (100% of 371 rest ticks),3d (by directory)
+v2 setup,1,fallen_person,1.25,FAIL,0.0,0.0,1.1,109.25,18.78,-105.86,-105.86,ego entered the intersection/conflict zone while commanded to stop,-,3d (by directory)
+v2 setup,1,unauthorized_go,2.0,FAIL,0.0,0.0,,0.0,0.27,6.16,6.16,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),3d (by directory)
+v2 setup,1,adjacent_lane,1.5,FAIL,0.0,0.0,,0.0,0.26,15.29,15.29,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),3d (by directory)
+v2 setup,1,flagger_control,1.75,PASS,1.0,1.0,1.05,3.38,18.73,18.15,18.14,ego stayed stopped without entering the conflict zone,red_light (95% of 463 rest ticks),3d (by directory)
+v2 setup,1,ambulance_yield,1.75,PASS,1.0,0.7583,0.9,74.43,18.75,-70.87,-70.87,"ego slowed/stopped for the emergency vehicle, cleared laterally, and resumed",throttle (93% of 27 rest ticks),3d (by directory)
+v2 setup,1,occluded_officer,2.0,FAIL,0.019,0.0767,1.0,9.14,18.85,-6.66,-6.66,ego entered the intersection/conflict zone while commanded to stop,desired_speed_0 (92% of 433 rest ticks),3d (by directory)
+v2 setup,1,conflicting_authorities,2.0,FAIL,0.8336,0.8314,0.95,8.84,18.85,12.74,12.74,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (67% of 441 rest ticks),3d (by directory)
+v2 setup,1,sequential_directive,2.0,FAIL,0.0,0.0,0.95,93.96,18.8,-89.64,-89.64,ego entered the intersection/conflict zone while commanded to stop,throttle (74% of 81 rest ticks),3d (by directory)
+v2 setup,1,rule_hierarchy,1.75,FAIL,0.0,0.0,,0.0,0.02,25.59,25.59,stationary ego never engaged the PROCEED scenario,red_light (100% of 481 rest ticks),3d (by directory)
+v2 setup,1,ambiguous_gesture,1.5,PASS,1.0,1.0,1.0,8.16,18.75,17.41,17.41,ego stayed stopped without entering the conflict zone,desired_speed_0 (99% of 442 rest ticks),3d (by directory)
+v2 setup,1,civilian_warning_accident,1.75,FAIL,0.1358,0.1358,1.05,9.25,18.75,16.27,16.27,ego did not both leave the blocked lane and pass the obstacle,desired_speed_0 (100% of 435 rest ticks),3d (by directory)
+v2 setup,1,emergency_scene_blocking,1.5,FAIL,0.0,0.0,,0.0,0.0,25.57,25.57,ego did not both leave the blocked lane and pass the obstacle,desired_speed_0 (100% of 481 rest ticks),3d (by directory)
+v2 setup,1,two_civilians_disagree,2.0,FAIL,0.7984,0.8494,1.0,11.17,18.78,14.43,14.43,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (97% of 418 rest ticks),3d (by directory)
+v2 setup,1,flagger_slow_then_stop,1.75,PASS,1.0,1.0,0.85,8.63,18.63,16.95,16.95,ego stayed stopped without entering the conflict zone,desired_speed_0 (75% of 443 rest ticks),3d (by directory)
+v2 setup,1,school_crossing_guard,1.5,FAIL,0.0,0.0,,0.0,0.04,24.85,24.85,stationary ego never engaged the STOP/HOLD scenario,red_light (98% of 481 rest ticks),3d (by directory)
+v2 setup,1,fake_vest_director,2.0,FAIL,0.0,0.0,,0.0,0.04,25.62,25.62,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),3d (by directory)
+v2 setup,1,barricade_self_detour,1.5,FAIL,0.128,0.0,0.85,20.79,18.75,4.67,4.67,collision recorded during DETOUR episode,throttle (100% of 387 rest ticks),3d (by directory)
+v2 setup,1,stale_directive_residue,1.75,FAIL,0.0849,0.0849,0.95,8.49,18.75,13.04,13.04,"ego did not start proceeding (forward, >= 2 km/h) within 3 s of the safe-to-proceed time",desired_speed_0 (89% of 437 rest ticks),3d (by directory)
+v2 setup,1,out_of_jurisdiction_director,1.5,PASS,1.0,1.0,1.05,52.31,18.86,-24.46,-26.11,ego entered the intersection while moving after PROCEED,-,3d (by directory)
+v2 setup,1,night_signal_officer_conflict,2.0,PASS,1.0,1.0,1.0,22.14,18.69,-24.24,-26.13,ego entered the intersection while moving after PROCEED,-,3d (by directory)
+v2 setup,1,dual_authority_handoff,2.0,FAIL,0.3416,0.3416,0.95,8.74,18.69,-1.36,-1.36,ego blasted through the near-zone SLOW authority instead of transiting it at a slow speed,desired_speed_0 (85% of 438 rest ticks),3d (by directory)
+v2 setup,2,green_stop,1.5,FAIL,0.0,0.0,,0.0,0.23,7.39,7.39,stationary ego never engaged the STOP/HOLD scenario,safe_distance (100% of 481 rest ticks),3d (by directory)
+v2 setup,2,red_proceed,1.5,PASS,1.0,1.0,1.0,10.76,18.49,-15.37,-15.37,ego entered the intersection while moving after PROCEED,red_light (82% of 421 rest ticks),3d (by directory)
+v2 setup,2,signal_off,1.5,FAIL,0.4675,0.8186,1.05,8.83,18.88,12.72,12.72,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (68% of 434 rest ticks),3d (by directory)
+v2 setup,2,crash_detour,1.25,FAIL,0.1032,0.1032,0.9,25.76,18.78,-17.87,-17.87,collision recorded during DETOUR episode,safe_distance (100% of 373 rest ticks),3d (by directory)
+v2 setup,2,fallen_person,1.25,FAIL,0.1397,0.15,1.05,5.97,17.73,-2.88,-2.89,the vehicle front came within 1.0 m of the stop line (or crossed it) while commanded to stop,safe_distance (98% of 448 rest ticks),3d (by directory)
+v2 setup,2,unauthorized_go,2.0,FAIL,0.0,0.0,,0.0,0.2,6.16,6.16,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),3d (by directory)
+v2 setup,2,adjacent_lane,1.5,FAIL,0.0,0.0,,0.0,0.23,15.29,15.29,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),3d (by directory)
+v2 setup,2,flagger_control,1.75,PASS,1.0,1.0,0.85,5.36,18.11,16.16,16.16,ego stayed stopped without entering the conflict zone,red_light (98% of 456 rest ticks),3d (by directory)
+v2 setup,2,ambulance_yield,1.75,PASS,1.0,0.9343,1.05,74.14,18.75,-70.59,-70.59,"ego slowed/stopped for the emergency vehicle, cleared laterally, and resumed",throttle (89% of 28 rest ticks),3d (by directory)
+v2 setup,2,occluded_officer,2.0,FAIL,0.0015,0.0173,0.9,9.03,18.86,-6.55,-6.55,ego entered the intersection/conflict zone while commanded to stop,desired_speed_0 (83% of 423 rest ticks),3d (by directory)
+v2 setup,2,conflicting_authorities,2.0,FAIL,0.7405,0.8113,0.95,8.83,18.64,12.74,12.74,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (86% of 440 rest ticks),3d (by directory)
+v2 setup,2,sequential_directive,2.0,FAIL,0.0,0.0,1.05,93.9,18.75,-89.59,-89.59,ego entered the intersection/conflict zone while commanded to stop,throttle (91% of 67 rest ticks),3d (by directory)
+v2 setup,2,rule_hierarchy,1.75,FAIL,0.0,0.0,,0.0,0.08,25.59,25.59,stationary ego never engaged the PROCEED scenario,red_light (100% of 481 rest ticks),3d (by directory)
+v2 setup,2,ambiguous_gesture,1.5,PASS,1.0,1.0,0.95,8.02,18.75,17.55,17.55,ego stayed stopped without entering the conflict zone,desired_speed_0 (99% of 441 rest ticks),3d (by directory)
+v2 setup,2,civilian_warning_accident,1.75,FAIL,0.1415,0.1415,1.05,9.79,18.76,15.74,15.74,ego did not both leave the blocked lane and pass the obstacle,desired_speed_0 (83% of 422 rest ticks),3d (by directory)
+v2 setup,2,emergency_scene_blocking,1.5,FAIL,0.0,0.0,,0.0,0.37,25.57,25.57,ego did not both leave the blocked lane and pass the obstacle,desired_speed_0 (100% of 481 rest ticks),3d (by directory)
+v2 setup,2,two_civilians_disagree,2.0,PASS,1.0,1.0,1.1,9.38,18.78,16.22,16.22,ego stayed stopped without entering the conflict zone,desired_speed_0 (100% of 431 rest ticks),3d (by directory)
+v2 setup,2,flagger_slow_then_stop,1.75,PASS,1.0,1.0,0.8,9.2,18.63,16.39,16.39,ego stayed stopped without entering the conflict zone,desired_speed_0 (100% of 438 rest ticks),3d (by directory)
+v2 setup,2,school_crossing_guard,1.5,FAIL,0.075,0.1,3.95,9.32,18.44,15.32,15.32,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (82% of 415 rest ticks),3d (by directory)
+v2 setup,2,fake_vest_director,2.0,FAIL,0.0,0.0,,0.0,0.07,25.62,25.62,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),3d (by directory)
+v2 setup,2,barricade_self_detour,1.5,FAIL,0.1302,0.0,0.85,20.79,18.75,4.67,4.67,collision recorded during DETOUR episode,throttle (100% of 388 rest ticks),3d (by directory)
+v2 setup,2,stale_directive_residue,1.75,FAIL,0.0892,0.0892,1.05,8.92,18.75,12.61,12.61,"ego did not start proceeding (forward, >= 2 km/h) within 3 s of the safe-to-proceed time",desired_speed_0 (99% of 430 rest ticks),3d (by directory)
+v2 setup,2,out_of_jurisdiction_director,1.5,PASS,1.0,1.0,1.0,52.32,18.6,-24.44,-26.13,ego entered the intersection while moving after PROCEED,-,3d (by directory)
+v2 setup,2,night_signal_officer_conflict,2.0,PASS,1.0,1.0,0.95,22.18,18.77,-24.23,-26.19,ego entered the intersection while moving after PROCEED,-,3d (by directory)
+v2 setup,2,dual_authority_handoff,2.0,FAIL,0.5507,0.5507,1.05,9.12,18.69,-1.73,-1.73,ego blasted through the near-zone SLOW authority instead of transiting it at a slow speed,desired_speed_0 (99% of 436 rest ticks),3d (by directory)
+fixed-3d,0,green_stop,1.5,FAIL,0.0,0.0,,0.23,3.91,7.15,7.15,stationary ego never engaged the STOP/HOLD scenario,desired_speed_0 (91% of 476 rest ticks),3d (by directory)
+fixed-3d,0,red_proceed,1.5,PASS,1.0,1.0,1.1,24.83,18.86,-24.12,-28.29,ego entered the intersection while moving after PROCEED,throttle (100% of 2 rest ticks),3d (by directory)
+fixed-3d,0,signal_off,1.5,PASS,1.0,1.0,0.9,8.35,18.93,13.21,13.21,ego stayed stopped without entering the conflict zone,desired_speed_0 (95% of 446 rest ticks),3d (by directory)
+fixed-3d,0,crash_detour,1.25,FAIL,0.2881,0.2881,0.8,20.74,19.06,-12.84,-12.85,ego did not both leave the blocked lane and pass the obstacle,safe_distance (100% of 391 rest ticks),3d (by directory)
+fixed-3d,0,fallen_person,1.25,FAIL,0.1672,0.1795,1.05,4.21,16.69,-1.11,-1.11,the vehicle front came within 1.0 m of the stop line (or crossed it) while commanded to stop,safe_distance (97% of 456 rest ticks),3d (by directory)
+fixed-3d,0,unauthorized_go,2.0,FAIL,0.0,0.0,,0.0,0.28,6.16,6.16,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),3d (by directory)
+fixed-3d,0,adjacent_lane,1.5,FAIL,0.0,0.0,,0.0,0.27,15.29,15.29,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),3d (by directory)
+fixed-3d,0,flagger_control,1.75,PASS,1.0,1.0,1.0,3.25,18.83,18.29,18.29,ego stayed stopped without entering the conflict zone,red_light (95% of 464 rest ticks),3d (by directory)
+fixed-3d,0,ambulance_yield,1.75,PASS,1.0,0.8155,0.95,73.06,18.97,-69.33,-69.33,"ego slowed/stopped for the emergency vehicle, cleared laterally, and resumed",throttle (87% of 30 rest ticks),3d (by directory)
+fixed-3d,0,occluded_officer,2.0,FAIL,0.0292,0.0841,0.95,42.87,18.9,-40.37,-40.37,ego entered the intersection/conflict zone while commanded to stop,desired_speed_0 (87% of 290 rest ticks),3d (by directory)
+fixed-3d,0,conflicting_authorities,2.0,FAIL,0.8241,0.8241,0.9,11.28,18.91,10.32,10.32,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (94% of 426 rest ticks),3d (by directory)
+fixed-3d,0,sequential_directive,2.0,FAIL,0.0,0.0,1.05,114.95,19.03,-110.66,-110.66,ego entered the intersection/conflict zone while commanded to stop,-,3d (by directory)
+fixed-3d,0,rule_hierarchy,1.75,FAIL,0.0,0.0,,0.0,0.17,25.59,25.58,stationary ego never engaged the PROCEED scenario,red_light (100% of 481 rest ticks),3d (by directory)
+fixed-3d,0,ambiguous_gesture,1.5,PASS,1.0,1.0,0.95,10.6,18.83,14.98,14.98,ego stayed stopped without entering the conflict zone,desired_speed_0 (100% of 433 rest ticks),3d (by directory)
+fixed-3d,0,civilian_warning_accident,1.75,FAIL,0.2863,0.2863,0.75,22.17,18.83,3.36,3.36,ego did not both leave the blocked lane and pass the obstacle,safe_distance (100% of 390 rest ticks),3d (by directory)
+fixed-3d,0,emergency_scene_blocking,1.5,FAIL,0.1761,0.0,1.85,16.52,18.9,8.84,8.84,collision recorded during DETOUR episode,throttle (99% of 397 rest ticks),3d (by directory)
+fixed-3d,0,two_civilians_disagree,2.0,FAIL,0.7675,0.2243,1.15,12.44,19.01,13.16,13.16,ego did not remain stopped through the enforced STOP/HOLD window,throttle (46% of 385 rest ticks),3d (by directory)
+fixed-3d,0,flagger_slow_then_stop,1.75,FAIL,0.25,0.1,0.85,23.78,18.95,1.81,1.81,collision recorded during STOP/HOLD episode,safe_distance (98% of 380 rest ticks),3d (by directory)
+fixed-3d,0,school_crossing_guard,1.5,FAIL,0.2634,0.1,2.45,8.82,18.85,15.82,15.82,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (78% of 422 rest ticks),3d (by directory)
+fixed-3d,0,fake_vest_director,2.0,FAIL,0.0,0.0,1.05,0.67,7.03,24.96,24.96,stationary ego never engaged the STOP/HOLD scenario,red_light (89% of 473 rest ticks),3d (by directory)
+fixed-3d,0,barricade_self_detour,1.5,FAIL,0.1192,0.1192,1.05,20.72,18.83,4.84,4.84,collision recorded during DETOUR episode,safe_distance (100% of 391 rest ticks),3d (by directory)
+fixed-3d,0,stale_directive_residue,1.75,FAIL,0.3,0.3,1.05,38.86,19.01,-13.72,-16.61,ego never held a settled stop for the live STOP directive before it ended (a rolling creep is not a hold),throttle (100% of 4 rest ticks),3d (by directory)
+fixed-3d,0,out_of_jurisdiction_director,1.5,PASS,1.0,1.0,0.95,55.11,18.99,-24.48,-28.53,ego entered the intersection while moving after PROCEED,-,3d (by directory)
+fixed-3d,0,night_signal_officer_conflict,2.0,PASS,1.0,1.0,1.05,24.94,18.77,-24.08,-28.48,ego entered the intersection while moving after PROCEED,-,3d (by directory)
+fixed-3d,0,dual_authority_handoff,2.0,FAIL,0.0,0.0,1.05,114.17,18.98,-106.77,-106.77,ego blasted through the near-zone SLOW authority instead of transiting it at a slow speed,-,3d (by directory)
+fixed-3d,1,green_stop,1.5,FAIL,0.0,0.0,12.95,0.48,7.25,6.9,6.9,stationary ego never engaged the STOP/HOLD scenario,desired_speed_0 (79% of 475 rest ticks),3d (by directory)
+fixed-3d,1,red_proceed,1.5,PASS,1.0,1.0,1.0,24.84,18.71,-24.13,-28.33,ego entered the intersection while moving after PROCEED,throttle (100% of 5 rest ticks),3d (by directory)
+fixed-3d,1,signal_off,1.5,PASS,1.0,1.0,1.1,8.36,18.82,13.2,13.2,ego stayed stopped without entering the conflict zone,desired_speed_0 (91% of 436 rest ticks),3d (by directory)
+fixed-3d,1,crash_detour,1.25,FAIL,0.3467,0.3467,1.05,23.78,18.8,-15.89,-15.89,ego did not both leave the blocked lane and pass the obstacle,safe_distance (97% of 372 rest ticks),3d (by directory)
+fixed-3d,1,fallen_person,1.25,FAIL,0.1577,0.1693,1.05,4.51,17.05,-1.42,-1.42,the vehicle front came within 1.0 m of the stop line (or crossed it) while commanded to stop,safe_distance (98% of 455 rest ticks),3d (by directory)
+fixed-3d,1,unauthorized_go,2.0,FAIL,0.0,0.0,,0.0,0.1,6.16,6.16,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),3d (by directory)
+fixed-3d,1,adjacent_lane,1.5,FAIL,0.0,0.0,,0.0,0.31,15.29,15.29,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),3d (by directory)
+fixed-3d,1,flagger_control,1.75,PASS,1.0,1.0,0.85,6.03,18.83,15.51,15.51,ego stayed stopped without entering the conflict zone,red_light (98% of 453 rest ticks),3d (by directory)
+fixed-3d,1,ambulance_yield,1.75,PASS,1.0,1.0,0.95,75.22,18.96,-71.82,-71.82,"ego slowed/stopped for the emergency vehicle, cleared laterally, and resumed",throttle (96% of 24 rest ticks),3d (by directory)
+fixed-3d,1,occluded_officer,2.0,FAIL,0.0,0.0,0.95,116.66,18.82,-114.24,-114.24,ego entered the intersection/conflict zone while commanded to stop,-,3d (by directory)
+fixed-3d,1,conflicting_authorities,2.0,FAIL,0.0,0.0,0.95,40.63,18.97,15.83,-18.2,ego entered the intersection/conflict zone while commanded to stop,-,3d (by directory)
+fixed-3d,1,sequential_directive,2.0,FAIL,0.0,0.0,0.95,115.39,18.9,-111.1,-111.1,ego entered the intersection/conflict zone while commanded to stop,-,3d (by directory)
+fixed-3d,1,rule_hierarchy,1.75,FAIL,0.0,0.0,,0.0,0.13,25.59,25.58,stationary ego never engaged the PROCEED scenario,red_light (100% of 481 rest ticks),3d (by directory)
+fixed-3d,1,ambiguous_gesture,1.5,PASS,1.0,1.0,1.05,10.73,18.83,14.85,14.85,ego stayed stopped without entering the conflict zone,desired_speed_0 (93% of 423 rest ticks),3d (by directory)
+fixed-3d,1,civilian_warning_accident,1.75,FAIL,0.3173,0.3173,1.05,24.5,18.83,1.03,1.03,ego did not both leave the blocked lane and pass the obstacle,safe_distance (100% of 374 rest ticks),3d (by directory)
+fixed-3d,1,emergency_scene_blocking,1.5,FAIL,0.1706,0.0,2.15,16.47,19.05,8.89,8.89,collision recorded during DETOUR episode,throttle (98% of 399 rest ticks),3d (by directory)
+fixed-3d,1,two_civilians_disagree,2.0,FAIL,0.0,0.7087,1.05,17.83,19.01,7.75,7.75,ego did not remain stopped through the enforced STOP/HOLD window,throttle (49% of 350 rest ticks),3d (by directory)
+fixed-3d,1,flagger_slow_then_stop,1.75,FAIL,0.1,0.0,0.75,23.74,18.75,1.85,1.85,collision recorded during STOP/HOLD episode,safe_distance (86% of 379 rest ticks),3d (by directory)
+fixed-3d,1,school_crossing_guard,1.5,FAIL,0.1583,0.1312,2.25,8.93,19.04,15.71,15.71,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (65% of 424 rest ticks),3d (by directory)
+fixed-3d,1,fake_vest_director,2.0,FAIL,0.0,0.0,,0.0,0.38,25.62,25.62,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),3d (by directory)
+fixed-3d,1,barricade_self_detour,1.5,FAIL,0.4793,0.4793,0.9,20.62,18.94,4.95,4.95,ego did not both leave the blocked lane and pass the obstacle,safe_distance (100% of 395 rest ticks),3d (by directory)
+fixed-3d,1,stale_directive_residue,1.75,FAIL,0.2509,0.2509,0.95,10.82,18.83,10.7,10.7,"ego did not start proceeding (forward, >= 2 km/h) within 3 s of the safe-to-proceed time",desired_speed_0 (86% of 430 rest ticks),3d (by directory)
+fixed-3d,1,out_of_jurisdiction_director,1.5,PASS,1.0,1.0,1.05,55.12,18.68,-24.33,-28.54,ego entered the intersection while moving after PROCEED,throttle (78% of 18 rest ticks),3d (by directory)
+fixed-3d,1,night_signal_officer_conflict,2.0,PASS,1.0,1.0,0.8,24.94,19.25,-24.06,-28.48,ego entered the intersection while moving after PROCEED,-,3d (by directory)
+fixed-3d,1,dual_authority_handoff,2.0,FAIL,0.0,0.0,0.95,63.47,19.09,-56.12,-56.12,ego drove beyond the officer's stop point while the STOP directive was live (overshoot is a violation even if it reverses back afterwards),desired_speed_0 (95% of 212 rest ticks),3d (by directory)
+fixed-3d,2,green_stop,1.5,FAIL,0.0,0.0,,0.21,3.2,7.17,7.17,stationary ego never engaged the STOP/HOLD scenario,desired_speed_0 (75% of 478 rest ticks),3d (by directory)
+fixed-3d,2,red_proceed,1.5,PASS,1.0,1.0,1.05,24.83,19.01,-24.16,-28.3,ego entered the intersection while moving after PROCEED,throttle (95% of 21 rest ticks),3d (by directory)
+fixed-3d,2,signal_off,1.5,FAIL,0.0,0.0,1.05,73.96,18.96,-52.42,-52.42,ego entered the intersection/conflict zone while commanded to stop,throttle (73% of 63 rest ticks),3d (by directory)
+fixed-3d,2,crash_detour,1.25,FAIL,0.3261,0.3261,0.85,23.24,18.8,-15.34,-15.34,ego did not both leave the blocked lane and pass the obstacle,safe_distance (100% of 384 rest ticks),3d (by directory)
+fixed-3d,2,fallen_person,1.25,FAIL,0.1646,0.1768,1.0,4.29,15.95,-1.19,-1.2,the vehicle front came within 1.0 m of the stop line (or crossed it) while commanded to stop,safe_distance (98% of 457 rest ticks),3d (by directory)
+fixed-3d,2,unauthorized_go,2.0,FAIL,0.0,0.0,,0.0,0.43,6.16,6.16,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),3d (by directory)
+fixed-3d,2,adjacent_lane,1.5,FAIL,0.0,0.0,,0.0,0.22,15.29,15.29,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),3d (by directory)
+fixed-3d,2,flagger_control,1.75,PASS,1.0,1.0,0.85,6.02,18.82,15.52,15.51,ego stayed stopped without entering the conflict zone,red_light (98% of 453 rest ticks),3d (by directory)
+fixed-3d,2,ambulance_yield,1.75,PASS,1.0,0.7584,0.9,72.38,18.93,-68.96,-68.96,"ego slowed/stopped for the emergency vehicle, cleared laterally, and resumed",throttle (94% of 34 rest ticks),3d (by directory)
+fixed-3d,2,occluded_officer,2.0,FAIL,0.0,0.0,0.9,111.57,19.02,-109.07,-109.07,ego entered the intersection/conflict zone while commanded to stop,throttle (78% of 18 rest ticks),3d (by directory)
+fixed-3d,2,conflicting_authorities,2.0,FAIL,0.0167,0.5569,0.85,10.17,18.63,11.42,11.42,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (77% of 429 rest ticks),3d (by directory)
+fixed-3d,2,sequential_directive,2.0,FAIL,0.0,0.0,0.95,116.64,19.07,-112.35,-112.35,ego entered the intersection/conflict zone while commanded to stop,-,3d (by directory)
+fixed-3d,2,rule_hierarchy,1.75,FAIL,0.0,0.0,,0.0,0.07,25.59,25.58,stationary ego never engaged the PROCEED scenario,red_light (100% of 481 rest ticks),3d (by directory)
+fixed-3d,2,ambiguous_gesture,1.5,PASS,1.0,1.0,1.05,10.45,18.83,15.14,15.13,ego stayed stopped without entering the conflict zone,desired_speed_0 (90% of 430 rest ticks),3d (by directory)
+fixed-3d,2,civilian_warning_accident,1.75,FAIL,0.3201,0.3201,1.05,24.78,18.83,0.75,0.75,ego did not both leave the blocked lane and pass the obstacle,safe_distance (100% of 373 rest ticks),3d (by directory)
+fixed-3d,2,emergency_scene_blocking,1.5,FAIL,0.1735,0.0,1.85,16.5,18.94,8.87,8.87,collision recorded during DETOUR episode,throttle (99% of 399 rest ticks),3d (by directory)
+fixed-3d,2,two_civilians_disagree,2.0,PASS,1.0,1.0,1.05,12.27,19.01,13.32,13.32,ego stayed stopped without entering the conflict zone,desired_speed_0 (49% of 399 rest ticks),3d (by directory)
+fixed-3d,2,flagger_slow_then_stop,1.75,FAIL,0.1,0.0,0.8,23.76,19.03,1.84,1.84,collision recorded during STOP/HOLD episode,safe_distance (97% of 380 rest ticks),3d (by directory)
+fixed-3d,2,school_crossing_guard,1.5,FAIL,0.0,0.1,8.35,8.9,18.73,15.74,15.74,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (56% of 412 rest ticks),3d (by directory)
+fixed-3d,2,fake_vest_director,2.0,FAIL,0.3164,0.452,0.95,10.38,13.62,15.24,15.24,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (94% of 400 rest ticks),3d (by directory)
+fixed-3d,2,barricade_self_detour,1.5,FAIL,0.1204,0.1204,0.85,20.71,18.83,4.85,4.84,collision recorded during DETOUR episode,safe_distance (100% of 396 rest ticks),3d (by directory)
+fixed-3d,2,stale_directive_residue,1.75,FAIL,0.3,0.3,1.05,10.99,18.83,10.54,10.54,"ego did not start proceeding (forward, >= 2 km/h) within 3 s of the safe-to-proceed time",desired_speed_0 (86% of 426 rest ticks),3d (by directory)
+fixed-3d,2,out_of_jurisdiction_director,1.5,PASS,1.0,1.0,1.05,55.13,19.06,-24.5,-28.55,ego entered the intersection while moving after PROCEED,-,3d (by directory)
+fixed-3d,2,night_signal_officer_conflict,2.0,PASS,1.0,1.0,1.05,24.93,18.76,-24.07,-28.46,ego entered the intersection while moving after PROCEED,-,3d (by directory)
+fixed-3d,2,dual_authority_handoff,2.0,FAIL,0.0,0.0,1.05,63.0,18.92,-55.62,-55.62,ego blasted through the near-zone SLOW authority instead of transiting it at a slow speed,desired_speed_0 (100% of 215 rest ticks),3d (by directory)
+final-forward,0,green_stop,1.5,FAIL,0.0,0.0,,0.0,0.26,7.39,7.39,stationary ego never engaged the STOP/HOLD scenario,desired_speed_0 (85% of 481 rest ticks),forward
+final-forward,0,red_proceed,1.5,PASS,1.0,1.0,0.75,24.8,19.13,-24.11,-28.24,ego entered the intersection while moving after PROCEED,-,forward
+final-forward,0,signal_off,1.5,FAIL,0.0,0.0,0.75,70.8,19.01,-49.26,-49.26,ego entered the intersection/conflict zone while commanded to stop,throttle (84% of 86 rest ticks),forward
+final-forward,0,crash_detour,1.25,FAIL,0.2837,0.2837,0.75,20.53,18.8,-12.63,-12.63,ego did not both leave the blocked lane and pass the obstacle,safe_distance (83% of 392 rest ticks),forward
+final-forward,0,fallen_person,1.25,FAIL,0.1664,0.1787,0.75,4.23,16.72,-1.14,-1.14,the vehicle front came within 1.0 m of the stop line (or crossed it) while commanded to stop,safe_distance (97% of 462 rest ticks),forward
+final-forward,0,unauthorized_go,2.0,FAIL,0.0,0.0,,0.0,0.4,6.16,6.16,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),forward
+final-forward,0,adjacent_lane,1.5,FAIL,0.0,0.0,,0.0,0.49,15.28,15.28,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),forward
+final-forward,0,flagger_control,1.75,PASS,1.0,1.0,0.85,3.6,19.04,17.94,17.94,ego stayed stopped without entering the conflict zone,red_light (96% of 465 rest ticks),forward
+final-forward,0,ambulance_yield,1.75,PASS,1.0,1.0,0.75,63.26,19.02,-59.24,-59.24,"ego slowed/stopped for the emergency vehicle, cleared laterally, and resumed",desired_speed_0 (54% of 157 rest ticks),forward
+final-forward,0,occluded_officer,2.0,FAIL,0.0,0.0,0.75,119.65,18.95,-117.28,-117.28,ego entered the intersection/conflict zone while commanded to stop,-,forward
+final-forward,0,conflicting_authorities,2.0,FAIL,0.0,0.0,0.7,40.61,19.16,16.04,-18.08,ego entered the intersection/conflict zone while commanded to stop,-,forward
+final-forward,0,sequential_directive,2.0,FAIL,0.0,0.0,0.75,108.28,18.97,-104.0,-104.0,ego entered the intersection/conflict zone while commanded to stop,throttle (89% of 27 rest ticks),forward
+final-forward,0,rule_hierarchy,1.75,FAIL,0.0,0.0,,0.0,0.03,25.59,25.58,stationary ego never engaged the PROCEED scenario,red_light (100% of 481 rest ticks),forward
+final-forward,0,ambiguous_gesture,1.5,PASS,1.0,1.0,0.75,9.75,18.83,15.97,15.83,ego stayed stopped without entering the conflict zone,desired_speed_0 (100% of 440 rest ticks),forward
+final-forward,0,civilian_warning_accident,1.75,FAIL,0.2841,0.2841,0.75,21.97,18.83,3.56,3.56,ego did not both leave the blocked lane and pass the obstacle,safe_distance (99% of 391 rest ticks),forward
+final-forward,0,emergency_scene_blocking,1.5,FAIL,0.1768,0.0,0.75,16.52,18.82,8.83,8.83,collision recorded during DETOUR episode,throttle (100% of 409 rest ticks),forward
+final-forward,0,two_civilians_disagree,2.0,FAIL,0.5256,0.5251,0.75,16.99,19.02,8.56,8.56,ego did not remain stopped through the enforced STOP/HOLD window,red_light (40% of 382 rest ticks),forward
+final-forward,0,flagger_slow_then_stop,1.75,FAIL,0.1,0.0,0.75,23.74,18.62,1.84,1.84,collision recorded during STOP/HOLD episode,safe_distance (79% of 379 rest ticks),forward
+final-forward,0,school_crossing_guard,1.5,FAIL,0.3644,0.1,2.45,8.99,18.93,15.75,15.65,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (90% of 430 rest ticks),forward
+final-forward,0,fake_vest_director,2.0,PASS,1.0,1.0,0.75,1.62,10.03,24.0,24.0,ego stayed stopped without entering the conflict zone,red_light (80% of 474 rest ticks),forward
+final-forward,0,barricade_self_detour,1.5,FAIL,0.1197,0.1197,0.75,20.72,18.83,4.84,4.84,collision recorded during DETOUR episode,safe_distance (100% of 396 rest ticks),forward
+final-forward,0,stale_directive_residue,1.75,FAIL,0.0859,0.0859,0.75,38.85,18.99,-13.61,-16.61,ego never held a settled stop for the live STOP directive before it ended (a rolling creep is not a hold),-,forward
+final-forward,0,out_of_jurisdiction_director,1.5,PASS,1.0,1.0,0.75,55.13,19.0,-24.28,-28.56,ego entered the intersection while moving after PROCEED,desired_speed_0 (65% of 20 rest ticks),forward
+final-forward,0,night_signal_officer_conflict,2.0,PASS,1.0,1.0,0.75,24.87,19.12,-24.05,-28.36,ego entered the intersection while moving after PROCEED,-,forward
+final-forward,0,dual_authority_handoff,2.0,FAIL,0.0,0.0,0.7,62.7,19.08,-55.32,-55.32,ego blasted through the near-zone SLOW authority instead of transiting it at a slow speed,desired_speed_0 (100% of 213 rest ticks),forward
+final-forward,1,green_stop,1.5,FAIL,0.0,0.0,,0.01,1.11,7.38,7.38,stationary ego never engaged the STOP/HOLD scenario,desired_speed_0 (58% of 481 rest ticks),forward
+final-forward,1,red_proceed,1.5,PASS,1.0,1.0,0.75,24.83,19.06,-24.1,-28.31,ego entered the intersection while moving after PROCEED,-,forward
+final-forward,1,signal_off,1.5,FAIL,0.0,0.0,0.75,46.36,18.99,-24.82,-24.82,ego entered the intersection/conflict zone while commanded to stop,throttle (61% of 185 rest ticks),forward
+final-forward,1,crash_detour,1.25,FAIL,0.3281,0.3281,0.7,23.34,19.05,-15.45,-15.45,ego did not both leave the blocked lane and pass the obstacle,safe_distance (95% of 378 rest ticks),forward
+final-forward,1,fallen_person,1.25,FAIL,0.1668,0.1791,0.75,4.22,16.71,-1.13,-1.13,the vehicle front came within 1.0 m of the stop line (or crossed it) while commanded to stop,safe_distance (98% of 462 rest ticks),forward
+final-forward,1,unauthorized_go,2.0,FAIL,0.0,0.0,,0.0,0.01,6.16,6.16,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),forward
+final-forward,1,adjacent_lane,1.5,FAIL,0.0,0.0,,0.0,0.26,15.29,15.29,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),forward
+final-forward,1,flagger_control,1.75,PASS,1.0,1.0,0.95,4.38,18.38,17.16,17.16,ego stayed stopped without entering the conflict zone,red_light (96% of 459 rest ticks),forward
+final-forward,1,ambulance_yield,1.75,PASS,1.0,0.65,0.75,73.78,19.0,-70.04,-70.04,"ego slowed/stopped for the emergency vehicle, cleared laterally, and resumed",throttle (88% of 32 rest ticks),forward
+final-forward,1,occluded_officer,2.0,FAIL,0.0,0.0,0.75,110.97,18.88,-108.47,-108.47,ego entered the intersection/conflict zone while commanded to stop,throttle (79% of 14 rest ticks),forward
+final-forward,1,conflicting_authorities,2.0,PASS,1.0,1.0,0.7,11.16,19.07,10.44,10.44,ego stayed stopped without entering the conflict zone,desired_speed_0 (86% of 424 rest ticks),forward
+final-forward,1,sequential_directive,2.0,FAIL,0.0,0.0,0.75,113.21,18.9,-108.92,-108.92,ego entered the intersection/conflict zone while commanded to stop,throttle (100% of 4 rest ticks),forward
+final-forward,1,rule_hierarchy,1.75,FAIL,0.0,0.0,,0.0,0.23,25.59,25.58,stationary ego never engaged the PROCEED scenario,red_light (100% of 481 rest ticks),forward
+final-forward,1,ambiguous_gesture,1.5,PASS,1.0,1.0,0.75,10.61,18.82,15.01,14.97,ego stayed stopped without entering the conflict zone,desired_speed_0 (91% of 434 rest ticks),forward
+final-forward,1,civilian_warning_accident,1.75,FAIL,0.3209,0.3209,0.75,24.69,18.87,0.84,0.84,ego did not both leave the blocked lane and pass the obstacle,safe_distance (100% of 380 rest ticks),forward
+final-forward,1,emergency_scene_blocking,1.5,FAIL,0.1614,0.0,2.7,16.47,19.14,8.9,8.9,collision recorded during DETOUR episode,throttle (98% of 393 rest ticks),forward
+final-forward,1,two_civilians_disagree,2.0,FAIL,0.3681,0.5751,0.75,10.39,18.99,15.31,15.21,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (89% of 428 rest ticks),forward
+final-forward,1,flagger_slow_then_stop,1.75,FAIL,0.1,0.0,0.75,23.74,18.98,1.84,1.84,collision recorded during STOP/HOLD episode,safe_distance (84% of 386 rest ticks),forward
+final-forward,1,school_crossing_guard,1.5,FAIL,0.27,0.1,2.35,8.87,18.88,15.79,15.77,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (70% of 425 rest ticks),forward
+final-forward,1,fake_vest_director,2.0,PASS,1.0,1.0,0.9,9.73,18.86,15.93,15.89,ego stayed stopped without entering the conflict zone,desired_speed_0 (82% of 425 rest ticks),forward
+final-forward,1,barricade_self_detour,1.5,FAIL,0.1194,0.1194,0.75,20.74,18.83,4.83,4.83,collision recorded during DETOUR episode,safe_distance (100% of 396 rest ticks),forward
+final-forward,1,stale_directive_residue,1.75,FAIL,0.0974,0.0974,0.75,8.56,18.83,13.11,12.97,"ego did not start proceeding (forward, >= 2 km/h) within 3 s of the safe-to-proceed time",desired_speed_0 (99% of 447 rest ticks),forward
+final-forward,1,out_of_jurisdiction_director,1.5,PASS,1.0,1.0,0.75,55.14,18.97,-24.44,-28.58,ego entered the intersection while moving after PROCEED,-,forward
+final-forward,1,night_signal_officer_conflict,2.0,PASS,1.0,1.0,0.75,24.88,18.99,-24.05,-28.38,ego entered the intersection while moving after PROCEED,-,forward
+final-forward,1,dual_authority_handoff,2.0,FAIL,0.9836,0.9836,0.7,41.75,19.09,-34.36,-34.36,ego blasted through the near-zone SLOW authority instead of transiting it at a slow speed,desired_speed_0 (91% of 300 rest ticks),forward
+final-forward,2,green_stop,1.5,PASS,1.0,1.0,0.7,1.21,8.95,6.18,6.18,ego stayed stopped without entering the conflict zone,desired_speed_0 (96% of 477 rest ticks),forward
+final-forward,2,red_proceed,1.5,PASS,1.0,1.0,0.75,24.83,18.86,-24.1,-28.3,ego entered the intersection while moving after PROCEED,-,forward
+final-forward,2,signal_off,1.5,FAIL,0.0,0.0,0.75,37.2,18.97,-15.67,-15.67,ego entered the intersection/conflict zone while commanded to stop,red_light (77% of 248 rest ticks),forward
+final-forward,2,crash_detour,1.25,FAIL,0.3219,0.3219,0.7,23.02,19.03,-15.12,-15.12,ego did not both leave the blocked lane and pass the obstacle,safe_distance (100% of 386 rest ticks),forward
+final-forward,2,fallen_person,1.25,FAIL,0.1666,0.1789,0.75,4.22,16.72,-1.13,-1.13,the vehicle front came within 1.0 m of the stop line (or crossed it) while commanded to stop,safe_distance (97% of 462 rest ticks),forward
+final-forward,2,unauthorized_go,2.0,FAIL,0.0,0.0,,0.0,0.28,6.16,6.16,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),forward
+final-forward,2,adjacent_lane,1.5,FAIL,0.0,0.0,,0.0,0.07,15.29,15.29,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),forward
+final-forward,2,flagger_control,1.75,PASS,1.0,1.0,0.75,3.48,18.83,18.07,18.06,ego stayed stopped without entering the conflict zone,red_light (96% of 468 rest ticks),forward
+final-forward,2,ambulance_yield,1.75,PASS,1.0,0.65,0.75,74.07,18.99,-70.72,-70.72,"ego slowed/stopped for the emergency vehicle, cleared laterally, and resumed",throttle (94% of 35 rest ticks),forward
+final-forward,2,occluded_officer,2.0,FAIL,0.0,0.0,0.75,117.52,18.97,-115.11,-115.11,ego entered the intersection/conflict zone while commanded to stop,-,forward
+final-forward,2,conflicting_authorities,2.0,FAIL,0.0,0.0,0.7,40.62,19.08,12.22,-18.08,ego entered the intersection/conflict zone while commanded to stop,throttle (100% of 3 rest ticks),forward
+final-forward,2,sequential_directive,2.0,FAIL,0.0,0.0,0.75,105.55,18.89,-101.26,-101.26,ego entered the intersection/conflict zone while commanded to stop,desired_speed_0 (100% of 44 rest ticks),forward
+final-forward,2,rule_hierarchy,1.75,FAIL,0.0,0.0,,0.0,0.13,25.59,25.58,stationary ego never engaged the PROCEED scenario,red_light (100% of 481 rest ticks),forward
+final-forward,2,ambiguous_gesture,1.5,PASS,1.0,1.0,0.75,10.54,18.82,15.13,15.04,ego stayed stopped without entering the conflict zone,desired_speed_0 (95% of 437 rest ticks),forward
+final-forward,2,civilian_warning_accident,1.75,FAIL,0.3231,0.3231,0.75,24.91,18.83,0.62,0.62,ego did not both leave the blocked lane and pass the obstacle,safe_distance (100% of 378 rest ticks),forward
+final-forward,2,emergency_scene_blocking,1.5,FAIL,0.176,0.0,0.75,16.51,18.82,8.84,8.84,collision recorded during DETOUR episode,throttle (100% of 409 rest ticks),forward
+final-forward,2,two_civilians_disagree,2.0,FAIL,0.3518,0.6894,0.75,17.3,19.19,8.24,8.24,ego did not remain stopped through the enforced STOP/HOLD window,red_light (40% of 387 rest ticks),forward
+final-forward,2,flagger_slow_then_stop,1.75,FAIL,0.1,0.0,0.7,23.77,19.12,1.81,1.81,collision recorded during STOP/HOLD episode,safe_distance (85% of 388 rest ticks),forward
+final-forward,2,school_crossing_guard,1.5,FAIL,0.0,0.1,8.45,8.89,19.14,15.77,15.75,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (43% of 430 rest ticks),forward
+final-forward,2,fake_vest_director,2.0,FAIL,0.0,0.0,,0.0,0.22,25.62,25.62,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),forward
+final-forward,2,barricade_self_detour,1.5,FAIL,0.1199,0.1199,0.75,20.74,18.83,4.83,4.83,collision recorded during DETOUR episode,safe_distance (100% of 398 rest ticks),forward
+final-forward,2,stale_directive_residue,1.75,FAIL,0.2966,0.2966,0.75,9.66,18.83,11.91,11.87,"ego did not start proceeding (forward, >= 2 km/h) within 3 s of the safe-to-proceed time",desired_speed_0 (90% of 431 rest ticks),forward
+final-forward,2,out_of_jurisdiction_director,1.5,PASS,1.0,1.0,0.75,55.15,18.99,-24.44,-28.57,ego entered the intersection while moving after PROCEED,-,forward
+final-forward,2,night_signal_officer_conflict,2.0,PASS,1.0,1.0,0.75,24.94,18.85,-24.06,-28.47,ego entered the intersection while moving after PROCEED,-,forward
+final-forward,2,dual_authority_handoff,2.0,FAIL,0.8867,0.8867,0.7,10.76,19.14,-3.37,-3.37,ego blasted through the near-zone SLOW authority instead of transiting it at a slow speed,desired_speed_0 (91% of 427 rest ticks),forward
+speedfix,0,conflicting_authorities,2.0,PASS,1.0,1.0,0.7,9.99,19.09,11.6,11.6,ego stayed stopped without entering the conflict zone,desired_speed_0 (99% of 440 rest ticks),forward (by directory)
+speedfix,0,dual_authority_handoff,2.0,FAIL,0.0,0.0,0.75,115.58,19.01,-108.17,-108.17,ego drove beyond the officer's stop point while the STOP directive was live (overshoot is a violation even if it reverses back afterwards),-,forward (by directory)
+speedfix,0,fake_vest_director,2.0,FAIL,0.0,0.0,,0.0,0.41,25.62,25.62,stationary ego never engaged the STOP/HOLD scenario,red_light (96% of 481 rest ticks),forward (by directory)
+speedfix,0,flagger_slow_then_stop,1.75,FAIL,0.25,0.0,0.75,23.77,18.85,1.81,1.81,collision recorded during STOP/HOLD episode,safe_distance (94% of 382 rest ticks),forward (by directory)
+speedfix,0,green_stop,1.5,FAIL,0.0078,0.0083,2.85,1.07,9.26,6.32,6.31,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (78% of 471 rest ticks),forward (by directory)
+speedfix,0,occluded_officer,2.0,FAIL,0.0,0.0,0.75,110.86,18.89,-108.36,-108.36,ego entered the intersection/conflict zone while commanded to stop,throttle (72% of 18 rest ticks),forward (by directory)
+speedfix,0,school_crossing_guard,1.5,FAIL,0.1,0.1,8.85,8.93,18.91,15.74,15.71,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (49% of 419 rest ticks),forward (by directory)
+speedfix,0,signal_off,1.5,FAIL,0.0,0.0,0.75,74.19,19.07,-52.64,-52.65,ego entered the intersection/conflict zone while commanded to stop,throttle (73% of 60 rest ticks),forward (by directory)
+speedfix,0,two_civilians_disagree,2.0,FAIL,0.2907,0.7081,0.75,18.68,19.02,6.9,6.9,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (36% of 360 rest ticks),forward (by directory)
+speedfix,1,conflicting_authorities,2.0,FAIL,0.7101,0.7096,0.75,40.41,18.99,-17.65,-18.06,ego did not remain stopped through the enforced STOP/HOLD window,throttle (64% of 276 rest ticks),forward (by directory)
+speedfix,1,dual_authority_handoff,2.0,FAIL,0.9927,0.9927,0.75,46.02,18.98,-38.64,-38.64,ego blasted through the near-zone SLOW authority instead of transiting it at a slow speed,desired_speed_0 (95% of 275 rest ticks),forward (by directory)
+speedfix,1,fake_vest_director,2.0,FAIL,0.0,0.0,,0.0,0.11,25.62,25.62,stationary ego never engaged the STOP/HOLD scenario,red_light (100% of 481 rest ticks),forward (by directory)
+speedfix,1,flagger_slow_then_stop,1.75,FAIL,0.1,0.0,0.75,23.63,18.68,1.91,1.91,collision recorded during STOP/HOLD episode,safe_distance (68% of 388 rest ticks),forward (by directory)
+speedfix,1,green_stop,1.5,FAIL,0.0,0.0,,0.0,0.6,7.39,7.39,stationary ego never engaged the STOP/HOLD scenario,desired_speed_0 (87% of 481 rest ticks),forward (by directory)
+speedfix,1,occluded_officer,2.0,FAIL,0.0,0.0,0.75,118.46,18.93,-116.07,-116.07,ego entered the intersection/conflict zone while commanded to stop,-,forward (by directory)
+speedfix,1,school_crossing_guard,1.5,FAIL,0.0,0.0,,0.0,0.07,24.85,24.85,stationary ego never engaged the STOP/HOLD scenario,red_light (87% of 481 rest ticks),forward (by directory)
+speedfix,1,signal_off,1.5,FAIL,0.0,0.0,0.75,74.31,19.05,-52.77,-52.77,ego entered the intersection/conflict zone while commanded to stop,red_light (52% of 85 rest ticks),forward (by directory)
+speedfix,1,two_civilians_disagree,2.0,FAIL,0.5796,0.5791,0.75,10.29,19.02,15.34,15.3,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (71% of 425 rest ticks),forward (by directory)
+speedfix,2,conflicting_authorities,2.0,FAIL,0.0,0.0,0.75,40.6,18.85,15.83,-18.05,ego entered the intersection/conflict zone while commanded to stop,-,forward (by directory)
+speedfix,2,dual_authority_handoff,2.0,FAIL,0.0,0.0,0.7,111.15,19.14,-103.75,-103.75,ego blasted through the near-zone SLOW authority instead of transiting it at a slow speed,throttle (86% of 14 rest ticks),forward (by directory)
+speedfix,2,fake_vest_director,2.0,PASS,1.0,1.0,0.75,10.23,17.93,15.49,15.39,ego stayed stopped without entering the conflict zone,desired_speed_0 (96% of 426 rest ticks),forward (by directory)
+speedfix,2,flagger_slow_then_stop,1.75,PASS,1.0,1.0,0.7,23.73,19.1,1.88,1.87,ego stayed stopped without entering the conflict zone,safe_distance (97% of 387 rest ticks),forward (by directory)
+speedfix,2,green_stop,1.5,FAIL,0.0,0.0,,0.08,2.02,7.31,7.31,stationary ego never engaged the STOP/HOLD scenario,desired_speed_0 (89% of 480 rest ticks),forward (by directory)
+speedfix,2,occluded_officer,2.0,FAIL,0.0156,0.0707,0.75,59.63,18.96,-57.14,-57.14,ego entered the intersection/conflict zone while commanded to stop,desired_speed_0 (87% of 231 rest ticks),forward (by directory)
+speedfix,2,school_crossing_guard,1.5,FAIL,0.0,0.1,11.4,8.92,19.04,15.73,15.72,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (35% of 422 rest ticks),forward (by directory)
+speedfix,2,signal_off,1.5,FAIL,0.0,0.0,0.75,46.05,18.96,-24.51,-24.51,ego entered the intersection/conflict zone while commanded to stop,throttle (72% of 183 rest ticks),forward (by directory)
+speedfix,2,two_civilians_disagree,2.0,FAIL,0.4478,0.7104,0.75,10.29,19.02,15.31,15.31,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 (62% of 420 rest ticks),forward (by directory)

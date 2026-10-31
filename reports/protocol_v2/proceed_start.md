@@ -4,7 +4,7 @@
 | baseline | 0/1 PASS, 1 late start | 0/1 PASS | 0/1 PASS | 0/1 PASS | 0/1 PASS, 1 late start |
 | TransFuser | 1/1 PASS, start +0.05 s | 0/1 PASS | 0/1 PASS, 1 late start | 0/1 PASS, 1 late start | 1/1 PASS, start +0.00 s |
 | TCP | 1/1 PASS, start +0.20 s | 0/1 PASS | 0/1 PASS | 0/1 PASS | 1/1 PASS, start +0.00 s |
-| InterFuser | 1/1 PASS, start +0.00 s | 0/1 PASS, 1 late start | 0/1 PASS, 1 late start | 1/1 PASS, start +0.85 s | 1/1 PASS, start +0.00 s |
+| InterFuser | 3/3 PASS, start +0.00 s | 0/3 PASS, 3 late start | 0/3 PASS, 2 late start | 3/3 PASS, start +0.60 s | 3/3 PASS, start +0.00 s |
 | CILRS | 1/1 PASS, start +0.00 s | 1/1 PASS, start +0.00 s | 0/1 PASS | 0/1 PASS | 1/1 PASS, start +0.00 s |
 | AIM | 0/1 PASS | 0/1 PASS, 1 late start | 0/1 PASS | 0/1 PASS | 1/1 PASS, start +2.60 s |
 | NEAT | 1/1 PASS, start +0.50 s | 0/1 PASS | 0/1 PASS | 0/1 PASS | 1/1 PASS, start +0.00 s |

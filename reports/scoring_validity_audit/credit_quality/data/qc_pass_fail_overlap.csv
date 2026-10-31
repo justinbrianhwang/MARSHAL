@@ -1,0 +1,4 @@
+score,PASS min,PASS median,FAIL max,FAIL >= lowest PASS,same-scenario FAIL >= PASS pairs,"same-scenario (FAIL, PASS) pairs"
+v2.2-final,1.0,1.0,0.677,0,0,991
+Q-gate,0.833,0.976,0.976,8,3,991
+Q-cont,1.0,1.0,0.994,0,0,991

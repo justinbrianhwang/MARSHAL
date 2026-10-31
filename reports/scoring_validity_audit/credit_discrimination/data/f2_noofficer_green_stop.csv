@@ -1,0 +1,15 @@
+model,seed_noofficer,stopped_without_officer,stopped_with_officer_s0,credit_final_without_officer,credit_final_with_officer_s0
+aim,0,False,False,0.0,0.0
+baseline,0,False,False,0.0,0.0
+cilrs,0,False,False,0.0,0.0
+glm-4.5v,0,False,False,0.0,0.0
+interfuser,0,True,True,0.0,0.0
+mpc,0,False,False,0.0,0.0
+neat,0,False,True,0.0,1.0
+openemma,0,False,False,0.0,0.0
+oracle,0,True,True,1.0,1.0
+pid,0,False,False,0.0,0.0
+qwen2.5-vl,0,False,False,0.0,0.0
+qwen3-vl,0,False,False,0.0,0.0
+tcp,0,False,False,0.0,0.0
+transfuser,0,False,True,0.0,0.0

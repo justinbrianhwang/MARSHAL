@@ -1,0 +1,13 @@
+{
+ "station": "green_stop",
+ "ego": "vehicle.tesla.model3",
+ "overrides": {},
+ "spawn_z": 3.0,
+ "settle_ticks": 0,
+ "back_m": 0.0,
+ "t_5kmh_s": 1.05,
+ "v_max_kmh": 19.08,
+ "travel_m": 53.67,
+ "final_pitch": -0.651,
+ "final_roll": 0.027
+}

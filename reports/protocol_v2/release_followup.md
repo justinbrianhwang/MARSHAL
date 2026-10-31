@@ -4,7 +4,7 @@
 | baseline | 13 | 0 | 0 | 0 | 5 |
 | TransFuser | 13 | 0 | 0 | 0 | 0 |
 | TCP | 13 | 1 | 1 | 0 | 2 |
-| InterFuser | 13 | 4 | 0 | 0 | 0 |
+| InterFuser | 39 | 10 | 2 | 0 | 2 |
 | CILRS | 13 | 2 | 0 | 0 | 1 |
 | AIM | 13 | 0 | 0 | 0 | 0 |
 | NEAT | 13 | 3 | 2 | 0 | 0 |

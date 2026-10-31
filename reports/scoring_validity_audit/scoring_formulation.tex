@@ -1,0 +1,43 @@
+% MARSHAL protocol v2 episode credit -- exact implementation (audit). Source: graded_episode_scoring.py,
+% strict_episode_scoring.py at commit e6ae3c8. Prose, provenance and findings: scoring_formulation.md.
+\documentclass{article}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{MARSHAL protocol v2: episode credit}
+
+\paragraph{Ramp.} $L(x;a,b)=\min\!\big(1,\max(0,\tfrac{x-b}{a-b})\big)$; equal to 1 at or beyond $a$, 0 at or beyond $b$.
+
+\paragraph{Episode credit and suite score.}
+\begin{align}
+C &= \mathbb{1}[\text{valid}]\cdot \mathrm{clip}(A,0,1)\cdot F_{\mathrm{lat}}\cdot F_{\mathrm{safe}}\cdot G_{\mathrm{move}},\\
+G_{\mathrm{move}} &= \mathbb{1}\!\left[\max v \ge 5\,\mathrm{km/h} \wedge (\max x-\min x)\ge 1\,\mathrm{m}\right]\quad(\text{STOP/HOLD: rows to directive end; else } 25\,\mathrm{s}),\\
+\text{MARSHAL-Graded} &= 100\,\frac{\sum_s w_s C_s}{\sum_s w_s},\qquad \textstyle\sum_s w_s=42.5 .
+\end{align}
+
+\paragraph{Safety.} $n$ = cumulative collision-sensor callback events (self and \texttt{static.road} excluded):
+$F_{\mathrm{safe}}=1,\,0.25,\,0.10,\,0$ for $n=0,\,1,\,2\text{--}5,\,{>}5$.
+
+\paragraph{Latency.} $T=\max(3,B)$; $\tau$ = time from onset (PROCEED: $t_{\mathrm{safe}}$) to the first action-specific response;
+$F_{\mathrm{lat}}=L(\tau;T,T+5)$; with no detected response $F_{\mathrm{lat}}=\mathbb{1}[\text{STOP/HOLD}\wedge A\ge 0.999]$.
+For STOP/HOLD, $\tau=0$ when $v\le 1$ km/h already at onset.
+
+\paragraph{STOP / HOLD.}
+\begin{align}
+\text{base} &= 0.60\,L(v_{\max,\mathrm{enf}};1,12)+0.40\,L(f_{\min};1.0,-2),\\
+A &= \text{base}\cdot 0.35^{[\text{conflict}]}\cdot 0.75^{[\text{no enforcement rows}]}\cdot e\cdot a,\\
+e &= \begin{cases}0 & \text{no movement evidence}\\ 1 & \text{strict-compliant STOP/HOLD telemetry}\\
+\max\!\big(L(v_{\mathrm{app}};10,5)L(d_{\mathrm{app}};10,1),\ \min\{L(d_{\mathrm{app}};10,1)L(d_{\min};15,40),c\}\big) & \text{otherwise}\end{cases}
+\end{align}
+with $c=0.25$ if $L(v_{\mathrm{app}};10,5)=0$, else $1$; base $=L(v_{\max,\mathrm{enf}};1,12)$ without a stop line or with an approach requirement ($a\ne 1$ only for \texttt{dual\_authority\_handoff}).
+
+\paragraph{PROCEED.}
+$A=0.65\,L(v_{\mathrm{entry}};2,0)+0.35\,L(t_{\mathrm{move}}-t_{\mathrm{safe}};3,8)$ if the junction was entered past the line, else $A=0.20\,L(v_{\max};2,0)+0.10\,L(x_{\max};10,0)$.
+
+\paragraph{PROCEED with care.} $A=0.45\,L(v_{\min};3,12)+0.45\,L(v_{\mathrm{entry}};2,0)+0.10\,O$.
+
+\paragraph{PROCEED after release.} $A=A_{\mathrm{PROCEED}}\cdot h$, $h\in\{0,\,1,\,0.3,\,L(v_{\min};3,12)\}$ (entered while live / settled dwell / creep / otherwise).
+
+\paragraph{DETOUR.} $A=0.55\,L(\max|y|;1.5,0)+0.45\,L(x_{\max};x_{\mathrm{obs}}+4,1)$.
+
+\paragraph{YIELD.} $A=0.20\alpha+0.35\alpha L(v_{\min};3,12)+0.25L(\max|y|_{\mathrm{after}};1,0)+0.20L(v_{\mathrm{resume}};5,0)$, $\alpha=L(v_{\mathrm{pre}};5,0)$.
+\end{document}

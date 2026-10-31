@@ -64,6 +64,7 @@ GRADED_THRESHOLDS: Dict[str, float] = {
     "yield_slow_zero_kmh": 12.0,
     "yield_pre_zero_kmh": 0.0,
     "detour_progress_floor_m": 1.0,
+    "contact_merge_gap_s": 1.0,
 }
 
 # Authority-heavy scenarios are deliberately above 1.0 and the final aggregate
@@ -356,20 +357,56 @@ def _validate_common(
     return None
 
 
-def _safety_factor(rows: Sequence[Dict[str, Any]]) -> Tuple[float, Dict[str, Any]]:
+def _same_contact_identity(a: Optional[Tuple[Any, Any]], b: Optional[Tuple[Any, Any]]) -> bool:
+    """a, b: (actor id or None, type id), or None when the event has no logged identity."""
+    if a is None or b is None:
+        return a is None and b is None
+    return a[1] == b[1] and (a[0] is None or b[0] is None or a[0] == b[0])
+
+
+def _distinct_contacts(rows: Sequence[Dict[str, Any]], identities: Sequence[Optional[Tuple[Any, Any]]] = ()) -> int:
+    """Distinct contacts from the per-tick cumulative collision-callback count.
+
+    ``identities[k]`` is the (actor id or None, type id) of counted event k, in
+    callback order. A sensor reports one contact as many callbacks, so a new
+    contact starts only on an identity change or a gap above
+    ``contact_merge_gap_s``.
+    """
+    n, prev, last_t, last_id = 0, 0, None, None
+    for r in rows:
+        c, t = int(float(r.get("collision_count") or 0)), float(r["sim_time"])
+        for k in range(prev, c):
+            ident = identities[k] if k < len(identities) else None
+            if last_t is None or not _same_contact_identity(ident, last_id) or t - last_t > GRADED_THRESHOLDS["contact_merge_gap_s"]:
+                n += 1
+            last_t, last_id = t, ident
+        prev = max(prev, c)
+    return n
+
+
+def _safety_factor(
+    rows: Sequence[Dict[str, Any]],
+    identities: Optional[Sequence[Optional[Tuple[Any, Any]]]] = None,
+    *,
+    distinct: bool = False,
+) -> Tuple[float, Dict[str, Any]]:
     """Return a deterministic collision penalty.
 
-    Only collision count is recorded in the strict telemetry. No impact-speed or
-    damage severity signal is present, so count is used as the severity proxy.
+    No impact-speed or damage severity signal is recorded, so the contact count
+    is the severity proxy: sensor callbacks (``distinct=False``) or distinct
+    contacts (``distinct=True``, protocol v2).
     """
-    count = _collision_count(rows)
+    if distinct:
+        count, signal = _distinct_contacts(rows, identities or ()), "distinct_contacts"
+    else:
+        count, signal = _collision_count(rows), "collision_count"
     if count <= 0:
-        return 1.0, {"collision_count": 0, "severity_signal": "collision_count"}
+        return 1.0, {"collision_count": 0, "severity_signal": signal}
     if count == 1:
-        return 0.25, {"collision_count": count, "severity_signal": "collision_count"}
+        return 0.25, {"collision_count": count, "severity_signal": signal}
     if count <= 5:
-        return 0.10, {"collision_count": count, "severity_signal": "collision_count"}
-    return 0.0, {"collision_count": count, "severity_signal": "collision_count"}
+        return 0.10, {"collision_count": count, "severity_signal": signal}
+    return 0.0, {"collision_count": count, "severity_signal": signal}
 
 
 def _speed_at_or_after(rows: Sequence[Dict[str, Any]], onset: float) -> Optional[float]:
@@ -409,6 +446,44 @@ def _first_decel_time(rows: Sequence[Dict[str, Any]], onset: float) -> Optional[
     return None
 
 
+def _held_stop_latency(rows: Sequence[Dict[str, Any]], onset: float) -> Tuple[Optional[float], str]:
+    """STOP/HOLD response = reaching a held stop (protocol v2).
+
+    The response is the start of the first ``hold_dwell_min_s`` window after
+    onset in which every row is at or below ``stop_speed_kmh`` and forward drift
+    stays within ``hold_dwell_max_drift_m``; deceleration and slow driving are
+    not a response. An ego at rest at onset is timed from its first post-onset
+    launch; one that never moves has latency 0. Returns (None, ...) when no held
+    stop exists.
+    """
+    after = [r for r in rows if float(r["sim_time"]) >= onset - 1e-9]
+    if not after:
+        return None, "none"
+    stop_kmh = GRADED_THRESHOLDS["stop_speed_kmh"]
+    speed = lambda r: _finite_float(r.get("ego_speed_kmh")) or 0.0  # noqa: E731
+    at_rest = speed(after[0]) <= stop_kmh
+    t_move = next((float(r["sim_time"]) for r in after if speed(r) > stop_kmh), None)
+    if at_rest and t_move is None:
+        return 0.0, "at_rest_never_moved"
+    start = t_move if at_rest else onset
+    span: List[Dict[str, Any]] = []
+    for r in [r for r in after if float(r["sim_time"]) >= start - 1e-9] + [None]:
+        if r is not None and speed(r) <= stop_kmh:
+            span.append(r)
+            continue
+        ts = [float(s["sim_time"]) for s in span]
+        fwd = [_finite_float(s.get("ego_forward_m")) for s in span]
+        for i in range(len(span)):
+            j = next((j for j in range(i, len(span)) if ts[j] - ts[i] >= STRICT_THRESHOLDS["hold_dwell_min_s"] - 1e-9), None)
+            if j is None:
+                break
+            win = [x for x in fwd[i:j + 1] if x is not None]
+            if win and max(win) - min(win) <= STRICT_THRESHOLDS["hold_dwell_max_drift_m"]:
+                return ts[i] - start, "held_stop_after_launch" if at_rest else "held_stop"
+        span = []
+    return None, "no_held_stop"
+
+
 def _latency_factor(
     rows: Sequence[Dict[str, Any]],
     action: str,
@@ -417,6 +492,7 @@ def _latency_factor(
     *,
     action_credit: float,
     reaction_budget: float = 3.0,
+    held_stop: bool = False,
 ) -> Tuple[float, Dict[str, Any]]:
     """Map first valid response latency to [0, 1].
 
@@ -436,7 +512,9 @@ def _latency_factor(
     trigger = "none"
     at_onset = _speed_at_or_after(rows, onset)
 
-    if action in {"STOP", "HOLD"}:
+    if action in {"STOP", "HOLD"} and held_stop:
+        latency_s, trigger = _held_stop_latency(rows, onset)
+    elif action in {"STOP", "HOLD"}:
         if at_onset is not None and at_onset <= GRADED_THRESHOLDS["stop_speed_kmh"]:
             latency_s = 0.0
             trigger = "already_below_stop_speed"
@@ -528,6 +606,7 @@ def _stop_hold_engagement_factor(
     entered_junction: bool,
     movement_rows: Optional[Sequence[Dict[str, Any]]] = None,
     front_clearance: Optional[float] = None,
+    motion_anchored: bool = False,
 ) -> Tuple[float, Dict[str, float], Dict[str, Any]]:
     """Gate non-strict STOP/HOLD partial credit on real scenario engagement.
 
@@ -536,6 +615,11 @@ def _stop_hold_engagement_factor(
     forward progress, or progress close enough to the stopline/conflict zone.
     Low-speed creep is capped so "stayed below 5 km/h far upstream" collapses
     toward zero instead of receiving clearance credit.
+
+    ``motion_anchored`` (protocol v2): the approach window ends at the first
+    stop after the first post-onset motion; the approach distance is measured
+    front-bumper-to-line and capped at the line (travel past the line is not
+    approach); the creep cap applies only beyond ``stopline_engagement_m``.
     """
     # min_stopline is None only when the episode has no stop line at all (no
     # governing light, no officer) — the clearance leg is then inapplicable,
@@ -641,8 +725,12 @@ def _stop_hold_engagement_factor(
         return 1.0, components, evidence
 
     first_stop_time: Optional[float] = None
+    search_start = onset
+    if motion_anchored:
+        search_start = next((float(r["sim_time"]) for r in rows if float(r["sim_time"]) >= onset
+                             and float(r["ego_speed_kmh"]) > GRADED_THRESHOLDS["stop_speed_kmh"]), onset)
     for row in rows:
-        if float(row["sim_time"]) >= onset and float(row["ego_speed_kmh"]) <= GRADED_THRESHOLDS["stop_speed_kmh"]:
+        if float(row["sim_time"]) >= search_start and float(row["ego_speed_kmh"]) <= GRADED_THRESHOLDS["stop_speed_kmh"]:
             first_stop_time = float(row["sim_time"])
             break
     approach_end = min(active_end, first_stop_time if first_stop_time is not None else onset + reaction_budget)
@@ -668,6 +756,10 @@ def _stop_hold_engagement_factor(
         ]
         if onset_fwd is not None and fwd_vals:
             approach_distance = max(fwd_vals) - onset_fwd
+    if motion_anchored:
+        onset_front = _finite_float(onset_row.get("stopline_front_m"))
+        if onset_front is not None and front_clearance is not None:
+            approach_distance = onset_front - max(front_clearance, 0.0)
     speed_credit = _linear_credit(
         max_approach_speed,
         GRADED_THRESHOLDS["stop_engagement_speed_full_kmh"],
@@ -686,7 +778,9 @@ def _stop_hold_engagement_factor(
     speed_progress_credit = speed_credit * progress_credit
     near_stopline_progress_credit = progress_credit * proximity_credit
     creep_cap_applied = False
-    if speed_credit <= 0.0 and near_stopline_progress_credit > GRADED_THRESHOLDS["stop_engagement_creep_cap"]:
+    far_upstream = (not motion_anchored or min_stopline is None
+                    or min_stopline > GRADED_THRESHOLDS["stopline_engagement_m"])
+    if speed_credit <= 0.0 and near_stopline_progress_credit > GRADED_THRESHOLDS["stop_engagement_creep_cap"] and far_upstream:
         near_stopline_progress_credit = GRADED_THRESHOLDS["stop_engagement_creep_cap"]
         creep_cap_applied = True
 
@@ -957,6 +1051,7 @@ def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: f
         entered_junction=entered_junction,
         movement_rows=None if protocol == "v1" else _rows_until(list(rows), active_end),
         front_clearance=None if (approach_required or min_front is None) else min_front,
+        motion_anchored=protocol == "v2",
     )
     approach_factor, approach_evidence = _stop_hold_approach_factor(rows, active_rows, enforcement_rows, scenario)
     action_credit = base * conflict_factor * evidence_factor * engagement_factor * approach_factor
@@ -1321,11 +1416,15 @@ def score_episode_from_telemetry(
     setup_errors: Iterable[Any] = (),
     protocol: str = "v1",
     decision_times: Optional[Iterable[float]] = None,
+    collision_identities: Optional[Sequence[Optional[Tuple[Any, Any]]]] = None,
 ) -> Dict[str, Any]:
     """Return a continuous [0, 1] grade for one episode (``protocol`` "v1" or "v2").
 
     The inputs intentionally mirror ``strict_episode_scoring`` so existing
     telemetry artifacts can be re-scored without loading CARLA.
+    ``collision_identities``: (actor id or None, type id) of each counted
+    collision event in callback order; protocol v2 merges callbacks of one
+    contact with it (without it, only the time gap separates contacts).
     """
     if protocol == "v2":
         telemetry_rows = _horizon_raw(telemetry_rows)
@@ -1399,14 +1498,17 @@ def score_episode_from_telemetry(
     elif action == "DETOUR":
         action_credit, components, evidence, reason = _score_detour(rows, onset)
     elif action == "YIELD":
-        action_credit, components, evidence, reason = _score_yield(rows, onset, active_end)
+        # v2: the slowdown counts anywhere after onset, as in the strict verdict
+        yield_end = float(rows[-1]["sim_time"]) if protocol == "v2" else active_end
+        action_credit, components, evidence, reason = _score_yield(rows, onset, yield_end)
     else:
         verdict = _invalid(f"unknown expected action for graded scoring: {action!r}")
         verdict.update({"scenario": scen, "expected_action": action})
         return verdict
 
-    latency_factor, latency_evidence = _latency_factor(rows, action, scen, onset, action_credit=action_credit, reaction_budget=reaction_budget)
-    safety_factor, safety_evidence = _safety_factor(rows)
+    latency_factor, latency_evidence = _latency_factor(rows, action, scen, onset, action_credit=action_credit,
+                                                       reaction_budget=reaction_budget, held_stop=protocol == "v2")
+    safety_factor, safety_evidence = _safety_factor(rows, collision_identities, distinct=protocol == "v2")
     credit = _clamp(action_credit) * latency_factor * safety_factor
     # Movement-evidence gate for EVERY action (strict's approach-evidence arm:
     # >= engagement_speed_kmh and >= engagement_progress_m over the episode).

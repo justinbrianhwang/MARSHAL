@@ -1,0 +1,20 @@
+F3 bounds v2.2: pairs not separated: ['aim-openemma', 'mpc-pid', 'mpc-qwen3-vl', 'pid-qwen3-vl', 'pid-openemma', 'glm-4.5v-baseline']
+F3 v2.2 without F3 vs v2.2 tau all 0.934 non-priv 0.939; all-hidden vs v2.2 tau 0.934
+{'version': 'v2', 'zero': 441, 'partial': 114, 'full': 95, 'credit1_not_pass': 0, 'pass_below_1': 7, 'fail_ge_pass_pairs_same_scenario': 24, 'synthetic_violations': 7, 'best_nonpriv_system': 43.53, 'best_policy': 69.63, 'policies_above_best_system': 37, 'tau_vs_v2_all': 1.0, 'tau_vs_v2_nonpriv': 1.0, 'rank_changes_vs_v2': ''}
+{'version': 'v2.1', 'zero': 383, 'partial': 165, 'full': 102, 'credit1_not_pass': 0, 'pass_below_1': 0, 'fail_ge_pass_pairs_same_scenario': 0, 'synthetic_violations': 8, 'best_nonpriv_system': 44.54, 'best_policy': 69.63, 'policies_above_best_system': 23, 'tau_vs_v2_all': 0.934, 'tau_vs_v2_nonpriv': 0.939, 'rank_changes_vs_v2': 'neat 3->4;tcp 4->3;transfuser 7->8;aim 8->7;glm-4.5v 13->14;baseline 14->13'}
+{'version': 'v2.2', 'zero': 400, 'partial': 148, 'full': 102, 'credit1_not_pass': 0, 'pass_below_1': 0, 'fail_ge_pass_pairs_same_scenario': 0, 'synthetic_violations': 7, 'best_nonpriv_system': 40.93, 'best_policy': 69.63, 'policies_above_best_system': 37, 'tau_vs_v2_all': 0.846, 'tau_vs_v2_nonpriv': 0.818, 'rank_changes_vs_v2': 'tcp 4->6;cilrs 5->4;qwen2.5-vl 6->5;aim 8->12;mpc 9->8;pid 10->9;qwen3-vl 11->10;openemma 12->11;glm-4.5v 13->14;baseline 14->13'}
+{'version': 'v2.2+a3', 'zero': 401, 'partial': 147, 'full': 102, 'credit1_not_pass': 0, 'pass_below_1': 0, 'fail_ge_pass_pairs_same_scenario': 0, 'synthetic_violations': 8, 'best_nonpriv_system': 40.93, 'best_policy': 69.63, 'policies_above_best_system': 23, 'tau_vs_v2_all': 0.846, 'tau_vs_v2_nonpriv': 0.818, 'rank_changes_vs_v2': 'tcp 4->6;cilrs 5->4;qwen2.5-vl 6->5;aim 8->12;mpc 9->8;pid 10->9;qwen3-vl 11->10;openemma 12->11;glm-4.5v 13->14;baseline 14->13'}
+oracle {'v2': (96.91, 1), 'v2.1': (96.91, 1), 'v2.2': (96.91, 1), 'v2.2+a3': (96.91, 1)}
+interfuser {'v2': (43.53, 2), 'v2.1': (44.54, 2), 'v2.2': (40.93, 2), 'v2.2+a3': (40.93, 2)}
+neat {'v2': (42.91, 3), 'v2.1': (42.72, 4), 'v2.2': (33.62, 3), 'v2.2+a3': (33.45, 3)}
+tcp {'v2': (30.33, 4), 'v2.1': (43.72, 3), 'v2.2': (20.68, 6), 'v2.2+a3': (20.68, 6)}
+cilrs {'v2': (24.57, 5), 'v2.1': (26.4, 5), 'v2.2': (26.4, 4), 'v2.2+a3': (26.4, 4)}
+qwen2.5-vl {'v2': (20.75, 6), 'v2.1': (22.29, 6), 'v2.2': (21.89, 5), 'v2.2+a3': (21.89, 5)}
+transfuser {'v2': (14.32, 7), 'v2.1': (14.32, 8), 'v2.2': (14.32, 7), 'v2.2+a3': (14.32, 7)}
+aim {'v2': (13.23, 8), 'v2.1': (16.89, 7), 'v2.2': (11.3, 12), 'v2.2+a3': (11.3, 12)}
+mpc {'v2': (12.75, 9), 'v2.1': (14.1, 9), 'v2.2': (14.1, 8), 'v2.2+a3': (14.1, 8)}
+pid {'v2': (11.76, 10), 'v2.1': (13.51, 10), 'v2.2': (13.51, 9), 'v2.2+a3': (13.51, 9)}
+qwen3-vl {'v2': (11.65, 11), 'v2.1': (13.47, 11), 'v2.2': (13.47, 10), 'v2.2+a3': (13.47, 10)}
+openemma {'v2': (10.61, 12), 'v2.1': (11.59, 12), 'v2.2': (11.87, 11), 'v2.2+a3': (11.87, 11)}
+glm-4.5v {'v2': (8.14, 13), 'v2.1': (8.69, 14), 'v2.2': (8.61, 14), 'v2.2+a3': (8.61, 14)}
+baseline {'v2': (7.71, 14), 'v2.1': (10.34, 13), 'v2.2': (9.11, 13), 'v2.2+a3': (9.11, 13)}

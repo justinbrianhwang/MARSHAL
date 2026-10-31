@@ -1,0 +1,7 @@
+score,set,n,zero,partial,full,"deciles [0,.1)..[.9,1]",distinct (4 dp),distinct (2 dp),eta2 label->score,median within-label range,min / max
+v2.2-final,STOP/HOLD in scope,392,305,44,43,315 13 9 7 3 1 1 0 0 43,42,28,0.962,0.0,0.000 / 1.000
+v2.2-final,STOP/HOLD FAIL,349,305,44,0,315 13 9 7 3 1 1 0 0 0,41,27,0.47,0.1,0.000 / 0.677
+Q-gate,STOP/HOLD in scope,392,263,125,4,270 38 6 0 1 5 7 13 10 42,107,43,0.931,0.116,0.000 / 1.000
+Q-gate,STOP/HOLD FAIL,349,263,86,0,270 38 6 0 1 5 7 13 5 4,78,37,0.825,0.116,0.000 / 0.976
+Q-cont,STOP/HOLD in scope,392,0,349,43,0 0 2 68 27 29 19 21 162 64,185,57,0.887,0.264,0.272 / 1.000
+Q-cont,STOP/HOLD FAIL,349,0,349,0,0 0 2 68 27 29 19 21 162 21,184,56,0.856,0.269,0.272 / 0.994

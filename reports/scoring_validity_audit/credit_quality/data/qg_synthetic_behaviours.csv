@@ -1,0 +1,85 @@
+scenario,behaviour,strict,label,final,Q_gate,components
+green_stop,normal stop,PASS,PASS,1.0,0.9165,L1.00 E1.00 K0.50 R1.00 H1.00 C1.00 M1.00 S1.00
+green_stop,late stop,FAIL,LATE_STOP,0.0,0.8332,L1.00 E0.80 K0.92 R0.54 H0.75 C1.00 M1.00 S0.00
+green_stop,overrun then stop (2 m past),FAIL,OVERRUN_THEN_STOP,0.1258,0.2333,L0.00 E1.00 K0.00 R1.00 H1.00 C1.00 M1.00 S0.00
+green_stop,crawl through (5 km/h),FAIL,CRAWL_THROUGH,0.0,0.0,L0.00 E0.64 K0.00 R0.00 H0.00 C1.00 M1.00 S0.00
+green_stop,drive through (25 km/h),FAIL,DRIVE_THROUGH,0.0,0.0,L0.00 E0.00 K0.00 R0.00 H0.00 C1.00 M1.00 S0.00
+green_stop,no start,FAIL,NO_START,0.0,0.0,L1.00 E1.00 K1.00 R1.00 H1.00 C1.00 M0.00 S0.00
+signal_off,normal stop,FAIL,LATE_STOP,0.224,0.6345,L1.00 E0.00 K0.49 R0.56 H0.76 C1.00 M1.00 S0.00
+signal_off,late stop,FAIL,LATE_STOP,0.0,0.5773,L1.00 E0.36 K0.69 R0.00 H0.41 C1.00 M1.00 S0.00
+signal_off,overrun then stop (2 m past),FAIL,OVERRUN_THEN_STOP,0.0,0.117,L0.00 E0.00 K0.00 R0.36 H0.65 C1.00 M1.00 S0.00
+signal_off,crawl through (5 km/h),FAIL,CREEP_NO_STOP,0.0,0.1484,L1.00 E0.64 K0.92 R0.00 H0.00 C1.00 M1.00 S0.00
+signal_off,drive through (25 km/h),FAIL,DRIVE_THROUGH,0.0,0.0,L0.00 E0.00 K0.00 R0.00 H0.00 C1.00 M1.00 S0.00
+signal_off,no start,FAIL,NO_START,0.0,0.0,L1.00 E1.00 K1.00 R1.00 H1.00 C1.00 M0.00 S0.00
+fallen_person,normal stop,PASS,PASS,1.0,0.9554,L1.00 E1.00 K0.73 R1.00 H1.00 C1.00 M1.00 S1.00
+fallen_person,late stop,,not hostable (geometry),,,
+fallen_person,overrun then stop (2 m past),FAIL,OVERRUN_THEN_STOP,0.0489,0.2333,L0.00 E1.00 K0.00 R1.00 H1.00 C1.00 M1.00 S0.00
+fallen_person,crawl through (5 km/h),FAIL,CRAWL_THROUGH,0.0,0.0,L0.00 E0.64 K0.00 R0.00 H0.00 C1.00 M1.00 S0.00
+fallen_person,drive through (25 km/h),FAIL,DRIVE_THROUGH,0.0,0.0,L0.00 E0.00 K0.00 R0.00 H0.00 C1.00 M1.00 S0.00
+fallen_person,no start,FAIL,NO_START,0.0,0.0,L1.00 E1.00 K1.00 R1.00 H1.00 C1.00 M0.00 S0.00
+unauthorized_go,normal stop,PASS,PASS,1.0,0.9234,L1.00 E1.00 K0.54 R1.00 H1.00 C1.00 M1.00 S1.00
+unauthorized_go,late stop,FAIL,LATE_STOP,0.0,0.8524,L1.00 E0.86 K0.95 R0.55 H0.75 C1.00 M1.00 S0.00
+unauthorized_go,overrun then stop (2 m past),FAIL,OVERRUN_THEN_STOP,0.0966,0.2333,L0.00 E1.00 K0.00 R1.00 H1.00 C1.00 M1.00 S0.00
+unauthorized_go,crawl through (5 km/h),FAIL,CRAWL_THROUGH,0.0,0.0,L0.00 E0.64 K0.00 R0.00 H0.00 C1.00 M1.00 S0.00
+unauthorized_go,drive through (25 km/h),FAIL,DRIVE_THROUGH,0.0,0.0,L0.00 E0.00 K0.00 R0.00 H0.00 C1.00 M1.00 S0.00
+unauthorized_go,no start,FAIL,NO_START,0.0,0.0,L1.00 E1.00 K1.00 R1.00 H1.00 C1.00 M0.00 S0.00
+adjacent_lane,normal stop,FAIL,LATE_STOP,0.5105,0.766,L1.00 E0.32 K0.49 R0.86 H0.92 C1.00 M1.00 S0.00
+adjacent_lane,late stop,FAIL,LATE_STOP,0.3095,0.7129,L1.00 E0.37 K0.69 R0.50 H0.72 C1.00 M1.00 S0.00
+adjacent_lane,overrun then stop (2 m past),FAIL,OVERRUN_THEN_STOP,0.0,0.1451,L0.00 E0.00 K0.00 R0.67 H0.82 C1.00 M1.00 S0.00
+adjacent_lane,crawl through (5 km/h),FAIL,CRAWL_THROUGH,0.0,0.0,L0.00 E0.64 K0.00 R0.00 H0.00 C1.00 M1.00 S0.00
+adjacent_lane,drive through (25 km/h),FAIL,DRIVE_THROUGH,0.0,0.0,L0.00 E0.00 K0.00 R0.00 H0.00 C1.00 M1.00 S0.00
+adjacent_lane,no start,FAIL,NO_START,0.0,0.0,L1.00 E1.00 K1.00 R1.00 H1.00 C1.00 M0.00 S0.00
+flagger_control,normal stop,FAIL,LATE_STOP,0.224,0.6346,L1.00 E0.00 K0.49 R0.56 H0.76 C1.00 M1.00 S0.00
+flagger_control,late stop,FAIL,LATE_STOP,0.0,0.5776,L1.00 E0.36 K0.69 R0.00 H0.41 C1.00 M1.00 S0.00
+flagger_control,overrun then stop (2 m past),FAIL,OVERRUN_THEN_STOP,0.0,0.1179,L0.00 E0.00 K0.00 R0.37 H0.65 C1.00 M1.00 S0.00
+flagger_control,crawl through (5 km/h),FAIL,CREEP_NO_STOP,0.0,0.1484,L1.00 E0.64 K0.92 R0.00 H0.00 C1.00 M1.00 S0.00
+flagger_control,drive through (25 km/h),FAIL,DRIVE_THROUGH,0.0,0.0,L0.00 E0.00 K0.00 R0.00 H0.00 C1.00 M1.00 S0.00
+flagger_control,no start,FAIL,NO_START,0.0,0.0,L1.00 E1.00 K1.00 R1.00 H1.00 C1.00 M0.00 S0.00
+occluded_officer,normal stop,PASS,PASS,1.0,0.9388,L1.00 E1.00 K0.63 R1.00 H1.00 C1.00 M1.00 S1.00
+occluded_officer,late stop,,not hostable (geometry),,,
+occluded_officer,overrun then stop (2 m past),FAIL,OVERRUN_THEN_STOP,0.0112,0.2333,L0.00 E1.00 K0.00 R1.00 H1.00 C1.00 M1.00 S0.00
+occluded_officer,crawl through (5 km/h),FAIL,CRAWL_THROUGH,0.0,0.0,L0.00 E0.64 K0.00 R0.00 H0.00 C1.00 M1.00 S0.00
+occluded_officer,drive through (25 km/h),FAIL,DRIVE_THROUGH,0.0,0.0,L0.00 E0.00 K0.00 R0.00 H0.00 C1.00 M1.00 S0.00
+occluded_officer,no start,FAIL,NO_START,0.0,0.0,L1.00 E1.00 K1.00 R1.00 H1.00 C1.00 M0.00 S0.00
+conflicting_authorities,normal stop,FAIL,LATE_STOP,0.22,0.6325,L1.00 E0.00 K0.49 R0.55 H0.75 C1.00 M1.00 S0.00
+conflicting_authorities,late stop,FAIL,LATE_STOP,0.0,0.5758,L1.00 E0.36 K0.68 R0.00 H0.41 C1.00 M1.00 S0.00
+conflicting_authorities,overrun then stop (2 m past),FAIL,OVERRUN_THEN_STOP,0.0,0.117,L0.00 E0.00 K0.00 R0.36 H0.65 C1.00 M1.00 S0.00
+conflicting_authorities,crawl through (5 km/h),FAIL,CREEP_NO_STOP,0.0,0.1484,L1.00 E0.64 K0.93 R0.00 H0.00 C1.00 M1.00 S0.00
+conflicting_authorities,drive through (25 km/h),FAIL,DRIVE_THROUGH,0.0,0.0,L0.00 E0.00 K0.00 R0.00 H0.00 C1.00 M1.00 S0.00
+conflicting_authorities,no start,FAIL,NO_START,0.0,0.0,L1.00 E1.00 K1.00 R1.00 H1.00 C1.00 M0.00 S0.00
+sequential_directive,normal stop,PASS,PASS,1.0,0.9394,L1.00 E1.00 K0.64 R1.00 H1.00 C1.00 M1.00 S1.00
+sequential_directive,late stop,,not hostable (geometry),,,
+sequential_directive,overrun then stop (2 m past),FAIL,OVERRUN_THEN_STOP,0.0539,0.2333,L0.00 E1.00 K0.00 R1.00 H1.00 C1.00 M1.00 S0.00
+sequential_directive,crawl through (5 km/h),FAIL,CRAWL_THROUGH,0.0,0.0,L0.00 E0.64 K0.00 R0.00 H0.00 C1.00 M1.00 S0.00
+sequential_directive,drive through (25 km/h),FAIL,DRIVE_THROUGH,0.0,0.0,L0.00 E0.00 K0.00 R0.00 H0.00 C1.00 M1.00 S0.00
+sequential_directive,no start,FAIL,NO_START,0.0,0.0,L1.00 E1.00 K1.00 R1.00 H1.00 C1.00 M0.00 S0.00
+ambiguous_gesture,normal stop,FAIL,LATE_STOP,0.144,0.5835,L1.00 E0.00 K0.49 R0.36 H0.65 C1.00 M1.00 S0.00
+ambiguous_gesture,late stop,FAIL,CREEP_NO_STOP,0.0,0.1358,L1.00 E0.36 K0.68 R0.00 H0.21 C1.00 M1.00 S0.00
+ambiguous_gesture,overrun then stop (2 m past),FAIL,OVERRUN_THEN_STOP,0.0,0.0998,L0.00 E0.00 K0.00 R0.17 H0.54 C1.00 M1.00 S0.00
+ambiguous_gesture,crawl through (5 km/h),FAIL,CREEP_NO_STOP,0.0,0.1502,L1.00 E0.64 K0.97 R0.00 H0.00 C1.00 M1.00 S0.00
+ambiguous_gesture,drive through (25 km/h),FAIL,DRIVE_THROUGH,0.0,0.0,L0.00 E0.00 K0.00 R0.00 H0.00 C1.00 M1.00 S0.00
+ambiguous_gesture,no start,FAIL,NO_START,0.0,0.0,L1.00 E1.00 K1.00 R1.00 H1.00 C1.00 M0.00 S0.00
+two_civilians_disagree,normal stop,FAIL,LATE_STOP,0.144,0.5896,L1.00 E0.00 K0.50 R0.36 H0.68 C1.00 M1.00 S0.00
+two_civilians_disagree,late stop,FAIL,LATE_STOP,0.0,0.5561,L1.00 E0.36 K0.68 R0.00 H0.29 C1.00 M1.00 S0.00
+two_civilians_disagree,overrun then stop (2 m past),FAIL,OVERRUN_THEN_STOP,0.0,0.1025,L0.00 E0.00 K0.00 R0.17 H0.59 C1.00 M1.00 S0.00
+two_civilians_disagree,crawl through (5 km/h),FAIL,CREEP_NO_STOP,0.0,0.1499,L1.00 E0.64 K0.96 R0.00 H0.00 C1.00 M1.00 S0.00
+two_civilians_disagree,drive through (25 km/h),FAIL,DRIVE_THROUGH,0.0,0.0,L0.00 E0.00 K0.00 R0.00 H0.00 C1.00 M1.00 S0.00
+two_civilians_disagree,no start,FAIL,NO_START,0.0,0.0,L1.00 E1.00 K1.00 R1.00 H1.00 C1.00 M0.00 S0.00
+flagger_slow_then_stop,normal stop,PASS,PASS,1.0,0.9212,L1.00 E1.00 K0.53 R1.00 H1.00 C1.00 M1.00 S1.00
+flagger_slow_then_stop,late stop,FAIL,LATE_STOP,0.3585,0.7212,L1.00 E0.36 K0.68 R0.58 H0.70 C1.00 M1.00 S0.00
+flagger_slow_then_stop,overrun then stop (2 m past),FAIL,OVERRUN_THEN_STOP,0.0708,0.2333,L0.00 E1.00 K0.00 R1.00 H1.00 C1.00 M1.00 S0.00
+flagger_slow_then_stop,crawl through (5 km/h),FAIL,CREEP_NO_STOP,0.0,0.1482,L1.00 E0.64 K0.92 R0.00 H0.00 C1.00 M1.00 S0.00
+flagger_slow_then_stop,drive through (25 km/h),FAIL,DRIVE_THROUGH,0.0,0.0,L0.00 E0.00 K0.00 R0.00 H0.00 C1.00 M1.00 S0.00
+flagger_slow_then_stop,no start,FAIL,NO_START,0.0,0.0,L1.00 E1.00 K1.00 R1.00 H1.00 C1.00 M0.00 S0.00
+school_crossing_guard,normal stop,FAIL,LATE_STOP,0.16,0.5988,L1.00 E0.00 K0.49 R0.40 H0.70 C1.00 M1.00 S0.00
+school_crossing_guard,late stop,FAIL,LATE_STOP,0.0,0.5617,L1.00 E0.36 K0.68 R0.00 H0.32 C1.00 M1.00 S0.00
+school_crossing_guard,overrun then stop (2 m past),FAIL,OVERRUN_THEN_STOP,0.0,0.106,L0.00 E0.00 K0.00 R0.21 H0.61 C1.00 M1.00 S0.00
+school_crossing_guard,crawl through (5 km/h),FAIL,CREEP_NO_STOP,0.0,0.1496,L1.00 E0.64 K0.95 R0.00 H0.00 C1.00 M1.00 S0.00
+school_crossing_guard,drive through (25 km/h),FAIL,DRIVE_THROUGH,0.0,0.0,L0.00 E0.00 K0.00 R0.00 H0.00 C1.00 M1.00 S0.00
+school_crossing_guard,no start,FAIL,NO_START,0.0,0.0,L1.00 E1.00 K1.00 R1.00 H1.00 C1.00 M0.00 S0.00
+fake_vest_director,normal stop,FAIL,LATE_STOP,0.144,0.5894,L1.00 E0.00 K0.49 R0.36 H0.68 C1.00 M1.00 S0.00
+fake_vest_director,late stop,FAIL,LATE_STOP,0.0,0.5558,L1.00 E0.36 K0.68 R0.00 H0.29 C1.00 M1.00 S0.00
+fake_vest_director,overrun then stop (2 m past),FAIL,OVERRUN_THEN_STOP,0.0,0.1025,L0.00 E0.00 K0.00 R0.17 H0.59 C1.00 M1.00 S0.00
+fake_vest_director,crawl through (5 km/h),FAIL,CREEP_NO_STOP,0.0,0.1499,L1.00 E0.64 K0.96 R0.00 H0.00 C1.00 M1.00 S0.00
+fake_vest_director,drive through (25 km/h),FAIL,DRIVE_THROUGH,0.0,0.0,L0.00 E0.00 K0.00 R0.00 H0.00 C1.00 M1.00 S0.00
+fake_vest_director,no start,FAIL,NO_START,0.0,0.0,L1.00 E1.00 K1.00 R1.00 H1.00 C1.00 M0.00 S0.00

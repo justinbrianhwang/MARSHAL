@@ -1,0 +1,5 @@
+version,zero,partial,full,credit1_not_pass,pass_below_1,fail_ge_pass_pairs_same_scenario,synthetic_violations,best_nonpriv_system,best_policy,policies_above_best_system,tau_vs_v2_all,tau_vs_v2_nonpriv,rank_changes_vs_v2
+v2,441,114,95,0,7,24,7,43.53,69.63,37,1.0,1.0,
+v2.1,383,165,102,0,0,0,8,44.54,69.63,23,0.934,0.939,neat 3->4;tcp 4->3;transfuser 7->8;aim 8->7;glm-4.5v 13->14;baseline 14->13
+v2.2,400,148,102,0,0,0,7,40.93,69.63,37,0.846,0.818,tcp 4->6;cilrs 5->4;qwen2.5-vl 6->5;aim 8->12;mpc 9->8;pid 10->9;qwen3-vl 11->10;openemma 12->11;glm-4.5v 13->14;baseline 14->13
+v2.2+a3,401,147,102,0,0,0,8,40.93,69.63,23,0.846,0.818,tcp 4->6;cilrs 5->4;qwen2.5-vl 6->5;aim 8->12;mpc 9->8;pid 10->9;qwen3-vl 11->10;openemma 12->11;glm-4.5v 13->14;baseline 14->13

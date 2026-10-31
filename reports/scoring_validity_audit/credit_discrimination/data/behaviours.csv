@@ -1,0 +1,21 @@
+behaviour (synthetic),station,strict,label,credit_final,credit_D
+"normal stop (15 km/h, stop 2 m before the line)",green_stop,PASS,PASS,1.0,1.0
+"launch after onset (1.5 s), stop 2 m before the line",green_stop,FAIL,LATE_STOP,0.4102,0.4102
+"careful short stop (6 m before the line, ~1.4 m travel)",green_stop,PASS,PASS,1.0,1.0
+"F2 lurch (audit, ~1.6 m)",green_stop,PASS,PASS,1.0,1.0
+"late stop (8 km/h, brake at 7 s)",green_stop,FAIL,OVERRUN_THEN_STOP,0.0123,0.0239
+stop 0.5 m before the line (inside the 1 m margin),green_stop,FAIL,STOP_POSITION,0.5245,0.5245
+overrun: stop 2 m past the line (25 km/h),green_stop,FAIL,OVERRUN_THEN_STOP,0.1178,0.1178
+overrun: stop 10 m past the line (25 km/h),green_stop,FAIL,OVERRUN_THEN_STOP,0.0554,0.0575
+"stop-and-hold, go after the directive (14 s)",green_stop,PASS,PASS,1.0,1.0
+"crawl from onset, settle 1.67 m/s2",green_stop,FAIL,CRAWL_THROUGH,0.0,0.0
+"crawl from onset, settle 0.67 m/s2",green_stop,FAIL,CRAWL_THROUGH,0.0,0.0
+constant 5 km/h,green_stop,FAIL,CRAWL_THROUGH,0.0,0.0
+constant 25 km/h (drive-through),green_stop,FAIL,DRIVE_THROUGH,0.0,0.0
+no start (park),green_stop,FAIL,NO_START,0.0,0.0
+"late but held stop 7 m before the line (6 km/h, brake at 9 s)",signal_off,FAIL,LATE_STOP,0.0,0.303
+"stale_directive: live STOP at 0.0 km/h minimum, proceed after release",stale_directive_residue,PASS,PASS,1.0,1.0
+"stale_directive: live STOP at 2.9 km/h minimum, proceed after release",stale_directive_residue,FAIL,CRAWL_THROUGH,0.3,0.0
+"stale_directive: live STOP at 3.5 km/h minimum, proceed after release",stale_directive_residue,FAIL,CRAWL_THROUGH,0.9444,0.0
+"stale_directive: live STOP at 6.0 km/h minimum, proceed after release",stale_directive_residue,FAIL,CRAWL_THROUGH,0.6667,0.0
+"stale_directive: live STOP at 9.0 km/h minimum, proceed after release",stale_directive_residue,FAIL,CRAWL_THROUGH,0.0,0.0

@@ -1,0 +1,5 @@
+case,v2.2: credit,v2.2: speed_margin,v2.2: clearance,v2.2: no_conflict_entry,v2.2: e,v2.2: approach_speed,v2.2: approach_progress,v2.2: creep_cap,v2.2: approach_distance_m,v2.2: max_approach_kmh,v2.2: max_enforced_kmh,v2.2: F_lat,v2.2: latency_s,credit front_cap (item 3a),credit spawn_anchor (item 3b),credit front_cap+spawn_anchor
+"25 km/h, overshoot 0.1 m",0.1708,1.0,0.634,0.0,0.572,1.0,0.572,False,6.1466,19.44,0.0,1.0,1.9,0.1676,0.216,0.2127
+"25 km/h, overshoot 0.5 m",0.1726,1.0,0.5,0.0,0.616,1.0,0.616,False,6.5481,20.16,0.0,1.0,1.95,0.1571,0.2149,0.1994
+approach start 0.0 s,0.4766,1.0,0.833,1.0,0.511,1.0,0.511,False,5.5954,14.85,0.0,1.0,2.25,0.4766,0.6121,0.6121
+approach start 0.5 s,0.5771,1.0,0.833,1.0,0.618,1.0,0.618,False,6.5641,14.85,0.0,1.0,2.75,0.5771,0.6127,0.6127

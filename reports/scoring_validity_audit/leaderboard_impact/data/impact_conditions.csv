@@ -1,0 +1,16 @@
+condition,description,n_scenarios,weight_sum,n_models,kendall_tau_b_all,kendall_tau_b_nonpriv,max_abs_delta_graded,max_nonpriv_rank_move,n_nonpriv_rank_changes,top_nonpriv,second_nonpriv,top_margin,oracle_gap,best_vlm_c,max_J_nonpriv,max_J_model,oracle_J,max_J_excl_interfuser,J_interfuser_moving_cells,n_evaluated_below_pid_or_mpc
+P,published (25 scenarios),25,42.5,14,1.0,1.0,0.0,0,0,interfuser,neat,0.63,53.38,qwen2.5-vl,0.006,interfuser,0.892,-0.061,-0.086,3
+X-G1,"exclude G1: red_proceed, night_signal_officer_conflict",23,39.0,14,0.67,0.667,8.02,5,9,interfuser,neat,0.68,58.17,qwen2.5-vl,-0.122,glm-4.5v,0.863,-0.122,-0.264,1
+X-G2,"exclude G2: occluded_officer, sequential_directive",23,38.5,14,1.0,1.0,4.25,0,0,interfuser,neat,0.47,48.96,qwen2.5-vl,0.112,interfuser,0.892,-0.021,0.028,3
+X-G3,exclude G3: fallen_person,24,41.25,14,1.0,1.0,1.32,0,0,interfuser,neat,0.65,51.96,qwen2.5-vl,0.035,interfuser,0.892,-0.025,-0.057,3
+X-G4,"exclude G4: two_civilians_disagree, fake_vest_director",23,38.5,14,0.978,0.97,2.85,1,2,interfuser,neat,0.19,53.73,qwen2.5-vl,-0.068,interfuser,0.892,-0.11,-0.163,4
+X-G5,exclude G5: adjacent_lane,24,41.0,14,1.0,1.0,2.55,0,0,interfuser,neat,0.65,51.67,qwen2.5-vl,-0.019,interfuser,0.892,-0.078,-0.086,3
+X-G6,exclude G6: dual_authority_handoff,24,40.5,14,0.978,0.97,2.12,1,2,neat,interfuser,2.91,51.73,qwen2.5-vl,0.055,interfuser,0.892,-0.001,-0.036,3
+X-G7,exclude G7: 14 in-band STOP/HOLD,11,18.25,14,0.78,0.697,19.03,5,8,interfuser,neat,5.38,46.37,qwen3-vl,-0.585,interfuser,0.892,-0.677,-0.481,5
+CLEAN,exclude G1-G6 (16 scenarios left),16,26.25,14,0.714,0.606,10.49,5,12,neat,interfuser,5.55,46.04,qwen2.5-vl,-0.004,interfuser,0.863,-0.034,-0.07,1
+CLEAN+G7,exclude G1-G7 (8 move-side scenarios left),8,12.75,14,0.538,0.364,17.14,8,12,neat,qwen3-vl,3.02,58.39,qwen3-vl,,,,,,2
+CFG,"25 scenarios; InterFuser not evaluable (AIM kept, caveat)",25,42.5,13,1.0,1.0,0.0,0,0,neat,tcp,12.57,54.01,qwen2.5-vl,-0.061,transfuser,0.892,-0.061,,3
+CFG-AIM,25 scenarios; InterFuser and AIM removed,25,42.5,12,1.0,1.0,0.0,0,0,neat,tcp,12.57,54.01,qwen2.5-vl,-0.061,transfuser,0.892,-0.061,,3
+BOTH,CLEAN + InterFuser not evaluable,16,26.25,13,0.692,0.564,10.49,5,10,neat,qwen2.5-vl,17.72,46.04,qwen2.5-vl,-0.034,glm-4.5v,0.863,-0.034,,1
+BOTH-AIM,CLEAN + InterFuser and AIM removed,16,26.25,12,0.727,0.6,10.49,4,9,neat,qwen2.5-vl,17.72,46.04,qwen2.5-vl,-0.034,glm-4.5v,0.863,-0.034,,1
+X-C5,exclude the 10 scenarios whose STOP paddle was requested but not spawned,15,25.25,14,0.692,0.667,9.79,5,8,neat,interfuser,9.91,49.72,qwen2.5-vl,0.139,interfuser,0.865,0.004,0.057,4

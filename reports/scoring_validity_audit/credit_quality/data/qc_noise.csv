@@ -1,0 +1,4 @@
+score,near-duplicate pairs,max |dscore|,p95 |dscore|,fixture replicate range (max over behaviours)
+v2.2-final,1006,0.0127,0.0,0.028
+Q-gate,1006,0.0081,0.0,0.0189
+Q-cont,1006,0.0089,0.0017,0.0085

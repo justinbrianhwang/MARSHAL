@@ -4,7 +4,7 @@
 | baseline | 25 | 1 on every tick | 0.183 | 20.00 | — | — | 1 ×25 | 0 |
 | TransFuser | 25 | 1 on every tick | 0.174 | 9.98 | — | — | 1 ×25 | 0 |
 | TCP | 25 | 1 on every tick | 0.181 | 19.96 | — | — | 1 ×25 | 0 |
-| InterFuser | 25 | 1 on every tick | 0.156 | 19.96 | — | — | 1 ×25 | 0 |
+| InterFuser | 75 | 1 on every tick | 0.159 | 19.96 | — | — | 1 ×75 | 0 |
 | CILRS | 25 | 1 on every tick | 0.152 | 19.92 | — | — | 1 ×25 | 0 |
 | AIM | 25 | 1 on every tick | 0.151 | 19.92 | — | — | 1 ×25 | 0 |
 | NEAT | 25 | 1 on every tick | 0.152 | 19.92 | — | — | 1 ×25 | 0 |

@@ -1,0 +1,23 @@
+{'version': 'v2', 'credit1_not_pass': 0, 'pass_below_1': 7, 'fail_ge_pass_pairs_same_scenario': 24, 'zero': 441, 'partial': 114, 'full': 95, 'changed_vs_v22_prefix': 122, 'tau_vs_v2': '1.0 / 1.0', 'tau_vs_v22_prefix': '0.846 / 0.818', 'rank_changes_vs_v22_prefix': 'cilrs 4->5;qwen2.5-vl 5->6;tcp 6->4;mpc 8->9;pid 9->10;qwen3-vl 10->11;openemma 11->12;aim 12->8;baseline 13->14;glm-4.5v 14->13'}
+{'version': 'v2.2 (pre-fix)', 'credit1_not_pass': 0, 'pass_below_1': 0, 'fail_ge_pass_pairs_same_scenario': 0, 'zero': 400, 'partial': 148, 'full': 102, 'changed_vs_v22_prefix': 0, 'tau_vs_v2': '0.846 / 0.818', 'tau_vs_v22_prefix': '1.0 / 1.0', 'rank_changes_vs_v22_prefix': ''}
+{'version': 'v2.2 final', 'credit1_not_pass': 0, 'pass_below_1': 0, 'fail_ge_pass_pairs_same_scenario': 0, 'zero': 400, 'partial': 148, 'full': 102, 'changed_vs_v22_prefix': 26, 'tau_vs_v2': '0.846 / 0.818', 'tau_vs_v22_prefix': '1.0 / 1.0', 'rank_changes_vs_v22_prefix': ''}
+ordering violation: overshoot at 25 km/h v2.2 0.1 m -> 0.5 m
+ordering violation: approach start 0/0.5/1/1.5/3 s v2.2 0.0 s -> 0.5 s
+ordering violation: approach start 0/0.5/1/1.5/3 s final 0.0 s -> 0.5 s
+ordering violation: F4: 25 km/h <= 5 km/h at equal overshoot v2.2 0.0 m; 0.1 m; 0.5 m; 2.0 m; 10.0 m
+ordering violation: F4: 25 km/h <= 5 km/h at equal overshoot final 0.0 m; 0.1 m; 0.5 m; 2.0 m; 10.0 m
+policies: best final 69.63 above best non-priv ( 40.68 ): 37
+oracle 96.91 96.91 96.91 1 1 1
+interfuser 43.53 40.93 40.68 2 2 2
+neat 42.91 33.62 33.62 3 3 3
+cilrs 24.57 26.4 26.05 5 4 4
+qwen2.5-vl 20.75 21.89 21.86 6 5 5
+tcp 30.33 20.68 20.68 4 6 6
+transfuser 14.32 14.32 14.32 7 7 7
+mpc 12.75 14.1 14.1 9 8 8
+pid 11.76 13.51 13.51 10 9 9
+qwen3-vl 11.65 13.47 13.47 11 10 10
+openemma 10.61 11.87 11.87 12 11 11
+aim 13.23 11.3 11.59 8 12 12
+baseline 7.71 9.11 9.11 14 13 13
+glm-4.5v 8.14 8.61 8.43 13 14 14

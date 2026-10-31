@@ -1,0 +1,5 @@
+version,credit1_not_pass,pass_below_1,pass_below_1_episodes,fail_ge_pass_pairs_same_scenario,zero,partial,full,synthetic_violations
+v2,0,7,glm-4.5v/s1/ambulance_yield;interfuser/s0/ambulance_yield;qwen2.5-vl/s1/ambulance_yield;qwen2.5-vl/s2/ambulance_yield;qwen3-vl/s0/ambulance_yield;qwen3-vl/s1/ambulance_yield;qwen3-vl/s4/ambulance_yield,24,441,114,95,7
+v2.1,0,0,,0,383,165,102,8
+v2.2,0,0,,0,400,148,102,7
+v2.2+a3,0,0,,0,401,147,102,8

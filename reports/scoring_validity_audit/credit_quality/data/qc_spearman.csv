@@ -1,0 +1,28 @@
+set,feature,v2.2-final,Q-gate,Q-cont
+STOP/HOLD all (n=392),min front-to-line m (+),0.154,0.126,0.711
+STOP/HOLD all (n=392),crossing depth m (-),0.321,0.331,0.801
+STOP/HOLD all (n=392),peak speed after onset km/h (-),-0.053,-0.109,0.618
+STOP/HOLD all (n=392),enforced max speed km/h (-),0.216,0.085,0.776
+STOP/HOLD all (n=392),held-stop latency s (-; none = 25),0.063,-0.057,0.677
+STOP/HOLD all (n=392),stopped share of enforced window (+),0.292,0.17,0.84
+STOP/HOLD all (n=392),longest stop s (+),0.175,0.054,0.715
+STOP/HOLD all (n=392),distinct contacts (-),-0.03,0.028,0.036
+STOP/HOLD all (n=392),travel m (+),-0.024,0.041,-0.662
+"STOP/HOLD FAIL (incl. no-start, drive-through) (n=349)",min front-to-line m (+),0.057,0.035,0.772
+"STOP/HOLD FAIL (incl. no-start, drive-through) (n=349)",crossing depth m (-),0.201,0.226,0.818
+"STOP/HOLD FAIL (incl. no-start, drive-through) (n=349)",peak speed after onset km/h (-),-0.081,-0.16,0.74
+"STOP/HOLD FAIL (incl. no-start, drive-through) (n=349)",enforced max speed km/h (-),-0.003,-0.129,0.774
+"STOP/HOLD FAIL (incl. no-start, drive-through) (n=349)",held-stop latency s (-; none = 25),0.018,-0.125,0.768
+"STOP/HOLD FAIL (incl. no-start, drive-through) (n=349)",stopped share of enforced window (+),0.093,-0.029,0.846
+"STOP/HOLD FAIL (incl. no-start, drive-through) (n=349)",longest stop s (+),0.11,-0.029,0.781
+"STOP/HOLD FAIL (incl. no-start, drive-through) (n=349)",distinct contacts (-),-0.112,-0.014,0.004
+"STOP/HOLD FAIL (incl. no-start, drive-through) (n=349)",travel m (+),0.004,0.069,-0.752
+engaged FAIL (n=210),min front-to-line m (+),0.556,0.788,0.871
+engaged FAIL (n=210),crossing depth m (-),0.553,0.768,0.875
+engaged FAIL (n=210),peak speed after onset km/h (-),0.402,0.568,0.719
+engaged FAIL (n=210),enforced max speed km/h (-),0.479,0.568,0.707
+engaged FAIL (n=210),held-stop latency s (-; none = 25),0.692,0.732,0.743
+engaged FAIL (n=210),stopped share of enforced window (+),0.677,0.8,0.922
+engaged FAIL (n=210),longest stop s (+),0.648,0.711,0.809
+engaged FAIL (n=210),distinct contacts (-),-0.06,0.084,-0.117
+engaged FAIL (n=210),travel m (+),-0.576,-0.785,-0.896

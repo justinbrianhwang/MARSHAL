@@ -1,0 +1,3 @@
+version,credit1_not_pass,pass_below_1,fail_ge_pass_pairs,tau_vs_v2,tau_vs_final,rank_changes_vs_final,episodes_changed_vs_final,labels_of_changed
+final,0,0,0,0.846 / 0.818,1.0 / 1.0,,,
+D,0,0,0,0.868 / 0.848,0.978 / 0.97,openemma 11->12;aim 12->11,29,"{'LATE_STOP': 15, 'STOP_NOT_HELD': 7, 'CRAWL_THROUGH': 5, 'COLLISION': 1, 'OVERRUN_THEN_STOP': 1}"

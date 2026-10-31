@@ -39,6 +39,9 @@ OUT_ROOT = os.environ.get("MARSHAL_OUT_ROOT") or os.path.join(ROOT, "tmp", "_ref
 RESULTS_JSON = os.path.join(ROOT, "tmp", "_reference_sweep.json")
 REPORT_MD = os.path.join(ROOT, "tmp", "_reference_sweep_report.md")
 CONTROLLERS = ("baseline", "oracle")
+# Privileged scorer-validation fixtures (marshal_bench/controllers/scripted_behaviors.py).
+SCRIPTED = ("scripted_normal_stop", "scripted_late_stop", "scripted_overshoot", "scripted_no_start",
+            "scripted_lurch_then_stop", "scripted_constant_go")
 
 
 def _safe_rmtree(path: str, root: str) -> None:
@@ -79,6 +82,7 @@ def _run_one(
     spec = vlm.SCENARIOS[scenario]
     cfg = staging.load_staged_config(ROOT, scenario, spec, controller)
     merge_condition_config(cfg, weather, weather_params)
+    staging.apply_controller_overrides(cfg)
     if seed is not None:
         cfg["seed"] = int(seed)
     cfg["episode_id"] = _episode_id(controller, scenario) + (f"_s{seed}" if seed is not None else "")
@@ -168,7 +172,7 @@ def _run_one(
 
 def _write_outputs(rows: List[Dict[str, Any]]) -> None:
     boards: Dict[str, Any] = {}
-    for controller in CONTROLLERS:
+    for controller in dict.fromkeys(r.get("model") for r in rows):
         metrics = []
         for row in rows:
             if row.get("model") != controller or not row.get("episode_metrics"):
@@ -184,7 +188,7 @@ def _write_outputs(rows: List[Dict[str, Any]]) -> None:
             "staging_source": staging.STAGING_SOURCE,
             "fps": 20,
             "timeout_sec": 14,
-            "controllers": list(CONTROLLERS),
+            "controllers": list(boards),
         },
         "rows": rows,
         "aggregate": boards,
@@ -222,7 +226,7 @@ def main() -> int:
     parser.add_argument("scenarios", nargs="*",
                         help="Scenario keys. Defaults to all (SCENARIO_ORDER).")
     parser.add_argument("--controller", action="append", dest="controllers",
-                        choices=list(CONTROLLERS),
+                        choices=list(CONTROLLERS) + list(SCRIPTED),
                         help="Restrict to these controllers (default: both).")
     parser.add_argument("--seed", type=int, default=None,
                         help="Scenario RNG seed; also namespaces the episode id "

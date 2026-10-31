@@ -1,0 +1,4 @@
+seed,speed_input,strict,strict_reason,credit_v2,t_start_s,max_speed_kmh,travel_m,min_front_to_line_m,final_front_to_line_m,collisions,brake_at_rest,first_rest_brake
+0,forward (by directory),FAIL,ego did not remain stopped through the enforced STOP/HOLD window,0.01759,11.8,8.69,1.29,6.1,6.1,0,desired_speed_0 (65% of 468 rest ticks),"t=1.1 desired_speed_0 d<3 at ['d_1.5', 'd_2'] red=0.0"
+1,forward (by directory),FAIL,stationary ego never engaged the STOP/HOLD scenario,0.0,,1.25,0.02,7.36,7.36,0,desired_speed_0 (82% of 481 rest ticks),"t=1.05 desired_speed_0 d<3 at ['d_1.5', 'd_2'] red=0.0"
+2,forward (by directory),FAIL,stationary ego never engaged the STOP/HOLD scenario,0.0,1.3,7.45,0.59,6.79,6.79,0,desired_speed_0 (88% of 474 rest ticks),"t=1.6 desired_speed_0 d<3 at ['d_1.5', 'd_2'] red=0.0"

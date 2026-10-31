@@ -1,0 +1,7 @@
+fixture (CARLA),strict,credit_final
+scripted_constant_go,FAIL,0.000 / 0.000 / 0.000
+scripted_late_stop,FAIL,0.348 / 0.373 / 0.345
+scripted_lurch_then_stop,PASS,1.000 / 1.000 / 1.000
+scripted_no_start,FAIL,0.000 / 0.000 / 0.000
+scripted_normal_stop,PASS,1.000 / 1.000 / 1.000
+scripted_overshoot,FAIL,0.031 / 0.031 / 0.030

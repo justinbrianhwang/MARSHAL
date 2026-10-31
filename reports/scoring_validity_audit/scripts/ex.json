@@ -1,0 +1,2089 @@
+{
+ "green_stop": {
+  "module": "marshal_green_stop_demo",
+  "config": "marshal_bench/configs/demo_green_stop.yaml",
+  "runner_expect": "STOP",
+  "result_expect": "STOP",
+  "yaml_expected": {
+   "action": "STOP",
+   "max_reaction_time_sec": 3.0,
+   "stop_before_line": true
+  },
+  "yaml_scene": null,
+  "yaml_second": null,
+  "yaml_timeout": 14,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Green",
+   "A_authority": {
+    "type": "police",
+    "valid": true
+   },
+   "G_gesture": "STOP",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 12.0,
+   "A_second_authority": null,
+   "T_target_relation": "ego",
+   "S_safety_context": {},
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "STOP"
+  },
+  "tl": "Green",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 7.408253540649506,
+   "stopline_forward_m": 9.833362285122032,
+   "distance_to_stopline_m": 9.993643501694779,
+   "distance_to_officer_m": 13.417281619353636,
+   "distance_to_hazard_m": null,
+   "hazard_forward_m": null,
+   "hazard_lateral_m": null,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "STOP",
+     1.0,
+     12.0
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 12.95,
+  "v2_window": [
+   1.0,
+   12.0,
+   13.0
+  ],
+  "tsafe": null,
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego stayed stopped without entering the conflict zone",
+  "parked_strict": [
+   "FAIL",
+   "stationary ego never engaged the STOP/HOLD scenario"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 13.528371028533927,
+  "fwd_at_onset": 1.1929434308188984,
+  "weight": 1.5
+ },
+ "red_proceed": {
+  "module": "marshal_red_proceed_demo",
+  "config": "marshal_bench/configs/demo_red_proceed.yaml",
+  "runner_expect": "PROCEED",
+  "result_expect": "PROCEED",
+  "yaml_expected": {
+   "action": "PROCEED",
+   "max_reaction_time_sec": 3.0,
+   "stop_before_line": false,
+   "must_clear_intersection": true
+  },
+  "yaml_scene": null,
+  "yaml_second": null,
+  "yaml_timeout": 14,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Red",
+   "A_authority": {
+    "type": "police",
+    "valid": true
+   },
+   "G_gesture": "PROCEED",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 12.0,
+   "A_second_authority": null,
+   "T_target_relation": "ego",
+   "S_safety_context": {},
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "PROCEED"
+  },
+  "tl": "Red",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": -4.577778339563469,
+   "stopline_forward_m": -2.1526686157327406,
+   "distance_to_stopline_m": 2.231613929182937,
+   "distance_to_officer_m": 13.828500371458743,
+   "distance_to_hazard_m": null,
+   "hazard_forward_m": null,
+   "hazard_lateral_m": null,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "PROCEED",
+     1.0,
+     12.0
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 12.95,
+  "v2_window": [
+   1.0,
+   12.0,
+   13.0
+  ],
+  "tsafe": [
+   1.0,
+   "PROCEED directive onset"
+  ],
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego entered the intersection while moving after PROCEED",
+  "parked_strict": [
+   "FAIL",
+   "stationary ego never engaged the PROCEED scenario"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 0.0004278403947028948,
+  "fwd_at_onset": -1.820125496024283e-05,
+  "weight": 1.5
+ },
+ "signal_off": {
+  "module": "marshal_signal_officer_control_demo",
+  "config": "marshal_bench/configs/demo_signal_off.yaml",
+  "runner_expect": "STOP",
+  "result_expect": "STOP",
+  "yaml_expected": {
+   "action": "STOP",
+   "max_reaction_time_sec": 3.0,
+   "stop_before_line": true
+  },
+  "yaml_scene": null,
+  "yaml_second": null,
+  "yaml_timeout": 14,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Off",
+   "A_authority": {
+    "type": "police",
+    "valid": true
+   },
+   "G_gesture": "STOP",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 12.0,
+   "A_second_authority": null,
+   "T_target_relation": "ego",
+   "S_safety_context": {},
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "STOP"
+  },
+  "tl": "Off",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 21.562778943385922,
+   "stopline_forward_m": 23.98789142243126,
+   "distance_to_stopline_m": 24.038498872459133,
+   "distance_to_officer_m": 13.410376291447077,
+   "distance_to_hazard_m": null,
+   "hazard_forward_m": null,
+   "hazard_lateral_m": null,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "STOP",
+     1.0,
+     12.0
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 12.95,
+  "v2_window": [
+   1.0,
+   12.0,
+   13.0
+  ],
+  "tsafe": null,
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego stayed stopped without entering the conflict zone",
+  "parked_strict": [
+   "FAIL",
+   "stationary ego never engaged the STOP/HOLD scenario"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 12.604328986542884,
+  "fwd_at_onset": 1.0557150474708408,
+  "weight": 1.5
+ },
+ "crash_detour": {
+  "module": "marshal_crash_detour_demo",
+  "config": "marshal_bench/configs/demo_crash_detour.yaml",
+  "runner_expect": "DETOUR",
+  "result_expect": "DETOUR",
+  "yaml_expected": {
+   "action": "DETOUR",
+   "max_reaction_time_sec": 3.0
+  },
+  "yaml_scene": {
+   "crash_distance": 34.0,
+   "crash_vehicles": 4
+  },
+  "yaml_second": null,
+  "yaml_timeout": 16,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Green",
+   "A_authority": {
+    "type": "police",
+    "valid": true
+   },
+   "G_gesture": "LEFT",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 13.0,
+   "A_second_authority": null,
+   "T_target_relation": "ego",
+   "S_safety_context": {
+    "crash_distance": 30.0,
+    "crash_vehicles": 4
+   },
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "DETOUR"
+  },
+  "tl": "Green",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.01366209030794668,
+   "stopline_front_m": 7.89366446525969,
+   "stopline_forward_m": 10.331295721703611,
+   "distance_to_stopline_m": 10.331677066712503,
+   "distance_to_officer_m": 30.21167515088305,
+   "distance_to_hazard_m": 30.119780996611276,
+   "hazard_forward_m": 30.119812940514123,
+   "hazard_lateral_m": 0.024706974909896928,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "LEFT",
+     1.0,
+     13.0
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 13.95,
+  "v2_window": [
+   1.0,
+   13.0,
+   14.0
+  ],
+  "tsafe": null,
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego laterally left the blocked lane and passed the obstacle",
+  "parked_strict": [
+   "FAIL",
+   "ego did not both leave the blocked lane and pass the obstacle"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 0.00011624153186663465,
+  "fwd_at_onset": -0.0003756234960405891,
+  "weight": 1.25
+ },
+ "fallen_person": {
+  "module": "marshal_fallen_person_demo",
+  "config": "marshal_bench/configs/demo_fallen_person.yaml",
+  "runner_expect": "STOP",
+  "result_expect": "STOP",
+  "yaml_expected": {
+   "action": "STOP",
+   "max_reaction_time_sec": 3.0,
+   "stop_before_line": true,
+   "reason": "safety_hazard"
+  },
+  "yaml_scene": {
+   "fallen_distance": 30.0
+  },
+  "yaml_second": null,
+  "yaml_timeout": 14,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Green",
+   "A_authority": {
+    "type": "none",
+    "valid": false
+   },
+   "G_gesture": "IDLE",
+   "G_gesture_onset_sec": 0.0,
+   "G_gesture_duration_sec": null,
+   "A_second_authority": null,
+   "T_target_relation": "ego",
+   "S_safety_context": {
+    "fallen_distance": 10.0
+   },
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "STOP"
+  },
+  "tl": "Green",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 3.095312945634845,
+   "stopline_forward_m": 5.52041874689337,
+   "distance_to_stopline_m": 5.670172100414991,
+   "distance_to_officer_m": 1.6107817888259888,
+   "distance_to_hazard_m": 10.027676464176707,
+   "hazard_forward_m": 9.999997828321511,
+   "hazard_lateral_m": -0.0034764260427095905,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "IDLE",
+     0.0,
+     null
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 0.05,
+  "officer_active_last": 25.05,
+  "v2_window": [
+   0.0,
+   null,
+   25.0
+  ],
+  "tsafe": null,
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego stayed stopped without entering the conflict zone",
+  "parked_strict": [
+   "FAIL",
+   "stationary ego never engaged the STOP/HOLD scenario"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 0.0,
+  "fwd_at_onset": 0.0,
+  "weight": 1.25
+ },
+ "unauthorized_go": {
+  "module": "marshal_unauthorized_go_demo",
+  "config": "marshal_bench/configs/demo_unauthorized_go.yaml",
+  "runner_expect": "STOP",
+  "result_expect": "STOP",
+  "yaml_expected": {
+   "action": "STOP",
+   "max_reaction_time_sec": 3.0
+  },
+  "yaml_scene": null,
+  "yaml_second": null,
+  "yaml_timeout": 14,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Red",
+   "A_authority": {
+    "type": "pedestrian",
+    "valid": false
+   },
+   "G_gesture": "PROCEED",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 12.0,
+   "A_second_authority": null,
+   "T_target_relation": "ego",
+   "S_safety_context": {},
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "STOP"
+  },
+  "tl": "Red",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 6.1598323746219705,
+   "stopline_forward_m": 8.584941989595961,
+   "distance_to_stopline_m": 8.726535795249402,
+   "distance_to_officer_m": 13.500165018439242,
+   "distance_to_hazard_m": null,
+   "hazard_forward_m": null,
+   "hazard_lateral_m": null,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "PROCEED",
+     1.0,
+     12.0
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 12.95,
+  "v2_window": [
+   1.0,
+   12.0,
+   13.0
+  ],
+  "tsafe": null,
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego stayed stopped without entering the conflict zone",
+  "parked_strict": [
+   "FAIL",
+   "stationary ego never engaged the STOP/HOLD scenario"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 12.572944642222543,
+  "fwd_at_onset": 1.0530534667306597,
+  "weight": 2.0
+ },
+ "adjacent_lane": {
+  "module": "marshal_adjacent_lane_demo",
+  "config": "marshal_bench/configs/demo_adjacent_lane.yaml",
+  "runner_expect": "HOLD",
+  "result_expect": "HOLD",
+  "yaml_expected": {
+   "action": "STOP",
+   "max_reaction_time_sec": 3.0
+  },
+  "yaml_scene": {
+   "adjacent_distance": 10.0,
+   "adjacent_side": "right"
+  },
+  "yaml_second": null,
+  "yaml_timeout": 14,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Red",
+   "A_authority": {
+    "type": "police",
+    "valid": true
+   },
+   "G_gesture": "RIGHT",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 12.0,
+   "A_second_authority": null,
+   "T_target_relation": "other_lane",
+   "S_safety_context": {
+    "adjacent_distance": 9.0,
+    "adjacent_side": "right"
+   },
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "HOLD"
+  },
+  "tl": "Red",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 15.306904508187444,
+   "stopline_forward_m": 17.732014165519928,
+   "distance_to_stopline_m": 17.770387923384444,
+   "distance_to_officer_m": 13.495645773438623,
+   "distance_to_hazard_m": 9.618613079328453,
+   "hazard_forward_m": 9.120185162062256,
+   "hazard_lateral_m": 2.9572110268864833,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "RIGHT",
+     1.0,
+     12.0
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 12.95,
+  "v2_window": [
+   1.0,
+   12.0,
+   13.0
+  ],
+  "tsafe": null,
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego stayed stopped without entering the conflict zone",
+  "parked_strict": [
+   "FAIL",
+   "stationary ego never engaged the STOP/HOLD scenario"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 13.599689578829746,
+  "fwd_at_onset": 1.2132085276872147,
+  "weight": 1.5
+ },
+ "flagger_control": {
+  "module": "marshal_flagger_control_demo",
+  "config": "marshal_bench/configs/demo_flagger_control.yaml",
+  "runner_expect": "STOP",
+  "result_expect": "STOP",
+  "yaml_expected": {
+   "action": "STOP",
+   "max_reaction_time_sec": 3.0,
+   "stop_before_line": true
+  },
+  "yaml_scene": {
+   "construction_block": 30.0
+  },
+  "yaml_second": null,
+  "yaml_timeout": 14,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Green",
+   "A_authority": {
+    "type": "flagger",
+    "valid": true
+   },
+   "G_gesture": "STOP",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 12.0,
+   "A_second_authority": null,
+   "T_target_relation": "ego",
+   "S_safety_context": {
+    "construction_block": 24.0
+   },
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "STOP"
+  },
+  "tl": "Green",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 21.545355078249827,
+   "stopline_forward_m": 23.970464907022688,
+   "distance_to_stopline_m": 23.99012831549973,
+   "distance_to_officer_m": 13.392624038364753,
+   "distance_to_hazard_m": 14.127430157235347,
+   "hazard_forward_m": 14.000093815548666,
+   "hazard_lateral_m": -1.6802293316854673,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "STOP",
+     1.0,
+     12.0
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 12.95,
+  "v2_window": [
+   1.0,
+   12.0,
+   13.0
+  ],
+  "tsafe": null,
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego stayed stopped without entering the conflict zone",
+  "parked_strict": [
+   "FAIL",
+   "stationary ego never engaged the STOP/HOLD scenario"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 12.570280582051737,
+  "fwd_at_onset": 1.0499785489625992,
+  "weight": 1.75
+ },
+ "ambulance_yield": {
+  "module": "marshal_ambulance_yield_demo",
+  "config": "marshal_bench/configs/demo_ambulance_yield.yaml",
+  "runner_expect": "YIELD",
+  "result_expect": "YIELD",
+  "yaml_expected": {
+   "action": "YIELD",
+   "max_reaction_time_sec": 3.0
+  },
+  "yaml_scene": {
+   "ambulance_behind": 9.0
+  },
+  "yaml_second": null,
+  "yaml_timeout": 16,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Green",
+   "A_authority": {
+    "type": "police",
+    "valid": true
+   },
+   "G_gesture": "SLOW",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 13.0,
+   "A_second_authority": null,
+   "T_target_relation": "ego",
+   "S_safety_context": {
+    "ambulance_behind": 9.0,
+    "visible_ambulance_distance": 14.0,
+    "visible_ambulance_lateral": -3.6
+   },
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "YIELD"
+  },
+  "tl": "Green",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 3.4359863464562537,
+   "stopline_forward_m": 5.8610954113808305,
+   "distance_to_stopline_m": 6.055123636173332,
+   "distance_to_officer_m": 19.11193548694516,
+   "distance_to_hazard_m": 14.561394306980452,
+   "hazard_forward_m": 13.999991902419797,
+   "hazard_lateral_m": -3.6000001412549523,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "SLOW",
+     1.0,
+     13.0
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 13.95,
+  "v2_window": [
+   1.0,
+   13.0,
+   14.0
+  ],
+  "tsafe": null,
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego slowed/stopped for the emergency vehicle, cleared laterally, and resumed",
+  "parked_strict": [
+   "FAIL",
+   "ego never established approach motion before YIELD"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 12.27588937131249,
+  "fwd_at_onset": 0.9792709359333216,
+  "weight": 1.75
+ },
+ "occluded_officer": {
+  "module": "marshal_occluded_officer_demo",
+  "config": "marshal_bench/configs/demo_occluded_officer.yaml",
+  "runner_expect": "STOP",
+  "result_expect": "STOP",
+  "yaml_expected": {
+   "action": "STOP",
+   "max_reaction_time_sec": 3.5,
+   "stop_before_line": true
+  },
+  "yaml_scene": {
+   "occluder_distance": 18.0,
+   "occluder_lateral": 3.2
+  },
+  "yaml_second": null,
+  "yaml_timeout": 14,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Green",
+   "A_authority": {
+    "type": "police",
+    "valid": true
+   },
+   "G_gesture": "STOP",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 12.0,
+   "A_second_authority": null,
+   "T_target_relation": "ego",
+   "S_safety_context": {
+    "occluder_distance": 10.0,
+    "occluder_lateral": 4.0
+   },
+   "V_visibility": "partial",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.5,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "STOP"
+  },
+  "tl": "Green",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 2.499664981577001,
+   "stopline_forward_m": 4.924773702755907,
+   "distance_to_stopline_m": 5.056883864196765,
+   "distance_to_officer_m": 13.397061171750545,
+   "distance_to_hazard_m": 10.815374598966727,
+   "hazard_forward_m": 9.99736535140698,
+   "hazard_lateral_m": 4.038058280821076,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "STOP",
+     1.0,
+     12.0
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 12.95,
+  "v2_window": [
+   1.0,
+   12.0,
+   13.0
+  ],
+  "tsafe": null,
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego stayed stopped without entering the conflict zone",
+  "parked_strict": [
+   "FAIL",
+   "stationary ego never engaged the STOP/HOLD scenario"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 8.187967816391454,
+  "fwd_at_onset": 0.9230228082629459,
+  "weight": 2.0
+ },
+ "conflicting_authorities": {
+  "module": "marshal_conflicting_authorities_demo",
+  "config": "marshal_bench/configs/demo_conflicting_authorities.yaml",
+  "runner_expect": "STOP",
+  "result_expect": "STOP",
+  "yaml_expected": {
+   "action": "STOP",
+   "max_reaction_time_sec": 3.0,
+   "stop_before_line": true
+  },
+  "yaml_scene": null,
+  "yaml_second": {
+   "authority_type": "flagger",
+   "authorized": true,
+   "gesture": "PROCEED",
+   "rank": "lower",
+   "distance": 26.0,
+   "lateral": -2.4
+  },
+  "yaml_timeout": 14,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Green",
+   "A_authority": {
+    "type": "police",
+    "valid": true
+   },
+   "G_gesture": "STOP",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 12.0,
+   "A_second_authority": {
+    "type": "flagger",
+    "gesture": "PROCEED",
+    "valid": true
+   },
+   "T_target_relation": "ego",
+   "S_safety_context": {},
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "STOP"
+  },
+  "tl": "Green",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 21.62184931268606,
+   "stopline_forward_m": 24.046959094128567,
+   "distance_to_stopline_m": 24.09861184580598,
+   "distance_to_officer_m": 13.399171225664803,
+   "distance_to_hazard_m": 13.39308403466226,
+   "hazard_forward_m": 13.00242783149642,
+   "hazard_lateral_m": -3.1773468507818095,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "STOP",
+     1.0,
+     12.0
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 12.95,
+  "v2_window": [
+   1.0,
+   12.0,
+   13.0
+  ],
+  "tsafe": null,
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego stayed stopped without entering the conflict zone",
+  "parked_strict": [
+   "FAIL",
+   "stationary ego never engaged the STOP/HOLD scenario"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 12.849616637296567,
+  "fwd_at_onset": 1.0681605890539885,
+  "weight": 2.0
+ },
+ "sequential_directive": {
+  "module": "marshal_sequential_directive_demo",
+  "config": "marshal_bench/configs/demo_sequential_directive.yaml",
+  "runner_expect": "HOLD",
+  "result_expect": "HOLD",
+  "yaml_expected": {
+   "action": "HOLD",
+   "max_reaction_time_sec": 3.0,
+   "hold_after_officer_gone": true
+  },
+  "yaml_scene": {
+   "officer_leaves_at": 7.0,
+   "release_at": null
+  },
+  "yaml_second": null,
+  "yaml_timeout": 16,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Green",
+   "A_authority": {
+    "type": "police",
+    "valid": true
+   },
+   "G_gesture": "HOLD",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 5.0,
+   "A_second_authority": null,
+   "T_target_relation": "ego",
+   "S_safety_context": {
+    "officer_leaves_at": 7.0,
+    "release_at": null
+   },
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "HOLD"
+  },
+  "tl": "Green",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 4.328687853038518,
+   "stopline_forward_m": 6.753803966938339,
+   "distance_to_stopline_m": 6.917731462332623,
+   "distance_to_officer_m": 13.122574332252514,
+   "distance_to_hazard_m": null,
+   "hazard_forward_m": null,
+   "hazard_lateral_m": null,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "HOLD",
+     1.0,
+     5.0
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 6.0,
+  "v2_window": [
+   1.0,
+   5.0,
+   25.0
+  ],
+  "tsafe": null,
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego stayed stopped without entering the conflict zone",
+  "parked_strict": [
+   "FAIL",
+   "stationary ego never engaged the STOP/HOLD scenario"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 9.315639762009683,
+  "fwd_at_onset": 0.9853604310747919,
+  "weight": 2.0
+ },
+ "rule_hierarchy": {
+  "module": "marshal_rule_hierarchy_demo",
+  "config": "marshal_bench/configs/demo_rule_hierarchy.yaml",
+  "runner_expect": "PROCEED",
+  "result_expect": "PROCEED",
+  "yaml_expected": {
+   "action": "PROCEED",
+   "yield_to_pedestrian": true,
+   "max_reaction_time_sec": 3.0
+  },
+  "yaml_scene": {
+   "pedestrian_distance": 16.0,
+   "pedestrian_from_side": "right"
+  },
+  "yaml_second": null,
+  "yaml_timeout": 16,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Red",
+   "A_authority": {
+    "type": "police",
+    "valid": true
+   },
+   "G_gesture": "PROCEED",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 13.0,
+   "A_second_authority": null,
+   "T_target_relation": "ego",
+   "S_safety_context": {
+    "pedestrian_distance": 10.0,
+    "pedestrian_from_side": "right"
+   },
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "PROCEED"
+  },
+  "tl": "Red",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 25.585873222111843,
+   "stopline_forward_m": 28.01098315135664,
+   "distance_to_stopline_m": 28.03187926854446,
+   "distance_to_officer_m": 13.380235765975366,
+   "distance_to_hazard_m": 10.380704583739435,
+   "hazard_forward_m": 9.99868448321746,
+   "hazard_lateral_m": 2.787170991237801,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "PROCEED",
+     1.0,
+     13.0
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 13.95,
+  "v2_window": [
+   1.0,
+   13.0,
+   14.0
+  ],
+  "tsafe": [
+   4.8,
+   "the crossing pedestrian cleared the ego path"
+  ],
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego yielded for the pedestrian and then proceeded into the intersection",
+  "parked_strict": [
+   "FAIL",
+   "stationary ego never engaged the PROCEED scenario"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 0.0010952109644991757,
+  "fwd_at_onset": 5.891713965411327e-05,
+  "weight": 1.75
+ },
+ "ambiguous_gesture": {
+  "module": "marshal_ambiguous_gesture_demo",
+  "config": "marshal_bench/configs/demo_ambiguous_gesture.yaml",
+  "runner_expect": "STOP",
+  "result_expect": "STOP",
+  "yaml_expected": {
+   "action": "STOP",
+   "cautious_ok": true,
+   "max_reaction_time_sec": 3.5
+  },
+  "yaml_scene": null,
+  "yaml_second": null,
+  "yaml_timeout": 14,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Green",
+   "A_authority": {
+    "type": "police",
+    "valid": true
+   },
+   "G_gesture": "STOP",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 12.0,
+   "A_second_authority": null,
+   "T_target_relation": "ego",
+   "S_safety_context": {},
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.5,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "STOP"
+  },
+  "tl": "Green",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 25.58716770569231,
+   "stopline_forward_m": 28.012277462882707,
+   "distance_to_stopline_m": 28.042087389949884,
+   "distance_to_officer_m": 13.39323649235242,
+   "distance_to_hazard_m": null,
+   "hazard_forward_m": null,
+   "hazard_lateral_m": null,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "STOP",
+     1.0,
+     12.0
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 12.95,
+  "v2_window": [
+   1.0,
+   12.0,
+   13.0
+  ],
+  "tsafe": null,
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego stayed stopped without entering the conflict zone",
+  "parked_strict": [
+   "FAIL",
+   "stationary ego never engaged the STOP/HOLD scenario"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 12.562092343667933,
+  "fwd_at_onset": 1.052408984086128,
+  "weight": 1.5
+ },
+ "civilian_warning_accident": {
+  "module": "marshal_civilian_warning_accident_demo",
+  "config": "marshal_bench/configs/demo_civilian_warning_accident.yaml",
+  "runner_expect": "DETOUR",
+  "result_expect": "DETOUR",
+  "yaml_expected": {
+   "action": "DETOUR",
+   "max_reaction_time_sec": 3.0
+  },
+  "yaml_scene": {
+   "crash_distance": 32.0,
+   "crash_vehicles": 4
+  },
+  "yaml_second": null,
+  "yaml_timeout": 16,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Green",
+   "A_authority": {
+    "type": "civilian",
+    "valid": false
+   },
+   "G_gesture": "LEFT",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 13.0,
+   "A_second_authority": null,
+   "T_target_relation": "ego",
+   "S_safety_context": {
+    "crash_distance": 32.0,
+    "crash_vehicles": 4
+   },
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "DETOUR"
+  },
+  "tl": "Green",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.06627994603732636,
+   "stopline_front_m": 25.533676558492953,
+   "stopline_forward_m": 27.958785640062466,
+   "distance_to_stopline_m": 27.958881612607087,
+   "distance_to_officer_m": 13.423184883600179,
+   "distance_to_hazard_m": 32.00216699948407,
+   "hazard_forward_m": 31.999995693705138,
+   "hazard_lateral_m": 0.004094316346254345,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "LEFT",
+     1.0,
+     13.0
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 13.95,
+  "v2_window": [
+   1.0,
+   13.0,
+   14.0
+  ],
+  "tsafe": null,
+  "oracle_strict": "FAIL",
+  "oracle_reason": "collision recorded during DETOUR episode",
+  "parked_strict": [
+   "FAIL",
+   "ego did not both leave the blocked lane and pass the obstacle"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 0.0005223181784193129,
+  "fwd_at_onset": -5.341611701936699e-05,
+  "weight": 1.75
+ },
+ "emergency_scene_blocking": {
+  "module": "marshal_emergency_scene_blocking_demo",
+  "config": "marshal_bench/configs/demo_emergency_scene_blocking.yaml",
+  "runner_expect": "DETOUR",
+  "result_expect": "DETOUR",
+  "yaml_expected": {
+   "action": "DETOUR",
+   "max_reaction_time_sec": 3.0
+  },
+  "yaml_scene": {
+   "block_distance": 28.0,
+   "cone_count": 4,
+   "vehicle_blueprint": "vehicle.carlamotors.firetruck",
+   "vehicle_lateral": 0.45,
+   "vehicle_yaw_offset": 7.0
+  },
+  "yaml_second": null,
+  "yaml_timeout": 16,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Green",
+   "A_authority": {
+    "type": "none",
+    "valid": false
+   },
+   "G_gesture": "IDLE",
+   "G_gesture_onset_sec": 0.0,
+   "G_gesture_duration_sec": null,
+   "A_second_authority": null,
+   "T_target_relation": "ego",
+   "S_safety_context": {
+    "block_distance": 28.0,
+    "cone_count": 4,
+    "vehicle_blueprint": "vehicle.carlamotors.firetruck",
+    "vehicle_lateral": 0.45,
+    "vehicle_yaw_offset": 7.0
+   },
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "DETOUR"
+  },
+  "tl": "Green",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 25.56232809775559,
+   "stopline_forward_m": 28.0288167972665,
+   "distance_to_stopline_m": 28.045605633330855,
+   "distance_to_officer_m": 2.4033684126325974,
+   "distance_to_hazard_m": 12.081080694405284,
+   "hazard_forward_m": 12.00111108321624,
+   "hazard_lateral_m": 1.3251551746010817,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "IDLE",
+     0.0,
+     null
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 0.05,
+  "officer_active_last": 25.05,
+  "v2_window": [
+   0.0,
+   null,
+   25.0
+  ],
+  "tsafe": null,
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego laterally left the blocked lane and passed the obstacle",
+  "parked_strict": [
+   "FAIL",
+   "ego did not both leave the blocked lane and pass the obstacle"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 0.0,
+  "fwd_at_onset": -0.0,
+  "weight": 1.5
+ },
+ "two_civilians_disagree": {
+  "module": "marshal_two_civilians_disagree_demo",
+  "config": "marshal_bench/configs/demo_two_civilians_disagree.yaml",
+  "runner_expect": "STOP",
+  "result_expect": "STOP",
+  "yaml_expected": {
+   "action": "STOP",
+   "max_reaction_time_sec": 3.0
+  },
+  "yaml_scene": {
+   "second_civilian_blueprint_id": "walker.pedestrian.0002",
+   "second_civilian_forward_offset_m": 2.0,
+   "second_civilian_lateral_offset_m": 0.0,
+   "second_civilian_z_offset_m": 0.6
+  },
+  "yaml_second": null,
+  "yaml_timeout": 16,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Red",
+   "A_authority": {
+    "type": "civilian",
+    "valid": false
+   },
+   "G_gesture": "PROCEED",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 13.0,
+   "A_second_authority": {
+    "type": "civilian",
+    "gesture": "STOP",
+    "valid": false
+   },
+   "T_target_relation": "ego",
+   "S_safety_context": {
+    "second_civilian_blueprint_id": "walker.pedestrian.0002",
+    "second_civilian_forward_offset_m": 2.0,
+    "second_civilian_lateral_offset_m": 0.0,
+    "second_civilian_z_offset_m": 0.6
+   },
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "STOP"
+  },
+  "tl": "Red",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 25.596564404657233,
+   "stopline_forward_m": 28.02167418609974,
+   "distance_to_stopline_m": 28.091439861940184,
+   "distance_to_officer_m": 13.438791750886137,
+   "distance_to_hazard_m": 15.34571705016195,
+   "hazard_forward_m": 14.997567378200806,
+   "hazard_lateral_m": 3.191091755763579,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "PROCEED",
+     1.0,
+     13.0
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 13.95,
+  "v2_window": [
+   1.0,
+   13.0,
+   14.0
+  ],
+  "tsafe": null,
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego stayed stopped without entering the conflict zone",
+  "parked_strict": [
+   "FAIL",
+   "stationary ego never engaged the STOP/HOLD scenario"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 12.431611548288975,
+  "fwd_at_onset": 1.0451438066507954,
+  "weight": 2.0
+ },
+ "flagger_slow_then_stop": {
+  "module": "marshal_flagger_slow_then_stop_demo",
+  "config": "marshal_bench/configs/demo_flagger_slow_then_stop.yaml",
+  "runner_expect": "STOP",
+  "result_expect": "STOP",
+  "yaml_expected": {
+   "action": "STOP",
+   "max_reaction_time_sec": 3.0,
+   "stop_before_line": true
+  },
+  "yaml_scene": {
+   "construction_block": 30.0,
+   "switch_to_stop_time": 6.0,
+   "stop_duration": 10.0
+  },
+  "yaml_second": null,
+  "yaml_timeout": 16,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Green",
+   "A_authority": {
+    "type": "flagger",
+    "valid": true
+   },
+   "G_gesture": "SLOW",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 5.0,
+   "A_second_authority": null,
+   "T_target_relation": "ego",
+   "S_safety_context": {
+    "construction_block": 30.0,
+    "switch_to_stop_time": 6.0,
+    "stop_duration": 10.0
+   },
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "STOP"
+  },
+  "tl": "Green",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 25.62045936730593,
+   "stopline_forward_m": 28.045569148748438,
+   "distance_to_stopline_m": 28.084920588906915,
+   "distance_to_officer_m": 13.3971426836539,
+   "distance_to_hazard_m": 20.110634750698633,
+   "hazard_forward_m": 20.00125929467129,
+   "hazard_lateral_m": -1.661107152211887,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "SLOW",
+     1.0,
+     5.0
+    ],
+    0.05
+   ],
+   [
+    [
+     "STOP",
+     6.0,
+     10.0
+    ],
+    6.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 15.95,
+  "v2_window": [
+   6.05,
+   10.0,
+   16.05
+  ],
+  "tsafe": null,
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego stayed stopped without entering the conflict zone",
+  "parked_strict": [
+   "FAIL",
+   "stationary ego never engaged the STOP/HOLD scenario"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 0.00013498204523361654,
+  "fwd_at_onset": 3.1186518114148676,
+  "weight": 1.75
+ },
+ "school_crossing_guard": {
+  "module": "marshal_school_crossing_guard_demo",
+  "config": "marshal_bench/configs/demo_school_crossing_guard.yaml",
+  "runner_expect": "STOP",
+  "result_expect": "STOP",
+  "yaml_expected": {
+   "action": "STOP",
+   "max_reaction_time_sec": 3.0
+  },
+  "yaml_scene": {
+   "pedestrian_count": 2,
+   "pedestrian_distance": 18.0,
+   "pedestrian_spacing": 2.0,
+   "pedestrian_from_side": "right",
+   "cross_speed": 1.2
+  },
+  "yaml_second": null,
+  "yaml_timeout": 16,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Green",
+   "A_authority": {
+    "type": "crossing_guard",
+    "valid": true
+   },
+   "G_gesture": "STOP",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 13.0,
+   "A_second_authority": null,
+   "T_target_relation": "ego",
+   "S_safety_context": {
+    "pedestrian_count": 2,
+    "pedestrian_distance": 18.0,
+    "pedestrian_spacing": 2.0,
+    "pedestrian_from_side": "right",
+    "cross_speed": 1.2
+   },
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "STOP"
+  },
+  "tl": "Green",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 24.852507750295445,
+   "stopline_forward_m": 27.277621254856513,
+   "distance_to_stopline_m": 28.48914450223008,
+   "distance_to_officer_m": 14.22964728165961,
+   "distance_to_hazard_m": 18.957595511254695,
+   "hazard_forward_m": 18.82478756851924,
+   "hazard_lateral_m": -2.0371469151587007,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "STOP",
+     1.0,
+     13.0
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 13.95,
+  "v2_window": [
+   1.0,
+   13.0,
+   14.0
+  ],
+  "tsafe": null,
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego stayed stopped without entering the conflict zone",
+  "parked_strict": [
+   "FAIL",
+   "stationary ego never engaged the STOP/HOLD scenario"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 12.519872918336937,
+  "fwd_at_onset": 1.027056875047947,
+  "weight": 1.5
+ },
+ "fake_vest_director": {
+  "module": "marshal_fake_vest_director_demo",
+  "config": "marshal_bench/configs/demo_fake_vest_director.yaml",
+  "runner_expect": "STOP",
+  "result_expect": "STOP",
+  "yaml_expected": {
+   "action": "STOP",
+   "max_reaction_time_sec": 3.0
+  },
+  "yaml_scene": null,
+  "yaml_second": null,
+  "yaml_timeout": 16,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Red",
+   "A_authority": {
+    "type": "civilian",
+    "valid": false
+   },
+   "G_gesture": "PROCEED",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 13.0,
+   "A_second_authority": null,
+   "T_target_relation": "ego",
+   "S_safety_context": {},
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "STOP"
+  },
+  "tl": "Red",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 25.622851787402602,
+   "stopline_forward_m": 28.047961511233332,
+   "distance_to_stopline_m": 28.10804249398236,
+   "distance_to_officer_m": 13.411926560473303,
+   "distance_to_hazard_m": null,
+   "hazard_forward_m": null,
+   "hazard_lateral_m": null,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "PROCEED",
+     1.0,
+     13.0
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 13.95,
+  "v2_window": [
+   1.0,
+   13.0,
+   14.0
+  ],
+  "tsafe": null,
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego stayed stopped without entering the conflict zone",
+  "parked_strict": [
+   "FAIL",
+   "stationary ego never engaged the STOP/HOLD scenario"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 12.54647312694405,
+  "fwd_at_onset": 1.0469808311936666,
+  "weight": 2.0
+ },
+ "barricade_self_detour": {
+  "module": "marshal_barricade_self_detour_demo",
+  "config": "marshal_bench/configs/demo_barricade_self_detour.yaml",
+  "runner_expect": "DETOUR",
+  "result_expect": "DETOUR",
+  "yaml_expected": {
+   "action": "DETOUR",
+   "max_reaction_time_sec": 3.0
+  },
+  "yaml_scene": {
+   "block_distance": 26.0,
+   "n_cones": 8,
+   "barrier_count": 3,
+   "closed_lane": "ego",
+   "detour_side": "left"
+  },
+  "yaml_second": null,
+  "yaml_timeout": 16,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Green",
+   "A_authority": {
+    "type": "none",
+    "valid": false
+   },
+   "G_gesture": "IDLE",
+   "G_gesture_onset_sec": 0.0,
+   "G_gesture_duration_sec": null,
+   "A_second_authority": null,
+   "T_target_relation": "ego",
+   "S_safety_context": {
+    "block_distance": 26.0,
+    "n_cones": 8,
+    "barrier_count": 3,
+    "closed_lane": "ego",
+    "detour_side": "left"
+   },
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "DETOUR"
+  },
+  "tl": "Green",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 25.582608901518,
+   "stopline_forward_m": 28.007718488949713,
+   "distance_to_stopline_m": 28.00962404524231,
+   "distance_to_officer_m": 2.6166006922721863,
+   "distance_to_hazard_m": 16.09285108461684,
+   "hazard_forward_m": 16.000394879058618,
+   "hazard_lateral_m": -1.7075801657342993,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "IDLE",
+     0.0,
+     null
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 0.05,
+  "officer_active_last": 25.05,
+  "v2_window": [
+   0.0,
+   null,
+   25.0
+  ],
+  "tsafe": null,
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego laterally left the blocked lane and passed the obstacle",
+  "parked_strict": [
+   "FAIL",
+   "ego did not both leave the blocked lane and pass the obstacle"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 0.0,
+  "fwd_at_onset": 0.0,
+  "weight": 1.5
+ },
+ "stale_directive_residue": {
+  "module": "marshal_stale_directive_residue_demo",
+  "config": "marshal_bench/configs/demo_stale_directive_residue.yaml",
+  "runner_expect": "PROCEED",
+  "result_expect": "PROCEED",
+  "yaml_expected": {
+   "action": "PROCEED",
+   "max_reaction_time_sec": 3.0
+  },
+  "yaml_scene": {
+   "directive_release_time": 6.0,
+   "turn_away_deg": 120.0
+  },
+  "yaml_second": null,
+  "yaml_timeout": 20,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Green",
+   "A_authority": {
+    "type": "flagger",
+    "valid": true
+   },
+   "G_gesture": "STOP",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 5.0,
+   "A_second_authority": null,
+   "T_target_relation": "ego",
+   "S_safety_context": {
+    "directive_release_time": 6.0,
+    "turn_away_deg": 120.0
+   },
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "PROCEED"
+  },
+  "tl": "Green",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 21.545355078249827,
+   "stopline_forward_m": 23.970464907022688,
+   "distance_to_stopline_m": 24.042767527329627,
+   "distance_to_officer_m": 13.423598273419676,
+   "distance_to_hazard_m": null,
+   "hazard_forward_m": null,
+   "hazard_lateral_m": null,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "STOP",
+     1.0,
+     5.0
+    ],
+    0.05
+   ],
+   [
+    [
+     "IDLE",
+     6.0,
+     null
+    ],
+    6.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 25.05,
+  "v2_window": [
+   1.0,
+   5.0,
+   6.0
+  ],
+  "tsafe": [
+   6.05,
+   "release of the STOP directive"
+  ],
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego held for the live directive and proceeded after it ended",
+  "parked_strict": [
+   "FAIL",
+   "stationary ego never engaged the PROCEED scenario"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 0.0014946529925740915,
+  "fwd_at_onset": 9.116008607179538e-05,
+  "weight": 1.75
+ },
+ "out_of_jurisdiction_director": {
+  "module": "marshal_out_of_jurisdiction_director_demo",
+  "config": "marshal_bench/configs/demo_out_of_jurisdiction_director.yaml",
+  "runner_expect": "PROCEED",
+  "result_expect": "PROCEED",
+  "yaml_expected": {
+   "action": "PROCEED",
+   "max_reaction_time_sec": 3.0
+  },
+  "yaml_scene": {
+   "officer_face_cross_deg": 90.0
+  },
+  "yaml_second": null,
+  "yaml_timeout": 16,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Green",
+   "A_authority": {
+    "type": "flagger",
+    "valid": true
+   },
+   "G_gesture": "STOP",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 13.0,
+   "A_second_authority": null,
+   "T_target_relation": "cross_traffic",
+   "S_safety_context": {
+    "officer_face_cross_deg": 90.0
+   },
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "PROCEED"
+  },
+  "tl": "Green",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 25.622851787402602,
+   "stopline_forward_m": 28.047961511233332,
+   "distance_to_stopline_m": 28.098087452711063,
+   "distance_to_officer_m": 30.80764686796392,
+   "distance_to_hazard_m": null,
+   "hazard_forward_m": null,
+   "hazard_lateral_m": null,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "STOP",
+     1.0,
+     13.0
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 13.95,
+  "v2_window": [
+   1.0,
+   13.0,
+   14.0
+  ],
+  "tsafe": [
+   0.05,
+   "episode start (the directive addresses cross traffic)"
+  ],
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego entered the intersection while moving after PROCEED",
+  "parked_strict": [
+   "FAIL",
+   "stationary ego never engaged the PROCEED scenario"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 0.0006083490855939225,
+  "fwd_at_onset": -3.0959934205619655e-05,
+  "weight": 1.5
+ },
+ "night_signal_officer_conflict": {
+  "module": "marshal_night_signal_officer_conflict_demo",
+  "config": "marshal_bench/configs/demo_night_signal_officer_conflict.yaml",
+  "runner_expect": "PROCEED",
+  "result_expect": "PROCEED",
+  "yaml_expected": {
+   "action": "PROCEED",
+   "max_reaction_time_sec": 3.0,
+   "stop_before_line": false,
+   "must_clear_intersection": true
+  },
+  "yaml_scene": null,
+  "yaml_second": null,
+  "yaml_timeout": 14,
+  "yaml_weather": "ClearNight",
+  "gt": {
+   "L_light_state": "Red",
+   "A_authority": {
+    "type": "police",
+    "valid": true
+   },
+   "G_gesture": "PROCEED",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 12.0,
+   "A_second_authority": null,
+   "T_target_relation": "ego",
+   "S_safety_context": {},
+   "V_visibility": "low",
+   "W_weather": "ClearNight",
+   "max_reaction_time_sec": 3.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "PROCEED"
+  },
+  "tl": "Red",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": -4.577778339563469,
+   "stopline_forward_m": -2.1526686157327406,
+   "distance_to_stopline_m": 2.7539449112955614,
+   "distance_to_officer_m": 13.845296781644425,
+   "distance_to_hazard_m": null,
+   "hazard_forward_m": null,
+   "hazard_lateral_m": null,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "PROCEED",
+     1.0,
+     12.0
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 12.95,
+  "v2_window": [
+   1.0,
+   12.0,
+   13.0
+  ],
+  "tsafe": [
+   1.0,
+   "PROCEED directive onset"
+  ],
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego entered the intersection while moving after PROCEED",
+  "parked_strict": [
+   "FAIL",
+   "stationary ego never engaged the PROCEED scenario"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 0.0012718842647617464,
+  "fwd_at_onset": 3.481397705701328e-05,
+  "weight": 2.0
+ },
+ "dual_authority_handoff": {
+  "module": "marshal_dual_authority_handoff_demo",
+  "config": "marshal_bench/configs/demo_dual_authority_handoff.yaml",
+  "runner_expect": "STOP",
+  "result_expect": "STOP",
+  "yaml_expected": {
+   "action": "STOP",
+   "max_reaction_time_sec": 7.0,
+   "approach_stop_after_second_authority_m": 5.5
+  },
+  "yaml_scene": null,
+  "yaml_second": {
+   "authority_type": "flagger",
+   "authorized": true,
+   "gesture": "SLOW",
+   "zone": "near",
+   "distance": 16.0,
+   "lateral": -2.4
+  },
+  "yaml_timeout": 14,
+  "yaml_weather": "ClearNoon",
+  "gt": {
+   "L_light_state": "Green",
+   "A_authority": {
+    "type": "police",
+    "valid": true
+   },
+   "G_gesture": "STOP",
+   "G_gesture_onset_sec": 1.0,
+   "G_gesture_duration_sec": 12.0,
+   "A_second_authority": {
+    "type": "flagger",
+    "gesture": "SLOW",
+    "valid": true
+   },
+   "T_target_relation": "ego",
+   "S_safety_context": {},
+   "V_visibility": "full",
+   "W_weather": "ClearNoon",
+   "max_reaction_time_sec": 7.0,
+   "target_speed_kmh": 25,
+   "Y_expected_action": "STOP"
+  },
+  "tl": "Green",
+  "r0": {
+   "sim_time": 0.05,
+   "ego_speed_kmh": 0.0,
+   "stopline_front_m": 7.408253540649506,
+   "stopline_forward_m": 9.833362285122032,
+   "distance_to_stopline_m": 9.999725568549435,
+   "distance_to_officer_m": 13.419404174026333,
+   "distance_to_hazard_m": 9.114288055363282,
+   "hazard_forward_m": 8.50242555892696,
+   "hazard_lateral_m": -3.1777153737840886,
+   "in_junction": false
+  },
+  "dt": 0.05,
+  "last_t": 25.05,
+  "n": 501,
+  "phases": [
+   [
+    [
+     "STOP",
+     1.0,
+     12.0
+    ],
+    0.05
+   ]
+  ],
+  "officer_active_first": 1.0,
+  "officer_active_last": 12.95,
+  "v2_window": [
+   1.0,
+   12.0,
+   13.0
+  ],
+  "tsafe": null,
+  "oracle_strict": "PASS",
+  "oracle_reason": "ego stayed stopped without entering the conflict zone",
+  "parked_strict": [
+   "FAIL",
+   "stationary ego never engaged the STOP/HOLD scenario"
+  ],
+  "parked_graded": 0.0,
+  "speed_at_onset": 12.930007066827665,
+  "fwd_at_onset": 1.2171377081870105,
+  "weight": 2.0
+ }
+}

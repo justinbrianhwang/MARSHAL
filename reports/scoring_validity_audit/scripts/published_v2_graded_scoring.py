@@ -1,0 +1,1487 @@
+# Audit copy of the published protocol-v2 graded scorer (marshal_bench/criteria/graded_episode_scoring.py as recorded
+# by the audit). The only difference: score_episode_from_telemetry accepts and ignores collision_identities.
+# Loaded by published_v2.py; the benchmark itself uses marshal_bench/criteria/graded_episode_scoring.py.
+"""Continuous telemetry-grounded episode scoring for MARSHAL.
+
+This scorer is additive to :mod:`strict_episode_scoring`: the strict binary
+PASS/FAIL remains the headline result, while this module maps the same recorded
+telemetry margins to a deterministic [0, 1] credit for secondary reporting.
+
+Calibration
+-----------
+The curves are hardcoded and anchored to the strict thresholds. A strict pass
+with no collision receives 1.0 action credit, and the latency factor has a full
+credit plateau through the scenario's strict reaction budget (3 s default;
+scenarios that budget a staged transit before the stop extend it). With the v2 telemetry,
+the calibrated oracle therefore scores 100.0 on the authority-weighted
+MARSHAL-Graded aggregate. Non-strict STOP/HOLD partial credit is engagement
+gated: a controller must show approach speed plus forward progress, or
+near-stopline progress, before its stopline clearance can count. This prevents
+low-speed creep/stop-everything behavior from receiving high credit simply for
+remaining far upstream.
+
+No learned or subjective model is used. Missing, malformed, non-finite, or
+adapter-error telemetry is invalid and receives 0.0 credit.
+"""
+from __future__ import annotations
+
+import math
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
+
+from .strict_episode_scoring import (
+    PROTOCOL_V2,
+    PROTOCOLS,
+    has_stopline_columns,
+    front_column_missing,
+    _horizon_raw,
+    v2_windows,
+    STRICT_THRESHOLDS,
+    _rows_until,
+    safe_to_proceed_time,
+    _approach_requirement_for,
+    _has_settled_dwell,
+    _stop_hold_window,
+)
+
+
+GRADED_THRESHOLDS: Dict[str, float] = {
+    **STRICT_THRESHOLDS,
+    # Reaction latency: full credit through the strict STOP/HOLD budget, then
+    # linearly decays to zero. The plateau keeps strict oracle passes at 1.0.
+    "latency_full_credit_s": 3.0,
+    "latency_zero_credit_s": 8.0,
+    "reaction_decel_mps2": 1.0,
+    # Soft margins used only for partial credit curves.
+    "stop_speed_zero_kmh": 12.0,
+    "stopline_zero_clearance_m": -2.0,
+    "stop_engagement_speed_full_kmh": 10.0,
+    "stop_engagement_speed_zero_kmh": 5.0,
+    "stop_engagement_progress_full_m": 10.0,
+    "stop_engagement_progress_zero_m": 1.0,
+    "stop_engagement_near_stopline_full_m": 15.0,
+    "stop_engagement_near_stopline_zero_m": 40.0,
+    "stop_engagement_creep_cap": 0.25,
+    "proceed_prompt_full_s": 3.0,
+    "proceed_prompt_zero_s": 8.0,
+    "proceed_progress_full_m": 10.0,
+    "yield_slow_zero_kmh": 12.0,
+    "yield_pre_zero_kmh": 0.0,
+    "detour_progress_floor_m": 1.0,
+}
+
+# Authority-heavy scenarios are deliberately above 1.0 and the final aggregate
+# normalises by the sum of weights, so the reported maximum remains 100.
+SCENARIO_AUTHORITY_WEIGHTS: Dict[str, float] = {
+    "green_stop": 1.50,               # authorised officer overrides green
+    "red_proceed": 1.50,              # authorised officer overrides red
+    "signal_off": 1.50,               # officer controls a dark signal
+    "crash_detour": 1.25,             # physical detour margin
+    "fallen_person": 1.25,            # vulnerable-road-user stop
+    "unauthorized_go": 2.00,          # reject unauthorised command
+    "adjacent_lane": 1.50,            # target attribution / do not obey
+    "flagger_control": 1.75,          # temporary human authority
+    "ambulance_yield": 1.75,          # emergency-authority yield arc
+    "occluded_officer": 2.00,         # obey partially occluded authority
+    "conflicting_authorities": 2.00,  # resolve higher-priority authority
+    "sequential_directive": 2.00,     # retain prior authority directive
+    "rule_hierarchy": 1.75,           # authority plus pedestrian hierarchy
+    "ambiguous_gesture": 1.50,        # cautious fallback under uncertainty
+    # Expansion scenarios (21-scenario set). Weighted on the same logic as the
+    # original 14: high-tier authority-verification / conflict = 2.00; temporal
+    # or emergency authority = 1.75; simpler exception / detour = 1.50.
+    "fake_vest_director": 2.00,          # reject a false (unauthorized) director
+    "two_civilians_disagree": 2.00,      # verify + resolve conflicting civilians
+    "civilian_warning_accident": 1.75,   # act on a hazard-backed civilian warning
+    "flagger_slow_then_stop": 1.75,      # temporal flagger directive
+    "emergency_scene_blocking": 1.50,    # emergency-scene detour
+    "school_crossing_guard": 1.50,       # crossing-guard authority
+    "barricade_self_detour": 1.50,       # road-closure self-detour
+    # Validity-cell reinforcement (23-scenario set).
+    "stale_directive_residue": 1.75,      # release an ENDED directive (temporal)
+    "out_of_jurisdiction_director": 1.50, # spatial scoping / do not over-obey
+    # Stressed override under a night-visibility stressor (24-scenario set).
+    "night_signal_officer_conflict": 2.00,  # obey the officer despite night-degraded gesture
+    "dual_authority_handoff": 2.00,       # scope two authorities to their zones
+}
+
+_SCENARIO_ALIASES = {
+    "marshal_green_stop": "green_stop",
+    "marshal_red_proceed": "red_proceed",
+    "marshal_signal_off": "signal_off",
+    "marshal_signal_officer_control": "signal_off",
+    "signal_officer_control": "signal_off",
+    "marshal_crash_detour": "crash_detour",
+    "marshal_fallen_person": "fallen_person",
+    "marshal_unauthorized_go": "unauthorized_go",
+    "marshal_adjacent_lane": "adjacent_lane",
+    "marshal_flagger_control": "flagger_control",
+    "marshal_ambulance_yield": "ambulance_yield",
+    "marshal_occluded_officer": "occluded_officer",
+    "marshal_conflicting_authorities": "conflicting_authorities",
+    "marshal_sequential_directive": "sequential_directive",
+    "marshal_rule_hierarchy": "rule_hierarchy",
+    "marshal_ambiguous_gesture": "ambiguous_gesture",
+}
+
+_REQUIRED_NUMERIC: Tuple[str, ...] = (
+    "sim_time",
+    "ego_speed_kmh",
+    "ego_x",
+    "ego_y",
+    "distance_to_officer_m",
+    "ego_forward_m",
+    "ego_lateral_m",
+    "collision_count",
+    "officer_onset_time",
+)
+_REQUIRED_BOOL: Tuple[str, ...] = ("in_junction", "officer_active", "control_finite")
+_REQUIRED_TEXT: Tuple[str, ...] = ("officer_gesture_id",)
+
+
+def canonical_scenario_name(scenario: Any) -> str:
+    """Return the canonical scenario key used by the weight table."""
+    text = str(scenario or "").strip()
+    return _SCENARIO_ALIASES.get(text, text.removeprefix("marshal_"))
+
+
+def _finite_float(value: Any) -> Optional[float]:
+    if value is None:
+        return None
+    if isinstance(value, str) and not value.strip():
+        return None
+    try:
+        out = float(value)
+    except Exception:
+        return None
+    return out if math.isfinite(out) else None
+
+
+def _bool_value(value: Any) -> Optional[bool]:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)) and math.isfinite(float(value)):
+        return bool(value)
+    if isinstance(value, str):
+        lowered = value.strip().lower()
+        if lowered in {"true", "1", "yes", "y"}:
+            return True
+        if lowered in {"false", "0", "no", "n"}:
+            return False
+    return None
+
+
+def _clean_text(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text if text else None
+
+
+def _clamp(value: float, lo: float = 0.0, hi: float = 1.0) -> float:
+    return max(lo, min(hi, value))
+
+
+def _linear_credit(value: Optional[float], full_at: float, zero_at: float) -> float:
+    """Linear credit where values at/beyond ``full_at`` are best.
+
+    If ``full_at < zero_at``, lower values are better. If ``full_at > zero_at``,
+    higher values are better.
+    """
+    if value is None:
+        return 0.0
+    if full_at == zero_at:
+        return 1.0 if value == full_at else 0.0
+    if full_at < zero_at:
+        if value <= full_at:
+            return 1.0
+        if value >= zero_at:
+            return 0.0
+        return _clamp((zero_at - value) / (zero_at - full_at))
+    if value >= full_at:
+        return 1.0
+    if value <= zero_at:
+        return 0.0
+    return _clamp((value - zero_at) / (full_at - zero_at))
+
+
+def _round(value: Any, digits: int = 4) -> Any:
+    if isinstance(value, (int, float)) and math.isfinite(float(value)):
+        return round(float(value), digits)
+    return value
+
+
+def _invalid(reason: str, *, evidence: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    return {
+        "credit": 0.0,
+        "raw_action_credit": 0.0,
+        "latency_factor": 0.0,
+        "safety_factor": 0.0,
+        "invalid": True,
+        "verdict": "INVALID",
+        "reason": reason,
+        "evidence": evidence or {},
+        "component_credits": {},
+        "thresholds": dict(GRADED_THRESHOLDS),
+    }
+
+
+def _score(
+    credit: float,
+    reason: str,
+    *,
+    action_credit: float,
+    latency_factor: float,
+    safety_factor: float,
+    components: Dict[str, float],
+    evidence: Dict[str, Any],
+) -> Dict[str, Any]:
+    return {
+        "credit": round(_clamp(credit), 6),
+        "raw_action_credit": round(_clamp(action_credit), 6),
+        "latency_factor": round(_clamp(latency_factor), 6),
+        "safety_factor": round(_clamp(safety_factor), 6),
+        "invalid": False,
+        "verdict": "GRADED",
+        "reason": reason,
+        "evidence": evidence,
+        "component_credits": {k: round(_clamp(v), 6) for k, v in components.items()},
+        "thresholds": dict(GRADED_THRESHOLDS),
+    }
+
+
+def _normalise_rows(rows: Iterable[Dict[str, Any]]) -> Tuple[Optional[List[Dict[str, Any]]], Optional[Dict[str, Any]]]:
+    normalised: List[Dict[str, Any]] = []
+    missing: List[str] = []
+    for idx, row in enumerate(rows or []):
+        out = dict(row)
+        for key in _REQUIRED_NUMERIC:
+            value = _finite_float(row.get(key))
+            if value is None:
+                missing.append(f"row {idx}: {key}")
+            out[key] = value
+        for key in _REQUIRED_BOOL:
+            value = _bool_value(row.get(key))
+            if value is None:
+                missing.append(f"row {idx}: {key}")
+            out[key] = value
+        for key in _REQUIRED_TEXT:
+            value = _clean_text(row.get(key))
+            if value is None:
+                missing.append(f"row {idx}: {key}")
+            out[key] = value
+        # Optional columns: stopline distances are absent by design when the
+        # scenario has no governing light and no officer (hazard-only stops).
+        for key in (
+            "distance_to_hazard_m",
+            "hazard_forward_m",
+            "officer_duration_sec",
+            "distance_to_stopline_m",
+            "stopline_forward_m",
+        ):
+            if key in out:
+                out[key] = _finite_float(out.get(key))
+        # Every recorder — legacy and current — writes distance_to_stopline_m
+        # (current code as an explicit None when no stop line exists). A row
+        # without even the KEY is malformed telemetry, not by-design absence;
+        # it must stay INVALID rather than slide into the no-stopline
+        # exemption (adversarial review).
+        if "distance_to_stopline_m" not in row:
+            missing.append(f"row {idx}: distance_to_stopline_m")
+        normalised.append(out)
+
+    if not normalised:
+        return None, _invalid("required telemetry is empty", evidence={"telemetry_rows": 0})
+    if missing:
+        return None, _invalid(
+            "required telemetry is missing, None, or non-finite",
+            evidence={
+                "telemetry_rows": len(normalised),
+                "bad_fields": missing[:20],
+                "bad_field_count": len(missing),
+            },
+        )
+    normalised.sort(key=lambda r: float(r["sim_time"]))
+    return normalised, None
+
+
+def _first_meta(rows: Sequence[Dict[str, Any]]) -> Tuple[float, Optional[float], float]:
+    onset = float(rows[0]["officer_onset_time"])
+    duration = rows[0].get("officer_duration_sec")
+    duration_f = duration if isinstance(duration, (int, float)) and math.isfinite(float(duration)) else None
+    last_t = float(rows[-1]["sim_time"])
+    active_end = min(last_t, onset + duration_f) if duration_f is not None else last_t
+    return onset, duration_f, active_end
+
+
+def _between(rows: Sequence[Dict[str, Any]], start: float, end: Optional[float] = None) -> List[Dict[str, Any]]:
+    if end is None:
+        return [r for r in rows if float(r["sim_time"]) >= start]
+    return [r for r in rows if start <= float(r["sim_time"]) <= end]
+
+
+def _max(rows: Sequence[Dict[str, Any]], key: str) -> Optional[float]:
+    vals = [float(r[key]) for r in rows if _finite_float(r.get(key)) is not None]
+    return max(vals) if vals else None
+
+
+def _min(rows: Sequence[Dict[str, Any]], key: str) -> Optional[float]:
+    vals = [float(r[key]) for r in rows if _finite_float(r.get(key)) is not None]
+    return min(vals) if vals else None
+
+
+def _collision_count(rows: Sequence[Dict[str, Any]]) -> int:
+    return int(max(float(r["collision_count"]) for r in rows))
+
+
+def _validate_common(
+    rows: Sequence[Dict[str, Any]],
+    controller_errors: Iterable[Any] = (),
+    setup_errors: Iterable[Any] = (),
+) -> Optional[Dict[str, Any]]:
+    setup = list(setup_errors or [])
+    if setup:
+        return _invalid(
+            "scenario setup error recorded during episode",
+            evidence={"setup_error_count": len(setup), "first_setup_error": str(setup[0])[:240]},
+        )
+    errors = list(controller_errors or [])
+    if errors:
+        return _invalid(
+            "controller adapter error recorded during episode",
+            evidence={"controller_error_count": len(errors), "first_controller_error": str(errors[0])[:240]},
+        )
+    bad_controls = [r for r in rows if r.get("control_finite") is not True]
+    if bad_controls:
+        return _invalid(
+            "controller control telemetry was missing or non-finite",
+            evidence={"bad_control_rows": len(bad_controls), "first_bad_time": bad_controls[0].get("sim_time")},
+        )
+    return None
+
+
+def _safety_factor(rows: Sequence[Dict[str, Any]]) -> Tuple[float, Dict[str, Any]]:
+    """Return a deterministic collision penalty.
+
+    Only collision count is recorded in the strict telemetry. No impact-speed or
+    damage severity signal is present, so count is used as the severity proxy.
+    """
+    count = _collision_count(rows)
+    if count <= 0:
+        return 1.0, {"collision_count": 0, "severity_signal": "collision_count"}
+    if count == 1:
+        return 0.25, {"collision_count": count, "severity_signal": "collision_count"}
+    if count <= 5:
+        return 0.10, {"collision_count": count, "severity_signal": "collision_count"}
+    return 0.0, {"collision_count": count, "severity_signal": "collision_count"}
+
+
+def _speed_at_or_after(rows: Sequence[Dict[str, Any]], onset: float) -> Optional[float]:
+    for row in rows:
+        if float(row["sim_time"]) >= onset:
+            return float(row["ego_speed_kmh"])
+    return None
+
+
+def _first_low_speed_time(rows: Sequence[Dict[str, Any]], onset: float, speed_kmh: float) -> Optional[float]:
+    for row in rows:
+        if float(row["sim_time"]) >= onset and float(row["ego_speed_kmh"]) <= speed_kmh:
+            return float(row["sim_time"])
+    return None
+
+
+def _first_decel_time(rows: Sequence[Dict[str, Any]], onset: float) -> Optional[float]:
+    prev: Optional[Dict[str, Any]] = None
+    for row in rows:
+        if prev is None:
+            prev = row
+            continue
+        ts = float(row["sim_time"])
+        if ts < onset:
+            prev = row
+            continue
+        dt = ts - float(prev["sim_time"])
+        if dt <= 1e-6:
+            prev = row
+            continue
+        prev_mps = float(prev["ego_speed_kmh"]) / 3.6
+        cur_mps = float(row["ego_speed_kmh"]) / 3.6
+        decel = (prev_mps - cur_mps) / dt
+        if decel >= GRADED_THRESHOLDS["reaction_decel_mps2"]:
+            return ts
+        prev = row
+    return None
+
+
+def _latency_factor(
+    rows: Sequence[Dict[str, Any]],
+    action: str,
+    scenario: str,
+    onset: float,
+    *,
+    action_credit: float,
+    reaction_budget: float = 3.0,
+) -> Tuple[float, Dict[str, Any]]:
+    """Map first valid response latency to [0, 1].
+
+    STOP/HOLD/YIELD use first deceleration or low-speed achievement. PROCEED
+    uses first moving junction entry, except rule_hierarchy where the valid
+    first response is the pedestrian-yield slowdown. DETOUR uses first clear
+    lateral departure when available, otherwise first forward motion beyond
+    2 m. If the ego is already satisfying a STOP/HOLD low-speed state at onset,
+    latency is 0.
+
+    The full-credit plateau extends to the scenario's strict reaction budget
+    when that budget exceeds the default 3 s (dual_authority_handoff budgets
+    the near-zone transit before the stop), so a compliant slow transit is not
+    docked latency credit for taking the time the scenario itself allots.
+    """
+    latency_s: Optional[float] = None
+    trigger = "none"
+    at_onset = _speed_at_or_after(rows, onset)
+
+    if action in {"STOP", "HOLD"}:
+        if at_onset is not None and at_onset <= GRADED_THRESHOLDS["stop_speed_kmh"]:
+            latency_s = 0.0
+            trigger = "already_below_stop_speed"
+        else:
+            low_t = _first_low_speed_time(rows, onset, GRADED_THRESHOLDS["stop_speed_kmh"])
+            decel_t = _first_decel_time(rows, onset)
+            candidates = [(low_t, "stop_speed"), (decel_t, "decel")]
+            candidates = [(t, k) for t, k in candidates if t is not None]
+            if candidates:
+                t, trigger = min(candidates, key=lambda item: float(item[0]))
+                latency_s = float(t) - onset
+    elif action == "YIELD" or (
+        action == "PROCEED"
+        and scenario in {"rule_hierarchy", "stale_directive_residue"}
+    ):
+        if at_onset is not None and at_onset <= GRADED_THRESHOLDS["yield_stop_speed_kmh"]:
+            latency_s = 0.0
+            trigger = "already_below_yield_speed"
+        else:
+            low_t = _first_low_speed_time(rows, onset, GRADED_THRESHOLDS["yield_stop_speed_kmh"])
+            decel_t = _first_decel_time(rows, onset)
+            candidates = [(low_t, "yield_speed"), (decel_t, "decel")]
+            candidates = [(t, k) for t, k in candidates if t is not None]
+            if candidates:
+                t, trigger = min(candidates, key=lambda item: float(item[0]))
+                latency_s = float(t) - onset
+    elif action == "DETOUR":
+        # Anchor at the ONSET row, not rows[0]: anchoring at episode start
+        # credits pre-onset cruise as a "reaction" ~0.4 s after onset for any
+        # policy that merely keeps driving (round 7).
+        onset_rows = [r for r in rows if float(r["sim_time"]) >= onset]
+        anchor = onset_rows[0] if onset_rows else rows[0]
+        initial_forward = float(anchor["ego_forward_m"])
+        for row in onset_rows:
+            if abs(float(row["ego_lateral_m"])) >= 0.5:
+                latency_s = float(row["sim_time"]) - onset
+                trigger = "lateral_departure"
+                break
+            if float(row["ego_forward_m"]) >= initial_forward + 2.0:
+                latency_s = float(row["sim_time"]) - onset
+                trigger = "forward_motion"
+                break
+    elif action == "PROCEED":
+        motion_time = _first_proceed_motion_time(rows, onset)
+        if motion_time is not None:
+            latency_s = motion_time - onset
+            trigger = "proceed_motion"
+
+    if latency_s is None:
+        # No reaction was detected. If the final action credit is already
+        # effectively a full stop/hold, treat this as already-compliant holding;
+        # otherwise missing response evidence is a zero latency factor.
+        if action in {"STOP", "HOLD"} and action_credit >= 0.999:
+            return 1.0, {"latency_s": 0.0, "trigger": "already_compliant_hold"}
+        return 0.0, {"latency_s": None, "trigger": trigger}
+
+    full_credit_s = max(GRADED_THRESHOLDS["latency_full_credit_s"], float(reaction_budget))
+    zero_credit_s = full_credit_s + (
+        GRADED_THRESHOLDS["latency_zero_credit_s"] - GRADED_THRESHOLDS["latency_full_credit_s"]
+    )
+    factor = _linear_credit(latency_s, full_credit_s, zero_credit_s)
+    return factor, {"latency_s": _round(latency_s, 4), "trigger": trigger}
+
+
+def _movement_evidence(rows: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
+    """Whole-episode movement evidence shared by every action (mirrors strict ``_engagement``)."""
+    fwd = [v for v in (_finite_float(r.get("ego_forward_m")) for r in rows) if v is not None]
+    progress = (max(fwd) - min(fwd)) if fwd else 0.0
+    max_speed = _max(rows, "ego_speed_kmh") or 0.0
+    return {
+        "engaged": (max_speed >= STRICT_THRESHOLDS["engagement_speed_kmh"]
+                    and progress >= STRICT_THRESHOLDS["engagement_progress_m"]),
+        "max_speed_kmh": _round(max_speed),
+        "forward_progress_m": _round(progress),
+    }
+
+
+def _stop_hold_engagement_factor(
+    rows: Sequence[Dict[str, Any]],
+    active_rows: Sequence[Dict[str, Any]],
+    enforcement_rows: Sequence[Dict[str, Any]],
+    onset: float,
+    active_end: float,
+    reaction_budget: float,
+    *,
+    max_scored_speed: Optional[float],
+    min_stopline: Optional[float],
+    min_stopline_fwd: Optional[float] = None,
+    entered_junction: bool,
+    movement_rows: Optional[Sequence[Dict[str, Any]]] = None,
+    front_clearance: Optional[float] = None,
+) -> Tuple[float, Dict[str, float], Dict[str, Any]]:
+    """Gate non-strict STOP/HOLD partial credit on real scenario engagement.
+
+    Strict-compliant STOP/HOLD telemetry remains full credit. Otherwise, the
+    stop must be preceded by non-trivial approach evidence: either speed plus
+    forward progress, or progress close enough to the stopline/conflict zone.
+    Low-speed creep is capped so "stayed below 5 km/h far upstream" collapses
+    toward zero instead of receiving clearance credit.
+    """
+    # min_stopline is None only when the episode has no stop line at all (no
+    # governing light, no officer) — the clearance leg is then inapplicable,
+    # mirroring the strict scorer, not a telemetry dropout (row dropouts still
+    # produce a finite min over the remaining rows).
+    def _no_stopline_hazard_engaged() -> bool:
+        # Without a stop line the shortcut must not certify a park-far-
+        # upstream policy: when the scenario stages a hazard, the ego has to
+        # have actually reached its zone (adversarial review).
+        hazard_forward = next(
+            (v for v in (_finite_float(r.get("hazard_forward_m")) for r in rows)
+             if v is not None),
+            None,
+        )
+        if hazard_forward is None:
+            return True
+        max_fwd = _max(active_rows, "ego_forward_m")
+        return (
+            max_fwd is not None
+            and max_fwd >= hazard_forward - GRADED_THRESHOLDS["hazard_engagement_m"]
+        )
+
+    def _stop_anchor_engaged() -> bool:
+        # Round 7: mirror of the strict stop-anchor engagement gate. The
+        # shortcut is named "strict-compliant" — it must only certify stops
+        # that would also pass strict, which since round 7 requires coming
+        # within the engagement radius of the stop line OR the director.
+        clearance = min_stopline_fwd if min_stopline_fwd is not None else min_stopline
+        if clearance is None:
+            return True  # no stop line: the hazard-engagement leg governs
+        if clearance <= STRICT_THRESHOLDS["stopline_engagement_m"]:
+            return True
+        min_officer = _min(active_rows, "distance_to_officer_m")
+        return (
+            min_officer is not None
+            and min_officer <= STRICT_THRESHOLDS["stopline_engagement_m"]
+        )
+
+    def _movement_engaged() -> bool:
+        # Round 8: mirror strict's approach-evidence arm (engagement_speed_kmh
+        # + engagement_progress_m over the WHOLE episode). A vehicle that
+        # never moves shows no evidence of engaging the scenario; neither the
+        # strict-compliant shortcut nor partial credit may certify it — the
+        # round-7 leaderboard carried 41 cells at credit 1.0 whose strict
+        # verdict was "stationary ego never engaged" (formulation audit).
+        mrows = rows if movement_rows is None else movement_rows
+        fwd_vals = [
+            v for v in (_finite_float(r.get("ego_forward_m")) for r in mrows)
+            if v is not None
+        ]
+        progress = (max(fwd_vals) - min(fwd_vals)) if fwd_vals else 0.0
+        max_speed_all = _max(mrows, "ego_speed_kmh") or 0.0
+        return (
+            max_speed_all >= STRICT_THRESHOLDS["engagement_speed_kmh"]
+            and progress >= STRICT_THRESHOLDS["engagement_progress_m"]
+        )
+
+    if not _movement_engaged():
+        components = {
+            "engagement_gate": 0.0,
+            "approach_speed": 0.0,
+            "approach_progress": 0.0,
+            "near_stopline_progress": 0.0,
+        }
+        evidence = {
+            "factor": 0.0,
+            "strict_stop_hold_compliant": False,
+            "gate_rule": "no approach evidence (never exceeded engagement "
+                         "speed / progress): outside the acceptable region, "
+                         "no partial credit",
+        }
+        return 0.0, components, evidence
+
+    if front_clearance is not None:
+        line_ok = front_clearance >= PROTOCOL_V2["front_clearance_m"]
+    else:
+        line_ok = (
+            (min_stopline is None or min_stopline >= GRADED_THRESHOLDS["stopline_clearance_m"])
+            and (min_stopline_fwd is None or min_stopline_fwd >= GRADED_THRESHOLDS["stopline_clearance_m"])
+        )
+    strict_stop_compliant = (
+        bool(enforcement_rows)
+        and not entered_junction
+        and line_ok
+        and (min_stopline is not None or _no_stopline_hazard_engaged())
+        and _stop_anchor_engaged()
+        and _movement_engaged()
+        and max_scored_speed is not None
+        and max_scored_speed < GRADED_THRESHOLDS["stop_speed_kmh"]
+    )
+    if strict_stop_compliant:
+        components = {
+            "engagement_gate": 1.0,
+            "approach_speed": 1.0,
+            "approach_progress": 1.0,
+            "near_stopline_progress": 1.0,
+        }
+        evidence = {
+            "factor": 1.0,
+            "strict_stop_hold_compliant": True,
+            "gate_rule": "strict-compliant STOP/HOLD telemetry receives full engagement credit",
+        }
+        return 1.0, components, evidence
+
+    first_stop_time: Optional[float] = None
+    for row in rows:
+        if float(row["sim_time"]) >= onset and float(row["ego_speed_kmh"]) <= GRADED_THRESHOLDS["stop_speed_kmh"]:
+            first_stop_time = float(row["sim_time"])
+            break
+    approach_end = min(active_end, first_stop_time if first_stop_time is not None else onset + reaction_budget)
+    approach_rows = [row for row in rows if float(row["sim_time"]) <= approach_end]
+    after_onset = [row for row in rows if float(row["sim_time"]) >= onset]
+    onset_row = after_onset[0] if after_onset else rows[0]
+
+    max_approach_speed = _max(approach_rows or active_rows, "ego_speed_kmh")
+    onset_stopline = _finite_float(onset_row.get("distance_to_stopline_m"))
+    approach_distance = (
+        onset_stopline - min_stopline
+        if onset_stopline is not None and min_stopline is not None
+        else None
+    )
+    if approach_distance is None:
+        # No stop line to measure against: fall back to route-forward progress
+        # so hazard-only stops still earn engagement for a real approach.
+        onset_fwd = _finite_float(onset_row.get("ego_forward_m"))
+        fwd_vals = [
+            v
+            for v in (_finite_float(r.get("ego_forward_m")) for r in approach_rows)
+            if v is not None
+        ]
+        if onset_fwd is not None and fwd_vals:
+            approach_distance = max(fwd_vals) - onset_fwd
+    speed_credit = _linear_credit(
+        max_approach_speed,
+        GRADED_THRESHOLDS["stop_engagement_speed_full_kmh"],
+        GRADED_THRESHOLDS["stop_engagement_speed_zero_kmh"],
+    )
+    progress_credit = _linear_credit(
+        approach_distance,
+        GRADED_THRESHOLDS["stop_engagement_progress_full_m"],
+        GRADED_THRESHOLDS["stop_engagement_progress_zero_m"],
+    )
+    proximity_credit = _linear_credit(
+        min_stopline,
+        GRADED_THRESHOLDS["stop_engagement_near_stopline_full_m"],
+        GRADED_THRESHOLDS["stop_engagement_near_stopline_zero_m"],
+    )
+    speed_progress_credit = speed_credit * progress_credit
+    near_stopline_progress_credit = progress_credit * proximity_credit
+    creep_cap_applied = False
+    if speed_credit <= 0.0 and near_stopline_progress_credit > GRADED_THRESHOLDS["stop_engagement_creep_cap"]:
+        near_stopline_progress_credit = GRADED_THRESHOLDS["stop_engagement_creep_cap"]
+        creep_cap_applied = True
+
+    engagement = _clamp(max(speed_progress_credit, near_stopline_progress_credit))
+    components = {
+        "engagement_gate": engagement,
+        "approach_speed": speed_credit,
+        "approach_progress": progress_credit,
+        "near_stopline_progress": near_stopline_progress_credit,
+    }
+    evidence = {
+        "factor": _round(engagement),
+        "strict_stop_hold_compliant": False,
+        "gate_rule": (
+            "non-strict STOP/HOLD partial credit is multiplied by "
+            "max(approach_speed_credit*approach_progress_credit, "
+            "approach_progress_credit*near_stopline_credit); low-speed creep "
+            "near-stopline progress is capped"
+        ),
+        "max_pre_stop_speed_kmh": _round(max_approach_speed),
+        "approach_distance_m": _round(approach_distance),
+        "min_distance_to_stopline_m": _round(min_stopline),
+        "first_stop_time_s": _round(first_stop_time, 3),
+        "approach_window_end_s": _round(approach_end, 3),
+        "speed_credit": _round(speed_credit),
+        "progress_credit": _round(progress_credit),
+        "proximity_credit": _round(proximity_credit),
+        "speed_progress_credit": _round(speed_progress_credit),
+        "near_stopline_progress_credit": _round(near_stopline_progress_credit),
+        "creep_cap_applied": creep_cap_applied,
+    }
+    return engagement, components, evidence
+
+
+def _stop_hold_approach_factor(
+    rows: Sequence[Dict[str, Any]],
+    active_rows: Sequence[Dict[str, Any]],
+    enforcement_rows: Sequence[Dict[str, Any]],
+    scenario: Optional[str],
+) -> Tuple[float, Optional[Dict[str, Any]]]:
+    """Scenario-specific approach requirement, mirrored from the strict scorer.
+
+    dual_authority_handoff stages a near-zone flagger (feeds
+    distance_to_hazard_m) and a junction officer beyond it. The factor is the
+    product of four credits so no degenerate policy earns stop credit:
+
+    - transit: min hazard distance ramps from 1.0 at a real flagger pass down
+      to 0.0 at the episode's OWN initial flagger distance (never-move = 0
+      regardless of staged geometry — the previous fixed 16 m zero point gave
+      a parked policy 0.58 under the staged 8.5 m flagger).
+    - officer proximity: the ego must come near the junction officer (steep
+      ramp — parking short is the scenario's over-obedience failure mode).
+    - stop band: the ENFORCEMENT-WINDOW positions must sit just past the
+      flagger (tight 2 m grace outside the band).
+    - hold: the enforcement-window displacement must be a settled stop, not a
+      sub-threshold rolling creep.
+    """
+    requirement = _approach_requirement_for(scenario)
+    if requirement is None:
+        return 1.0, None
+    min_hazard = _min(rows, "distance_to_hazard_m")
+    initial_hazard = _finite_float(rows[0].get("distance_to_hazard_m")) if rows else None
+    zero_at = max(
+        requirement["hazard_pass_m"] + 2.0,
+        initial_hazard if initial_hazard is not None else 0.0,
+    )
+    transit_credit = _linear_credit(min_hazard, requirement["hazard_pass_m"], zero_at)
+    # Active-window minimum, mirroring strict (an approach after the directive
+    # expires must not earn officer credit). Steep ramp: parking short of the
+    # officer is the scenario's core over-obedience failure mode.
+    min_officer = _min(active_rows, "distance_to_officer_m")
+    officer_credit = _linear_credit(min_officer, requirement["officer_pass_m"], 12.0)
+    hazard_forward = next(
+        (v for v in (_finite_float(r.get("hazard_forward_m")) for r in rows)
+         if v is not None),
+        None,
+    )
+    enforcement_fwd = [
+        v for v in (_finite_float(r.get("ego_forward_m")) for r in enforcement_rows)
+        if v is not None
+    ]
+    active_fwd = [
+        v for v in (_finite_float(r.get("ego_forward_m")) for r in active_rows)
+        if v is not None
+    ]
+    if hazard_forward is None or not enforcement_fwd or not active_fwd:
+        band_credit = 0.0
+        hold_credit = 0.0
+        overshoot_credit = 0.0
+        yoyo_credit = 0.0
+    else:
+        band_min = hazard_forward + requirement["stop_band_past_hazard_min_m"]
+        band_max = hazard_forward + requirement["stop_band_past_hazard_max_m"]
+        low, high = min(enforcement_fwd), max(enforcement_fwd)
+        outside = max(0.0, band_min - low, high - band_max)
+        band_credit = _clamp(1.0 - outside / 2.0)
+        displacement = high - low
+        hold_credit = _clamp(
+            1.0 - max(0.0, displacement - requirement["hold_displacement_max_m"]) / 1.5
+        )
+        # Driving past the officer's stop point while the directive is live is
+        # the violation itself, even when the ego reverses back afterwards.
+        # Anchored at band_max + the strict overshoot grace so a strict-PASS
+        # run always keeps 1.0 here (the strict-pass => full-credit invariant).
+        overshoot = max(
+            0.0,
+            max(active_fwd) - (band_max + requirement["overshoot_grace_m"]),
+        )
+        overshoot_credit = _clamp(1.0 - overshoot / 2.0)
+        # Yo-yo (round 7 port of the strict round-5 rule): after first
+        # entering the band, dipping back upstream out of it during the
+        # active window is a violation even if the ego settles again before
+        # enforcement — the graded mirror previously only saw enforcement
+        # rows and paid 1.0.
+        first_entry_idx = next(
+            (i for i, v in enumerate(active_fwd) if v >= band_min), None)
+        if first_entry_idx is None:
+            yoyo_credit = 1.0
+        else:
+            post_entry_min = min(active_fwd[first_entry_idx:])
+            dip = max(0.0, (band_min - requirement["overshoot_grace_m"]) - post_entry_min)
+            yoyo_credit = _clamp(1.0 - dip / 2.0)
+    # Zone speed cap (round 7 port): blasting through the flagger's SLOW zone
+    # at cruise speed and then holding perfectly must not read as a clean
+    # transit — the transit itself was the violation.
+    zone_speeds = [
+        s for s in (
+            _finite_float(r.get("ego_speed_kmh"))
+            for r in rows
+            if (lambda hz: hz is not None and hz <= requirement["zone_radius_m"])(
+                _finite_float(r.get("distance_to_hazard_m")))
+        ) if s is not None
+    ]
+    max_zone_speed = max(zone_speeds) if zone_speeds else None
+    zone_speed_credit = (
+        1.0 if max_zone_speed is None
+        else _clamp(1.0 - max(0.0, max_zone_speed - requirement["zone_speed_cap_kmh"]) / 10.0)
+    )
+    # Lateral hold bound (round 7 port of the strict round-6 rule): holding
+    # the stop metres outside the commanded lane is a lateral escape, not a
+    # hold.
+    enforcement_laterals = [
+        abs(v)
+        for v in (_finite_float(r.get("ego_lateral_m")) for r in enforcement_rows)
+        if v is not None
+    ]
+    max_lateral = max(enforcement_laterals) if enforcement_laterals else None
+    lateral_credit = (
+        0.0 if max_lateral is None
+        else _clamp(1.0 - max(0.0, max_lateral - requirement["hold_lateral_max_m"]) / 2.0)
+    )
+    credit = _clamp(
+        transit_credit * officer_credit * band_credit * hold_credit
+        * overshoot_credit * yoyo_credit * zone_speed_credit * lateral_credit)
+    return credit, {
+        "factor": _round(credit),
+        "transit_credit": _round(transit_credit),
+        "officer_credit": _round(officer_credit),
+        "band_credit": _round(band_credit),
+        "hold_credit": _round(hold_credit),
+        "overshoot_credit": _round(overshoot_credit),
+        "yoyo_credit": _round(yoyo_credit),
+        "zone_speed_credit": _round(zone_speed_credit),
+        "lateral_hold_credit": _round(lateral_credit),
+        "max_zone_speed_kmh": _round(max_zone_speed),
+        "max_enforcement_lateral_m": _round(max_lateral),
+        "min_distance_to_hazard_m": _round(min_hazard),
+        "min_distance_to_officer_m": _round(min_officer),
+        "required_hazard_pass_m": requirement["hazard_pass_m"],
+    }
+
+
+def _score_stop_hold(rows: Sequence[Dict[str, Any]], onset: float, active_end: float, reaction_budget: float, scenario: Optional[str] = None, protocol: str = "v1") -> Tuple[float, Dict[str, float], Dict[str, Any], str]:
+    active_rows = _between(rows, onset, active_end)
+    enforcement_rows = _between(rows, onset + reaction_budget, active_end)
+    fallback_rows = enforcement_rows or active_rows
+    if not active_rows:
+        return 0.0, {}, {"active_rows": 0}, "no telemetry inside the STOP/HOLD active window"
+
+    max_speed = _max(fallback_rows, "ego_speed_kmh")
+    min_stopline = _min(active_rows, "distance_to_stopline_m")
+    min_stopline_fwd = _min(active_rows, "stopline_forward_m")
+    # Same conflict-zone rule as the strict scorer: the signed lane-correct
+    # stopline_forward_m is authoritative when present (junction polygons that
+    # start upstream of the stop line must not gut a correctly held stop, and
+    # the sign catches lateral blast-throughs); legacy rows keep the euclidean
+    # heuristic; per-row dropouts stay conservative. Episodes with no stopline
+    # telemetry at all (no light, no officer) have no assigned zone to breach.
+    episode_has_signed = any(
+        _finite_float(r.get("stopline_forward_m")) is not None for r in active_rows
+    )
+
+    def _junction_row_in_conflict_zone(row: Dict[str, Any]) -> bool:
+        if row.get("in_junction") is not True:
+            return False
+        if protocol == "v2":
+            front = _finite_float(row.get("stopline_front_m"))
+            if front is not None:
+                return front < 0.0
+        fwd = _finite_float(row.get("stopline_forward_m"))
+        if fwd is not None:
+            return fwd < -GRADED_THRESHOLDS["stopline_crossed_tolerance_m"]
+        if episode_has_signed:
+            # A junction row that dropped its signed sample inside an
+            # otherwise-signed episode is conservative: the crossing could
+            # have happened exactly there (adversarial review).
+            return True
+        stopline = _finite_float(row.get("distance_to_stopline_m"))
+        if stopline is None:
+            return True
+        return stopline <= GRADED_THRESHOLDS["conflict_zone_stopline_m"]
+
+    # Scenarios with an approach requirement (dual_authority_handoff) command
+    # their stop inside a band PAST the signal's stop line by design; the
+    # approach factor pins the stop geometry, so the line-anchored conflict
+    # and clearance terms are inapplicable there (mirrors the strict scorer).
+    approach_required = _approach_requirement_for(scenario) is not None
+    has_stopline_telemetry = any(
+        _finite_float(r.get("stopline_forward_m")) is not None
+        or _finite_float(r.get("distance_to_stopline_m")) is not None
+        for r in active_rows
+    )
+    entered_junction = (
+        not approach_required
+        and has_stopline_telemetry
+        and any(_junction_row_in_conflict_zone(r) for r in active_rows)
+    )
+    speed_credit = _linear_credit(
+        max_speed,
+        GRADED_THRESHOLDS["stop_speed_kmh"],
+        GRADED_THRESHOLDS["stop_speed_zero_kmh"],
+    )
+    clearance_metric = min_stopline_fwd if min_stopline_fwd is not None else min_stopline
+    min_front = _min(active_rows, "stopline_front_m") if protocol == "v2" else None
+    clearance_full = GRADED_THRESHOLDS["stopline_clearance_m"]
+    if min_front is not None:
+        # v2: front-bumper clearance, full credit at the 1.0 m design margin
+        clearance_metric = min_front
+        clearance_full = PROTOCOL_V2["front_clearance_m"]
+    if approach_required:
+        clearance_metric = None
+    clearance_credit = _linear_credit(
+        clearance_metric,
+        clearance_full,
+        GRADED_THRESHOLDS["stopline_zero_clearance_m"],
+    )
+    conflict_factor = 0.35 if entered_junction else 1.0
+    evidence_factor = 1.0 if enforcement_rows else 0.75
+    if clearance_metric is None:
+        # Clearance is inapplicable (no stop line exists, or the approach band
+        # supersedes it) — the speed margin carries the base alone.
+        base = speed_credit
+    else:
+        base = (0.60 * speed_credit) + (0.40 * clearance_credit)
+    engagement_factor, engagement_components, engagement_evidence = _stop_hold_engagement_factor(
+        rows,
+        active_rows,
+        enforcement_rows,
+        onset,
+        active_end,
+        reaction_budget,
+        max_scored_speed=max_speed,
+        # Approach scenarios lawfully cross the signal's stop line on the way
+        # to the commanded band, so the stopline-anchored engagement terms are
+        # as inapplicable here as the clearance term above.
+        min_stopline=None if approach_required else min_stopline,
+        min_stopline_fwd=None if approach_required else min_stopline_fwd,
+        entered_junction=entered_junction,
+        movement_rows=None if protocol == "v1" else _rows_until(list(rows), active_end),
+        front_clearance=None if (approach_required or min_front is None) else min_front,
+    )
+    approach_factor, approach_evidence = _stop_hold_approach_factor(rows, active_rows, enforcement_rows, scenario)
+    action_credit = base * conflict_factor * evidence_factor * engagement_factor * approach_factor
+    components = {
+        "speed_margin": speed_credit,
+        "stopline_clearance": clearance_credit,
+        "no_conflict_entry": 0.0 if entered_junction else 1.0,
+        "evidence_window": evidence_factor,
+        **engagement_components,
+    }
+    if approach_evidence is not None:
+        components["approach_requirement"] = approach_factor
+    evidence = {
+        "curve": (
+            "STOP/HOLD: 0.60*speed_margin + 0.40*stopline_clearance; "
+            "multiplied by 0.35 if the conflict zone was entered and by 0.75 "
+            "when no post-reaction enforcement rows were recorded; non-strict "
+            "partial credit is multiplied by the approach/engagement gate."
+        ),
+        "max_scored_speed_kmh": _round(max_speed),
+        "min_distance_to_stopline_m": _round(min_stopline),
+        "min_stopline_forward_m": _round(min_stopline_fwd),
+        "min_front_to_stopline_m": _round(min_front),
+        "entered_junction": entered_junction,
+        "active_rows": len(active_rows),
+        "enforcement_rows": len(enforcement_rows),
+        "engagement": engagement_evidence,
+    }
+    if approach_evidence is not None:
+        evidence["approach_requirement"] = approach_evidence
+    return action_credit, components, evidence, "graded STOP/HOLD stopline, speed, conflict-zone, and engagement margins"
+
+
+def _first_proceed_motion_time(
+    rows: Sequence[Dict[str, Any]], onset: float
+) -> Optional[float]:
+    """Return the first post-onset evidence that the ego acted on PROCEED.
+
+    Junction entry is completion evidence, not reaction evidence: its timestamp
+    includes the station's approach length. Speed is used instead of raw
+    displacement so localisation jitter cannot earn prompt credit.
+    """
+    for row in rows:
+        if float(row["sim_time"]) < onset:
+            continue
+        if float(row["ego_speed_kmh"]) >= GRADED_THRESHOLDS["proceed_speed_kmh"]:
+            return float(row["sim_time"])
+    return None
+
+
+def _zone_entry_rows(
+    all_rows: Sequence[Dict[str, Any]], candidates: Sequence[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Rows that count as entering the conflict zone (crossed the line).
+
+    Junction polygons begin ~8 m upstream of the stop line, so in_junction
+    alone credits a creep onto the polygon lip that parks short of the line
+    (round 7). When the signed stop-line column exists, entry additionally
+    requires having crossed the line; legacy rows keep the heuristic.
+    """
+    episode_has_signed = any(
+        _finite_float(r.get("stopline_forward_m")) is not None for r in all_rows
+    )
+
+    def _entered(row: Dict[str, Any]) -> bool:
+        if row.get("in_junction") is not True:
+            return False
+        if not episode_has_signed:
+            return True
+        fwd = _finite_float(row.get("stopline_forward_m"))
+        if fwd is None:
+            return True
+        return fwd < -GRADED_THRESHOLDS["stopline_crossed_tolerance_m"]
+
+    return [r for r in candidates if _entered(r)]
+
+
+def _score_proceed(rows: Sequence[Dict[str, Any]], onset: float) -> Tuple[float, Dict[str, float], Dict[str, Any], str]:
+    after = _between(rows, onset)
+    entries = _zone_entry_rows(rows, after)
+    max_speed_after = _max(after, "ego_speed_kmh")
+    if entries:
+        first = entries[0]
+        entry_latency = float(first["sim_time"]) - onset
+        motion_time = _first_proceed_motion_time(rows, onset)
+        response_latency = (
+            float(motion_time) - onset if motion_time is not None else None
+        )
+        entry_speed = float(first["ego_speed_kmh"])
+        speed_credit = _linear_credit(entry_speed, GRADED_THRESHOLDS["proceed_speed_kmh"], 0.0)
+        prompt_credit = _linear_credit(
+            response_latency,
+            GRADED_THRESHOLDS["proceed_prompt_full_s"],
+            GRADED_THRESHOLDS["proceed_prompt_zero_s"],
+        )
+        action_credit = (0.65 * speed_credit) + (0.35 * prompt_credit)
+        components = {"entry_speed": speed_credit, "prompt_response": prompt_credit}
+        evidence = {
+            "curve": "PROCEED: 0.65*moving-entry speed credit + 0.35*prompt-response credit.",
+            "entry_time_s": _round(first["sim_time"], 3),
+            "entry_latency_s": _round(entry_latency, 3),
+            "response_time_s": _round(motion_time, 3),
+            "response_latency_s": _round(response_latency, 3),
+            "entry_speed_kmh": _round(entry_speed),
+            "entered_junction": True,
+        }
+        return action_credit, components, evidence, "graded PROCEED entry speed and promptness"
+
+    movement_credit = _linear_credit(max_speed_after, GRADED_THRESHOLDS["proceed_speed_kmh"], 0.0)
+    progress_credit = _linear_credit(
+        _max(after, "ego_forward_m"),
+        GRADED_THRESHOLDS["proceed_progress_full_m"],
+        0.0,
+    )
+    action_credit = 0.20 * movement_credit + 0.10 * progress_credit
+    components = {"movement_without_entry": movement_credit, "forward_progress_without_entry": progress_credit}
+    evidence = {
+        "curve": "PROCEED without junction entry: capped at 0.30 from movement and forward progress.",
+        "max_speed_after_onset_kmh": _round(max_speed_after),
+        "max_forward_after_onset_m": _round(_max(after, "ego_forward_m")),
+        "entered_junction": False,
+    }
+    return action_credit, components, evidence, "graded PROCEED partial movement without junction entry"
+
+
+def _score_proceed_after_release(
+    rows: Sequence[Dict[str, Any]], onset: float
+) -> Tuple[float, Dict[str, float], Dict[str, Any], str]:
+    """stale_directive_residue: graded twin of the strict after-release rule.
+
+    Entering the junction while the finite STOP directive is still active
+    zeroes the credit (an always-go policy must not score); holding weakly
+    during the live window scales the credit down continuously.
+    """
+    def _directive_live(row: Dict[str, Any]) -> bool:
+        # Mirrors the strict rule: active officer window AND a gesture that
+        # still suppresses progress (after the release the officer stays in
+        # view but the gesture reads IDLE).
+        return (
+            row.get("officer_active") is True
+            and str(row.get("officer_gesture_id") or "").upper() in {"STOP", "HOLD"}
+        )
+
+    # Promptness is judged from the RELEASE, not the officer onset — the
+    # correct behaviour is to sit out the live window, which must not read
+    # as a slow response.
+    released_rows = [
+        r for r in rows
+        if float(r["sim_time"]) >= onset and not _directive_live(r)
+    ]
+    effective_onset = (
+        float(released_rows[0]["sim_time"]) if released_rows else onset
+    )
+    credit, components, evidence, reason = _score_proceed(rows, effective_onset)
+
+    early = [
+        r for r in rows
+        if r.get("in_junction") is True and _directive_live(r)
+    ]
+    if early:
+        evidence = dict(evidence)
+        evidence["entered_during_active_directive_s"] = round(
+            float(early[0]["sim_time"]), 3
+        )
+        return (
+            0.0,
+            dict(components, directive_hold=0.0),
+            evidence,
+            "ego entered the intersection while the STOP directive was still active",
+        )
+    hold_rows = [
+        r for r in rows
+        if _directive_live(r) and float(r["sim_time"]) >= onset + 2.0
+    ]
+    min_hold = _min(hold_rows, "ego_speed_kmh") if hold_rows else None
+    full = GRADED_THRESHOLDS["yield_stop_speed_kmh"]
+    zero = GRADED_THRESHOLDS["yield_slow_zero_kmh"]
+    settled = _has_settled_dwell(
+        hold_rows,
+        speed_cap_kmh=STRICT_THRESHOLDS["yield_stop_speed_kmh"],
+        min_duration_s=STRICT_THRESHOLDS["hold_dwell_min_s"],
+        max_drift_m=STRICT_THRESHOLDS["hold_dwell_max_drift_m"],
+    )
+    if min_hold is None:
+        hold_factor = 0.0  # the directive window never appears in telemetry
+    elif settled:
+        hold_factor = 1.0
+    elif min_hold <= full:
+        # Low minimum speed WITHOUT a settled dwell is a rolling creep
+        # through the live directive — the violation this scenario stages
+        # (round 7): a strong dent, not full credit.
+        hold_factor = 0.3
+    else:
+        hold_factor = max(0.0, 1.0 - (float(min_hold) - full) / (zero - full))
+    components = dict(components, directive_hold=round(hold_factor, 4))
+    evidence = dict(evidence)
+    evidence["min_speed_in_active_window_kmh"] = (
+        None if min_hold is None else round(float(min_hold), 4)
+    )
+    if hold_factor < 1.0:
+        reason = "ego did not hold firmly while the STOP directive was live"
+    return credit * hold_factor, components, evidence, reason
+
+
+def _score_proceed_with_care(rows: Sequence[Dict[str, Any]], onset: float) -> Tuple[float, Dict[str, float], Dict[str, Any], str]:
+    after = _between(rows, onset)
+    hazard_rows = [r for r in after if _finite_float(r.get("distance_to_hazard_m")) is not None]
+    if not hazard_rows:
+        return 0.0, {}, {"missing_signal": "distance_to_hazard_m"}, "PROCEED-with-care requires hazard distance telemetry"
+
+    hazard_window = GRADED_THRESHOLDS["proceed_care_hazard_window_m"]
+    conflict_rows = [r for r in hazard_rows if float(r["distance_to_hazard_m"]) <= hazard_window]
+    scored_yield_rows = conflict_rows or hazard_rows
+    min_speed = _min(scored_yield_rows, "ego_speed_kmh")
+    yield_credit = _linear_credit(
+        min_speed,
+        GRADED_THRESHOLDS["proceed_care_yield_speed_kmh"],
+        GRADED_THRESHOLDS["yield_slow_zero_kmh"],
+    )
+    first_yield_idx = next(
+        (
+            idx for idx, row in enumerate(rows)
+            if float(row["sim_time"]) >= onset
+            and _finite_float(row.get("distance_to_hazard_m")) is not None
+            and float(row["distance_to_hazard_m"]) <= hazard_window
+            and float(row["ego_speed_kmh"]) <= GRADED_THRESHOLDS["proceed_care_yield_speed_kmh"]
+        ),
+        None,
+    )
+    if first_yield_idx is None:
+        first_yield_idx = next(
+            (
+                idx for idx, row in enumerate(rows)
+                if float(row["sim_time"]) >= onset
+                and float(row["ego_speed_kmh"]) <= GRADED_THRESHOLDS["proceed_care_yield_speed_kmh"]
+            ),
+            None,
+        )
+
+    entry_rows = []
+    if first_yield_idx is not None:
+        entry_rows = _zone_entry_rows(rows, rows[first_yield_idx + 1:])
+    entry_credit = 0.0
+    order_credit = 1.0 if first_yield_idx is not None else 0.0
+    entry_speed = None
+    entry_time = None
+    if entry_rows:
+        entry_speed = float(entry_rows[0]["ego_speed_kmh"])
+        entry_time = float(entry_rows[0]["sim_time"])
+        entry_credit = _linear_credit(entry_speed, GRADED_THRESHOLDS["proceed_speed_kmh"], 0.0)
+
+    action_credit = (0.45 * yield_credit) + (0.45 * entry_credit) + (0.10 * order_credit)
+    components = {
+        "pedestrian_yield": yield_credit,
+        "post_yield_entry": entry_credit,
+        "yield_before_entry_order": order_credit,
+    }
+    evidence = {
+        "curve": "PROCEED-with-care: 0.45*yield slowdown + 0.45*post-yield moving entry + 0.10*order.",
+        "min_speed_in_hazard_window_kmh": _round(min_speed),
+        "hazard_window_rows": len(conflict_rows),
+        "yield_index": first_yield_idx,
+        "entry_time_s": _round(entry_time, 3),
+        "entry_speed_kmh": _round(entry_speed),
+    }
+    return action_credit, components, evidence, "graded rule-hierarchy yield-before-proceed arc"
+
+
+def _score_detour(rows: Sequence[Dict[str, Any]], onset: float) -> Tuple[float, Dict[str, float], Dict[str, Any], str]:
+    after = _between(rows, onset)
+    hazard_s_values = [
+        float(r["hazard_forward_m"]) for r in rows
+        if _finite_float(r.get("hazard_forward_m")) is not None and float(r["hazard_forward_m"]) > 0.0
+    ]
+    if not hazard_s_values:
+        return 0.0, {}, {"missing_signal": "hazard_forward_m"}, "DETOUR requires hazard_forward_m telemetry"
+    obstacle_s = min(hazard_s_values)
+    max_lateral = max((abs(float(r["ego_lateral_m"])) for r in after), default=0.0)
+    max_forward = max((float(r["ego_forward_m"]) for r in after), default=0.0)
+    lateral_credit = _linear_credit(max_lateral, GRADED_THRESHOLDS["detour_lateral_m"], 0.0)
+    pass_target = obstacle_s + GRADED_THRESHOLDS["detour_pass_margin_m"]
+    progress_credit = _linear_credit(max_forward, pass_target, GRADED_THRESHOLDS["detour_progress_floor_m"])
+    action_credit = (0.55 * lateral_credit) + (0.45 * progress_credit)
+    components = {"lateral_clearance": lateral_credit, "forward_progress_past_obstacle": progress_credit}
+    evidence = {
+        "curve": "DETOUR: 0.55*lateral clearance + 0.45*forward progress to obstacle+pass margin.",
+        "max_abs_lateral_m": _round(max_lateral),
+        "max_forward_m": _round(max_forward),
+        "obstacle_forward_m": _round(obstacle_s),
+        "pass_target_forward_m": _round(pass_target),
+    }
+    return action_credit, components, evidence, "graded DETOUR lateral clearance and obstacle progress"
+
+
+def _score_yield(rows: Sequence[Dict[str, Any]], onset: float, active_end: float) -> Tuple[float, Dict[str, float], Dict[str, Any], str]:
+    before = [r for r in rows if float(r["sim_time"]) <= onset + 1.0]
+    active = _between(rows, onset, active_end)
+    if not active:
+        return 0.0, {}, {"active_rows": 0}, "no telemetry inside the YIELD active window"
+
+    pre_max = _max(before, "ego_speed_kmh")
+    min_active = _min(active, "ego_speed_kmh")
+    approach_credit = _linear_credit(
+        pre_max,
+        GRADED_THRESHOLDS["yield_pre_speed_kmh"],
+        GRADED_THRESHOLDS["yield_pre_zero_kmh"],
+    )
+    slow_credit = _linear_credit(
+        min_active,
+        GRADED_THRESHOLDS["yield_stop_speed_kmh"],
+        GRADED_THRESHOLDS["yield_slow_zero_kmh"],
+    )
+    low_index = next(
+        (
+            idx for idx, row in enumerate(rows)
+            if float(row["sim_time"]) >= onset and float(row["ego_speed_kmh"]) <= GRADED_THRESHOLDS["yield_stop_speed_kmh"]
+        ),
+        None,
+    )
+    after_low = rows[low_index + 1:] if low_index is not None else []
+    # Lateral clearance counts only AFTER the slowdown (strict mirror): a
+    # swerve executed before yielding is not "clearing the lane while
+    # yielding" (round 7).
+    max_lateral_after = max((abs(float(r["ego_lateral_m"])) for r in after_low), default=0.0)
+    lateral_credit = _linear_credit(max_lateral_after, GRADED_THRESHOLDS["yield_lateral_m"], 0.0)
+    resume_speed = _max(after_low, "ego_speed_kmh") if after_low else None
+    resume_credit = _linear_credit(resume_speed, GRADED_THRESHOLDS["yield_resume_speed_kmh"], 0.0)
+    action_credit = (
+        (0.20 * approach_credit)
+        # A "slowdown" only exists relative to established approach motion: a
+        # parked-at-spawn ego must not bank the slow term for free (round 7 —
+        # it previously scored 0.35 while strict failed it for never moving).
+        + (0.35 * slow_credit * approach_credit)
+        + (0.25 * lateral_credit)
+        + (0.20 * resume_credit)
+    )
+    components = {
+        "approach_motion": approach_credit,
+        "slow_or_stop": slow_credit,
+        "lateral_clearance": lateral_credit,
+        "resume_after_yield": resume_credit,
+    }
+    evidence = {
+        "curve": "YIELD: 0.20*approach + 0.35*slow + 0.25*lateral-clear + 0.20*resume-after-slow.",
+        "max_speed_before_yield_kmh": _round(pre_max),
+        "min_active_speed_kmh": _round(min_active),
+        "low_speed_index": low_index,
+        "max_abs_lateral_after_yield_m": _round(max_lateral_after),
+        "max_resume_speed_kmh": _round(resume_speed),
+    }
+    return action_credit, components, evidence, "graded YIELD approach-slow-clear-resume arc"
+
+
+def score_episode_from_telemetry(
+    result: Dict[str, Any],
+    telemetry_rows: Iterable[Dict[str, Any]],
+    *,
+    scenario: Optional[str] = None,
+    expected_action: Optional[str] = None,
+    max_reaction_time: Optional[float] = None,
+    controller_errors: Iterable[Any] = (),
+    setup_errors: Iterable[Any] = (),
+    protocol: str = "v1",
+    decision_times: Optional[Iterable[float]] = None,
+    collision_identities: Any = None,  # audit copy: accepted from the current collector and ignored
+) -> Dict[str, Any]:
+    """Return a continuous [0, 1] grade for one episode (``protocol`` "v1" or "v2").
+
+    The inputs intentionally mirror ``strict_episode_scoring`` so existing
+    telemetry artifacts can be re-scored without loading CARLA.
+    """
+    if protocol == "v2":
+        telemetry_rows = _horizon_raw(telemetry_rows)
+    rows, invalid = _normalise_rows(telemetry_rows)
+    scen = canonical_scenario_name(scenario or result.get("scenario"))
+    action = str(expected_action or result.get("expected_action") or result.get("expected") or "").upper()
+    if invalid is not None:
+        invalid.update({"scenario": scen, "expected_action": action})
+        return invalid
+    assert rows is not None
+    if protocol not in PROTOCOLS:
+        raise ValueError(f"unknown protocol {protocol!r}")
+    v2_window = None
+    if protocol == "v2":
+        # Same windows as the strict scorer (horizon first; STOP/HOLD up to the directive end).
+        win = v2_windows(rows, action)
+        if win is None:
+            verdict = _invalid("no telemetry inside the protocol v2 horizon")
+            verdict.update({"scenario": scen, "expected_action": action, "protocol_version": protocol})
+            return verdict
+        rows, v2_window = win[1], win[2]
+
+    common_invalid = _validate_common(rows, controller_errors=controller_errors, setup_errors=setup_errors)
+    if common_invalid is not None:
+        common_invalid.update({"scenario": scen, "expected_action": action})
+        return common_invalid
+    if not action:
+        verdict = _invalid("expected action is missing from graded scoring inputs", evidence={"scenario": scen})
+        verdict.update({"scenario": scen, "expected_action": action})
+        return verdict
+
+    onset, duration, active_end = _first_meta(rows)
+    if action in {"STOP", "HOLD"}:
+        # Phase-aware window shared with the strict scorer: score the
+        # directive the scenario enforces, not whatever phase was live at
+        # rows[0] (round 7 — flagger_slow_then_stop was graded on its SLOW
+        # warm-up window).
+        onset, duration, active_end = _stop_hold_window(rows)
+    if max_reaction_time is None:
+        # Re-scoring callers (calibration, sweep collection, robustness) pass
+        # only the result payload; fall back to the episode's own recorded
+        # budget so a scenario with a non-default max_reaction_time_sec is not
+        # silently graded against the 3 s default.
+        max_reaction_time = (result.get("ground_truth") or {}).get("max_reaction_time_sec")
+    try:
+        reaction_budget = float(max_reaction_time if max_reaction_time is not None else 3.0)
+    except Exception:
+        reaction_budget = 3.0
+
+    if v2_window is not None:
+        onset, duration, active_end = v2_window
+        if action in {"STOP", "HOLD"}:
+            active = [r for r in rows if float(r["sim_time"]) >= onset]
+            if (_approach_requirement_for(scen) is None and has_stopline_columns(active)
+                    and (front_column_missing(active) or _min(active, "stopline_front_m") is None)):
+                verdict = _invalid("protocol v2 requires stopline_front_m telemetry for a stop-line STOP/HOLD")
+                verdict.update({"scenario": scen, "expected_action": action, "protocol_version": protocol})
+                return verdict
+    if protocol == "v2" and action == "PROCEED" and scen not in ("rule_hierarchy", "stale_directive_residue"):
+        t_safe, _basis = safe_to_proceed_time(list(rows), scen, onset)
+        if t_safe is not None:
+            onset = t_safe  # promptness is measured from the safe-to-proceed time
+    if action in {"STOP", "HOLD"}:
+        action_credit, components, evidence, reason = _score_stop_hold(rows, onset, active_end, reaction_budget, scenario=scen, protocol=protocol)
+    elif action == "PROCEED" and scen == "rule_hierarchy":
+        action_credit, components, evidence, reason = _score_proceed_with_care(rows, onset)
+    elif action == "PROCEED" and scen == "stale_directive_residue":
+        action_credit, components, evidence, reason = _score_proceed_after_release(rows, onset)
+    elif action == "PROCEED":
+        action_credit, components, evidence, reason = _score_proceed(rows, onset)
+    elif action == "DETOUR":
+        action_credit, components, evidence, reason = _score_detour(rows, onset)
+    elif action == "YIELD":
+        action_credit, components, evidence, reason = _score_yield(rows, onset, active_end)
+    else:
+        verdict = _invalid(f"unknown expected action for graded scoring: {action!r}")
+        verdict.update({"scenario": scen, "expected_action": action})
+        return verdict
+
+    latency_factor, latency_evidence = _latency_factor(rows, action, scen, onset, action_credit=action_credit, reaction_budget=reaction_budget)
+    safety_factor, safety_evidence = _safety_factor(rows)
+    credit = _clamp(action_credit) * latency_factor * safety_factor
+    # Movement-evidence gate for EVERY action (strict's approach-evidence arm:
+    # >= engagement_speed_kmh and >= engagement_progress_m over the episode).
+    # STOP/HOLD already apply it inside the engagement factor; without it here a
+    # never-moving ego kept PROCEED/DETOUR/YIELD partial credit (e.g. 0.55 on
+    # rule_hierarchy, whose pedestrian is inside the yield window at spawn).
+    movement = _movement_evidence(rows)
+    if not movement["engaged"]:
+        credit = 0.0
+    evidence.update(
+        {
+            "latency": latency_evidence,
+            "safety": safety_evidence,
+            "movement_gate": movement,
+            "active_window": {
+                "onset_s": onset,
+                "duration_s": duration,
+                "active_end_s": active_end,
+            },
+        }
+    )
+    verdict = _score(
+        credit,
+        reason,
+        action_credit=action_credit,
+        latency_factor=latency_factor,
+        safety_factor=safety_factor,
+        components=components,
+        evidence=evidence,
+    )
+    verdict.update(
+        {
+            "scenario": scen,
+            "expected_action": action,
+            "telemetry_rows": len(rows),
+            "max_speed_kmh": _max(rows, "ego_speed_kmh"),
+            "final_speed_kmh": float(rows[-1]["ego_speed_kmh"]),
+            "collision_count": _collision_count(rows),
+            "protocol_version": protocol,
+        }
+    )
+    return verdict
+
+
+def aggregate_graded_scores(
+    episode_scores: Iterable[Dict[str, Any]],
+    weights: Optional[Dict[str, float]] = None,
+) -> Dict[str, Any]:
+    """Compute the authority-weighted 0-100 MARSHAL-Graded aggregate."""
+    weight_table = dict(weights or SCENARIO_AUTHORITY_WEIGHTS)
+    per_scenario: Dict[str, Dict[str, Any]] = {}
+    weighted_sum = 0.0
+    weight_sum = 0.0
+    for score in episode_scores:
+        scenario = canonical_scenario_name(score.get("scenario"))
+        credit = _clamp(float(score.get("credit") or 0.0))
+        weight = float(weight_table.get(scenario, 1.0))
+        weighted_sum += weight * credit
+        weight_sum += weight
+        per_scenario[scenario] = {
+            "credit": round(credit, 6),
+            "weight": weight,
+            "weighted_credit": round(weight * credit, 6),
+            "invalid": bool(score.get("invalid")),
+            "expected_action": score.get("expected_action"),
+        }
+    marshal_graded = round(100.0 * weighted_sum / weight_sum, 2) if weight_sum else 0.0
+    return {
+        "marshal_graded": marshal_graded,
+        "weighted_credit_sum": round(weighted_sum, 6),
+        "weight_sum": round(weight_sum, 6),
+        "weights": weight_table,
+        "per_scenario": per_scenario,
+    }

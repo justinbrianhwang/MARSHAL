@@ -1,0 +1,8 @@
+MARSHAL_audit\reports\scoring_validity_audit\tests\test_engagement_timing.py::test_v2_engagement_depends_on_onset_relative_start PASSED [ 14%]
+MARSHAL_audit\reports\scoring_validity_audit\tests\test_engagement_timing.py::test_engagement_is_timing_invariant[v2] XFAIL [ 28%]
+MARSHAL_audit\reports\scoring_validity_audit\tests\test_engagement_timing.py::test_engagement_is_timing_invariant[A_prime] PASSED [ 42%]
+MARSHAL_audit\reports\scoring_validity_audit\tests\test_findings.py::test_F2_lurch_then_stop_gets_full_credit_on_green_stop PASSED [ 57%]
+MARSHAL_audit\reports\scoring_validity_audit\tests\test_findings.py::test_F2_park_at_spawn_gets_zero PASSED [ 71%]
+MARSHAL_audit\reports\scoring_validity_audit\tests\test_findings.py::test_F3_one_sustained_contact_counts_as_many_collisions PASSED [ 85%]
+MARSHAL_audit\reports\scoring_validity_audit\tests\test_findings.py::test_F4_faster_overshoot_scores_higher_than_slow_creep PASSED [100%]
+======================== 6 passed, 1 xfailed in 0.45s =========================

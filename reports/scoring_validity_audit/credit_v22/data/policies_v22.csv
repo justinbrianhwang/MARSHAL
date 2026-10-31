@@ -1,0 +1,49 @@
+policy,family,strict_pass,graded_v2,rank_vs_14_v2,beats_nonpriv_v2,graded_v2.1,rank_vs_14_v2.1,beats_nonpriv_v2.1,graded_v2.2,rank_vs_14_v2.2,beats_nonpriv_v2.2,graded_v2.2+a3,rank_vs_14_v2.2+a3,beats_nonpriv_v2.2+a3
+park,reference,0,0.0,15,0,0.0,15,0,0.0,15,0,0.0,15,0
+"audit lurch (8 km/h, ~1.6 m)",reference,13,59.83,2,12,7.48,15,0,59.83,2,12,7.48,15,0
+constant 20 km/h,reference,3,18.12,7,7,18.12,7,7,18.12,7,7,18.12,7,7
+"lurch target 6 km/h, 1.2 m",reference,14,64.48,2,12,7.42,15,0,64.48,2,12,7.42,15,0
+"lurch target 6 km/h, 1.6 m",reference,13,59.9,2,12,7.55,15,0,59.9,2,12,7.55,15,0
+"lurch target 6 km/h, 2.0 m",reference,13,65.83,2,12,65.83,2,12,65.83,2,12,65.83,2,12
+"lurch target 6 km/h, 2.5 m",reference,14,64.32,2,12,64.32,2,12,64.32,2,12,64.32,2,12
+"lurch target 6 km/h, 3.0 m",reference,14,64.82,2,12,64.82,2,12,64.82,2,12,64.82,2,12
+"lurch target 6 km/h, 4.0 m",reference,13,61.2,2,12,61.26,2,12,61.26,2,12,61.26,2,12
+"lurch target 8 km/h, 1.2 m",reference,14,64.48,2,12,7.42,15,0,64.48,2,12,7.42,15,0
+"lurch target 8 km/h, 1.6 m",reference,13,59.86,2,12,7.51,15,0,59.86,2,12,7.51,15,0
+"lurch target 8 km/h, 2.0 m",reference,14,66.13,2,12,66.13,2,12,66.13,2,12,66.13,2,12
+"lurch target 8 km/h, 2.5 m",reference,14,64.51,2,12,64.51,2,12,64.51,2,12,64.51,2,12
+"lurch target 8 km/h, 3.0 m",reference,14,64.77,2,12,64.77,2,12,64.77,2,12,64.77,2,12
+"lurch target 8 km/h, 4.0 m",reference,13,61.16,2,12,61.23,2,12,61.23,2,12,61.23,2,12
+"lurch target 10 km/h, 1.2 m",reference,14,64.48,2,12,7.42,15,0,64.48,2,12,7.42,15,0
+"lurch target 10 km/h, 1.6 m",reference,13,59.86,2,12,7.51,15,0,59.86,2,12,7.51,15,0
+"lurch target 10 km/h, 2.0 m",reference,14,65.94,2,12,13.52,10,4,65.94,2,12,13.52,9,5
+"lurch target 10 km/h, 2.5 m",reference,14,64.3,2,12,64.3,2,12,64.3,2,12,64.3,2,12
+"lurch target 10 km/h, 3.0 m",reference,14,64.78,2,12,64.78,2,12,64.78,2,12,64.78,2,12
+"lurch target 10 km/h, 4.0 m",reference,13,61.18,2,12,61.24,2,12,61.24,2,12,61.24,2,12
+"lurch target 12 km/h, 1.2 m",reference,14,64.48,2,12,7.42,15,0,64.48,2,12,7.42,15,0
+"lurch target 12 km/h, 1.6 m",reference,13,59.86,2,12,7.51,15,0,59.86,2,12,7.51,15,0
+"lurch target 12 km/h, 2.0 m",reference,14,65.94,2,12,13.52,10,4,65.94,2,12,13.52,9,5
+"lurch target 12 km/h, 2.5 m",reference,14,64.3,2,12,64.3,2,12,64.3,2,12,64.3,2,12
+"lurch target 12 km/h, 3.0 m",reference,14,64.78,2,12,64.78,2,12,64.78,2,12,64.78,2,12
+"lurch target 12 km/h, 4.0 m",reference,13,61.22,2,12,61.29,2,12,61.29,2,12,61.29,2,12
+"lurch target 15 km/h, 1.2 m",reference,14,64.48,2,12,7.42,15,0,64.48,2,12,7.42,15,0
+"lurch target 15 km/h, 1.6 m",reference,13,59.86,2,12,7.51,15,0,59.86,2,12,7.51,15,0
+"lurch target 15 km/h, 2.0 m",reference,14,65.94,2,12,13.52,10,4,65.94,2,12,13.52,9,5
+"lurch target 15 km/h, 2.5 m",reference,14,64.3,2,12,64.3,2,12,64.3,2,12,64.3,2,12
+"lurch target 15 km/h, 3.0 m",reference,14,64.78,2,12,64.78,2,12,64.78,2,12,64.78,2,12
+"lurch target 15 km/h, 4.0 m",reference,13,61.22,2,12,61.29,2,12,61.29,2,12,61.29,2,12
+constant 5 km/h,reference,3,18.13,7,7,18.03,7,7,18.03,7,7,18.03,7,7
+constant 10 km/h,reference,3,18.15,7,7,18.12,7,7,18.12,7,7,18.12,7,7
+constant 30 km/h,reference,3,18.12,7,7,18.12,7,7,18.12,7,7,18.12,7,7
+stop after 5 m at 20 km/h,reference,13,61.04,2,12,61.17,2,12,61.17,2,12,61.17,2,12
+stop after 10 m at 20 km/h,reference,3,55.26,2,12,55.28,2,12,54.6,2,12,54.6,2,12
+stop after 20 m at 20 km/h,reference,3,34.94,4,10,34.94,5,9,30.44,4,10,30.44,4,10
+"lurch 2.5 m, go 20 km/h at 2 s",held-out,4,26.7,5,9,26.7,5,9,26.7,4,10,26.7,4,10
+"lurch 2.5 m, go 20 km/h at 4 s",held-out,4,26.21,5,9,26.21,6,8,26.21,5,9,26.21,5,9
+"lurch 2.5 m, go 20 km/h at 6 s",held-out,5,27.82,5,9,27.82,5,9,27.82,4,10,27.82,4,10
+"lurch 2.5 m, go 20 km/h at 8 s",held-out,4,27.96,5,9,27.96,5,9,27.96,4,10,27.96,4,10
+"lurch 2.5 m, go 20 km/h at 10 s",held-out,3,38.86,4,10,38.86,5,9,38.86,3,11,38.86,3,11
+"lurch 2.5 m, go 20 km/h at 13.5 s",held-out,10,54.76,2,12,53.59,2,12,53.59,2,12,53.59,2,12
+"lurch 2.5 m, go 20 km/h at 14.5 s",held-out,13,65.82,2,12,65.51,2,12,65.51,2,12,65.51,2,12
+"lurch 2.5 m, go 20 km/h at 16.5 s",held-out,14,69.63,2,12,69.63,2,12,69.63,2,12,69.63,2,12
+"lurch 2.5 m, go 20 km/h at 20 s",held-out,13,63.87,2,12,63.87,2,12,63.87,2,12,63.87,2,12

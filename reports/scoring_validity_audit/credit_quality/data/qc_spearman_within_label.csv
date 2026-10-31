@@ -1,0 +1,66 @@
+label,n,feature,v2.2-final,Q-gate,Q-cont,Q-cont range
+COLLISION,11,min front-to-line m (+),0.107,0.003,0.23,0.272-0.850
+COLLISION,11,crossing depth m (-),0.447,0.443,0.583,0.272-0.850
+COLLISION,11,peak speed after onset km/h (-),0.576,0.491,0.817,0.272-0.850
+COLLISION,11,enforced max speed km/h (-),0.298,0.185,0.798,0.272-0.850
+COLLISION,11,held-stop latency s (-; none = 25),0.649,0.557,0.93,0.272-0.850
+COLLISION,11,stopped share of enforced window (+),0.471,0.267,0.887,0.272-0.850
+COLLISION,11,longest stop s (+),0.602,0.48,0.87,0.272-0.850
+COLLISION,11,distinct contacts (-),0.421,0.502,-0.148,0.272-0.850
+COLLISION,11,travel m (+),-0.064,0.072,-0.235,0.272-0.850
+CRAWL_THROUGH,3,min front-to-line m (+),,,0.5,0.552-0.605
+CRAWL_THROUGH,3,crossing depth m (-),,,0.5,0.552-0.605
+CRAWL_THROUGH,3,peak speed after onset km/h (-),,,0.5,0.552-0.605
+CRAWL_THROUGH,3,enforced max speed km/h (-),,,-0.5,0.552-0.605
+CRAWL_THROUGH,3,stopped share of enforced window (+),,,1.0,0.552-0.605
+CRAWL_THROUGH,3,longest stop s (+),,,0.0,0.552-0.605
+CRAWL_THROUGH,3,travel m (+),,,-1.0,0.552-0.605
+CREEP_NO_STOP,20,min front-to-line m (+),,0.627,0.565,0.585-0.796
+CREEP_NO_STOP,20,peak speed after onset km/h (-),,0.856,0.248,0.585-0.796
+CREEP_NO_STOP,20,enforced max speed km/h (-),,0.789,0.178,0.585-0.796
+CREEP_NO_STOP,20,stopped share of enforced window (+),,0.098,0.769,0.585-0.796
+CREEP_NO_STOP,20,longest stop s (+),,-0.233,0.56,0.585-0.796
+CREEP_NO_STOP,20,travel m (+),,-0.84,-0.699,0.585-0.796
+DRIVE_THROUGH,114,min front-to-line m (+),,,0.74,0.361-0.594
+DRIVE_THROUGH,114,crossing depth m (-),,,0.74,0.361-0.594
+DRIVE_THROUGH,114,peak speed after onset km/h (-),,,0.595,0.361-0.594
+DRIVE_THROUGH,114,enforced max speed km/h (-),,,0.44,0.361-0.594
+DRIVE_THROUGH,114,stopped share of enforced window (+),,,0.673,0.361-0.594
+DRIVE_THROUGH,114,longest stop s (+),,,0.425,0.361-0.594
+DRIVE_THROUGH,114,travel m (+),,,-0.717,0.361-0.594
+LATE_STOP,20,min front-to-line m (+),0.076,0.6,0.033,0.703-0.967
+LATE_STOP,20,peak speed after onset km/h (-),-0.504,0.532,0.544,0.703-0.967
+LATE_STOP,20,enforced max speed km/h (-),-0.14,0.663,0.848,0.703-0.967
+LATE_STOP,20,held-stop latency s (-; none = 25),0.348,0.552,0.534,0.703-0.967
+LATE_STOP,20,stopped share of enforced window (+),0.13,0.693,0.947,0.703-0.967
+LATE_STOP,20,longest stop s (+),0.402,0.364,0.64,0.703-0.967
+LATE_STOP,20,travel m (+),0.394,-0.697,-0.704,0.703-0.967
+NO_START,139,min front-to-line m (+),,,0.061,0.696-0.965
+NO_START,139,peak speed after onset km/h (-),,,-0.063,0.696-0.965
+NO_START,139,enforced max speed km/h (-),,,-0.141,0.696-0.965
+NO_START,139,held-stop latency s (-; none = 25),,,-0.171,0.696-0.965
+NO_START,139,stopped share of enforced window (+),,,-0.1,0.696-0.965
+NO_START,139,longest stop s (+),,,-0.243,0.696-0.965
+NO_START,139,travel m (+),,,0.959,0.696-0.965
+OVERRUN_THEN_STOP,17,min front-to-line m (+),0.949,0.859,0.804,0.452-0.964
+OVERRUN_THEN_STOP,17,crossing depth m (-),0.949,0.859,0.804,0.452-0.964
+OVERRUN_THEN_STOP,17,peak speed after onset km/h (-),0.659,0.618,0.68,0.452-0.964
+OVERRUN_THEN_STOP,17,enforced max speed km/h (-),0.806,0.82,0.833,0.452-0.964
+OVERRUN_THEN_STOP,17,held-stop latency s (-; none = 25),0.185,0.261,0.266,0.452-0.964
+OVERRUN_THEN_STOP,17,stopped share of enforced window (+),0.919,0.926,0.926,0.452-0.964
+OVERRUN_THEN_STOP,17,longest stop s (+),0.798,0.752,0.818,0.452-0.964
+OVERRUN_THEN_STOP,17,travel m (+),-0.844,-0.751,-0.76,0.452-0.964
+PASS,43,min front-to-line m (+),,0.731,,1.000-1.000
+PASS,43,peak speed after onset km/h (-),,0.473,,1.000-1.000
+PASS,43,enforced max speed km/h (-),,-0.064,,1.000-1.000
+PASS,43,held-stop latency s (-; none = 25),,0.496,,1.000-1.000
+PASS,43,longest stop s (+),,0.105,,1.000-1.000
+PASS,43,travel m (+),,-0.115,,1.000-1.000
+STOP_NOT_HELD,24,min front-to-line m (+),0.739,0.931,0.952,0.585-0.994
+STOP_NOT_HELD,24,crossing depth m (-),0.698,0.869,0.891,0.585-0.994
+STOP_NOT_HELD,24,peak speed after onset km/h (-),0.328,0.756,0.768,0.585-0.994
+STOP_NOT_HELD,24,enforced max speed km/h (-),0.541,0.873,0.858,0.585-0.994
+STOP_NOT_HELD,24,held-stop latency s (-; none = 25),-0.101,-0.256,-0.208,0.585-0.994
+STOP_NOT_HELD,24,stopped share of enforced window (+),0.724,0.977,0.963,0.585-0.994
+STOP_NOT_HELD,24,longest stop s (+),0.58,0.635,0.652,0.585-0.994
+STOP_NOT_HELD,24,travel m (+),-0.436,-0.897,-0.889,0.585-0.994

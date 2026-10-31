@@ -1,0 +1,8 @@
+item1 categories: {'agree': 358, 'strict_late_f6h_ok': 32} engaged mismatches: 29
+{'variant': 'v2.2', 'episodes_changed': 0, 'up': 0, 'down': 0, 'credit1_not_pass': 0, 'pass_below_1': 0, 'synthetic_violations': 7, 'tau_vs_v22_all': 1.0, 'tau_vs_v22_nonpriv': 1.0, 'rank_changes': ''}
+{'variant': 'final_hold (item 1)', 'episodes_changed': 11, 'up': 0, 'down': 11, 'credit1_not_pass': 0, 'pass_below_1': 0, 'synthetic_violations': 7, 'tau_vs_v22_all': 1.0, 'tau_vs_v22_nonpriv': 1.0, 'rank_changes': ''}
+{'variant': 'creep_cap_far_only (item 2)', 'episodes_changed': 2, 'up': 2, 'down': 0, 'credit1_not_pass': 0, 'pass_below_1': 0, 'synthetic_violations': 7, 'tau_vs_v22_all': 1.0, 'tau_vs_v22_nonpriv': 1.0, 'rank_changes': ''}
+{'variant': 'front_cap (item 3a)', 'episodes_changed': 25, 'up': 13, 'down': 12, 'credit1_not_pass': 0, 'pass_below_1': 0, 'synthetic_violations': 6, 'tau_vs_v22_all': 1.0, 'tau_vs_v22_nonpriv': 1.0, 'rank_changes': ''}
+{'variant': 'spawn_anchor (item 3b)', 'episodes_changed': 22, 'up': 22, 'down': 0, 'credit1_not_pass': 0, 'pass_below_1': 0, 'synthetic_violations': 6, 'tau_vs_v22_all': 1.0, 'tau_vs_v22_nonpriv': 1.0, 'rank_changes': ''}
+{'variant': 'front_cap+spawn_anchor', 'episodes_changed': 26, 'up': 17, 'down': 9, 'credit1_not_pass': 0, 'pass_below_1': 0, 'synthetic_violations': 6, 'tau_vs_v22_all': 1.0, 'tau_vs_v22_nonpriv': 1.0, 'rank_changes': ''}
+{'variant': 'adopted: front_cap + creep_cap_far_only', 'episodes_changed': 26, 'up': 14, 'down': 12, 'credit1_not_pass': 0, 'pass_below_1': 0, 'synthetic_violations': 6, 'tau_vs_v22_all': 1.0, 'tau_vs_v22_nonpriv': 1.0, 'rank_changes': ''}

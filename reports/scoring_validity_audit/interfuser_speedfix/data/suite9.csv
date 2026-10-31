@@ -1,0 +1,7 @@
+run,seed,pts_v22_final,pts_v2,strict_pass
+before (3-D speed),0,13.116,9.624,1
+before (3-D speed),1,4.5,7.328,1
+before (3-D speed),2,6.685,9.807,1
+after (forward speed),0,7.484,8.42,1
+after (forward speed),1,11.152,10.736,0
+after (forward speed),2,11.004,12.852,2

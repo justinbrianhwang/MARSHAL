@@ -111,6 +111,9 @@ def make_controller(name: Optional[str], config: Optional[dict] = None) -> Any:
     if key == "drivelm":
         from marshal_bench.controllers.drivelm_model import DriveLMController
         return DriveLMController(config=config)
+    if key.startswith("scripted_"):  # privileged scorer-validation fixtures
+        from marshal_bench.controllers.scripted_behaviors import ScriptedBehaviorController
+        return ScriptedBehaviorController(key[len("scripted_"):], config=config)
     if key == "pid":
         from marshal_bench.controllers.classical import PIDController
         return PIDController(config=config)

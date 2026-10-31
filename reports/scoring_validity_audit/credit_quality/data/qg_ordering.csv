@@ -1,0 +1,59 @@
+scenario,score,source,n_PASS,n_LATE_STOP,n_OVERRUN_THEN_STOP,n_DRIVE_THROUGH,ordered pairs,violations (better label scores lower),ties,chain,labels
+green_stop,v2.2-final,real,5,0,0,17,85,0,0,,
+green_stop,Q-gate,real,5,0,0,17,85,0,0,,
+green_stop,v2.2-final,synthetic [S],,,,,6,2,,1.000 > 0.000 > 0.126 > 0.000,PASS / LATE_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+green_stop,Q-gate,synthetic [S],,,,,6,0,,0.917 > 0.833 > 0.233 > 0.000,PASS / LATE_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+signal_off,v2.2-final,real,1,5,0,9,59,0,0,,
+signal_off,Q-gate,real,1,5,0,9,59,0,0,,
+signal_off,v2.2-final,synthetic [S],,,,,6,2,,0.224 > 0.000 > 0.000 > 0.000,LATE_STOP / LATE_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+signal_off,Q-gate,synthetic [S],,,,,6,0,,0.634 > 0.577 > 0.117 > 0.000,LATE_STOP / LATE_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+fallen_person,v2.2-final,real,1,0,8,14,134,0,14,,
+fallen_person,Q-gate,real,1,0,8,14,134,0,0,,
+fallen_person,v2.2-final,synthetic [S],,,,,3,0,,1.000 > 0.049 > 0.000,PASS / OVERRUN_THEN_STOP / DRIVE_THROUGH
+fallen_person,Q-gate,synthetic [S],,,,,3,0,,0.955 > 0.233 > 0.000,PASS / OVERRUN_THEN_STOP / DRIVE_THROUGH
+unauthorized_go,v2.2-final,real,2,1,2,2,18,1,2,,
+unauthorized_go,Q-gate,real,2,1,2,2,18,0,0,,
+unauthorized_go,v2.2-final,synthetic [S],,,,,6,2,,1.000 > 0.000 > 0.097 > 0.000,PASS / LATE_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+unauthorized_go,Q-gate,synthetic [S],,,,,6,0,,0.923 > 0.852 > 0.233 > 0.000,PASS / LATE_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+adjacent_lane,v2.2-final,real,2,2,1,3,23,0,7,,
+adjacent_lane,Q-gate,real,2,2,1,3,23,0,0,,
+adjacent_lane,v2.2-final,synthetic [S],,,,,6,0,,0.510 > 0.310 > 0.000 > 0.000,LATE_STOP / LATE_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+adjacent_lane,Q-gate,synthetic [S],,,,,6,0,,0.766 > 0.713 > 0.145 > 0.000,LATE_STOP / LATE_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+flagger_control,v2.2-final,real,8,2,0,0,16,0,0,,
+flagger_control,Q-gate,real,8,2,0,0,16,0,0,,
+flagger_control,v2.2-final,synthetic [S],,,,,6,2,,0.224 > 0.000 > 0.000 > 0.000,LATE_STOP / LATE_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+flagger_control,Q-gate,synthetic [S],,,,,6,0,,0.635 > 0.578 > 0.118 > 0.000,LATE_STOP / LATE_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+occluded_officer,v2.2-final,real,1,2,3,21,137,4,21,,
+occluded_officer,Q-gate,real,1,2,3,21,137,0,0,,
+occluded_officer,v2.2-final,synthetic [S],,,,,3,0,,1.000 > 0.011 > 0.000,PASS / OVERRUN_THEN_STOP / DRIVE_THROUGH
+occluded_officer,Q-gate,synthetic [S],,,,,3,0,,0.939 > 0.233 > 0.000,PASS / OVERRUN_THEN_STOP / DRIVE_THROUGH
+conflicting_authorities,v2.2-final,real,2,0,0,6,12,0,0,,
+conflicting_authorities,Q-gate,real,2,0,0,6,12,0,0,,
+conflicting_authorities,v2.2-final,synthetic [S],,,,,6,2,,0.220 > 0.000 > 0.000 > 0.000,LATE_STOP / LATE_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+conflicting_authorities,Q-gate,synthetic [S],,,,,6,0,,0.632 > 0.576 > 0.117 > 0.000,LATE_STOP / LATE_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+sequential_directive,v2.2-final,real,1,0,3,22,91,0,66,,
+sequential_directive,Q-gate,real,1,0,3,22,91,0,0,,
+sequential_directive,v2.2-final,synthetic [S],,,,,3,0,,1.000 > 0.054 > 0.000,PASS / OVERRUN_THEN_STOP / DRIVE_THROUGH
+sequential_directive,Q-gate,synthetic [S],,,,,3,0,,0.939 > 0.233 > 0.000,PASS / OVERRUN_THEN_STOP / DRIVE_THROUGH
+ambiguous_gesture,v2.2-final,real,8,0,0,4,32,0,0,,
+ambiguous_gesture,Q-gate,real,8,0,0,4,32,0,0,,
+ambiguous_gesture,v2.2-final,synthetic [S],,,,,6,2,,0.144 > 0.000 > 0.000 > 0.000,LATE_STOP / CREEP_NO_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+ambiguous_gesture,Q-gate,synthetic [S],,,,,6,0,,0.583 > 0.136 > 0.100 > 0.000,LATE_STOP / CREEP_NO_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+two_civilians_disagree,v2.2-final,real,1,3,0,3,15,0,3,,
+two_civilians_disagree,Q-gate,real,1,3,0,3,15,0,0,,
+two_civilians_disagree,v2.2-final,synthetic [S],,,,,6,2,,0.144 > 0.000 > 0.000 > 0.000,LATE_STOP / LATE_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+two_civilians_disagree,Q-gate,synthetic [S],,,,,6,0,,0.590 > 0.556 > 0.102 > 0.000,LATE_STOP / LATE_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+flagger_slow_then_stop,v2.2-final,real,5,1,0,0,5,0,0,,
+flagger_slow_then_stop,Q-gate,real,5,1,0,0,5,0,0,,
+flagger_slow_then_stop,v2.2-final,synthetic [S],,,,,6,0,,1.000 > 0.359 > 0.071 > 0.000,PASS / LATE_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+flagger_slow_then_stop,Q-gate,synthetic [S],,,,,6,0,,0.921 > 0.721 > 0.233 > 0.000,PASS / LATE_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+school_crossing_guard,v2.2-final,real,3,2,0,9,51,0,0,,
+school_crossing_guard,Q-gate,real,3,2,0,9,51,0,0,,
+school_crossing_guard,v2.2-final,synthetic [S],,,,,6,2,,0.160 > 0.000 > 0.000 > 0.000,LATE_STOP / LATE_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+school_crossing_guard,Q-gate,synthetic [S],,,,,6,0,,0.599 > 0.562 > 0.106 > 0.000,LATE_STOP / LATE_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+fake_vest_director,v2.2-final,real,3,2,0,4,26,0,0,,
+fake_vest_director,Q-gate,real,3,2,0,4,26,0,0,,
+fake_vest_director,v2.2-final,synthetic [S],,,,,6,2,,0.144 > 0.000 > 0.000 > 0.000,LATE_STOP / LATE_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+fake_vest_director,Q-gate,synthetic [S],,,,,6,0,,0.589 > 0.556 > 0.102 > 0.000,LATE_STOP / LATE_STOP / OVERRUN_THEN_STOP / DRIVE_THROUGH
+green_stop,v2.2-final,"CARLA fixtures (3 seeds, min of better vs max of worse)",,,,,6,0,,1.000-1.000 > 0.345-0.373 > 0.030-0.031 > 0.000-0.000,
+green_stop,Q-gate,"CARLA fixtures (3 seeds, min of better vs max of worse)",,,,,6,0,,0.957-0.957 > 0.719-0.738 > 0.177-0.178 > 0.000-0.000,

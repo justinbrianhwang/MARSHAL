@@ -1,6 +1,6 @@
 # Reproducibility and run-to-run variance of MARSHAL results
 
-## Protocol v2: five runs per VLM-based controller
+## Protocol v2: five runs per VLM-based controller, three for InterFuser
 
 Under protocol v2 ([evaluation_protocol_v2.md](evaluation_protocol_v2.md)) every VLM-based closed-loop controller is
 run five times per scenario with the common seeds 0–4, each run recorded and scored separately; the seed is also
@@ -9,9 +9,9 @@ sent with every VLM request, and responses are not assumed to be reproducible. G
 
 | model | seed 0 | seed 1 | seed 2 | seed 3 | seed 4 | mean | SD |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| Qwen2.5-VL-72B | 16.46 | 17.64 | 23.05 | 23.15 | 23.48 | 20.75 | 3.41 |
-| Qwen3-VL-235B-A22B | 14.06 | 7.39 | 12.08 | 12.91 | 11.80 | 11.65 | 2.54 |
-| GLM-4.5V | 8.00 | 7.92 | 8.51 | 8.00 | 8.30 | 8.14 | 0.25 |
+| Qwen2.5-VL-72B | 16.99 | 19.16 | 25.62 | 24.79 | 22.74 | 21.86 | 3.69 |
+| Qwen3-VL-235B-A22B | 16.33 | 9.53 | 12.99 | 14.15 | 14.32 | 13.47 | 2.50 |
+| GLM-4.5V | 7.65 | 9.29 | 8.84 | 8.22 | 8.15 | 8.43 | 0.64 |
 
 Cells whose strict verdict differs across the five runs:
 
@@ -21,7 +21,11 @@ Cells whose strict verdict differs across the five runs:
 | Qwen3-VL-235B-A22B | `red_proceed` 3/5, `ambulance_yield` 3/5, `ambiguous_gesture` 1/5, `stale_directive_residue` 1/5 | `out_of_jurisdiction_director` |
 | GLM-4.5V | — | `ambulance_yield`, `out_of_jurisdiction_director` |
 
-The deterministic driving stacks (oracle, baseline, Track-B) are run once per scenario under protocol v2; their
+InterFuser (final adapter: original leaderboard sensor settings, forward speed input) is run three times with seeds
+0–2: graded 36.30, 44.84 and 38.33 (39.82 ± 4.46), strict PASS 7, 8 and 7 of 25. Its strict verdict differs across
+the three runs in `green_stop` (1/3), `conflicting_authorities` (1/3) and `fake_vest_director` (2/3).
+
+The other deterministic driving stacks (oracle, baseline, Track-B) are run once per scenario under protocol v2; their
 run-to-run variation was measured under protocol v1, below.
 
 ## Protocol v1: three sweeps on the 21-scenario build

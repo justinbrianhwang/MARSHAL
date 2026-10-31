@@ -1,0 +1,4 @@
+version,credit1_not_pass,pass_below_1,fail_ge_pass_pairs_same_scenario,zero,partial,full,changed_vs_v22_prefix,tau_vs_v2,tau_vs_v22_prefix,rank_changes_vs_v22_prefix
+v2,0,7,24,441,114,95,122,1.0 / 1.0,0.846 / 0.818,cilrs 4->5;qwen2.5-vl 5->6;tcp 6->4;mpc 8->9;pid 9->10;qwen3-vl 10->11;openemma 11->12;aim 12->8;baseline 13->14;glm-4.5v 14->13
+v2.2 (pre-fix),0,0,0,400,148,102,0,0.846 / 0.818,1.0 / 1.0,
+v2.2 final,0,0,0,400,148,102,26,0.846 / 0.818,1.0 / 1.0,

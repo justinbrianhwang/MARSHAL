@@ -1,0 +1,11 @@
+scenario,profile,strict,credit_v2,credit_F1_only,credit_v21,latency_trigger_v21,latency_s_v21,F_lat_v21,min_front_to_line_m
+signal_off,settle 7.9 -> 5.5 km/h over 1.0 s (0.67 m/s2),FAIL,0.188636,0.754545,0.0,none,,0.0,1.62
+signal_off,settle 7.9 -> 5.5 km/h over 0.4 s (1.67 m/s2),FAIL,0.188636,0.754545,0.754545,decel,0.6,1.0,1.82
+flagger_control,settle 7.9 -> 5.5 km/h over 1.0 s (0.67 m/s2),FAIL,0.188636,0.754545,0.0,none,,0.0,1.6
+flagger_control,settle 7.9 -> 5.5 km/h over 0.4 s (1.67 m/s2),FAIL,0.188636,0.754545,0.754545,decel,0.6,1.0,1.8
+conflicting_authorities,settle 7.9 -> 5.5 km/h over 1.0 s (0.67 m/s2),FAIL,0.188636,0.754545,0.0,none,,0.0,1.68
+conflicting_authorities,settle 7.9 -> 5.5 km/h over 0.4 s (1.67 m/s2),FAIL,0.188636,0.754545,0.754545,decel,0.6,1.0,1.88
+two_civilians_disagree,settle 7.9 -> 5.5 km/h over 1.0 s (0.67 m/s2),FAIL,0.188636,0.754545,0.0,none,,0.0,5.66
+two_civilians_disagree,settle 7.9 -> 5.5 km/h over 0.4 s (1.67 m/s2),FAIL,0.188636,0.754545,0.754545,decel,0.6,1.0,5.86
+fake_vest_director,settle 7.9 -> 5.5 km/h over 1.0 s (0.67 m/s2),FAIL,0.188636,0.754545,0.0,none,,0.0,5.68
+fake_vest_director,settle 7.9 -> 5.5 km/h over 0.4 s (1.67 m/s2),FAIL,0.188636,0.754545,0.754545,decel,0.6,1.0,5.88

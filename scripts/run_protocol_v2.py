@@ -1,10 +1,11 @@
 """Run the protocol-v2 evaluation (or a subset of it) episode by episode.
 
     python scripts/run_protocol_v2.py --models oracle tcp qwen3-vl --scenarios green_stop red_proceed --seeds 0
-    python scripts/run_protocol_v2.py --all                      # full v2 suite (VLMs seeds 0-4, others seed 0)
+    python scripts/run_protocol_v2.py --all                      # full v2 suite (VLMs seeds 0-4, InterFuser 0-2, others 0)
     python scripts/run_protocol_v2.py --vlm-cap-comparison       # green_stop, VLMs, 3-query cap, seeds 0-4
     python scripts/run_protocol_v2.py --ablation-study           # oracle-assist ladder + controls, seed 0
     python scripts/run_protocol_v2.py --factorial-study          # GLM-4.5V, role x gesture GT, seeds 0-4
+    python scripts/run_protocol_v2.py --models tcp --scenarios green_stop --env MARSHAL_OFFICER_CONDITION=absent --tag _noofficer
 
 Run from the workspace root (the directory holding scripts/, marshal_bench/ and CARLA_0.9.16/). Every episode
 runs in its own child process with MARSHAL_PROTOCOL=v2 and MARSHAL_SEED=<seed>; output goes to
@@ -24,6 +25,8 @@ from pathlib import Path
 
 ROOT = Path.cwd()
 UTIL = str(Path(__file__).resolve().parent / "dac2027_carla_util.py")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import collect_protocol_v2 as C  # noqa: E402  (InterFuser adapter check shared with the collector)
 CARLA_DIR = Path(os.environ.get("MARSHAL_CARLA_DIR", "CARLA_0.9.16"))
 def _env_python(env: str) -> str:
     """Interpreter of a conda env: MARSHAL_PY_<ENV>, else <conda root>/envs/<env>/python, else this interpreter."""
@@ -66,7 +69,7 @@ def cell_name(model: str, level: str, period) -> str:
 
 
 def command(model: str, scenario: str, out: Path, ablation=None, period=None) -> list:
-    if model in ("oracle", "baseline"):
+    if model in ("oracle", "baseline") or model.startswith("scripted_"):
         return [PY["marshal"], "scripts/_run_reference_staging_sweep.py", scenario, "--controller", model]
     if model == "transfuser":
         return [PY["transfuser_ui"], "scripts/_run_transfuser_sweep.py", scenario, "--wall-timeout", "1800",
@@ -103,6 +106,10 @@ def complete(out: Path, scenario: str) -> bool:
         tel = json.loads((ep / "strict_telemetry.json").read_text(encoding="utf-8"))
         rows = tel.get("telemetry") if isinstance(tel, dict) else tel
         if not rows or float(rows[-1]["sim_time"]) < 25.0 - 1e-6:
+            return False
+        # an InterFuser episode from other adapter settings is not done: the collector would refuse it
+        if out.parent.name == "interfuser" and C.interfuser_config_problem(
+                json.loads((ep / "metadata.json").read_text(encoding="utf-8"))):
             return False
     except Exception:
         return False
@@ -151,7 +158,7 @@ def main() -> int:
     ap.add_argument("--models", nargs="*", default=None)
     ap.add_argument("--scenarios", nargs="*", default=None)
     ap.add_argument("--seeds", nargs="*", type=int, default=None)
-    ap.add_argument("--all", action="store_true", help="full suite: VLMs seeds 0-4, every other model seed 0")
+    ap.add_argument("--all", action="store_true", help="full suite: VLMs seeds 0-4, InterFuser 0-2, every other model seed 0")
     ap.add_argument("--vlm-cap-comparison", action="store_true", help="green_stop, the three VLMs, 3-query cap, seeds 0-4")
     ap.add_argument("--ablation-study", action="store_true",
                     help="oracle-assist ladder and control cells (ABLATION_CELLS), 25 scenarios, seed 0; "
@@ -162,7 +169,15 @@ def main() -> int:
     ap.add_argument("--out-root", default="tmp/_protocol_v2")
     ap.add_argument("--restart-every", type=int, default=8)
     ap.add_argument("--log", default="outputs/protocol_v2/run_log.jsonl")
+    ap.add_argument("--env", action="append", default=[], metavar="MARSHAL_KEY=VALUE",
+                    help="diagnostic MARSHAL_* variable passed to every episode (repeatable), e.g. "
+                         "MARSHAL_OFFICER_CONDITION=absent, MARSHAL_TIMEOUT_S=60, MARSHAL_CONTROLLER_OVERRIDES=<json>")
+    ap.add_argument("--tag", default="", help="suffix for the model output directory (keeps diagnostic cells apart)")
     a = ap.parse_args()
+    extra_env = dict(kv.split("=", 1) for kv in a.env if "=" in kv)
+    bad = [k for k in extra_env if not k.startswith("MARSHAL_") or k in ("MARSHAL_SEED", "MARSHAL_OUT_ROOT")]
+    if bad or len(extra_env) != len(a.env):
+        raise SystemExit(f"--env takes MARSHAL_KEY=VALUE (not MARSHAL_SEED / MARSHAL_OUT_ROOT); got {a.env}")
 
     sys.path.insert(0, str(ROOT / "scripts"))
     import _run_vlm_test as vlm  # scenario registry
@@ -181,7 +196,8 @@ def main() -> int:
         jobs = [(m, "green_stop", s, True, None, None) for s in range(5) for m in VLM]
     else:
         for m in (a.models or MODELS):
-            seeds = a.seeds if a.seeds is not None else (list(range(5)) if (a.all and m in VLM) else [0])
+            seeds = a.seeds if a.seeds is not None else (list(range(5)) if (a.all and m in VLM)
+                                                         else [0, 1, 2] if (a.all and m == "interfuser") else [0])
             jobs += [(m, sc, s, False, None, None) for s in seeds for sc in scenarios]
     Path(a.log).parent.mkdir(parents=True, exist_ok=True)
 
@@ -195,7 +211,7 @@ def main() -> int:
     since_restart, carla_up, failures = 10 ** 6, False, 0
     log({"event": "batch_start", "jobs": len(jobs)})
     for i, (model, sc, seed, cap3, ablation, period) in enumerate(jobs, 1):
-        name = cell_name(model, ablation, period) if ablation else model + ("_cap3" if cap3 else "")
+        name = (cell_name(model, ablation, period) if ablation else model + ("_cap3" if cap3 else "")) + a.tag
         out = Path(a.out_root) / name / f"s{seed}"
         out.mkdir(parents=True, exist_ok=True)
         if complete(out, sc):
@@ -206,7 +222,7 @@ def main() -> int:
             if not carla_up:
                 failures += 1
                 continue
-        env = dict(base_env, MARSHAL_SEED=str(seed), MARSHAL_OUT_ROOT=str(out))
+        env = dict(base_env, **extra_env, MARSHAL_SEED=str(seed), MARSHAL_OUT_ROOT=str(out))
         if cap3:
             env["MARSHAL_VLM_MAX_QUERIES"] = "3"
         t0 = time.time()
@@ -219,7 +235,8 @@ def main() -> int:
         ok = complete(out, sc)
         since_restart += 1
         log({"event": "episode", "i": i, "of": len(jobs), "model": model, "scenario": sc, "seed": seed,
-             "cap3": cap3, "ablation": ablation, "period": period, "rc": rc, "complete": ok,
+             "cap3": cap3, "ablation": ablation, "period": period, "env": extra_env, "tag": a.tag,
+             "rc": rc, "complete": ok,
              "wall_s": round(time.time() - t0, 1)})
         if not ok:
             failures += 1

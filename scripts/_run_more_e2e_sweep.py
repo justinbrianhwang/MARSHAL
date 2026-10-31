@@ -356,6 +356,9 @@ def _build_config(
             "save_debug_every_n": int(args.save_debug_every_n),
             "max_debug_frames": int(args.max_debug_frames),
             "sensor_timeout_s": float(args.sensor_timeout_s),
+            # leaderboard adapter, recorded explicitly (collect_protocol_v2.INTERFUSER_FINAL refuses anything else)
+            "speed_input": "forward", "route_sample_m": 50, "sensor_profile": "leaderboard",
+            "step_on_sensor_data": True, "hold_odd_step_control": True,
         }
     elif key == "cilrs":
         cfg["cilrs"] = {
@@ -394,7 +397,7 @@ def _build_config(
             "max_debug_frames": int(args.max_debug_frames),
             "sensor_timeout_s": float(args.sensor_timeout_s),
         }
-    return cfg
+    return staging.apply_controller_overrides(cfg)
 
 
 def _behavior_summary(row: Dict[str, Any]) -> str:

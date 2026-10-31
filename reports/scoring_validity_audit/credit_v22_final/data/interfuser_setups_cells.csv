@@ -1,0 +1,176 @@
+setup,run,seed,scenario,strict,credit_v2,credit_v22_final
+v2 setup,leaderboard,0,green_stop,FAIL,0.0,0.0
+v2 setup,leaderboard,0,red_proceed,PASS,1.0,1.0
+v2 setup,leaderboard,0,signal_off,FAIL,0.8151,0.5388
+v2 setup,leaderboard,0,crash_detour,FAIL,0.0,0.0944
+v2 setup,leaderboard,0,fallen_person,FAIL,0.0,0.0
+v2 setup,leaderboard,0,unauthorized_go,FAIL,0.0,0.0
+v2 setup,leaderboard,0,adjacent_lane,FAIL,0.0,0.0
+v2 setup,leaderboard,0,flagger_control,PASS,1.0,1.0
+v2 setup,leaderboard,0,ambulance_yield,PASS,0.9345,1.0
+v2 setup,leaderboard,0,occluded_officer,FAIL,0.0813,0.0263
+v2 setup,leaderboard,0,conflicting_authorities,FAIL,0.8208,0.2633
+v2 setup,leaderboard,0,sequential_directive,FAIL,0.0,0.0
+v2 setup,leaderboard,0,rule_hierarchy,FAIL,0.0,0.0
+v2 setup,leaderboard,0,ambiguous_gesture,PASS,1.0,1.0
+v2 setup,leaderboard,0,civilian_warning_accident,FAIL,0.1406,0.1406
+v2 setup,leaderboard,0,emergency_scene_blocking,FAIL,0.0,0.0
+v2 setup,leaderboard,0,two_civilians_disagree,PASS,1.0,1.0
+v2 setup,leaderboard,0,flagger_slow_then_stop,PASS,1.0,1.0
+v2 setup,leaderboard,0,school_crossing_guard,FAIL,0.0,0.0
+v2 setup,leaderboard,0,fake_vest_director,FAIL,0.0,0.0
+v2 setup,leaderboard,0,barricade_self_detour,FAIL,0.0,0.1291
+v2 setup,leaderboard,0,stale_directive_residue,FAIL,0.0851,0.0851
+v2 setup,leaderboard,0,out_of_jurisdiction_director,PASS,1.0,1.0
+v2 setup,leaderboard,0,night_signal_officer_conflict,PASS,1.0,1.0
+v2 setup,leaderboard,0,dual_authority_handoff,FAIL,0.7223,0.7223
+v2 setup,re-run,1,green_stop,FAIL,0.0,0.0
+v2 setup,re-run,1,red_proceed,PASS,1.0,1.0
+v2 setup,re-run,1,signal_off,FAIL,0.8017,0.506
+v2 setup,re-run,1,crash_detour,FAIL,0.1025,0.1025
+v2 setup,re-run,1,fallen_person,FAIL,0.0,0.0
+v2 setup,re-run,1,unauthorized_go,FAIL,0.0,0.0
+v2 setup,re-run,1,adjacent_lane,FAIL,0.0,0.0
+v2 setup,re-run,1,flagger_control,PASS,1.0,1.0
+v2 setup,re-run,1,ambulance_yield,PASS,0.7583,1.0
+v2 setup,re-run,1,occluded_officer,FAIL,0.0767,0.019
+v2 setup,re-run,1,conflicting_authorities,FAIL,0.8314,0.8336
+v2 setup,re-run,1,sequential_directive,FAIL,0.0,0.0
+v2 setup,re-run,1,rule_hierarchy,FAIL,0.0,0.0
+v2 setup,re-run,1,ambiguous_gesture,PASS,1.0,1.0
+v2 setup,re-run,1,civilian_warning_accident,FAIL,0.1358,0.1358
+v2 setup,re-run,1,emergency_scene_blocking,FAIL,0.0,0.0
+v2 setup,re-run,1,two_civilians_disagree,FAIL,0.8494,0.7984
+v2 setup,re-run,1,flagger_slow_then_stop,PASS,1.0,1.0
+v2 setup,re-run,1,school_crossing_guard,FAIL,0.0,0.0
+v2 setup,re-run,1,fake_vest_director,FAIL,0.0,0.0
+v2 setup,re-run,1,barricade_self_detour,FAIL,0.0,0.128
+v2 setup,re-run,1,stale_directive_residue,FAIL,0.0849,0.0849
+v2 setup,re-run,1,out_of_jurisdiction_director,PASS,1.0,1.0
+v2 setup,re-run,1,night_signal_officer_conflict,PASS,1.0,1.0
+v2 setup,re-run,1,dual_authority_handoff,FAIL,0.3416,0.3416
+v2 setup,re-run,2,green_stop,FAIL,0.0,0.0
+v2 setup,re-run,2,red_proceed,PASS,1.0,1.0
+v2 setup,re-run,2,signal_off,FAIL,0.8186,0.4675
+v2 setup,re-run,2,crash_detour,FAIL,0.1032,0.1032
+v2 setup,re-run,2,fallen_person,FAIL,0.15,0.1397
+v2 setup,re-run,2,unauthorized_go,FAIL,0.0,0.0
+v2 setup,re-run,2,adjacent_lane,FAIL,0.0,0.0
+v2 setup,re-run,2,flagger_control,PASS,1.0,1.0
+v2 setup,re-run,2,ambulance_yield,PASS,0.9343,1.0
+v2 setup,re-run,2,occluded_officer,FAIL,0.0173,0.0015
+v2 setup,re-run,2,conflicting_authorities,FAIL,0.8113,0.7405
+v2 setup,re-run,2,sequential_directive,FAIL,0.0,0.0
+v2 setup,re-run,2,rule_hierarchy,FAIL,0.0,0.0
+v2 setup,re-run,2,ambiguous_gesture,PASS,1.0,1.0
+v2 setup,re-run,2,civilian_warning_accident,FAIL,0.1415,0.1415
+v2 setup,re-run,2,emergency_scene_blocking,FAIL,0.0,0.0
+v2 setup,re-run,2,two_civilians_disagree,PASS,1.0,1.0
+v2 setup,re-run,2,flagger_slow_then_stop,PASS,1.0,1.0
+v2 setup,re-run,2,school_crossing_guard,FAIL,0.1,0.075
+v2 setup,re-run,2,fake_vest_director,FAIL,0.0,0.0
+v2 setup,re-run,2,barricade_self_detour,FAIL,0.0,0.1302
+v2 setup,re-run,2,stale_directive_residue,FAIL,0.0892,0.0892
+v2 setup,re-run,2,out_of_jurisdiction_director,PASS,1.0,1.0
+v2 setup,re-run,2,night_signal_officer_conflict,PASS,1.0,1.0
+v2 setup,re-run,2,dual_authority_handoff,FAIL,0.5507,0.5507
+fixed,a,0,green_stop,FAIL,0.0746,0.0742
+fixed,a,0,red_proceed,PASS,1.0,1.0
+fixed,a,0,signal_off,FAIL,0.0,0.0
+fixed,a,0,crash_detour,FAIL,0.2815,0.2815
+fixed,a,0,fallen_person,FAIL,0.1793,0.167
+fixed,a,0,unauthorized_go,FAIL,0.0,0.0
+fixed,a,0,adjacent_lane,FAIL,0.0,0.0
+fixed,a,0,flagger_control,PASS,1.0,1.0
+fixed,a,0,ambulance_yield,PASS,0.7583,1.0
+fixed,a,0,occluded_officer,FAIL,0.0812,0.0263
+fixed,a,0,conflicting_authorities,PASS,1.0,1.0
+fixed,a,0,sequential_directive,FAIL,0.0,0.0
+fixed,a,0,rule_hierarchy,FAIL,0.0,0.0
+fixed,a,0,ambiguous_gesture,PASS,1.0,1.0
+fixed,a,0,civilian_warning_accident,FAIL,0.2907,0.2907
+fixed,a,0,emergency_scene_blocking,FAIL,0.0,0.1762
+fixed,a,0,two_civilians_disagree,FAIL,0.7435,0.3351
+fixed,a,0,flagger_slow_then_stop,FAIL,0.0,0.25
+fixed,a,0,school_crossing_guard,FAIL,0.1,0.3622
+fixed,a,0,fake_vest_director,FAIL,0.0,0.0
+fixed,a,0,barricade_self_detour,FAIL,0.4787,0.4787
+fixed,a,0,stale_directive_residue,FAIL,0.5055,0.5055
+fixed,a,0,out_of_jurisdiction_director,PASS,1.0,1.0
+fixed,a,0,night_signal_officer_conflict,PASS,1.0,1.0
+fixed,a,0,dual_authority_handoff,FAIL,0.0,0.0
+fixed,re-run,0,green_stop,FAIL,0.0,0.0
+fixed,re-run,0,red_proceed,PASS,1.0,1.0
+fixed,re-run,0,signal_off,PASS,1.0,1.0
+fixed,re-run,0,crash_detour,FAIL,0.2881,0.2881
+fixed,re-run,0,fallen_person,FAIL,0.1795,0.1672
+fixed,re-run,0,unauthorized_go,FAIL,0.0,0.0
+fixed,re-run,0,adjacent_lane,FAIL,0.0,0.0
+fixed,re-run,0,flagger_control,PASS,1.0,1.0
+fixed,re-run,0,ambulance_yield,PASS,0.8155,1.0
+fixed,re-run,0,occluded_officer,FAIL,0.0841,0.0292
+fixed,re-run,0,conflicting_authorities,FAIL,0.8241,0.8241
+fixed,re-run,0,sequential_directive,FAIL,0.0,0.0
+fixed,re-run,0,rule_hierarchy,FAIL,0.0,0.0
+fixed,re-run,0,ambiguous_gesture,PASS,1.0,1.0
+fixed,re-run,0,civilian_warning_accident,FAIL,0.2863,0.2863
+fixed,re-run,0,emergency_scene_blocking,FAIL,0.0,0.1761
+fixed,re-run,0,two_civilians_disagree,FAIL,0.2243,0.7675
+fixed,re-run,0,flagger_slow_then_stop,FAIL,0.1,0.25
+fixed,re-run,0,school_crossing_guard,FAIL,0.1,0.2634
+fixed,re-run,0,fake_vest_director,FAIL,0.0,0.0
+fixed,re-run,0,barricade_self_detour,FAIL,0.1192,0.1192
+fixed,re-run,0,stale_directive_residue,FAIL,0.3,0.3
+fixed,re-run,0,out_of_jurisdiction_director,PASS,1.0,1.0
+fixed,re-run,0,night_signal_officer_conflict,PASS,1.0,1.0
+fixed,re-run,0,dual_authority_handoff,FAIL,0.0,0.0
+fixed,re-run,1,green_stop,FAIL,0.0,0.0
+fixed,re-run,1,red_proceed,PASS,1.0,1.0
+fixed,re-run,1,signal_off,PASS,1.0,1.0
+fixed,re-run,1,crash_detour,FAIL,0.3467,0.3467
+fixed,re-run,1,fallen_person,FAIL,0.1693,0.1577
+fixed,re-run,1,unauthorized_go,FAIL,0.0,0.0
+fixed,re-run,1,adjacent_lane,FAIL,0.0,0.0
+fixed,re-run,1,flagger_control,PASS,1.0,1.0
+fixed,re-run,1,ambulance_yield,PASS,1.0,1.0
+fixed,re-run,1,occluded_officer,FAIL,0.0,0.0
+fixed,re-run,1,conflicting_authorities,FAIL,0.0,0.0
+fixed,re-run,1,sequential_directive,FAIL,0.0,0.0
+fixed,re-run,1,rule_hierarchy,FAIL,0.0,0.0
+fixed,re-run,1,ambiguous_gesture,PASS,1.0,1.0
+fixed,re-run,1,civilian_warning_accident,FAIL,0.3173,0.3173
+fixed,re-run,1,emergency_scene_blocking,FAIL,0.0,0.1706
+fixed,re-run,1,two_civilians_disagree,FAIL,0.7087,0.0
+fixed,re-run,1,flagger_slow_then_stop,FAIL,0.0,0.1
+fixed,re-run,1,school_crossing_guard,FAIL,0.1312,0.1583
+fixed,re-run,1,fake_vest_director,FAIL,0.0,0.0
+fixed,re-run,1,barricade_self_detour,FAIL,0.4793,0.4793
+fixed,re-run,1,stale_directive_residue,FAIL,0.2509,0.2509
+fixed,re-run,1,out_of_jurisdiction_director,PASS,1.0,1.0
+fixed,re-run,1,night_signal_officer_conflict,PASS,1.0,1.0
+fixed,re-run,1,dual_authority_handoff,FAIL,0.0,0.0
+fixed,re-run,2,green_stop,FAIL,0.0,0.0
+fixed,re-run,2,red_proceed,PASS,1.0,1.0
+fixed,re-run,2,signal_off,FAIL,0.0,0.0
+fixed,re-run,2,crash_detour,FAIL,0.3261,0.3261
+fixed,re-run,2,fallen_person,FAIL,0.1768,0.1646
+fixed,re-run,2,unauthorized_go,FAIL,0.0,0.0
+fixed,re-run,2,adjacent_lane,FAIL,0.0,0.0
+fixed,re-run,2,flagger_control,PASS,1.0,1.0
+fixed,re-run,2,ambulance_yield,PASS,0.7584,1.0
+fixed,re-run,2,occluded_officer,FAIL,0.0,0.0
+fixed,re-run,2,conflicting_authorities,FAIL,0.5569,0.0167
+fixed,re-run,2,sequential_directive,FAIL,0.0,0.0
+fixed,re-run,2,rule_hierarchy,FAIL,0.0,0.0
+fixed,re-run,2,ambiguous_gesture,PASS,1.0,1.0
+fixed,re-run,2,civilian_warning_accident,FAIL,0.3201,0.3201
+fixed,re-run,2,emergency_scene_blocking,FAIL,0.0,0.1735
+fixed,re-run,2,two_civilians_disagree,PASS,1.0,1.0
+fixed,re-run,2,flagger_slow_then_stop,FAIL,0.0,0.1
+fixed,re-run,2,school_crossing_guard,FAIL,0.1,0.0
+fixed,re-run,2,fake_vest_director,FAIL,0.452,0.3164
+fixed,re-run,2,barricade_self_detour,FAIL,0.1204,0.1204
+fixed,re-run,2,stale_directive_residue,FAIL,0.3,0.3
+fixed,re-run,2,out_of_jurisdiction_director,PASS,1.0,1.0
+fixed,re-run,2,night_signal_officer_conflict,PASS,1.0,1.0
+fixed,re-run,2,dual_authority_handoff,FAIL,0.0,0.0

@@ -1,0 +1,5 @@
+comparison,tau (all / non-priv)
+STOP/HOLD: Q-cont vs v2.2-final (all / non-priv),0.354 / 0.321
+STOP/HOLD: Q-cont vs Q-gate,0.552 / 0.504
+suite: Q-cont vs v2.2-final,0.495 / 0.333
+suite: Q-cont vs Q-gate,0.604 / 0.545

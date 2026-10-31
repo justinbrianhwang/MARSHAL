@@ -1,0 +1,4 @@
+MARSHAL_audit\reports\scoring_validity_audit\tests\test_engagement_timing.py::test_v2_engagement_depends_on_onset_relative_start PASSED [ 33%]
+MARSHAL_audit\reports\scoring_validity_audit\tests\test_engagement_timing.py::test_engagement_is_timing_invariant[v2] XFAIL [ 66%]
+MARSHAL_audit\reports\scoring_validity_audit\tests\test_engagement_timing.py::test_engagement_is_timing_invariant[A_prime] PASSED [100%]
+======================== 2 passed, 1 xfailed in 0.32s =========================

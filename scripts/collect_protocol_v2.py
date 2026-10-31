@@ -30,7 +30,11 @@ from marshal_bench.criteria import strict_episode_scoring as S  # noqa: E402
 from marshal_bench.criteria.marshal_metrics import CONFLICT_TYPE, CONFLICT_TYPE_ORDER  # noqa: E402
 
 VLM_MODELS = ("glm-4.5v", "qwen2.5-vl", "qwen3-vl")
-REQUIRED_SEEDS = {m: tuple(range(5)) for m in VLM_MODELS}  # every other model: seed 0
+REQUIRED_SEEDS = {**{m: tuple(range(5)) for m in VLM_MODELS}, "interfuser": (0, 1, 2)}  # every other model: seed 0
+# Leaderboard InterFuser adapter: original leaderboard sensors and route sampling, forward speed input. Episodes whose
+# metadata records anything else are refused, so runs of different adapter settings are never mixed in one row.
+INTERFUSER_FINAL = {"speed_input": "forward", "route_sample_m": 50, "sensor_profile": "leaderboard",
+                    "step_on_sensor_data": True, "hold_odd_step_control": True}
 TRACK = {"oracle": "A", "baseline": "-", "glm-4.5v": "C", "qwen2.5-vl": "C", "qwen3-vl": "C"}
 
 
@@ -73,6 +77,27 @@ def _schedule_problem(dts, capped: bool, period: float = 1.5):
     return None
 
 
+def interfuser_config_problem(meta) -> str | None:
+    """Reason an InterFuser episode was not run with INTERFUSER_FINAL (None when it was)."""
+    cfg = ((meta or {}).get("config") or {}).get("interfuser") or {}
+    bad = {k: cfg.get(k) for k, v in INTERFUSER_FINAL.items() if cfg.get(k) != v}
+    return f"InterFuser adapter settings differ from the leaderboard adapter: {bad}" if bad else None
+
+
+def _collision_identities(ep: Path, tel):
+    """(actor id or None, type id) of every counted collision event, in callback order: the type from events.json
+    (every event), the actor id from strict_telemetry metadata.collisions (first 20 events only). Returns None when
+    the two logs disagree; without events.json only the metadata events are identified."""
+    md = ((tel.get("metadata") if isinstance(tel, dict) else None) or {}).get("collisions") or []
+    events = _json(ep / "events.json")
+    if not isinstance(events, list):
+        return [(m.get("other_actor_id"), m.get("other_type_id")) for m in md]
+    types = [e["payload"].get("other_actor") for e in events if isinstance(e, dict) and e.get("name") == "collision"]
+    if any(i >= len(types) or types[i] != m.get("other_type_id") for i, m in enumerate(md)):
+        return None
+    return [(md[i].get("other_actor_id") if i < len(md) else None, t) for i, t in enumerate(types)]
+
+
 def _flat(d, prefix=""):
     out = {}
     for k, v in (d or {}).items():
@@ -99,6 +124,10 @@ def score_episode(ep: Path, scenario: str, registry, is_vlm: bool = False, is_ca
                                   ("metadata", (meta.get("config") or {}).get("protocol_version"))) if v is not None}
     if not versions or set(versions.values()) != {"v2"}:
         return {"accepted": False, "reason": f"protocol_version={versions!r}"}
+    if ep.parent.parent.name.replace("_cap3", "") == "interfuser":  # layout <runs>/<model>/s<seed>/<episode>
+        bad = interfuser_config_problem(meta)
+        if bad:
+            return {"accepted": False, "reason": bad}
     t_end = float(rows[-1]["sim_time"]) if rows else 0.0
     ts = [float(r["sim_time"]) for r in rows or []]
     if ts and (ts[0] > 0.1 + 1e-9 or max(b - a for a, b in zip(ts, ts[1:])) > 0.05 + 1e-6):
@@ -118,7 +147,10 @@ def score_episode(ep: Path, scenario: str, registry, is_vlm: bool = False, is_ca
               protocol="v2", decision_times=dts)
     inner = dict(res or {"scenario": scenario})
     s = S.score_episode_from_telemetry(inner, rows or [], **kw)
-    g = G.score_episode_from_telemetry(inner, rows or [], **kw)
+    ids = _collision_identities(ep, tel)
+    if ids is None:
+        return {"accepted": False, "reason": "collision events differ between events.json and strict_telemetry metadata"}
+    g = G.score_episode_from_telemetry(inner, rows or [], **kw, collision_identities=ids)
     if stored.get("verdict") == "INVALID" and s.get("verdict") != "INVALID":
         # errors recorded in-episode (e.g. controller-step exceptions) are not all re-loadable; keep INVALID
         s = {**s, "verdict": "INVALID", "reason": "in-episode scoring was INVALID: " + str(stored.get("reason"))}

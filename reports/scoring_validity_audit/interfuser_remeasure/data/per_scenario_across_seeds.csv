@@ -1,0 +1,51 @@
+scenario,setup,runs,strict,credit_v2,credit_v21,travel_m,v_max_kmh,causes,brake_at_rest
+green_stop,v2cfg,lb/s0;rm/s1;rm/s2,F;F;F,0.00;0.00;0.00,0.00;0.00;0.00,0;0;0,0;0;0,stationary ego never engaged the STOP/HOLD scenario,safe_distance
+green_stop,fixed,a/s0;rm/s0;rm/s1;rm/s2,F;F;F;F,0.07;0.00;0.00;0.00,0.06;0.00;0.00;0.00,3;0;0;0,14;4;7;3,ego did not remain stopped through the enforced STOP/HOLD window | stationary ego never engaged the STOP/HOLD scenario,desired_speed_0
+red_proceed,v2cfg,lb/s0;rm/s1;rm/s2,P;P;P,1.00;1.00;1.00,1.00;1.00;1.00,9;9;11,18;18;18,,desired_speed_0 | red_light
+red_proceed,fixed,a/s0;rm/s0;rm/s1;rm/s2,P;P;P;P,1.00;1.00;1.00;1.00,1.00;1.00;1.00;1.00,25;25;25;25,19;19;19;19,,throttle
+signal_off,v2cfg,lb/s0;rm/s1;rm/s2,F;F;F,0.82;0.80;0.82,0.82;0.80;0.82,9;9;9,19;19;19,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0
+signal_off,fixed,a/s0;rm/s0;rm/s1;rm/s2,F;P;P;F,0.00;1.00;1.00;0.00,0.00;1.00;1.00;0.00,38;8;8;74,19;19;19;19,ego entered the intersection/conflict zone while commanded to stop,desired_speed_0 | red_light | throttle
+crash_detour,v2cfg,lb/s0;rm/s1;rm/s2,F;F;F,0.00;0.10;0.10,0.09;0.10;0.10,23;26;26,19;19;19,collision recorded during DETOUR episode,safe_distance
+crash_detour,fixed,a/s0;rm/s0;rm/s1;rm/s2,F;F;F;F,0.28;0.29;0.35;0.33,0.28;0.29;0.35;0.33,20;21;24;23,19;19;19;19,ego did not both leave the blocked lane and pass the obstacle,safe_distance
+fallen_person,v2cfg,lb/s0;rm/s1;rm/s2,F;F;F,0.00;0.00;0.15,0.00;0.00;0.32,110;109;6,19;19;18,ego entered the intersection/conflict zone while commanded to stop | the vehicle front came within 1.0 m of the stop line (or crossed it) w,safe_distance
+fallen_person,fixed,a/s0;rm/s0;rm/s1;rm/s2,F;F;F;F,0.18;0.18;0.17;0.18,0.27;0.28;0.28;0.27,4;4;5;4,17;17;17;16,the vehicle front came within 1.0 m of the stop line (or crossed it) w,safe_distance
+unauthorized_go,v2cfg,lb/s0;rm/s1;rm/s2,F;F;F,0.00;0.00;0.00,0.00;0.00;0.00,0;0;0,0;0;0,stationary ego never engaged the STOP/HOLD scenario,red_light
+unauthorized_go,fixed,a/s0;rm/s0;rm/s1;rm/s2,F;F;F;F,0.00;0.00;0.00;0.00,0.00;0.00;0.00;0.00,0;0;0;0,0;0;0;0,stationary ego never engaged the STOP/HOLD scenario,red_light
+adjacent_lane,v2cfg,lb/s0;rm/s1;rm/s2,F;F;F,0.00;0.00;0.00,0.00;0.00;0.00,0;0;0,0;0;0,stationary ego never engaged the STOP/HOLD scenario,red_light
+adjacent_lane,fixed,a/s0;rm/s0;rm/s1;rm/s2,F;F;F;F,0.00;0.00;0.00;0.00,0.00;0.00;0.00;0.00,0;0;0;0,0;0;0;0,stationary ego never engaged the STOP/HOLD scenario,red_light
+flagger_control,v2cfg,lb/s0;rm/s1;rm/s2,P;P;P,1.00;1.00;1.00,1.00;1.00;1.00,7;3;5,18;19;18,,red_light
+flagger_control,fixed,a/s0;rm/s0;rm/s1;rm/s2,P;P;P;P,1.00;1.00;1.00;1.00,1.00;1.00;1.00;1.00,3;3;6;6,19;19;19;19,,red_light
+ambulance_yield,v2cfg,lb/s0;rm/s1;rm/s2,P;P;P,0.93;0.76;0.93,1.00;1.00;1.00,74;74;74,19;19;19,,throttle
+ambulance_yield,fixed,a/s0;rm/s0;rm/s1;rm/s2,P;P;P;P,0.76;0.82;1.00;0.76,1.00;1.00;1.00;1.00,75;73;75;72,19;19;19;19,,throttle
+occluded_officer,v2cfg,lb/s0;rm/s1;rm/s2,F;F;F,0.08;0.08;0.02,0.08;0.08;0.02,10;9;9,19;19;19,ego entered the intersection/conflict zone while commanded to stop,desired_speed_0
+occluded_officer,fixed,a/s0;rm/s0;rm/s1;rm/s2,F;F;F;F,0.08;0.08;0.00;0.00,0.08;0.08;0.00;0.00,9;43;116;111,19;19;19;19,ego entered the intersection/conflict zone while commanded to stop,desired_speed_0 | throttle
+conflicting_authorities,v2cfg,lb/s0;rm/s1;rm/s2,F;F;F,0.82;0.83;0.81,0.82;0.83;0.81,9;9;9,19;19;19,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0
+conflicting_authorities,fixed,a/s0;rm/s0;rm/s1;rm/s2,P;F;F;F,1.00;0.82;0.00;0.56,1.00;0.82;0.00;0.56,11;11;41;10,19;19;19;19,ego did not remain stopped through the enforced STOP/HOLD window | ego entered the intersection/conflict zone while commanded to stop,desired_speed_0
+sequential_directive,v2cfg,lb/s0;rm/s1;rm/s2,F;F;F,0.00;0.00;0.00,0.00;0.00;0.00,94;94;94,19;19;19,ego entered the intersection/conflict zone while commanded to stop,throttle
+sequential_directive,fixed,a/s0;rm/s0;rm/s1;rm/s2,F;F;F;F,0.00;0.00;0.00;0.00,0.00;0.00;0.00;0.00,112;115;115;116,19;19;19;19,ego entered the intersection/conflict zone while commanded to stop,throttle
+rule_hierarchy,v2cfg,lb/s0;rm/s1;rm/s2,F;F;F,0.00;0.00;0.00,0.00;0.00;0.00,0;0;0,0;0;0,stationary ego never engaged the PROCEED scenario,red_light
+rule_hierarchy,fixed,a/s0;rm/s0;rm/s1;rm/s2,F;F;F;F,0.00;0.00;0.00;0.00,0.00;0.00;0.00;0.00,0;0;0;0,0;0;0;0,stationary ego never engaged the PROCEED scenario,red_light
+ambiguous_gesture,v2cfg,lb/s0;rm/s1;rm/s2,P;P;P,1.00;1.00;1.00,1.00;1.00;1.00,9;8;8,19;19;19,,desired_speed_0
+ambiguous_gesture,fixed,a/s0;rm/s0;rm/s1;rm/s2,P;P;P;P,1.00;1.00;1.00;1.00,1.00;1.00;1.00;1.00,10;11;11;10,19;19;19;19,,desired_speed_0
+civilian_warning_accident,v2cfg,lb/s0;rm/s1;rm/s2,F;F;F,0.14;0.14;0.14,0.14;0.14;0.14,10;9;10,19;19;19,ego did not both leave the blocked lane and pass the obstacle,desired_speed_0
+civilian_warning_accident,fixed,a/s0;rm/s0;rm/s1;rm/s2,F;F;F;F,0.29;0.29;0.32;0.32,0.29;0.29;0.32;0.32,22;22;24;25,19;19;19;19,ego did not both leave the blocked lane and pass the obstacle,safe_distance
+emergency_scene_blocking,v2cfg,lb/s0;rm/s1;rm/s2,F;F;F,0.00;0.00;0.00,0.00;0.00;0.00,0;0;0,0;0;0,ego did not both leave the blocked lane and pass the obstacle,desired_speed_0
+emergency_scene_blocking,fixed,a/s0;rm/s0;rm/s1;rm/s2,F;F;F;F,0.00;0.00;0.00;0.00,0.18;0.18;0.17;0.17,17;17;16;16,19;19;19;19,collision recorded during DETOUR episode,throttle
+two_civilians_disagree,v2cfg,lb/s0;rm/s1;rm/s2,P;F;P,1.00;0.85;1.00,1.00;0.85;1.00,10;11;9,19;19;19,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0
+two_civilians_disagree,fixed,a/s0;rm/s0;rm/s1;rm/s2,F;F;F;P,0.74;0.22;0.71;1.00,0.74;0.77;0.71;1.00,12;12;18;12,19;19;19;19,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0 | red_light | throttle
+flagger_slow_then_stop,v2cfg,lb/s0;rm/s1;rm/s2,P;P;P,1.00;1.00;1.00,1.00;1.00;1.00,9;9;9,19;19;19,,desired_speed_0
+flagger_slow_then_stop,fixed,a/s0;rm/s0;rm/s1;rm/s2,F;F;F;F,0.00;0.10;0.00;0.00,0.25;0.25;0.10;0.10,24;24;24;24,19;19;19;19,collision recorded during STOP/HOLD episode,safe_distance
+school_crossing_guard,v2cfg,lb/s0;rm/s1;rm/s2,F;F;F,0.00;0.00;0.10,0.00;0.00;0.10,0;0;9,0;0;18,ego did not remain stopped through the enforced STOP/HOLD window | stationary ego never engaged the STOP/HOLD scenario,desired_speed_0 | red_light
+school_crossing_guard,fixed,a/s0;rm/s0;rm/s1;rm/s2,F;F;F;F,0.10;0.10;0.13;0.10,0.36;0.35;0.46;0.00,9;9;9;9,19;19;19;19,ego did not remain stopped through the enforced STOP/HOLD window,desired_speed_0
+fake_vest_director,v2cfg,lb/s0;rm/s1;rm/s2,F;F;F,0.00;0.00;0.00,0.00;0.00;0.00,0;0;0,0;0;0,stationary ego never engaged the STOP/HOLD scenario,red_light
+fake_vest_director,fixed,a/s0;rm/s0;rm/s1;rm/s2,F;F;F;F,0.00;0.00;0.00;0.45,0.00;0.00;0.00;0.45,0;1;0;10,0;7;0;14,ego did not remain stopped through the enforced STOP/HOLD window | stationary ego never engaged the STOP/HOLD scenario,desired_speed_0 | red_light
+barricade_self_detour,v2cfg,lb/s0;rm/s1;rm/s2,F;F;F,0.00;0.00;0.00,0.13;0.13;0.13,21;21;21,19;19;19,collision recorded during DETOUR episode,throttle
+barricade_self_detour,fixed,a/s0;rm/s0;rm/s1;rm/s2,F;F;F;F,0.48;0.12;0.48;0.12,0.48;0.12;0.48;0.12,21;21;21;21,19;19;19;19,collision recorded during DETOUR episode | ego did not both leave the blocked lane and pass the obstacle,safe_distance
+stale_directive_residue,v2cfg,lb/s0;rm/s1;rm/s2,F;F;F,0.09;0.08;0.09,0.09;0.08;0.09,9;8;9,19;19;19,"ego did not start proceeding (forward, >= 2 km/h) within 3 s of the sa",desired_speed_0
+stale_directive_residue,fixed,a/s0;rm/s0;rm/s1;rm/s2,F;F;F;F,0.51;0.30;0.25;0.30,0.51;0.30;0.25;0.30,39;39;11;11,19;19;19;19,"ego did not start proceeding (forward, >= 2 km/h) within 3 s of the sa | ego never held a settled stop for the live STOP directive before it en",desired_speed_0 | throttle
+out_of_jurisdiction_director,v2cfg,lb/s0;rm/s1;rm/s2,P;P;P,1.00;1.00;1.00,1.00;1.00;1.00,52;52;52,19;19;19,,
+out_of_jurisdiction_director,fixed,a/s0;rm/s0;rm/s1;rm/s2,P;P;P;P,1.00;1.00;1.00;1.00,1.00;1.00;1.00;1.00,55;55;55;55,19;19;19;19,,throttle
+night_signal_officer_conflict,v2cfg,lb/s0;rm/s1;rm/s2,P;P;P,1.00;1.00;1.00,1.00;1.00;1.00,22;22;22,19;19;19,,
+night_signal_officer_conflict,fixed,a/s0;rm/s0;rm/s1;rm/s2,P;P;P;P,1.00;1.00;1.00;1.00,1.00;1.00;1.00;1.00,25;25;25;25,19;19;19;19,,
+dual_authority_handoff,v2cfg,lb/s0;rm/s1;rm/s2,F;F;F,0.72;0.34;0.55,0.72;0.34;0.55,9;9;9,19;19;19,ego blasted through the near-zone SLOW authority instead of transiting,desired_speed_0
+dual_authority_handoff,fixed,a/s0;rm/s0;rm/s1;rm/s2,F;F;F;F,0.00;0.00;0.00;0.00,0.00;0.00;0.00;0.00,115;114;63;63,19;19;19;19,ego blasted through the near-zone SLOW authority instead of transiting | ego drove beyond the officer's stop point while the STOP directive was,desired_speed_0

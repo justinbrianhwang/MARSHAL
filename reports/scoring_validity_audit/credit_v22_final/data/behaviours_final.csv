@@ -1,0 +1,15 @@
+"behaviour (synthetic, green_stop)",strict,credit_v22_prefix,credit_final
+"normal stop (15 km/h, stop 2 m before the line)",PASS,1.0,1.0
+"launch after onset (1.5 s), stop 2 m before the line",FAIL,0.4102,0.4102
+"careful short stop (6 m before the line, ~1.4 m travel)",PASS,1.0,1.0
+"F2 lurch (audit, ~1.6 m)",PASS,1.0,1.0
+"late stop (8 km/h, brake at 7 s)",FAIL,0.0187,0.0123
+stop 0.5 m before the line (inside the 1 m margin),FAIL,0.5245,0.5245
+overrun: stop 2 m past the line (25 km/h),FAIL,0.1645,0.1178
+overrun: stop 10 m past the line (25 km/h),FAIL,0.0813,0.0554
+"stop-and-hold, go after the directive (14 s)",PASS,1.0,1.0
+"crawl from onset, settle 1.67 m/s2",FAIL,0.0,0.0
+"crawl from onset, settle 0.67 m/s2",FAIL,0.0,0.0
+constant 5 km/h,FAIL,0.0,0.0
+constant 25 km/h (drive-through),FAIL,0.0,0.0
+no start (park),FAIL,0.0,0.0

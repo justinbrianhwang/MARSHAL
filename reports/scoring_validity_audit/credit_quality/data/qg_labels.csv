@@ -1,0 +1,11 @@
+label,n,final_zero,final_mean,final_min,final_max,qgate_zero,qgate_mean,qgate_min,qgate_max,"within-label rho(Q-gate, held latency -)","within-label rho(Q-gate, min front +)","within-label rho(Q-gate, enforced speed -)"
+COLLISION,11,7,0.029,0.0,0.1,7,0.033,0.0,0.116,0.557,0.003,0.185
+CRAWL_THROUGH,3,3,0.0,0.0,0.0,3,0.0,0.0,0.0,,,
+CREEP_NO_STOP,20,20,0.0,0.0,0.0,0,0.146,0.098,0.179,,0.627,0.789
+DRIVE_THROUGH,114,114,0.0,0.0,0.0,114,0.0,0.0,0.0,,,
+LATE_STOP,20,3,0.196,0.0,0.677,0,0.695,0.432,0.932,0.552,0.6,0.663
+NO_START,139,139,0.0,0.0,0.0,139,0.0,0.0,0.0,,,
+OVERRUN_THEN_STOP,17,6,0.064,0.0,0.412,0,0.176,0.064,0.254,0.261,0.859,0.82
+PASS,43,0,1.0,1.0,1.0,0,0.96,0.833,1.0,0.496,0.731,-0.064
+STOP_NOT_HELD,24,13,0.15,0.0,0.526,0,0.527,0.124,0.976,-0.256,0.931,0.873
+STOP_POSITION,1,0,0.417,0.417,0.417,0,0.793,0.793,0.793,,,

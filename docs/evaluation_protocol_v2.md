@@ -87,7 +87,7 @@ relaxed for it.
 
 ```bash
 # from the workspace root (holds scripts/, marshal_bench/, CARLA_0.9.16/)
-python MARSHAL/scripts/run_protocol_v2.py --all                  # 25 scenarios; VLMs seeds 0-4, others seed 0
+python MARSHAL/scripts/run_protocol_v2.py --all                  # 25 scenarios; VLMs seeds 0-4, InterFuser 0-2, others seed 0
 python MARSHAL/scripts/run_protocol_v2.py --vlm-cap-comparison   # green_stop, 3-query cap, seeds 0-4
 python MARSHAL/scripts/collect_protocol_v2.py --runs tmp/_protocol_v2 --out outputs/protocol_v2
 ```

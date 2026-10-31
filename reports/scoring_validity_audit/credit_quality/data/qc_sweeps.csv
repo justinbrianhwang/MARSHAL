@@ -1,0 +1,29 @@
+family [S],value,episode,strict,label,SV-LINE,SV-NOHOLD,SV-CONTACT,SV-SPEED,peak_kmh,travel_m,min_front_m,v_cross_kmh,enforced_max_kmh,first_stop_s,held_latency_s,stopped_share,longest_stop_s,contacts,credit_final,Q_gate,Q_cont,L,V,R,H,C,P,dQ-cont per unit from previous
+"overrun depth, 25 km/h then stop (m past the line)",0.0,"overrun depth, 25 km/h then stop (m past the line): 0.0",FAIL,STOP_POSITION,0,0,0,0,19.44,7.41,0.0,,0.0,1.9,1.9,1.0,10.1,0,0.486,0.778,0.975,0.85,1.0,1.0,1.0,1.0,1.0,
+"overrun depth, 25 km/h then stop (m past the line)",2.0,"overrun depth, 25 km/h then stop (m past the line): 2.0",FAIL,OVERRUN_THEN_STOP,1,0,0,0,21.85,9.41,-2.0,14.65,0.0,2.2,2.2,1.0,9.8,0,0.118,0.233,0.95,0.7,1.0,1.0,1.0,1.0,1.0,-0.0125
+"overrun depth, 25 km/h then stop (m past the line)",10.0,"overrun depth, 25 km/h then stop (m past the line): 10.0",FAIL,OVERRUN_THEN_STOP,1,0,0,0,25.0,17.41,-10.0,25.0,6.38,3.4,3.4,0.956,8.6,0,0.055,0.198,0.865,0.462,0.814,0.956,0.956,1.0,1.0,-0.0107
+"overrun depth, 25 km/h then stop (m past the line)",30.0,"overrun depth, 25 km/h then stop (m past the line): 30.0",FAIL,OVERRUN_THEN_STOP,1,0,0,1,25.0,37.41,-30.0,25.0,25.0,6.3,6.3,0.635,5.7,0,0.0,0.115,0.615,0.249,0.172,0.633,0.635,1.0,1.0,-0.0125
+"overrun depth, 25 km/h then stop (m past the line)",70.0,"overrun depth, 25 km/h then stop (m past the line): 70.0",FAIL,DRIVE_THROUGH,1,1,0,1,25.0,77.4,-69.99,25.0,25.0,,,0.0,0.0,0,0.0,0.0,0.374,0.073,0.172,0.0,0.0,1.0,1.0,-0.006
+drive-through speed (constant km/h),5,drive-through speed (constant km/h): 5,FAIL,CRAWL_THROUGH,1,1,0,0,5.0,17.7,-10.3,5.0,5.0,,,0.0,0.0,0,0.0,0.0,0.553,0.456,0.862,0.0,0.0,1.0,1.0,
+drive-through speed (constant km/h),8,drive-through speed (constant km/h): 8,FAIL,CRAWL_THROUGH,1,1,0,0,8.0,27.95,-20.55,8.0,8.0,,,0.0,0.0,0,0.0,0.0,0.514,0.325,0.759,0.0,0.0,1.0,1.0,-0.013
+drive-through speed (constant km/h),12,drive-through speed (constant km/h): 12,FAIL,DRIVE_THROUGH,1,1,0,0,12.0,41.19,-33.79,12.0,12.0,,,0.0,0.0,0,0.0,0.0,0.474,0.225,0.621,0.0,0.0,1.0,1.0,-0.0099
+drive-through speed (constant km/h),18,drive-through speed (constant km/h): 18,FAIL,DRIVE_THROUGH,1,1,0,1,18.0,60.12,-52.72,18.0,18.0,,,0.0,0.0,0,0.0,0.0,0.424,0.133,0.414,0.0,0.0,1.0,1.0,-0.0083
+drive-through speed (constant km/h),25,drive-through speed (constant km/h): 25,FAIL,DRIVE_THROUGH,1,1,0,1,25.0,80.8,-73.4,22.05,25.0,,,0.0,0.0,0,0.0,0.0,0.373,0.063,0.172,0.0,0.0,1.0,1.0,-0.0074
+"reaction: 8 km/h, brake at t s (signal_off)",2.0,"reaction: 8 km/h, brake at t s (signal_off): 2.0",PASS,PASS,0,0,0,0,8.0,4.5,17.06,,0.0,1.35,1.35,1.0,10.65,0,1.0,0.994,1.0,1.0,1.0,1.0,1.0,1.0,1.0,
+"reaction: 8 km/h, brake at t s (signal_off)",4.0,"reaction: 8 km/h, brake at t s (signal_off): 4.0",FAIL,LATE_STOP,0,0,0,0,8.0,8.94,12.62,,8.0,3.4,3.4,0.956,8.6,0,0.382,0.866,0.945,1.0,0.759,0.956,0.956,1.0,1.0,-0.0275
+"reaction: 8 km/h, brake at t s (signal_off)",6.0,"reaction: 8 km/h, brake at t s (signal_off): 6.0",FAIL,LATE_STOP,0,0,0,0,8.0,13.39,8.17,,8.0,5.4,5.4,0.735,6.6,0,0.321,0.758,0.871,1.0,0.759,0.733,0.735,1.0,1.0,-0.0369
+"reaction: 8 km/h, brake at t s (signal_off)",8.0,"reaction: 8 km/h, brake at t s (signal_off): 8.0",FAIL,LATE_STOP,0,0,0,0,8.0,17.83,3.73,,8.0,7.4,7.4,0.514,4.6,0,0.074,0.637,0.797,1.0,0.759,0.511,0.514,1.0,1.0,-0.0369
+hold before 5 km/h relaunch (s),0.5,hold before 5 km/h relaunch (s): 0.5,FAIL,CRAWL_THROUGH,1,1,0,0,11.34,16.86,-9.45,5.0,5.0,1.25,,0.0,0.75,0,0.0,0.0,0.622,0.472,0.862,0.4,0.0,1.0,1.0,
+hold before 5 km/h relaunch (s),2.5,hold before 5 km/h relaunch (s): 2.5,FAIL,STOP_NOT_HELD,1,0,0,0,11.34,14.08,-6.67,5.0,5.0,1.25,1.25,0.116,2.75,0,0.08,0.161,0.752,0.532,0.862,1.0,0.116,1.0,1.0,0.0647
+hold before 5 km/h relaunch (s),4.0,hold before 5 km/h relaunch (s): 4.0,FAIL,STOP_NOT_HELD,1,0,0,0,11.34,12.0,-4.59,5.0,5.0,1.25,1.25,0.282,4.25,0,0.08,0.17,0.789,0.591,0.862,1.0,0.282,1.0,1.0,0.025
+hold before 5 km/h relaunch (s),8.0,hold before 5 km/h relaunch (s): 8.0,FAIL,STOP_NOT_HELD,0,0,0,0,11.34,6.44,0.97,,5.0,1.25,1.25,0.724,8.25,0,0.382,0.725,0.93,0.994,0.862,1.0,0.724,1.0,1.0,0.0352
+hold before 5 km/h relaunch (s),99.0,hold before 5 km/h relaunch (s): 99.0,PASS,PASS,0,0,0,0,11.34,3.41,4.0,,0.0,1.25,1.25,1.0,10.75,0,1.0,0.961,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0008
+contacts (normal stop),0,contacts (normal stop): 0,PASS,PASS,0,0,0,0,13.05,5.41,2.0,,0.0,2.05,2.05,1.0,9.95,0,1.0,0.931,1.0,1.0,1.0,1.0,1.0,1.0,1.0,
+contacts (normal stop),1,contacts (normal stop): 1,FAIL,COLLISION,0,0,1,0,13.05,5.41,2.0,,0.0,2.05,2.05,1.0,9.95,1,0.25,0.202,0.875,1.0,1.0,1.0,1.0,0.25,1.0,-0.125
+contacts (normal stop),2,contacts (normal stop): 2,FAIL,COLLISION,0,0,1,0,13.05,5.41,2.0,,0.0,2.05,2.05,1.0,9.95,2,0.1,0.078,0.85,1.0,1.0,1.0,1.0,0.1,1.0,-0.025
+contacts (normal stop),6,contacts (normal stop): 6,FAIL,COLLISION,0,0,1,0,13.05,5.41,2.0,,0.0,2.05,2.05,1.0,9.95,6,0.0,0.0,0.833,1.0,1.0,1.0,1.0,0.0,1.0,-0.0042
+"travel (m, 8 km/h short stop)",0.0,"travel (m, 8 km/h short stop): 0.0",FAIL,NO_START,0,0,0,0,0.0,0.0,7.41,,0.0,0.0,0.0,1.0,12.0,0,0.0,0.0,0.833,1.0,1.0,1.0,1.0,1.0,0.0,
+"travel (m, 8 km/h short stop)",0.5,"travel (m, 8 km/h short stop): 0.5",FAIL,NO_START,0,0,0,0,0.85,0.5,6.91,,0.0,0.0,0.0,1.0,12.0,0,0.0,0.0,0.917,1.0,1.0,1.0,1.0,1.0,0.5,0.1667
+"travel (m, 8 km/h short stop)",0.9,"travel (m, 8 km/h short stop): 0.9",FAIL,NO_START,0,0,0,0,3.6,0.9,6.51,,0.0,0.3,0.3,1.0,11.7,0,0.0,0.0,0.983,1.0,1.0,1.0,1.0,1.0,0.9,0.1667
+"travel (m, 8 km/h short stop)",1.2,"travel (m, 8 km/h short stop): 1.2",PASS,PASS,0,0,0,0,5.27,1.2,6.21,,0.0,0.5,0.5,1.0,11.5,0,1.0,0.993,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0556
+"travel (m, 8 km/h short stop)",2.0,"travel (m, 8 km/h short stop): 2.0",PASS,PASS,0,0,0,0,8.0,2.0,5.41,,0.0,0.9,0.9,1.0,11.1,0,1.0,0.983,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0

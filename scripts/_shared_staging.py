@@ -252,6 +252,23 @@ def load_staged_config(
     return cfg
 
 
+def apply_controller_overrides(cfg: dict) -> dict:
+    """DIAGNOSTIC (integration-deviation controls): deep-merge the JSON object in
+    MARSHAL_CONTROLLER_OVERRIDES into the final episode config, e.g.
+    '{"transfuser": {"action_repeat": 1}}' or '{"tcp": {"lookahead_m": 50}}'.
+    Runners call this AFTER writing their per-controller config block. The
+    applied object is recorded as cfg["controller_overrides"]. Unset = no-op."""
+    raw = os.environ.get("MARSHAL_CONTROLLER_OVERRIDES")
+    if not raw:
+        return cfg
+    extra = json.loads(raw)
+    if not isinstance(extra, dict):
+        raise ValueError("MARSHAL_CONTROLLER_OVERRIDES must be a JSON object")
+    deep_merge(cfg, extra)
+    cfg["controller_overrides"] = extra
+    return cfg
+
+
 def staging_bits(scenario: str) -> List[str]:
     bits: List[str] = []
     override = VISIBLE_OFFICER_OVERRIDES.get(scenario, {})

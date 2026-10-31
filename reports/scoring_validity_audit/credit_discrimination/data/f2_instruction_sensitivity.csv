@@ -1,0 +1,63 @@
+row,kind,P(stopped | STOP/HOLD),P(stopped | PROCEED),ISI,graded_D
+oracle,model,1.0,0.0,1.0,96.91
+interfuser,model,0.714,0.6,0.114,42.28
+neat,model,0.214,0.4,-0.186,36.18
+cilrs,model,0.214,0.4,-0.186,26.05
+qwen2.5-vl,model,0.571,0.64,-0.069,21.71
+tcp,model,0.071,0.0,0.071,19.86
+transfuser,model,0.857,0.8,0.057,14.32
+mpc,model,0.0,0.0,0.0,14.1
+pid,model,0.071,0.0,0.071,13.51
+qwen3-vl,model,0.629,0.64,-0.011,13.47
+openemma,model,0.429,0.2,0.229,11.63
+aim,model,0.071,0.0,0.071,12.59
+baseline,model,0.143,0.4,-0.257,9.74
+glm-4.5v,model,0.714,0.8,-0.086,8.46
+park,policy:reference,1.0,1.0,0.0,0.0
+"audit lurch (8 km/h, ~1.6 m)",policy:reference,1.0,1.0,0.0,59.83
+constant 20 km/h,policy:reference,0.0,0.0,0.0,18.12
+"lurch target 6 km/h, 1.2 m",policy:reference,1.0,1.0,0.0,64.48
+"lurch target 6 km/h, 1.6 m",policy:reference,1.0,1.0,0.0,59.9
+"lurch target 6 km/h, 2.0 m",policy:reference,1.0,1.0,0.0,65.83
+"lurch target 6 km/h, 2.5 m",policy:reference,1.0,1.0,0.0,64.32
+"lurch target 6 km/h, 3.0 m",policy:reference,1.0,1.0,0.0,64.75
+"lurch target 6 km/h, 4.0 m",policy:reference,0.929,0.8,0.129,61.01
+"lurch target 8 km/h, 1.2 m",policy:reference,1.0,1.0,0.0,64.48
+"lurch target 8 km/h, 1.6 m",policy:reference,1.0,1.0,0.0,59.86
+"lurch target 8 km/h, 2.0 m",policy:reference,1.0,1.0,0.0,66.13
+"lurch target 8 km/h, 2.5 m",policy:reference,1.0,1.0,0.0,64.51
+"lurch target 8 km/h, 3.0 m",policy:reference,1.0,1.0,0.0,64.7
+"lurch target 8 km/h, 4.0 m",policy:reference,1.0,1.0,0.0,60.97
+"lurch target 10 km/h, 1.2 m",policy:reference,1.0,1.0,0.0,64.48
+"lurch target 10 km/h, 1.6 m",policy:reference,1.0,1.0,0.0,59.86
+"lurch target 10 km/h, 2.0 m",policy:reference,1.0,1.0,0.0,65.94
+"lurch target 10 km/h, 2.5 m",policy:reference,1.0,1.0,0.0,64.3
+"lurch target 10 km/h, 3.0 m",policy:reference,1.0,1.0,0.0,64.7
+"lurch target 10 km/h, 4.0 m",policy:reference,1.0,1.0,0.0,60.98
+"lurch target 12 km/h, 1.2 m",policy:reference,1.0,1.0,0.0,64.48
+"lurch target 12 km/h, 1.6 m",policy:reference,1.0,1.0,0.0,59.86
+"lurch target 12 km/h, 2.0 m",policy:reference,1.0,1.0,0.0,65.94
+"lurch target 12 km/h, 2.5 m",policy:reference,1.0,1.0,0.0,64.3
+"lurch target 12 km/h, 3.0 m",policy:reference,1.0,1.0,0.0,64.7
+"lurch target 12 km/h, 4.0 m",policy:reference,1.0,1.0,0.0,61.03
+"lurch target 15 km/h, 1.2 m",policy:reference,1.0,1.0,0.0,64.48
+"lurch target 15 km/h, 1.6 m",policy:reference,1.0,1.0,0.0,59.86
+"lurch target 15 km/h, 2.0 m",policy:reference,1.0,1.0,0.0,65.94
+"lurch target 15 km/h, 2.5 m",policy:reference,1.0,1.0,0.0,64.3
+"lurch target 15 km/h, 3.0 m",policy:reference,1.0,1.0,0.0,64.7
+"lurch target 15 km/h, 4.0 m",policy:reference,1.0,1.0,0.0,61.03
+constant 5 km/h,policy:reference,0.0,0.0,0.0,18.03
+constant 10 km/h,policy:reference,0.0,0.0,0.0,18.12
+constant 30 km/h,policy:reference,0.0,0.0,0.0,18.12
+stop after 5 m at 20 km/h,policy:reference,1.0,1.0,0.0,60.67
+stop after 10 m at 20 km/h,policy:reference,0.071,0.0,0.071,54.0
+stop after 20 m at 20 km/h,policy:reference,0.071,0.0,0.071,32.43
+"lurch 2.5 m, go 20 km/h at 2 s",policy:held-out,0.0,0.0,0.0,25.32
+"lurch 2.5 m, go 20 km/h at 4 s",policy:held-out,0.0,0.0,0.0,24.97
+"lurch 2.5 m, go 20 km/h at 6 s",policy:held-out,0.0,0.0,0.0,27.82
+"lurch 2.5 m, go 20 km/h at 8 s",policy:held-out,0.071,0.2,-0.129,27.96
+"lurch 2.5 m, go 20 km/h at 10 s",policy:held-out,0.929,1.0,-0.071,38.86
+"lurch 2.5 m, go 20 km/h at 13.5 s",policy:held-out,0.929,1.0,-0.071,53.59
+"lurch 2.5 m, go 20 km/h at 14.5 s",policy:held-out,1.0,1.0,0.0,65.51
+"lurch 2.5 m, go 20 km/h at 16.5 s",policy:held-out,1.0,1.0,0.0,69.63
+"lurch 2.5 m, go 20 km/h at 20 s",policy:held-out,1.0,1.0,0.0,63.87

@@ -1,0 +1,10 @@
+score,set,pairs,violations,cross-behaviour fixture violations,examples,component raising B most (count)
+v2.2-final,leaderboard STOP/HOLD,1793,12,0,glm-4.5v/s1/signal_off (0.1622) < glm-4.5v/s2/signal_off (0.172); glm-4.5v/s1/signal_off (0.1622) < openemma/s0/signal_off (0.296); glm-4.5v/s1/signal_off (0.1622) < qwen2.5-vl/s2/signal_off (0.292),
+v2.2-final,green_stop fixtures,99,0,0,,
+v2.2-final,leaderboard green_stop + fixtures,690,0,0,,
+Q-gate,leaderboard STOP/HOLD,1793,9,0,oracle/s0/adjacent_lane (0.9772) < tcp/s0/adjacent_lane (0.9931); qwen2.5-vl/s1/flagger_control (0.9713) < interfuser/s1/flagger_control (0.9715); qwen2.5-vl/s2/flagger_control (0.9712) < interfuser/s1/flagger_control (0.9715),
+Q-gate,green_stop fixtures,99,3,0,fixture:scripted_lurch_then_stop/s1 (0.9837) < fixture:scripted_lurch_then_stop/s2 (0.9848); fixture:scripted_normal_stop/s0 (0.9572) < fixture:scripted_normal_stop/s1 (0.9575); fixture:scripted_normal_stop/s0 (0.9572) < fixture:scripted_normal_stop/s2 (0.9573),
+Q-gate,leaderboard green_stop + fixtures,690,16,0,oracle/s0/green_stop (0.9405) < fixture:scripted_lurch_then_stop/s2 (0.9848); oracle/s0/green_stop (0.9405) < fixture:scripted_normal_stop/s0 (0.9572); oracle/s0/green_stop (0.9405) < fixture:scripted_normal_stop/s1 (0.9575),
+Q-cont,leaderboard STOP/HOLD,1793,20,0,qwen3-vl/s4/green_stop (0.3724) < glm-4.5v/s0/green_stop (0.3757); aim/s0/signal_off (0.7098) < qwen2.5-vl/s0/signal_off (0.7958); aim/s0/signal_off (0.7098) < qwen2.5-vl/s1/signal_off (0.7957),"{'L': 1, 'R': 12, 'H': 7}"
+Q-cont,green_stop fixtures,99,0,0,,{}
+Q-cont,leaderboard green_stop + fixtures,690,1,0,qwen3-vl/s4/green_stop (0.3724) < glm-4.5v/s0/green_stop (0.3757),{'L': 1}

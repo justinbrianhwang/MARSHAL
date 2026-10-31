@@ -1,0 +1,9 @@
+set,tau vs this setting's equal weights,min,p05,median,p95,fixture order broken (of 1000)
+"reference applicability, full simplex",all,0.055,0.385,0.824,0.934,0
+"reference applicability, full simplex",non-priv,-0.061,0.303,0.758,0.939,0
+"reference applicability, grid region",all,0.385,0.78,0.846,0.934,0
+"reference applicability, grid region",non-priv,0.303,0.727,0.788,0.909,0
+"RH_app + C_cond + P_cond, full simplex",all,0.56,0.714,0.868,0.978,0
+"RH_app + C_cond + P_cond, full simplex",non-priv,0.515,0.636,0.848,0.97,0
+"RH_app + C_cond + P_cond, grid region",all,0.626,0.714,0.802,0.956,0
+"RH_app + C_cond + P_cond, grid region",non-priv,0.606,0.727,0.848,0.939,0

@@ -125,7 +125,7 @@ def matrix(cells, board):
             cs = by[(s, m)]
             k = sum(c["strict"] == "PASS" for c in cs)
             mean = 100 * st.mean(c["credit"] for c in cs)
-            if m in VLMS:
+            if len(cs) > 1:
                 row.append(f"{mean:.0f} ({k}/{len(cs)})")
             else:
                 row.append(f"{mean:.0f}" + (" P" if k else ""))
@@ -363,7 +363,8 @@ def figure(board, out_dir: Path):
         ax.text(r["graded_mean"] + (r["graded_sd"] or 0) + 1, i, txt, va="center", fontsize=8)
     ax.set_xlim(0, 110)
     ax.set_xlabel("MARSHAL-Graded (0–100), protocol v2")
-    ax.set_title("25 scenarios, 25 s fixed horizon; † VLM-based closed-loop controller, mean ± SD over seeds 0–4",
+    ax.set_title("25 scenarios, 25 s fixed horizon; † VLM-based closed-loop controller; mean ± SD over seeds "
+                 "(VLMs 0–4, InterFuser 0–2)",
                  fontsize=8)
     ax.spines[["top", "right"]].set_visible(False)
     fig.tight_layout()

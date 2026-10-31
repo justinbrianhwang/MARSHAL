@@ -1,0 +1,49 @@
+policy,suite Q-cont,STOP/HOLD Q-cont
+park,47.55,83.33
+"audit lurch (8 km/h, ~1.6 m)",64.52,99.97
+constant 20 km/h,41.71,41.35
+"lurch target 6 km/h, 1.2 m",64.48,100.0
+"lurch target 6 km/h, 1.6 m",64.59,99.97
+"lurch target 6 km/h, 2.0 m",70.38,99.88
+"lurch target 6 km/h, 2.5 m",71.25,99.74
+"lurch target 6 km/h, 3.0 m",71.5,99.62
+"lurch target 6 km/h, 4.0 m",71.66,99.27
+"lurch target 8 km/h, 1.2 m",64.48,100.0
+"lurch target 8 km/h, 1.6 m",64.55,99.97
+"lurch target 8 km/h, 2.0 m",70.7,99.88
+"lurch target 8 km/h, 2.5 m",71.25,99.74
+"lurch target 8 km/h, 3.0 m",71.46,99.62
+"lurch target 8 km/h, 4.0 m",71.65,99.32
+"lurch target 10 km/h, 1.2 m",64.48,100.0
+"lurch target 10 km/h, 1.6 m",64.55,99.97
+"lurch target 10 km/h, 2.0 m",70.51,99.88
+"lurch target 10 km/h, 2.5 m",71.23,99.74
+"lurch target 10 km/h, 3.0 m",71.47,99.62
+"lurch target 10 km/h, 4.0 m",71.67,99.32
+"lurch target 12 km/h, 1.2 m",64.48,100.0
+"lurch target 12 km/h, 1.6 m",64.55,99.97
+"lurch target 12 km/h, 2.0 m",70.51,99.88
+"lurch target 12 km/h, 2.5 m",71.23,99.74
+"lurch target 12 km/h, 3.0 m",71.47,99.62
+"lurch target 12 km/h, 4.0 m",71.71,99.32
+"lurch target 15 km/h, 1.2 m",64.48,100.0
+"lurch target 15 km/h, 1.6 m",64.55,99.97
+"lurch target 15 km/h, 2.0 m",70.51,99.88
+"lurch target 15 km/h, 2.5 m",71.23,99.74
+"lurch target 15 km/h, 3.0 m",71.47,99.62
+"lurch target 15 km/h, 4.0 m",71.71,99.32
+constant 5 km/h,52.49,60.39
+constant 10 km/h,47.01,50.64
+constant 30 km/h,37.55,34.05
+stop after 5 m at 20 km/h,71.93,99.08
+stop after 10 m at 20 km/h,76.01,96.52
+stop after 20 m at 20 km/h,65.4,80.8
+"lurch 2.5 m, go 20 km/h at 2 s",51.29,43.11
+"lurch 2.5 m, go 20 km/h at 4 s",59.68,58.66
+"lurch 2.5 m, go 20 km/h at 6 s",63.85,63.14
+"lurch 2.5 m, go 20 km/h at 8 s",66.01,69.15
+"lurch 2.5 m, go 20 km/h at 10 s",69.6,76.55
+"lurch 2.5 m, go 20 km/h at 13.5 s",77.64,92.41
+"lurch 2.5 m, go 20 km/h at 14.5 s",78.22,93.59
+"lurch 2.5 m, go 20 km/h at 16.5 s",79.53,95.88
+"lurch 2.5 m, go 20 km/h at 20 s",74.13,96.51

@@ -1,0 +1,9 @@
+condition,seed,travel_m,v_max_kmh,final_front_to_line_m,first_brake_at_rest_s,brake_branch,strict,credit_v22_final
+officer present (STOP),0,1.29,8.69,6.1,1.1,"desired_speed_0 (d_1.5, d_2)",FAIL,0.0
+officer present (STOP),1,0.02,1.25,7.36,1.05,"desired_speed_0 (d_1.5, d_2)",FAIL,0.0
+officer present (STOP),2,0.59,7.45,6.79,1.6,"desired_speed_0 (d_1.5, d_2)",FAIL,0.0
+"officer absent, light Green",0,4.12,14.81,3.27,2.25,"desired_speed_0 (d_1.5, d_2)",–,–
+"officer absent, light Green",1,0.32,3.54,7.06,1.2,"desired_speed_0 (d_1.5, d_2)",–,–
+"officer absent, light Green",2,63.07,19.06,-55.69,1.05,"desired_speed_0 (d_1.5, d_2)",–,–
+"officer absent, light Green",3,0.3,3.23,7.08,1.05,"desired_speed_0 (d_1.5, d_2)",–,–
+"officer absent, light Green",4,0.29,3.24,7.1,1.1,"desired_speed_0 (d_1.5, d_2)",–,–

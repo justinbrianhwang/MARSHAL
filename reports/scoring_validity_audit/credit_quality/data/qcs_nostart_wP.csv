@@ -1,0 +1,16 @@
+case,L,V,R,H,C,P,closed form,w_P* where no-start falls below,no-start,late-stop fixture,overshoot fixture,AIM creep (green_stop),Qwen2.5-VL s1 relaunch (green_stop),median drive-through (all 114),median drive-through (green_stop)
+no-start fixture (s0),1.0,1.0,1.0,1.0,1.0,0.01,(5.000 + 0.010 w_P) / (5 + w_P),,,,,,,,
+late-stop fixture: fixture:scripted_late_stop/s0,0.948,0.793,0.983,0.983,1.0,1.0,(4.707 + 1.000 w_P) / (5 + w_P),0.3,,,,,,,
+overshoot fixture: fixture:scripted_overshoot/s0,0.685,0.723,0.917,0.917,1.0,1.0,(4.242 + 1.000 w_P) / (5 + w_P),0.77,,,,,,,
+AIM creep (green_stop): aim/s0/green_stop,1.0,0.852,0.025,0.425,1.0,1.0,(3.302 + 1.000 w_P) / (5 + w_P),1.72,,,,,,,
+Qwen2.5-VL s1 relaunch (green_stop): qwen2.5-vl/s1/green_stop,0.635,0.389,1.0,0.762,1.0,1.0,(3.786 + 1.000 w_P) / (5 + w_P),1.23,,,,,,,
+median drive-through (all 114): baseline/s0/conflicting_authorities,0.123,0.212,0.0,0.0,1.0,1.0,(1.335 + 1.000 w_P) / (5 + w_P),3.7,,,,,,,
+median drive-through (green_stop): glm-4.5v/s1/green_stop,0.073,0.153,0.0,0.0,1.0,1.0,(1.227 + 1.000 w_P) / (5 + w_P),3.81,,,,,,,
+w_P = 0.25,,,,,,,,,0.953,0.944,0.856,0.677,0.769,0.302,0.281
+w_P = 0.5,,,,,,,,,0.91,0.947,0.862,0.691,0.779,0.334,0.314
+w_P = 1,,,,,,,,,0.835,0.951,0.874,0.717,0.798,0.389,0.371
+w_P = 2,,,,,,,,,0.717,0.958,0.892,0.757,0.827,0.476,0.461
+w_P = 3,,,,,,,,,0.629,0.963,0.905,0.788,0.848,0.542,0.528
+w_P = 4,,,,,,,,,0.56,0.967,0.916,0.811,0.865,0.593,0.581
+w_P = 5,,,,,,,,,0.505,0.971,0.924,0.83,0.879,0.634,0.623
+w_P = 8,,,,,,,,,0.391,0.977,0.942,0.869,0.907,0.718,0.71

@@ -1329,6 +1329,21 @@ def _location_from_transform_or_actor(obj: Any) -> Optional[Any]:
     return None
 
 
+def _nearest_other_vehicle_distance_m(
+    vehicles: Any, ego_id: Any, ego_loc: Any,
+) -> Optional[float]:
+    """Centre-to-centre distance to the nearest vehicle actor that is not the
+    ego (telemetry only; no scoring reads it). None when there is none."""
+    best = None
+    for v in vehicles or ():
+        if getattr(v, "id", None) == ego_id:
+            continue
+        d = _distance_between_locations(ego_loc, _location_from_transform_or_actor(v))
+        if math.isfinite(d) and (best is None or d < best):
+            best = d
+    return best
+
+
 def _distance_between_locations(a: Any, b: Any) -> float:
     if a is None or b is None:
         return float("nan")
@@ -2477,6 +2492,12 @@ def run_scenario(
                             distance_to_pedestrian = _d
                 except Exception:
                     distance_to_pedestrian = None
+                # Telemetry only: nearest other vehicle (ego excluded).
+                try:
+                    distance_to_vehicle = _nearest_other_vehicle_distance_m(
+                        world.get_actors().filter("vehicle.*"), ctx.ego.id, ego_loc)
+                except Exception:
+                    distance_to_vehicle = None
                 _yaw_deg = None
                 try:
                     _yaw_deg = float(ctx.ego.get_transform().rotation.yaw)
@@ -2562,6 +2583,7 @@ def run_scenario(
                     "ego_lane_id": ego_lane_id,
                     "ego_road_id": ego_road_id,
                     "distance_to_pedestrian_m": distance_to_pedestrian,
+                    "distance_to_vehicle_m": distance_to_vehicle,
                     "collision_count": collision_count,
                     "officer_gesture_id": str(officer_meta_now.get("gesture_id", "UNKNOWN")),
                     "officer_onset_time": onset_now,

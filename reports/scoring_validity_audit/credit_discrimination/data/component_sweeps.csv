@@ -1,0 +1,41 @@
+sweep,value,strict,label,speed_margin,clearance,no_conflict,e,approach_speed,approach_progress,F_lat,latency_s,F_safe,G_move,credit_final,credit_D,F_lat_D
+"stop position (front to line, m; 15 km/h)",+6,PASS,PASS,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.5,1.0,1,1.0,1.0,1.0
+"stop position (front to line, m; 15 km/h)",+4,PASS,PASS,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.25,1.0,1,1.0,1.0,1.0
+"stop position (front to line, m; 15 km/h)",+2,PASS,PASS,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.8,1.0,1,1.0,1.0,1.0
+"stop position (front to line, m; 15 km/h)",+1,PASS,PASS,1.0,1.0,1.0,1.0,1.0,1.0,1.0,2.05,1.0,1,1.0,1.0,1.0
+"stop position (front to line, m; 15 km/h)",+0.5,FAIL,STOP_POSITION,1.0,0.8336,1.0,0.543,1.0,0.543,1.0,2.2,1.0,1,0.5069,0.5069,1.0
+"stop position (front to line, m; 15 km/h)",+0,FAIL,STOP_POSITION,1.0,0.6669,1.0,0.5986,1.0,0.5986,1.0,2.3,1.0,1,0.5189,0.5189,1.0
+"stop position (front to line, m; 15 km/h)",-0.5,FAIL,OVERRUN_THEN_STOP,1.0,0.5,0.0,0.5987,1.0,0.5987,1.0,2.4,1.0,1,0.1676,0.1676,1.0
+"stop position (front to line, m; 15 km/h)",-2,FAIL,OVERRUN_THEN_STOP,1.0,0.0003,0.0,0.5987,1.0,0.5987,1.0,2.8,1.0,1,0.1258,0.1258,1.0
+"stop position (front to line, m; 15 km/h)",-5,FAIL,OVERRUN_THEN_STOP,0.5343,0.0,0.0,0.5987,1.0,0.5987,0.9,3.5,1.0,1,0.0605,0.0634,0.9444
+approach peak speed (km/h; stop 2 m before),4,FAIL,LATE_STOP,0.7273,1.0,1.0,0.0,0.0,0.0,0.7,4.5,1.0,0,0.0,0.2943,0.8333
+approach peak speed (km/h; stop 2 m before),6,FAIL,LATE_STOP,0.9088,1.0,1.0,0.4142,0.2,0.4142,0.97,3.15,1.0,1,0.3798,0.385,0.9833
+approach peak speed (km/h; stop 2 m before),8,PASS,PASS,1.0,1.0,1.0,1.0,1.0,1.0,1.0,2.65,1.0,1,1.0,1.0,1.0
+approach peak speed (km/h; stop 2 m before),10,PASS,PASS,1.0,1.0,1.0,1.0,1.0,1.0,1.0,2.4,1.0,1,1.0,1.0,1.0
+approach peak speed (km/h; stop 2 m before),15,PASS,PASS,1.0,1.0,1.0,1.0,1.0,1.0,1.0,2.35,1.0,1,1.0,1.0,1.0
+approach peak speed (km/h; stop 2 m before),20,PASS,PASS,1.0,1.0,1.0,1.0,1.0,1.0,1.0,2.35,1.0,1,1.0,1.0,1.0
+approach peak speed (km/h; stop 2 m before),25,PASS,PASS,1.0,1.0,1.0,1.0,1.0,1.0,1.0,2.35,1.0,1,1.0,1.0,1.0
+"reaction time (brake start, s; 8 km/h, signal_off)",1.0,PASS,PASS,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.35,1.0,1,1.0,1.0,1.0
+"reaction time (brake start, s; 8 km/h, signal_off)",2.0,PASS,PASS,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.35,1.0,1,1.0,1.0,1.0
+"reaction time (brake start, s; 8 km/h, signal_off)",3.0,PASS,PASS,1.0,1.0,1.0,1.0,1.0,1.0,1.0,2.35,1.0,1,1.0,1.0,1.0
+"reaction time (brake start, s; 8 km/h, signal_off)",4.0,FAIL,LATE_STOP,0.3636,1.0,1.0,0.6717,0.6,0.6728,0.92,3.4,1.0,1,0.382,0.3968,0.9556
+"reaction time (brake start, s; 8 km/h, signal_off)",5.0,FAIL,LATE_STOP,0.3636,1.0,1.0,0.9198,0.6,0.9198,0.72,4.4,1.0,1,0.4094,0.4801,0.8444
+"reaction time (brake start, s; 8 km/h, signal_off)",6.0,FAIL,LATE_STOP,0.3636,1.0,1.0,1.0,0.6,1.0,0.52,5.4,1.0,1,0.3215,0.4533,0.7333
+"reaction time (brake start, s; 8 km/h, signal_off)",8.0,FAIL,LATE_STOP,0.3636,1.0,1.0,1.0,0.6,1.0,0.12,7.4,1.0,1,0.0742,0.316,0.5111
+"reaction time (brake start, s; 8 km/h, signal_off)",9.0,FAIL,LATE_STOP,0.3636,1.0,1.0,1.0,0.6,1.0,0.0,8.4,1.0,1,0.0,0.2473,0.4
+stop hold before relaunch at 5 km/h (s),0.5,FAIL,CRAWL_THROUGH,0.6364,0.0,0.0,0.5987,1.0,0.5987,0.0,,1.0,1,0.0,0.0,0.0
+stop hold before relaunch at 5 km/h (s),1.5,FAIL,CRAWL_THROUGH,0.6364,0.0,0.0,0.5987,1.0,0.5987,0.0,,1.0,1,0.0,0.0,0.0
+stop hold before relaunch at 5 km/h (s),2.5,FAIL,STOP_NOT_HELD,0.6364,0.0,0.0,0.5987,1.0,0.5987,1.0,1.25,1.0,1,0.08,0.08,1.0
+stop hold before relaunch at 5 km/h (s),4.0,FAIL,STOP_NOT_HELD,0.6364,0.0,0.0,0.5987,1.0,0.5987,1.0,1.25,1.0,1,0.08,0.08,1.0
+stop hold before relaunch at 5 km/h (s),8.0,FAIL,STOP_NOT_HELD,0.6364,0.9887,1.0,0.4914,1.0,0.4914,1.0,1.25,1.0,1,0.3819,0.3819,1.0
+stop hold before relaunch at 5 km/h (s),99.0,PASS,PASS,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.25,1.0,1,1.0,1.0,1.0
+collision events 1.5 s apart (normal stop),0,PASS,PASS,1.0,1.0,1.0,1.0,1.0,1.0,1.0,2.05,1.0,1,1.0,1.0,1.0
+collision events 1.5 s apart (normal stop),1,FAIL,COLLISION,1.0,1.0,1.0,1.0,1.0,1.0,1.0,2.05,0.25,1,0.25,0.25,1.0
+collision events 1.5 s apart (normal stop),2,FAIL,COLLISION,1.0,1.0,1.0,1.0,1.0,1.0,1.0,2.05,0.1,1,0.1,0.1,1.0
+collision events 1.5 s apart (normal stop),6,FAIL,COLLISION,1.0,1.0,1.0,1.0,1.0,1.0,1.0,2.05,0.0,1,0.0,0.0,1.0
+"travel (m, 8 km/h short stop)",0.5,FAIL,NO_START,1.0,1.0,1.0,0.0,0.0,0.0,1.0,0.0,1.0,0,0.0,0.0,1.0
+"travel (m, 8 km/h short stop)",0.9,FAIL,NO_START,1.0,1.0,1.0,0.0,0.0,0.0,1.0,0.3,1.0,0,0.0,0.0,1.0
+"travel (m, 8 km/h short stop)",1.2,PASS,PASS,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.5,1.0,1,1.0,1.0,1.0
+"travel (m, 8 km/h short stop)",2.0,PASS,PASS,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.9,1.0,1,1.0,1.0,1.0
+"travel (m, 8 km/h short stop)",4.0,PASS,PASS,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.8,1.0,1,1.0,1.0,1.0
+"travel (m, 8 km/h short stop)",6.0,PASS,PASS,1.0,1.0,1.0,1.0,1.0,1.0,1.0,2.7,1.0,1,1.0,1.0,1.0

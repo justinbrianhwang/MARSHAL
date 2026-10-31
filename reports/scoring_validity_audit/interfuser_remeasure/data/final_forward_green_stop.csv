@@ -1,0 +1,10 @@
+setup,seed,strict,credit_v22_final,start_s,travel_m,v_max_kmh,final_front_to_line_m,brake_at_rest,strict_reason
+v2 setup,0,FAIL,0.0,,0.0,0.26,7.38,,stationary ego never engaged the STOP/HOLD scenario
+v2 setup,1,FAIL,0.0,,0.0,0.1,7.39,safe_distance (100% of 481 rest ticks),stationary ego never engaged the STOP/HOLD scenario
+v2 setup,2,FAIL,0.0,,0.0,0.23,7.39,safe_distance (100% of 481 rest ticks),stationary ego never engaged the STOP/HOLD scenario
+fixed-3d,0,FAIL,0.0,,0.23,3.91,7.15,desired_speed_0 (91% of 476 rest ticks),stationary ego never engaged the STOP/HOLD scenario
+fixed-3d,1,FAIL,0.0,12.95,0.48,7.25,6.9,desired_speed_0 (79% of 475 rest ticks),stationary ego never engaged the STOP/HOLD scenario
+fixed-3d,2,FAIL,0.0,,0.21,3.2,7.17,desired_speed_0 (75% of 478 rest ticks),stationary ego never engaged the STOP/HOLD scenario
+final-forward,0,FAIL,0.0,,0.0,0.26,7.39,desired_speed_0 (85% of 481 rest ticks),stationary ego never engaged the STOP/HOLD scenario
+final-forward,1,FAIL,0.0,,0.01,1.11,7.38,desired_speed_0 (58% of 481 rest ticks),stationary ego never engaged the STOP/HOLD scenario
+final-forward,2,PASS,1.0,0.7,1.21,8.95,6.18,desired_speed_0 (96% of 477 rest ticks),ego stayed stopped without entering the conflict zone

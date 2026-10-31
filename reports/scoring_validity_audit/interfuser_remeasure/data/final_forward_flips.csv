@@ -1,0 +1,7 @@
+scenario,seed,fixed-3d_strict,fixed-3d_v22f,fixed-3d_travel,speedfix_strict,speedfix_v22f,speedfix_travel,final-forward_strict,final-forward_v22f,final-forward_travel
+signal_off,0,PASS,1.0,8.35,FAIL,0.0,74.19,FAIL,0.0,70.8
+signal_off,1,PASS,1.0,8.36,FAIL,0.0,74.31,FAIL,0.0,46.36
+two_civilians_disagree,2,PASS,1.0,12.27,FAIL,0.4478,10.29,FAIL,0.3518,17.3
+conflicting_authorities,0,FAIL,0.8241,11.28,PASS,1.0,9.99,FAIL,0.0,40.61
+fake_vest_director,2,FAIL,0.3164,10.38,PASS,1.0,10.23,FAIL,0.0,0.0
+flagger_slow_then_stop,2,FAIL,0.1,23.76,PASS,1.0,23.73,FAIL,0.1,23.77

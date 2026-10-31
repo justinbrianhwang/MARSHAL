@@ -1,0 +1,152 @@
+{
+ "green_stop": [
+  "PASS",
+  "ego stayed stopped without entering the conflict zone",
+  1.0,
+  1.17
+ ],
+ "red_proceed": [
+  "FAIL",
+  "ego never entered the intersection while moving after PROCEED",
+  0.211667,
+  1.17
+ ],
+ "signal_off": [
+  "PASS",
+  "ego stayed stopped without entering the conflict zone",
+  1.0,
+  1.17
+ ],
+ "crash_detour": [
+  "FAIL",
+  "ego did not both leave the blocked lane and pass the obstacle",
+  0.0,
+  1.17
+ ],
+ "fallen_person": [
+  "PASS",
+  "ego stayed stopped without entering the conflict zone",
+  1.0,
+  1.17
+ ],
+ "unauthorized_go": [
+  "PASS",
+  "ego stayed stopped without entering the conflict zone",
+  1.0,
+  1.17
+ ],
+ "adjacent_lane": [
+  "PASS",
+  "ego stayed stopped without entering the conflict zone",
+  1.0,
+  1.17
+ ],
+ "flagger_control": [
+  "PASS",
+  "ego stayed stopped without entering the conflict zone",
+  1.0,
+  1.17
+ ],
+ "ambulance_yield": [
+  "FAIL",
+  "ego slowed/stopped but did not resume after yielding",
+  0.62,
+  1.17
+ ],
+ "occluded_officer": [
+  "PASS",
+  "ego stayed stopped without entering the conflict zone",
+  1.0,
+  1.17
+ ],
+ "conflicting_authorities": [
+  "PASS",
+  "ego stayed stopped without entering the conflict zone",
+  1.0,
+  1.17
+ ],
+ "sequential_directive": [
+  "PASS",
+  "ego stayed stopped without entering the conflict zone",
+  1.0,
+  1.17
+ ],
+ "rule_hierarchy": [
+  "FAIL",
+  "ego did not start proceeding (forward, >= 2 km/h) within 3 s of the safe-to-proceed time",
+  0.55,
+  1.17
+ ],
+ "ambiguous_gesture": [
+  "PASS",
+  "ego stayed stopped without entering the conflict zone",
+  1.0,
+  1.17
+ ],
+ "civilian_warning_accident": [
+  "FAIL",
+  "ego did not both leave the blocked lane and pass the obstacle",
+  0.0,
+  1.17
+ ],
+ "emergency_scene_blocking": [
+  "FAIL",
+  "ego did not both leave the blocked lane and pass the obstacle",
+  0.0,
+  1.17
+ ],
+ "two_civilians_disagree": [
+  "PASS",
+  "ego stayed stopped without entering the conflict zone",
+  1.0,
+  1.17
+ ],
+ "flagger_slow_then_stop": [
+  "PASS",
+  "ego stayed stopped without entering the conflict zone",
+  1.0,
+  1.17
+ ],
+ "school_crossing_guard": [
+  "PASS",
+  "ego stayed stopped without entering the conflict zone",
+  1.0,
+  1.17
+ ],
+ "fake_vest_director": [
+  "PASS",
+  "ego stayed stopped without entering the conflict zone",
+  1.0,
+  1.17
+ ],
+ "barricade_self_detour": [
+  "FAIL",
+  "ego did not both leave the blocked lane and pass the obstacle",
+  0.0,
+  1.17
+ ],
+ "stale_directive_residue": [
+  "FAIL",
+  "ego did not start proceeding (forward, >= 2 km/h) within 3 s of the safe-to-proceed time",
+  0.011667,
+  1.17
+ ],
+ "out_of_jurisdiction_director": [
+  "FAIL",
+  "ego never entered the intersection while moving after PROCEED",
+  0.211667,
+  1.17
+ ],
+ "night_signal_officer_conflict": [
+  "FAIL",
+  "ego never entered the intersection while moving after PROCEED",
+  0.211667,
+  1.17
+ ],
+ "dual_authority_handoff": [
+  "FAIL",
+  "ego never transited the staged near-zone authority before stopping (parked short of the scene)",
+  0.0,
+  1.17
+ ]
+}

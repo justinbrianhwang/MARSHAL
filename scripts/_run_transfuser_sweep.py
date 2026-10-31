@@ -244,7 +244,7 @@ def _build_config(args: argparse.Namespace, scenario: str) -> Dict[str, Any]:
         "max_debug_frames": int(args.max_debug_frames),
         "sensor_timeout_s": float(args.sensor_timeout_s),
     }
-    return cfg
+    return staging.apply_controller_overrides(cfg)
 
 
 def _behavior_summary(row: Dict[str, Any]) -> str:

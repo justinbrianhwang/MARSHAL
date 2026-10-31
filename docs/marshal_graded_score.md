@@ -23,9 +23,11 @@ Partial credit is computed from per-episode telemetry margins, including:
 
 - **stop distance** — how close to the correct stopline / hazard the ego halted;
 - **residual speed** — speed remaining when a STOP/HOLD was required;
-- **reaction latency** — time from gesture onset to the first valid response;
+- **reaction latency** — time from gesture onset to the first valid response (STOP/HOLD: the first held stop, 2.0 s at
+  ≤ 1 km/h with ≤ 0.5 m drift);
 - **lateral clearance** — clearance to hazards / pedestrians on a PROCEED/DETOUR;
-- **collision status** — the safety factor is 1.0 / 0.25 / 0.10 / 0 for 0 / 1 / 2–5 / more than 5 collisions;
+- **collision status** — the safety factor is 1.0 / 0.25 / 0.10 / 0 for 0 / 1 / 2–5 / more than 5 distinct contacts
+  (sensor callbacks with the same other actor at most 1.0 s apart are one contact);
 - **rule compliance** — did the executed action match the authority-aware
   expectation.
 
@@ -75,7 +77,9 @@ For a policy $\pi$ evaluated over the $N$ scenarios:
 > strict-compliant STOP/HOLD telemetry (which since round 7 also requires
 > coming within the engagement band of the stop line or the directing human)
 > passes at $e_s = 1$; otherwise $e_s$ follows from approach speed and forward
-> progress, with low-speed creep capped at `0.25`. Residual stop-bias is
+> progress (the approach ends at the first stop after the first post-onset motion; distance from the onset row,
+> front bumper to the line, never past it), with low-speed
+> creep that never came within 16.59 m of the line capped at `0.25`. Residual stop-bias is
 > additionally priced *across* scenarios (the suite is balanced over STOP and
 > non-STOP actions).
 
@@ -83,15 +87,15 @@ For a policy $\pi$ evaluated over the $N$ scenarios:
 
 - [x] Scorer module (`marshal_bench/criteria/graded_episode_scoring.py`).
 - [x] **Approach/engagement gate wired in** (`_stop_hold_engagement_factor`), so
-      creep-and-stop no longer banks full STOP clearance credit.
+      creep-and-stop does not bank full STOP clearance credit.
 - [x] **Thresholds set against the privileged oracle**, which scores 96.9 under protocol v2 (24 of 25;
       one collision in `civilian_warning_accident`). Protocol-v2 leaderboard (ties read at few-point
-      resolution): InterFuser 43.5, NEAT 42.9, TCP 30.3, CILRS 24.6, Qwen2.5-VL 20.8 ± 3.4, … baseline 7.7
+      resolution): InterFuser 39.8 ± 4.5, NEAT 33.6, CILRS 26.1, Qwen2.5-VL 21.9 ± 3.7, TCP 20.7, … baseline 9.1
       (full tables in README.md).
-- [x] The graded leader carries the top strict count (InterFuser, 8/25); further down graded and strict
-      differ where partial credit accrues on unpassed cells (TCP 30.3 with 3/25 above CILRS 24.6 with 5/25).
-- [x] **Published in `README.md`** as the primary metric (protocol v2: one run per deterministic
-      driving stack, five runs per VLM-based controller).
+- [x] The non-privileged graded leader carries the top strict count per run (InterFuser, 7.3 of 25).
+- [x] Every credit-1 episode is a strict PASS and every strict PASS has credit 1 (116 of 700 leaderboard episodes).
+- [x] **Published in `README.md`** as the primary metric (protocol v2: five runs per VLM-based controller, three
+      for InterFuser, one per other driving stack).
 
 The **strict verdict logic is shared, not duplicated**: graded inherits
 strict's approach-evidence arm and its engagement anchors, and adds

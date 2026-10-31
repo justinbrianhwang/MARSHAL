@@ -1,0 +1,4 @@
+setup,seeds,strict_mean,strict_sd,strict_min,strict_max,v22_final_mean,v22_final_sd,v22_final_min,v22_final_max,v2_mean,v2_sd,v2_min,v2_max
+v2 setup,3,7.67,0.58,7,8,41.21,1.1,40.47,42.47,42.54,1.7,40.57,43.53
+fixed-3d,3,7,0.0,7,7,36.95,3.93,34.15,41.44,36.6,0.2,36.41,36.8
+final-forward,3,7.33,0.58,7,8,39.82,4.46,36.3,44.84,38.34,4.25,34.37,42.82

@@ -1,0 +1,15 @@
+rank,model,runs,source,strict_pass,graded,sd,min,max,graded_v2_same_runs
+1,oracle,1,protocol-v2 run,24/25,96.91,0.0,96.91,96.91,96.91
+2,InterFuser,3,"re-measured, final adapter (forward speed input), seeds 0-2",22/75,39.82,4.46,36.3,44.84,38.34
+3,NEAT,1,protocol-v2 run,5/25,33.62,0.0,33.62,33.62,42.91
+4,CILRS,1,protocol-v2 run,5/25,26.05,0.0,26.05,26.05,24.57
+5,Qwen2.5-VL,5,protocol-v2 run,23/125,21.86,3.69,16.99,25.62,20.75
+6,TCP,1,protocol-v2 run,3/25,20.68,0.0,20.68,20.68,30.33
+7,TransFuser,1,protocol-v2 run,2/25,14.32,0.0,14.32,14.32,14.32
+8,MPC,1,protocol-v2 run,3/25,14.1,0.0,14.1,14.1,12.75
+9,PID,1,protocol-v2 run,3/25,13.51,0.0,13.51,13.51,11.76
+10,Qwen3-VL,5,protocol-v2 run,13/125,13.47,2.5,9.53,16.33,11.65
+11,OpenEMMA,1,protocol-v2 run,2/25,11.87,0.0,11.87,11.87,10.61
+12,AIM,1,protocol-v2 run,1/25,11.59,0.0,11.59,11.59,13.23
+13,baseline,1,protocol-v2 run,0/25,9.11,0.0,9.11,9.11,7.71
+14,GLM-4.5V,5,protocol-v2 run,10/125,8.43,0.64,7.65,9.29,8.14
