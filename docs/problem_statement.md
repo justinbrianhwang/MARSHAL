@@ -149,6 +149,6 @@ solves.
 MARSHAL is an **initial implementation** of this evaluation dimension, not a settled
 benchmark. It fixes 21 authority-conflict episodes on one map (Town03), reports a
 strict oracle-calibrated pass-rate and a continuous graded score, and is currently
-**single-seed** with a **partial** weighted MARSHAL Score (several requirements not
+**single-seed** with a **partial** weighted Requirement Score (several requirements not
 yet instrumented). The contribution claimed here is the **evaluation dimension and
 the harness that measures it**, with the caveats stated plainly rather than hidden.

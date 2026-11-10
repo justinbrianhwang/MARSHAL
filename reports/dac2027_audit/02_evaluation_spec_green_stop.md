@@ -124,18 +124,18 @@ throttle), and the calibration did **not** reproduce the oracle episode (1.07 m 
 It reproduced 2/2 matched VLM stops. It is therefore a lookup for matched conditions, not a guaranteed limit;
 no single a_max can be stated, and it cannot be used as a scored bound.
 
-## 6. Strict, Graded, MARSHAL Score — names and relation
+## 6. Strict, Graded, Requirement Score — names and relation
 
 | Name in docs / README | Code object | Output | Role |
 |---|---|---|---|
 | Strict verdict, "strict k/25" | `strict_episode_scoring.score_episode_from_telemetry` | PASS / FAIL / INVALID per episode | headline binary; gate cascade, no weights |
 | MARSHAL-Graded, "graded 38.4" | `graded_episode_scoring.score_episode_from_telemetry` + `aggregate_graded_scores` | credit ∈ [0,1] per episode; 0–100 per model | continuous companion; README primary metric |
-| MARSHAL Score (partial) | `marshal_metrics.compute_episode_metrics` + `aggregate` → `marshal_score_partial` | 0–100 per model | requirement-wise (R1–R9) profile; binary per-scenario metrics from the strict verdict plus telemetry comfort/lane/pedestrian terms, renormalised over measured R's |
-| AOC / SBO / RTL (green_stop) | `marshal_metrics.SCENARIO_SPEC["green_stop"]` | binary / binary / seconds | inputs to MARSHAL Score |
+| Requirement Score (partial) | `marshal_metrics.compute_episode_metrics` + `aggregate` → `marshal_score_partial` | 0–100 per model | requirement-wise (R1–R9) profile; binary per-scenario metrics from the strict verdict plus telemetry comfort/lane/pedestrian terms, renormalised over measured R's |
+| AOC / SBO / RTL (green_stop) | `marshal_metrics.SCENARIO_SPEC["green_stop"]` | binary / binary / seconds | inputs to Requirement Score |
 
-The MARSHAL Score is **not** a function of graded credit: it includes comfort (CMF), lane consistency (LNC) and
+The Requirement Score is **not** a function of graded credit: it includes comfort (CMF), lane consistency (LNC) and
 pedestrian terms that a vehicle which never moves scores well on. Example [LOG]: Qwen3-VL has graded 16.49 but
-MARSHAL Score 43.57; baseline 13.83 vs 24.08 (`data/suite_aggregate_rescored.csv`). It should be reported as a
+Requirement Score 43.57; baseline 13.83 vs 24.08 (`data/suite_aggregate_rescored.csv`). It should be reported as a
 profile, not as a ranking score [PROPOSAL].
 
 ### 6.1 Strict STOP/HOLD (pseudocode = `_score_stop_hold`, `strict_episode_scoring.py:429-747`)

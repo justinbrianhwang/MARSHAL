@@ -1,0 +1,134 @@
+{
+ "n": 392,
+ "strict": {
+  "FAIL": 349,
+  "PASS": 43
+ },
+ "pass_min": 1.0,
+ "fail_max": 0.994,
+ "P_eq1": 253,
+ "C_eq1": 381,
+ "R_eq1": 222,
+ "band_20": {
+  "n": 0,
+  "strict": {},
+  "scenarios": 0,
+  "labels": [],
+  "SV_LINE": 0,
+  "SV_NOHOLD": 0,
+  "SV_CONTACT": 0,
+  "SV_SPEED": 0,
+  "min_front_range": null
+ },
+ "band_50": {
+  "n": 19,
+  "strict": {
+   "FAIL": 19
+  },
+  "scenarios": 6,
+  "labels": [
+   [
+    "DRIVE_THROUGH",
+    18
+   ],
+   [
+    "OVERRUN_THEN_STOP",
+    1
+   ]
+  ],
+  "SV_LINE": 19,
+  "SV_NOHOLD": 18,
+  "SV_CONTACT": 0,
+  "SV_SPEED": 19,
+  "min_front_range": [
+   -116.14,
+   -7.9
+  ]
+ },
+ "band_80": {
+  "n": 160,
+  "strict": {
+   "FAIL": 160
+  },
+  "scenarios": 13,
+  "labels": [
+   [
+    "NO_START",
+    136
+   ],
+   [
+    "COLLISION",
+    8
+   ],
+   [
+    "LATE_STOP",
+    6
+   ],
+   [
+    "STOP_NOT_HELD",
+    5
+   ],
+   [
+    "CREEP_NO_STOP",
+    3
+   ],
+   [
+    "OVERRUN_THEN_STOP",
+    2
+   ]
+  ],
+  "SV_LINE": 5,
+  "SV_NOHOLD": 3,
+  "SV_CONTACT": 8,
+  "SV_SPEED": 12,
+  "min_front_range": [
+   -6.43,
+   25.62
+  ]
+ },
+ "fail_ge_0p8": {
+  "n": 183,
+  "of": 349,
+  "labels": [
+   [
+    "NO_START",
+    138
+   ],
+   [
+    "LATE_STOP",
+    14
+   ],
+   [
+    "STOP_NOT_HELD",
+    14
+   ],
+   [
+    "OVERRUN_THEN_STOP",
+    11
+   ],
+   [
+    "COLLISION",
+    5
+   ],
+   [
+    "STOP_POSITION",
+    1
+   ]
+  ],
+  "SV_LINE": 12
+ },
+ "fail_ge_0p9": 21,
+ "fail_lt_0p333": 2,
+ "no_start": {
+  "n": 139,
+  "min": 0.696,
+  "max": 0.965
+ },
+ "drive_through": {
+  "n": 114,
+  "min": 0.361,
+  "max": 0.594
+ },
+ "pairs_line_cross_vs_pass_dQ_le_0p01": 0,
+ "pair_examples": []
+}

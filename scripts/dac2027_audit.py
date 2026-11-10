@@ -1103,7 +1103,7 @@ def leaderboard_tables(summary: List[Dict[str, Any]], cells: List[Dict[str, Any]
              "MARSHAL-Graded = 100 x (sum of weight x credit) / (sum of weights); scenarios passed = strict PASS count; "
              "override cells = strict PASS on the 6 override + 6 stressed-override scenarios. "
              "Published columns are parsed from docs/results_protocol_v1.md (protocol v1) and compared automatically.", "",
-             "| Model | Sum w x credit | Sum w | Graded | README graded | Passed | README passed | Override cells | README override | Failure profile (override / stressed / validity / conflict / scene / safety) | README profile | MARSHAL Score (partial) | All README numbers reproduced |",
+             "| Model | Sum w x credit | Sum w | Graded | README graded | Passed | README passed | Override cells | README override | Failure profile (override / stressed / validity / conflict / scene / safety) | README profile | Requirement Score (partial) | All README numbers reproduced |",
              "|" + "---|" * 13]
     for x in summary:
         lines.append(f"| {x['model']} | {_r(x['weighted_credit_sum'], 3)} | {_r(x['weight_sum'], 1)} | {x['derived_graded']} | "
@@ -1126,7 +1126,7 @@ def leaderboard_tables(summary: List[Dict[str, Any]], cells: List[Dict[str, Any]
     lines.append("| **Graded** | | | **" + _r(sum(float(by[(models[0], s)]['weight']) for s in scen), 1) + "** | "
                  + " | ".join(f"**{x['derived_graded']}**" for x in summary) + " |")
     lines += ["", "## T8. Score chain per model: action x latency x safety x movement gate = credit; weight x credit summed",
-              "", "MARSHAL Score (partial) R-subscores per model are in `data/leaderboard_summary.csv` (`r_scores`)."]
+              "", "Requirement Score (partial) R-subscores per model are in `data/leaderboard_summary.csv` (`r_scores`)."]
     for x in summary:
         m = x["model"]
         lines += ["", f"### {m}: graded {x['derived_graded']} = 100 x {_r(x['weighted_credit_sum'], 3)} / {_r(x['weight_sum'], 1)}; "
@@ -1599,7 +1599,7 @@ def cmd_tables(dev: Path, out: Path) -> None:
                      f"{_r(x['latency_factor'])} | {_r(x['safety_factor'])} | {_r(x['credit'], 3)} |")
     a = rd("suite_aggregate_rescored.csv")
     lines += ["", "## T3. Suite aggregation, re-scored from telemetry with the current scorers", "",
-              "| Model | Strict PASS / 25 | Sum w x credit | Sum w | MARSHAL-Graded | Published graded | MARSHAL Score (partial, published) | Reproduced |",
+              "| Model | Strict PASS / 25 | Sum w x credit | Sum w | MARSHAL-Graded | Published graded | Requirement Score (partial, published) | Reproduced |",
               "|" + "---|" * 8]
     for x in a:
         lines.append(f"| {x['model']} | {x['strict_pass']} | {_r(x['weighted_credit_sum'], 3)} | {_r(x['weight_sum'], 2)} | {x['marshal_graded']} | "

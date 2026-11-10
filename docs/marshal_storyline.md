@@ -118,7 +118,7 @@ Emphasize, in this order:
 - "VLMs solve authority reasoning." → They lead a narrow margin on graded; all
   learned models trail the oracle; strong agents are stop-biased.
 - "Full requirement coverage / validated at scale." → Initial implementation:
-  single-seed, partial MARSHAL Score, R4–R6/R8–R9 not yet instrumented.
+  single-seed, partial Requirement Score, R4–R6/R8–R9 not yet instrumented.
 - "Semantic long-tail is an established term." → It is our defined shorthand.
 - "Differentiable MARSHAL is a contribution." → Exploratory future only.
 

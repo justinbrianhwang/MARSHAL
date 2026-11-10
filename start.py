@@ -5,7 +5,7 @@ This is the script a **third party** runs to measure their model on MARSHAL.
 You only need to provide one thing: a *controller* — a small class that turns each
 tick's observation into a ``carla.VehicleControl``. Everything else (the Town03
 stations, the gesturing officer, the construction flagger, the following
-ambulance, the fountain lab-logo landmarks, the metrics, the MARSHAL Score) is
+ambulance, the fountain lab-logo landmarks, the metrics, the Requirement Score) is
 spawned and computed for you.
 
 Quick start
@@ -30,7 +30,7 @@ Output
 ------
 * A per-model scoreboard JSON at ``<out>/<tag>/scoreboard.json``.
 * A readable table on stdout: per-scenario pass + authority-conflict type, the
-  conflict-type profile, and the weighted MARSHAL Score.
+  conflict-type profile, and the weighted Requirement Score.
 
 The diagnostic headline is the **authority-conflict profile**: strict passes over
 override, stressed-override, validity, conflict, scene, and safety cases.
@@ -83,6 +83,8 @@ ALL_SCENARIOS = [
 def _run_episode(controller: str, scenario: str, args, out_root: str) -> dict | None:
     """Run one scenario in an isolated subprocess and return its result dict."""
     env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8")
+    # GREEN STOP has no default protocol; the quick start runs the leaderboard (protocol-v2) cell.
+    env.setdefault("MARSHAL_GREEN_STOP_PROTOCOL", "legacy_v2_7m")
     cmd = [PY, RUNNER,
            "--scenario", scenario,
            "--town", args.town,
@@ -191,7 +193,7 @@ def _print_scoreboard(tag: str, board: dict, per: dict) -> None:
     print(f"\n  metric suite : {suite}")
     print(f"  R-subscores  : {board.get('r_scores')}")
     print(f"  unmeasured R : {board.get('r_unmeasured')}")
-    print(f"\n  >>> MARSHAL Score (partial): {board.get('marshal_score_partial')} / 100")
+    print(f"\n  >>> Requirement Score (partial): {board.get('marshal_score_partial')} / 100")
     for scen in ALL_SCENARIOS:
         info = per.get(scen) or {}
         if info.get("status") == "infeasible_on_map":

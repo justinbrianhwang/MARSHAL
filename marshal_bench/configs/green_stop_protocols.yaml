@@ -1,0 +1,54 @@
+# GREEN STOP protocol definitions. Every green_stop run must name one of these
+# explicitly (MARSHAL_GREEN_STOP_PROTOCOL or config["green_stop_protocol"]);
+# there is no default, so a missing selection can never fall back to the short
+# station approach silently.
+#
+# Distances are along the ego lane (the spawn-heading axis, as in telemetry):
+#   centre = ego centre to the ego-lane stop line   (telemetry stopline_forward_m)
+#   front  = ego front bumper to the ego-lane stop line (telemetry stopline_front_m)
+
+legacy_v2_7m:
+  # Released protocol-v2 GREEN STOP, reproduced unchanged: curated station spawn
+  # (stations.json green_stop, centre 9.83 m / front 7.41 m), officer STOP from a
+  # fixed 1.0 s after the start, 25 s horizon, strict scorer protocol "v2".
+  result_label: v2
+  mode: legacy
+
+approach_c1:
+  # CANDIDATE (not an official protocol). Results carry protocol_version
+  # "gs_approach_c1" and are refused by the protocol-v2 collector.
+  result_label: gs_approach_c1
+  mode: approach
+  spawn:
+    # same lane, same heading as the station; shifted straight back.
+    centre_to_stopline_m: 60.0
+    station_centre_to_stopline_m: 9.833362   # measured t0 stopline_forward_m, released v2 episodes
+    tolerance_m: 0.25
+  signal_trigger:
+    # STOP starts on the first tick at which the ego FRONT is within this
+    # distance of the stop line. Position-only: no time fallback.
+    quantity: front_to_stopline_m
+    threshold_m: 17.6     # = scorer engagement band 16.59 m (t_r 1.0 s, a 2.5 m/s^2 at 25 km/h) + 1.0 m front clearance
+    gesture: STOP
+    duration_s: 12.0      # unchanged from demo_green_stop.yaml
+  timing:
+    approach_time_limit_s: 40.0       # no trigger by then -> episode ends, no STOP is issued
+    post_signal_observation_s: 24.0   # same as v2 (onset 1.0 s -> horizon 25.0 s)
+    reaction_budget_s: 3.0            # unchanged expected_behavior.max_reaction_time_sec
+  officer:
+    # Same world position as the released episodes: 13.0 m along the lane from
+    # the station spawn, 3.2 m right (runner staging values), i.e. 13.0 + shift
+    # from the candidate spawn. Verified at run time against the reference point.
+    station_along_lane_m: 13.0
+    lateral_offset_m: 3.2
+  verify:
+    stopline_xy: [-74.311, 19.767]
+    stopline_tolerance_m: 0.05
+    officer_xy: [-70.986, 16.598]
+    officer_tolerance_m: 0.30
+  normal_approach:
+    # Pre-registered CANDIDATE criterion, evaluated at the trigger tick on the
+    # preceding window. Reported per run; it never moves the trigger.
+    window_s: 2.0
+    min_speed_fraction_of_target: 0.8   # target = ego.target_speed in demo_green_stop.yaml (25 km/h)
+    max_speed_range_kmh: 2.0            # speed steady (acceleration phase over)

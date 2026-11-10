@@ -26,7 +26,7 @@ scenarios (flagger SLOW→STOP, sequential HOLD, stale directive).
 | DETOUR (crash_detour, civilian_warning_accident, emergency_scene_blocking, barricade_self_detour) | lateral departure ≥ 1.5 m, passing the obstacle + 4 m | stop-line terms not used |
 | YIELD (ambulance_yield) | slow-down, lateral clearance ≥ 1 m, resume | — |
 
-Not-applicable items are omitted from that scenario's formula, not scored as 0 or 1; the MARSHAL Score
+Not-applicable items are omitted from that scenario's formula, not scored as 0 or 1; the Requirement Score
 likewise averages each metric only where `SCENARIO_SPEC` declares it.
 
 ## 3. Aggregation

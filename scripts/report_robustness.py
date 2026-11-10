@@ -173,7 +173,7 @@ def main() -> int:
               f"{'-' if mean is None else format(mean, '.4f'):>8} "
               f"{'-' if detail.get('retention') is None else format(detail['retention'], '.4f'):>10}")
     print(f"\nR6 (condition retention) = {robustness['R6']}")
-    print(f"MARSHAL Score (partial)  = {combined['marshal_score_partial']} "
+    print(f"Requirement Score (partial)  = {combined['marshal_score_partial']} "
           f"(was {base_board.get('marshal_score_partial')}; "
           f"unmeasured now {combined['r_unmeasured']})")
     print(f"report -> {out_path}")

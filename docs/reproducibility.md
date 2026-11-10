@@ -137,7 +137,7 @@ its mistake, in the earlier version, was generalizing that to the learned models
 
 ## How to reproduce
 
-- **Protocol v2 (in-sim, then offline):** `python scripts/run_protocol_v2.py --all`, then
+- **Protocol v2 (in-sim, then offline):** `python scripts/run_protocol_v2.py --all --green-stop-protocol legacy_v2_7m`, then
   `python scripts/collect_protocol_v2.py --runs tmp/_protocol_v2 --out outputs/protocol_v2` and
   `python scripts/protocol_v2_report.py --cells outputs/protocol_v2`.
 - **Protocol v1 full multi-run (in-sim):** `bash scripts/multirun.sh`-style loop — for each run,

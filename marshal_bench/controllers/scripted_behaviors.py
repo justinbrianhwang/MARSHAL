@@ -121,6 +121,80 @@ class ScriptedBehaviorController(PIDController):
         return throttle, brake, {**pid, **info, "scripted_mode": "cruise"}
 
 
+class ReferenceApproachController(PIDController):
+    """GREEN STOP approach-candidate REFERENCE fixture (privileged, never a model).
+
+    Cruises at the scenario target speed (ego.target_speed) with the PID lane
+    follower and does NOT look at the stop line. It reads the live officer
+    state (privileged ``set_officer_ref``): ``reaction_s`` after the STOP
+    directive goes live it brakes, either fully (``decel_mps2`` unset) or along
+    a constant-deceleration speed ramp, then holds. Used only to check that the
+    candidate scene allows a normal approach followed by a stop before the line.
+    Config: ``config["scripted"] = {"reaction_s": 1.0, "decel_mps2": null}``.
+    """
+
+    track = "fixture"
+    requests_privileged_gt = True
+
+    def __init__(self, config: Optional[dict] = None) -> None:
+        super().__init__(config=config)
+        self.name = "scripted_reference_approach"
+        scfg = dict((config or {}).get("scripted") or {})
+        self.reaction_s = float(scfg.get("reaction_s", 1.0))
+        d = scfg.get("decel_mps2")
+        self.decel = None if d is None else float(d)
+        self._officer = None
+        self._now = 0.0
+        self.directive_seen_s: Optional[float] = None
+        self.brake_start_s: Optional[float] = None
+        self._brake_v0 = 0.0
+        self._brake_i = 0.0
+        self.holding = False
+
+    def set_officer_ref(self, officer: Any) -> None:
+        self._officer = officer
+
+    def setup(self, world: Any, ego: Any, ground_truth: Dict[str, Any], carla: Any) -> None:
+        super().setup(world, ego, ground_truth, carla)
+        self.ccfg["max_brake"] = 1.0
+        self._log_event("scripted_fixture_setup", controller=self.name, reaction_s=self.reaction_s,
+                        decel_mps2=self.decel, target_speed_kmh=self.target_speed_kmh, privileged=True)
+
+    def _directive_live(self) -> bool:
+        try:
+            meta = self._officer.get_metadata() if self._officer is not None else {}
+        except Exception:
+            return False
+        onset = meta.get("onset_time")
+        dur = meta.get("duration")
+        return (str(meta.get("gesture_id", "")).upper() in ("STOP", "HOLD") and onset is not None
+                and self._now >= float(onset) and (dur is None or self._now <= float(onset) + float(dur)))
+
+    def step(self, observation: Dict[str, Any], dt: float) -> Any:
+        self._now = float((observation or {}).get("sim_time") or 0.0)
+        if self.directive_seen_s is None and self._directive_live():
+            self.directive_seen_s = self._now
+        return super().step(observation, dt)
+
+    def _speed_control(self, speed: float, dt: float):
+        info = {"ref_directive_seen_s": self.directive_seen_s, "ref_brake_start_s": self.brake_start_s}
+        if self.directive_seen_s is not None and self._now >= self.directive_seen_s + self.reaction_s - 1e-9:
+            if self.brake_start_s is None:
+                self.brake_start_s, self._brake_v0 = self._now, float(speed)
+            ramp = None if self.decel is None else self._brake_v0 - self.decel * (self._now - self.brake_start_s)
+            if self.holding or ramp is None or ramp <= 0.0 or speed < 0.3:
+                self.holding = True
+                return 0.0, 1.0, {**info, "scripted_mode": "hold"}
+            # Direct speed-error feedback on the constant-deceleration ramp (the
+            # cruise PID lags a ramp badly). Brake capped at 0.4: CARLA's vehicle
+            # locks near 1.0 (~26 m/s^2 measured) and spikes above ~0.45 at speed; cap 0.4.
+            err = float(speed) - max(ramp, 0.0)
+            self._brake_i = max(0.0, self._brake_i + err * dt)
+            brake = min(max(0.8 * err + 0.8 * self._brake_i, 0.0), 0.4)
+            return 0.0, brake, {**info, "scripted_mode": "ramp", "ramp_mps": ramp, "ramp_err_mps": err}
+        return (*super()._speed_control(speed, dt)[:2], {**info, "scripted_mode": "cruise"})
+
+
 def front_gap_and_travel(ego_xy, origin_xy, fwd, stop_xy, front_offset_m):
     """(front bumper to stop line along the spawn heading, forward travel since setup).
     Same convention as telemetry ``stopline_front_m``: positive = line still ahead."""
@@ -133,4 +207,5 @@ def front_gap_and_travel(ego_xy, origin_xy, fwd, stop_xy, front_offset_m):
     return gap, travelled
 
 
-__all__ = ["BEHAVIORS", "BehaviorPolicy", "ScriptedBehaviorController", "front_gap_and_travel"]
+__all__ = ["BEHAVIORS", "BehaviorPolicy", "ReferenceApproachController", "ScriptedBehaviorController",
+           "front_gap_and_travel"]

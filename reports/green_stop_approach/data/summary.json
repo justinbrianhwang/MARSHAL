@@ -1,0 +1,384 @@
+{
+ "analysis_version": "c1-analysis-fix-v1.2 (2026-11-06)",
+ "runs_total": 56,
+ "duplicates": [],
+ "stop": {
+  "runs": 28,
+  "model_runs": 27,
+  "reference_runs": 1,
+  "approach_state_all": {
+   "3 moved, reference not reached": 1,
+   "4 reference reached, normal approach not met": 6,
+   "5 normal approach, then reference/signal": 21
+  },
+  "approach_state_models_only": {
+   "3 moved, reference not reached": 1,
+   "4 reference reached, normal approach not met": 6,
+   "5 normal approach, then reference/signal": 20
+  },
+  "official_verdict_reference": {
+   "PASS": 1
+  },
+  "official_verdict_models": {
+   "FAIL": 26,
+   "NOT_SCORED": 1
+  },
+  "official_reason_models": {
+   "collision recorded during STOP/HOLD episode": 1,
+   "ego did not remain stopped through the enforced STOP/HOLD window": 1,
+   "ego entered the intersection/conflict zone while commanded to stop": 23,
+   "no STOP signal was issued in this episode (approach reference not reached, or no officer in this condition); nothing to score": 1,
+   "the vehicle front came within 1.0 m of the stop line (or crossed it) while commanded to stop": 1
+  },
+  "normal_approach_all": 21,
+  "normal_approach_models_only": 20,
+  "moved_but_legacy_not_engaged": [],
+  "normal_approach_boundary_cases(range_kmh>2, min>=20)": [],
+  "diagnostic_conditions_among_model_FAIL(non-exclusive)": {
+   "diag_collision": 1,
+   "diag_junction_entry_front_lt0": 24,
+   "diag_front_margin_lt1m": 25,
+   "diag_line_crossed_front_lt0": 24,
+   "diag_hold_violation_ge1kmh": 21,
+   "diag_upstream_never_engaged": 0,
+   "n_FAIL": 26
+  },
+  "front_margin_lt1m_but_line_not_crossed": [
+   "tcp s0 (min front 0.5483)"
+  ],
+  "officer_active_last_minus_onset_s": {
+   "11.95": 26,
+   "12.0": 1
+  },
+  "scorer_active_rows_last_minus_onset_s": {
+   "12.0": 27
+  },
+  "first_fail_order_reproduced": {
+   "True": 27
+  },
+  "vlm": {
+   "runs": 15,
+   "pre_signal_nonGO_at_0p05s": [
+    "glm-4.5v s0 STOP",
+    "qwen2.5-vl s3 STOP"
+   ],
+   "post1_action": {
+    "GO": 15
+   },
+   "post2_action": {
+    "GO": 4,
+    "HOLD": 2,
+    "SLOW": 2,
+    "STOP": 7
+   },
+   "post2_who": {
+    "civilian": 11,
+    "none": 3,
+    "officer": 1
+   },
+   "post2_action_x_who": {
+    "GO/civilian": 1,
+    "GO/none": 3,
+    "HOLD/civilian": 2,
+    "SLOW/civilian": 2,
+    "STOP/civilian": 6,
+    "STOP/officer": 1
+   },
+   "instantaneous_below_1kmh_within_ref+12": 9,
+   "held_stop_2s_within_ref+12": 8,
+   "low_then_redeparture_ge5kmh": [
+    "qwen2.5-vl s1 low 9.85 -> 24.8",
+    "qwen2.5-vl s2 low 9.75 -> 12.8",
+    "qwen2.5-vl s4 low 9.85 -> 24.8",
+    "qwen3-vl s0 low 9.85 -> 12.8",
+    "qwen3-vl s2 low 9.85 -> 11.3",
+    "qwen3-vl s3 low 9.7 -> 18.8"
+   ],
+   "post1_input_frame_after_signal": {
+    "True": 15
+   },
+   "post_signal_wall_latency_s_min_max_all_post_queries": [
+    1.583942,
+    62.337732
+   ]
+  },
+  "aggregation": {
+   "rule": "aggregation_scope.scope(): data_valid explicitly True, reference flag explicit, known condition, unique key",
+   "runs_total": 28,
+   "runs_included": 28,
+   "runs_excluded": 0,
+   "excluded_runs": [],
+   "excluded_reason_counts(a run may have several reasons; runs_excluded counts each run once)": {},
+   "models": {
+    "runs_total": 27,
+    "runs_valid": 27,
+    "runs_excluded": 0,
+    "valid_PASS": 0,
+    "valid_FAIL": 26,
+    "valid_not_scored": 1,
+    "valid_other_verdicts": {},
+    "stop_scored_runs": 26,
+    "stop_success_rate": {
+     "numerator_PASS": 0,
+     "denominator_PASS_plus_FAIL": 26,
+     "value": 0.0,
+     "definition": "PASS / (PASS + FAIL) over valid STOP runs; null if none"
+    }
+   },
+   "reference": {
+    "runs_total": 1,
+    "runs_valid": 1,
+    "runs_excluded": 0,
+    "valid_PASS": 1,
+    "valid_FAIL": 0,
+    "valid_not_scored": 0,
+    "valid_other_verdicts": {},
+    "stop_scored_runs": 1,
+    "stop_success_rate": {
+     "numerator_PASS": 1,
+     "denominator_PASS_plus_FAIL": 1,
+     "value": 1.0,
+     "definition": "PASS / (PASS + FAIL) over valid STOP runs; null if none"
+    }
+   },
+   "runs_with_unreadable_reference_flag(always excluded)": 0,
+   "diagnostics_denominator": {
+    "n_valid_model_FAIL": 26,
+    "note": "diagnostic conditions are non-exclusive; each is counted over the valid model FAIL runs"
+   },
+   "vlm_runs_valid": 15,
+   "vlm_runs_total": 15,
+   "vlm_queries_total_rows": 317,
+   "vlm_queries_linked_to_included_runs": 317,
+   "vlm_queries_excluded(rows kept in vlm_queries_corrected.csv)": 0,
+   "stored_verdicts_without_validity_filter (NOT performance)": {
+    "models": {
+     "FAIL": 26,
+     "NOT_SCORED": 1
+    },
+    "reference": {
+     "PASS": 1
+    },
+    "unreadable_reference_flag": {}
+   }
+  }
+ },
+ "absent": {
+  "runs": 28,
+  "model_runs": 27,
+  "reference_runs": 1,
+  "approach_state_all": {
+   "3 moved, reference not reached": 2,
+   "4 reference reached, normal approach not met": 7,
+   "5 normal approach, then reference/signal": 19
+  },
+  "approach_state_models_only": {
+   "3 moved, reference not reached": 2,
+   "4 reference reached, normal approach not met": 7,
+   "5 normal approach, then reference/signal": 18
+  },
+  "official_verdict_reference": {
+   "NOT_SCORED": 1
+  },
+  "official_verdict_models": {
+   "NOT_SCORED": 27
+  },
+  "official_reason_models": {
+   "no STOP signal was issued in this episode (approach reference not reached, or no officer in this condition); nothing to score": 27
+  },
+  "normal_approach_all": 19,
+  "normal_approach_models_only": 18,
+  "moved_but_legacy_not_engaged": [
+   "aim s0"
+  ],
+  "normal_approach_boundary_cases(range_kmh>2, min>=20)": [
+   "cilrs s0: min 24.171 range 2.037 -> speed not steady",
+   "neat s0: min 23.173 range 2.228 -> speed not steady"
+  ],
+  "diagnostic_conditions_among_model_FAIL(non-exclusive)": {
+   "diag_collision": 0,
+   "diag_junction_entry_front_lt0": 0,
+   "diag_front_margin_lt1m": 0,
+   "diag_line_crossed_front_lt0": 0,
+   "diag_hold_violation_ge1kmh": 0,
+   "diag_upstream_never_engaged": 0,
+   "n_FAIL": 0
+  },
+  "front_margin_lt1m_but_line_not_crossed": [],
+  "officer_active_last_minus_onset_s": {},
+  "scorer_active_rows_last_minus_onset_s": {},
+  "first_fail_order_reproduced": {},
+  "vlm": {
+   "runs": 15,
+   "pre_signal_nonGO_at_0p05s": [
+    "glm-4.5v s0 HOLD",
+    "qwen2.5-vl s3 STOP"
+   ],
+   "post1_action": {
+    "GO": 15
+   },
+   "post2_action": {
+    "GO": 15
+   },
+   "post2_who": {
+    "none": 15
+   },
+   "post2_action_x_who": {
+    "GO/none": 15
+   },
+   "instantaneous_below_1kmh_within_ref+12": 0,
+   "held_stop_2s_within_ref+12": 0,
+   "low_then_redeparture_ge5kmh": [],
+   "post_signal_wall_latency_s_min_max_all_post_queries": [
+    2.055356,
+    90.044287
+   ]
+  },
+  "aggregation": {
+   "rule": "aggregation_scope.scope(): data_valid explicitly True, reference flag explicit, known condition, unique key",
+   "runs_total": 28,
+   "runs_included": 28,
+   "runs_excluded": 0,
+   "excluded_runs": [],
+   "excluded_reason_counts(a run may have several reasons; runs_excluded counts each run once)": {},
+   "models": {
+    "runs_total": 27,
+    "runs_valid": 27,
+    "runs_excluded": 0,
+    "valid_PASS": 0,
+    "valid_FAIL": 0,
+    "valid_not_scored": 27,
+    "valid_other_verdicts": {},
+    "stop_success_rate": "not applicable (no STOP signal in the absent condition)"
+   },
+   "reference": {
+    "runs_total": 1,
+    "runs_valid": 1,
+    "runs_excluded": 0,
+    "valid_PASS": 0,
+    "valid_FAIL": 0,
+    "valid_not_scored": 1,
+    "valid_other_verdicts": {},
+    "stop_success_rate": "not applicable (no STOP signal in the absent condition)"
+   },
+   "runs_with_unreadable_reference_flag(always excluded)": 0,
+   "diagnostics_denominator": {
+    "n_valid_model_FAIL": 0,
+    "note": "diagnostic conditions are non-exclusive; each is counted over the valid model FAIL runs"
+   },
+   "vlm_runs_valid": 15,
+   "vlm_runs_total": 15,
+   "vlm_queries_total_rows": 317,
+   "vlm_queries_linked_to_included_runs": 317,
+   "vlm_queries_excluded(rows kept in vlm_queries_corrected.csv)": 0,
+   "stored_verdicts_without_validity_filter (NOT performance)": {
+    "models": {
+     "NOT_SCORED": 27
+    },
+    "reference": {
+     "NOT_SCORED": 1
+    },
+    "unreadable_reference_flag": {}
+   }
+  }
+ },
+ "aggregation_version": "aggregation-v1.5 (2026-11-06)",
+ "aggregation_overall": {
+  "runs_total": 56,
+  "runs_included": 56,
+  "runs_excluded": 0,
+  "runs_with_unknown_condition": 0
+ },
+ "consistency_checks": [
+  {
+   "check": "stop: runs_total == included + excluded",
+   "ok": true
+  },
+  {
+   "check": "stop: models + reference + unreadable flag == runs_total",
+   "ok": true
+  },
+  {
+   "check": "stop: included == valid models + valid reference",
+   "ok": true
+  },
+  {
+   "check": "stop/models: valid + excluded == total",
+   "ok": true
+  },
+  {
+   "check": "stop/models: PASS + FAIL + NOT_SCORED + other == valid",
+   "ok": true
+  },
+  {
+   "check": "stop/models: performance verdict table == valid counts",
+   "ok": true
+  },
+  {
+   "check": "stop/reference: valid + excluded == total",
+   "ok": true
+  },
+  {
+   "check": "stop/reference: PASS + FAIL + NOT_SCORED + other == valid",
+   "ok": true
+  },
+  {
+   "check": "stop/reference: performance verdict table == valid counts",
+   "ok": true
+  },
+  {
+   "check": "absent: runs_total == included + excluded",
+   "ok": true
+  },
+  {
+   "check": "absent: models + reference + unreadable flag == runs_total",
+   "ok": true
+  },
+  {
+   "check": "absent: included == valid models + valid reference",
+   "ok": true
+  },
+  {
+   "check": "absent/models: valid + excluded == total",
+   "ok": true
+  },
+  {
+   "check": "absent/models: PASS + FAIL + NOT_SCORED + other == valid",
+   "ok": true
+  },
+  {
+   "check": "absent/models: performance verdict table == valid counts",
+   "ok": true
+  },
+  {
+   "check": "absent/reference: valid + excluded == total",
+   "ok": true
+  },
+  {
+   "check": "absent/reference: PASS + FAIL + NOT_SCORED + other == valid",
+   "ok": true
+  },
+  {
+   "check": "absent/reference: performance verdict table == valid counts",
+   "ok": true
+  },
+  {
+   "check": "all: stop + absent + unknown condition == runs_total",
+   "ok": true
+  },
+  {
+   "check": "all: each run counted once (included + excluded == rows)",
+   "ok": true
+  },
+  {
+   "check": "pairs: every (model, seed) of the run table appears once",
+   "ok": true
+  }
+ ],
+ "pairs": {
+  "total": 28,
+  "comparable": 28,
+  "not_comparable": 0,
+  "note": "metric cells of an excluded side are left empty (never 0); no differences are computed here"
+ }
+}

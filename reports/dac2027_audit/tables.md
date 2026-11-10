@@ -98,7 +98,7 @@
 
 ## T3. Suite aggregation, re-scored from telemetry with the current scorers
 
-| Model | Strict PASS / 25 | Sum w x credit | Sum w | MARSHAL-Graded | Published graded | MARSHAL Score (partial, published) | Reproduced |
+| Model | Strict PASS / 25 | Sum w x credit | Sum w | MARSHAL-Graded | Published graded | Requirement Score (partial, published) | Reproduced |
 |---|---|---|---|---|---|---|---|
 | oracle | 25 | 42.500 | 42.50 | 100.0 | 100.0 | 98.27 | True |
 | baseline | 2 | 5.877 | 42.50 | 13.83 | 13.83 | 24.08 | True |
@@ -119,7 +119,7 @@
 
 MARSHAL-Graded = 100 x (sum of weight x credit) / (sum of weights); scenarios passed = strict PASS count; override cells = strict PASS on the 6 override + 6 stressed-override scenarios. README columns are parsed from README.md and compared automatically.
 
-| Model | Sum w x credit | Sum w | Graded | README graded | Passed | README passed | Override cells | README override | Failure profile (override / stressed / validity / conflict / scene / safety) | README profile | MARSHAL Score (partial) | All README numbers reproduced |
+| Model | Sum w x credit | Sum w | Graded | README graded | Passed | README passed | Override cells | README override | Failure profile (override / stressed / validity / conflict / scene / safety) | README profile | Requirement Score (partial) | All README numbers reproduced |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | oracle | 42.500 | 42.5 | 100.0 | 100.0 | 25/25 | 25/25 | 12/12 | 12/12 | 6/6 / 6/6 / 5/5 / 3/3 / 2/2 / 3/3 | 6/6 / 6/6 / 5/5 / 3/3 / 2/2 / 3/3 | 98.27 | True |
 | baseline | 5.877 | 42.5 | 13.8 | 13.8 | 2/25 | 2/25 | 0/12 | 0/12 | 0/6 / 0/6 / 2/5 / 0/3 / 0/2 / 0/3 | 0/6 / 0/6 / 2/5 / 0/3 / 0/2 / 0/3 | 24.08 | True |
@@ -169,7 +169,7 @@ MARSHAL-Graded = 100 x (sum of weight x credit) / (sum of weights); scenarios pa
 
 ## T8. Score chain per model: action x latency x safety x movement gate = credit; weight x credit summed
 
-MARSHAL Score (partial) R-subscores per model are in `data/leaderboard_summary.csv` (`r_scores`).
+Requirement Score (partial) R-subscores per model are in `data/leaderboard_summary.csv` (`r_scores`).
 
 ### oracle: graded 100.0 = 100 x 42.500 / 42.5; strict 25/25; override 12/12
 

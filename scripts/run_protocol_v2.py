@@ -1,11 +1,15 @@
 """Run the protocol-v2 evaluation (or a subset of it) episode by episode.
 
-    python scripts/run_protocol_v2.py --models oracle tcp qwen3-vl --scenarios green_stop red_proceed --seeds 0
-    python scripts/run_protocol_v2.py --all                      # full v2 suite (VLMs seeds 0-4, InterFuser 0-2, others 0)
-    python scripts/run_protocol_v2.py --vlm-cap-comparison       # green_stop, VLMs, 3-query cap, seeds 0-4
+    python scripts/run_protocol_v2.py --models oracle tcp qwen3-vl --scenarios green_stop red_proceed --seeds 0 --green-stop-protocol legacy_v2_7m
+    python scripts/run_protocol_v2.py --all --green-stop-protocol legacy_v2_7m                      # full v2 suite (VLMs seeds 0-4, InterFuser 0-2, others 0)
+    python scripts/run_protocol_v2.py --vlm-cap-comparison --green-stop-protocol legacy_v2_7m       # green_stop, VLMs, 3-query cap, seeds 0-4
     python scripts/run_protocol_v2.py --ablation-study           # oracle-assist ladder + controls, seed 0
     python scripts/run_protocol_v2.py --factorial-study          # GLM-4.5V, role x gesture GT, seeds 0-4
-    python scripts/run_protocol_v2.py --models tcp --scenarios green_stop --env MARSHAL_OFFICER_CONDITION=absent --tag _noofficer
+    python scripts/run_protocol_v2.py --models tcp --scenarios green_stop --green-stop-protocol legacy_v2_7m --env MARSHAL_OFFICER_CONDITION=absent --tag _noofficer
+
+GREEN STOP has no default protocol: any job set containing green_stop needs --green-stop-protocol
+(legacy_v2_7m = the released v2 cell; approach_c1 = the candidate, results labelled gs_approach_c1 and refused by
+collect_protocol_v2.py). See marshal_bench/configs/green_stop_protocols.yaml.
 
 Run from the workspace root (the directory holding scripts/, marshal_bench/ and CARLA_0.9.16/). Every episode
 runs in its own child process with MARSHAL_PROTOCOL=v2 and MARSHAL_SEED=<seed>; output goes to
@@ -96,10 +100,29 @@ def episode_dir(out: Path, scenario: str) -> Path | None:
     return sorted(hits)[-1] if hits else None
 
 
-def complete(out: Path, scenario: str) -> bool:
+APPROACH_END_REASONS = ("approach_post_signal_observation_complete", "approach_time_limit_reference_not_reached")
+
+
+def complete_candidate(ep: Path, label: str) -> bool:
+    """A GREEN STOP approach-candidate episode is done when it ended by one of the candidate's own end rules and
+    carries the candidate label; NOT_SCORED (no STOP issued) is a finished outcome, INVALID is not."""
+    try:
+        events = json.loads((ep / "events.json").read_text(encoding="utf-8"))
+        sc = json.loads((ep / "strict_scoring.json").read_text(encoding="utf-8"))
+    except Exception:
+        return False
+    events = events.get("events") if isinstance(events, dict) else events
+    outcome = next((e.get("payload") or {} for e in events or [] if e.get("name") == "approach_protocol_outcome"), None)
+    return (sc.get("protocol_version") == label and sc.get("verdict") in ("PASS", "FAIL", "NOT_SCORED")
+            and outcome is not None and outcome.get("terminated_reason") in APPROACH_END_REASONS)
+
+
+def complete(out: Path, scenario: str, gs_label: str = "v2") -> bool:
     ep = episode_dir(out, scenario)
     if ep is None:
         return False
+    if scenario == "green_stop" and gs_label != "v2":
+        return complete_candidate(ep, gs_label)
     try:  # only a v2 episode observed over the full 25 s horizon counts as done
         if json.loads((ep / "strict_scoring.json").read_text(encoding="utf-8")).get("protocol_version") != "v2":
             return False
@@ -173,9 +196,12 @@ def main() -> int:
                     help="diagnostic MARSHAL_* variable passed to every episode (repeatable), e.g. "
                          "MARSHAL_OFFICER_CONDITION=absent, MARSHAL_TIMEOUT_S=60, MARSHAL_CONTROLLER_OVERRIDES=<json>")
     ap.add_argument("--tag", default="", help="suffix for the model output directory (keeps diagnostic cells apart)")
+    ap.add_argument("--green-stop-protocol", default=None,
+                    help="required when green_stop is in the job set: legacy_v2_7m or approach_c1 (no default)")
     a = ap.parse_args()
     extra_env = dict(kv.split("=", 1) for kv in a.env if "=" in kv)
-    bad = [k for k in extra_env if not k.startswith("MARSHAL_") or k in ("MARSHAL_SEED", "MARSHAL_OUT_ROOT")]
+    bad = [k for k in extra_env if not k.startswith("MARSHAL_")
+           or k in ("MARSHAL_SEED", "MARSHAL_OUT_ROOT", "MARSHAL_GREEN_STOP_PROTOCOL")]
     if bad or len(extra_env) != len(a.env):
         raise SystemExit(f"--env takes MARSHAL_KEY=VALUE (not MARSHAL_SEED / MARSHAL_OUT_ROOT); got {a.env}")
 
@@ -199,6 +225,14 @@ def main() -> int:
             seeds = a.seeds if a.seeds is not None else (list(range(5)) if (a.all and m in VLM)
                                                          else [0, 1, 2] if (a.all and m == "interfuser") else [0])
             jobs += [(m, sc, s, False, None, None) for s in seeds for sc in scenarios]
+    gs_label = "v2"
+    if any(j[1] == "green_stop" for j in jobs):
+        from marshal_bench.scenarios.green_stop_protocol import load_protocols
+        protos = load_protocols()
+        if a.green_stop_protocol not in protos:
+            raise SystemExit(f"green_stop needs --green-stop-protocol {sorted(protos)} (no default); "
+                             f"got {a.green_stop_protocol!r}")
+        gs_label = protos[a.green_stop_protocol]["result_label"]
     Path(a.log).parent.mkdir(parents=True, exist_ok=True)
 
     def log(rec):
@@ -214,7 +248,7 @@ def main() -> int:
         name = (cell_name(model, ablation, period) if ablation else model + ("_cap3" if cap3 else "")) + a.tag
         out = Path(a.out_root) / name / f"s{seed}"
         out.mkdir(parents=True, exist_ok=True)
-        if complete(out, sc):
+        if complete(out, sc, gs_label):
             continue
         if not carla_up or since_restart >= a.restart_every or not world_clean(f"pre:{model}:{sc}:s{seed}", log):
             carla_up = start_carla(log) and world_clean(f"fresh:{model}:{sc}:s{seed}", log)
@@ -223,6 +257,8 @@ def main() -> int:
                 failures += 1
                 continue
         env = dict(base_env, **extra_env, MARSHAL_SEED=str(seed), MARSHAL_OUT_ROOT=str(out))
+        if sc == "green_stop":
+            env["MARSHAL_GREEN_STOP_PROTOCOL"] = a.green_stop_protocol
         if cap3:
             env["MARSHAL_VLM_MAX_QUERIES"] = "3"
         t0 = time.time()
@@ -232,10 +268,11 @@ def main() -> int:
                                     timeout=3600).returncode
             except subprocess.TimeoutExpired:
                 rc = "timeout"
-        ok = complete(out, sc)
+        ok = complete(out, sc, gs_label)
         since_restart += 1
         log({"event": "episode", "i": i, "of": len(jobs), "model": model, "scenario": sc, "seed": seed,
              "cap3": cap3, "ablation": ablation, "period": period, "env": extra_env, "tag": a.tag,
+             "green_stop_protocol": a.green_stop_protocol if sc == "green_stop" else None,
              "rc": rc, "complete": ok,
              "wall_s": round(time.time() - t0, 1)})
         if not ok:

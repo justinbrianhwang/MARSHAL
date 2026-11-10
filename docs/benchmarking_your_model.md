@@ -3,7 +3,7 @@
 This guide shows how to score *your* autonomous-driving model on the 25 MARSHAL
 scenarios. You write one small class; MARSHAL does the rest (spawns the officer,
 gestures, flagger, ambulance, scene; runs each closed-loop episode; computes the
-metric suite and the MARSHAL Score).
+metric suite and the Requirement Score).
 
 ## 1. Prerequisites
 
@@ -83,7 +83,7 @@ Useful flags:
 
 - per-scenario pass/fail with authority-conflict type,
 - the **authority-conflict profile** — the diagnostic headline,
-- the metric suite, the R-subscores, and the weighted **MARSHAL Score**.
+- the metric suite, the R-subscores, and the weighted **Requirement Score**.
 
 The scoreboard still emits `tier_pass_rate` as legacy compatibility metadata.
 

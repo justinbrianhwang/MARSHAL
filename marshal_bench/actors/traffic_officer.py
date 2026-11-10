@@ -226,6 +226,8 @@ class TrafficOfficer:
         if gs is None or gs.gesture_id is GestureID.IDLE:
             if self._skeleton_ok:
                 self._gesture_engine.apply_idle(self._actor)
+                if gs is None and getattr(self, "snapshot_idle_when_unset", False):
+                    self._snapshot_idle_bones()
             self._track_hand_prop()
             if self.use_debug_visuals:
                 self.draw_debug()

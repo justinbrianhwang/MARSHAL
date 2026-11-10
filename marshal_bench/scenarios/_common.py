@@ -48,6 +48,7 @@ from marshal_bench.criteria.authority_compliance import AuthorityComplianceCrite
 from marshal_bench.criteria.reaction_latency import ReactionLatencyCriterion
 from marshal_bench.criteria.strict_episode_scoring import (
     score_episode_from_telemetry,
+    score_green_stop_candidate,
     write_strict_artifacts,
 )
 from marshal_bench.utils.carla_api_compat import SyncModeContext, import_carla
@@ -790,6 +791,17 @@ def build_officer(
         log.warning("Unknown gesture %r — defaulting to STOP", gesture_name)
         gesture_id = GestureID.STOP
 
+    if officer_cfg.get("onset_trigger"):
+        # Position-triggered directive (GREEN STOP approach candidate): no
+        # gesture and no onset timer until run_scenario fires the trigger; the
+        # officer stands in the idle pose, whose bones are snapshotted as the
+        # render-check baseline.
+        officer.snapshot_idle_when_unset = True
+        officer.spawn()
+        log.info("Officer ready: gesture=%s armed on %s, no timed onset",
+                 gesture_id.value, officer_cfg["onset_trigger"])
+        return officer
+
     officer.set_gesture(
         gesture_id,
         onset_time=float(officer_cfg.get("onset_time", 3.0)),
@@ -1409,6 +1421,76 @@ def _project_from_origin(loc: Any, origin: Any, fwd: Any, right: Any) -> tuple[f
         return forward_m, lateral_m
     except Exception:
         return float("nan"), float("nan")
+
+
+def _front_gap_m(ego: Any, stop_line_forward_ref: Optional[float], origin: Any, fwd: Any, right: Any) -> Optional[float]:
+    """Ego FRONT to stop line along the route axis (telemetry stopline_front_m convention)."""
+    if ego is None or stop_line_forward_ref is None:
+        return None
+    try:
+        verts = ego.bounding_box.get_world_vertices(ego.get_transform())
+        front = max(_project_from_origin(v, origin, fwd, right)[0] for v in verts)
+        return stop_line_forward_ref - front if math.isfinite(front) else None
+    except Exception:
+        return None
+
+
+def _verify_approach_scene(approach: dict, ctx: Any, stop_line_location: Any, stop_line_forward_ref: Optional[float],
+                           origin: Any, fwd: Any, right: Any, officer_expected: bool) -> dict:
+    """Check the generated GREEN STOP candidate scene; raise on any mismatch."""
+    from marshal_bench.scenarios.green_stop_protocol import GreenStopProtocolError
+    ver = approach["verify"]
+    problems = []
+    state: dict = {"protocol": approach["name"], "result_label": approach["result_label"]}
+    if stop_line_location is None or stop_line_forward_ref is None:
+        raise GreenStopProtocolError(f"{approach['name']}: ego-lane stop line not resolved")
+    state["stopline_xy"] = [round(stop_line_location.x, 3), round(stop_line_location.y, 3)]
+    d_line = math.hypot(stop_line_location.x - ver["stopline_xy"][0], stop_line_location.y - ver["stopline_xy"][1])
+    if d_line > float(ver["stopline_tolerance_m"]):
+        problems.append(f"stop line {state['stopline_xy']} is {d_line:.3f} m from {ver['stopline_xy']}")
+    ego_tf = ctx.ego.get_transform()
+    state["spawn_xy_yaw"] = [round(ego_tf.location.x, 3), round(ego_tf.location.y, 3), round(ego_tf.rotation.yaw, 2)]
+    state["centre_to_stopline_t0_m"] = round(float(stop_line_forward_ref), 3)
+    if abs(stop_line_forward_ref - approach["spawn_centre_to_stopline_m"]) > approach["spawn_tolerance_m"]:
+        problems.append(f"centre-to-stopline {stop_line_forward_ref:.3f} m != {approach['spawn_centre_to_stopline_m']}")
+    front0 = _front_gap_m(ctx.ego, stop_line_forward_ref, origin, fwd, right)
+    state["front_to_stopline_t0_m"] = None if front0 is None else round(front0, 3)
+    if front0 is None or front0 <= approach["trigger_threshold_m"]:
+        problems.append(f"front-to-stopline at t0 {front0} is not beyond the trigger {approach['trigger_threshold_m']}")
+    else:
+        state["approach_path_to_trigger_m"] = round(front0 - approach["trigger_threshold_m"], 3)
+    state["in_junction_t0"] = ego_in_intersection(ctx.ego, ctx.world)
+    if state["in_junction_t0"]:
+        problems.append("spawn is inside a junction")
+    ox, oy = ver["officer_xy"]
+    walkers_near = []
+    try:
+        for w in ctx.world.get_actors().filter("walker.*"):
+            loc = w.get_location()
+            if math.hypot(loc.x - ox, loc.y - oy) < 3.0:
+                walkers_near.append({"id": w.id, "type": w.type_id, "xy": [round(loc.x, 3), round(loc.y, 3)]})
+    except Exception as e:
+        problems.append(f"walker census failed: {e}")
+    state["walkers_within_3m_of_officer_point"] = walkers_near
+    actor = ctx.officer.get_actor() if ctx.officer else None
+    if officer_expected:
+        if actor is None:
+            problems.append("officer actor missing")
+        else:
+            loc = actor.get_location()
+            state["officer_xy"] = [round(loc.x, 3), round(loc.y, 3)]
+            d_off = math.hypot(loc.x - ox, loc.y - oy)
+            state["officer_offset_from_reference_m"] = round(d_off, 3)
+            if d_off > float(ver["officer_tolerance_m"]):
+                problems.append(f"officer at {state['officer_xy']} is {d_off:.3f} m from {ver['officer_xy']}")
+    else:
+        if actor is not None or walkers_near:
+            problems.append(f"officer-absent condition but actor={actor} walkers={walkers_near}")
+    state["officer_expected"] = officer_expected
+    state["checks_passed"] = not problems
+    if problems:
+        raise GreenStopProtocolError(f"{approach['name']} scene mismatch: " + "; ".join(problems))
+    return state
 
 
 def _finite_vehicle_control(control: Any) -> bool:
@@ -2198,6 +2280,19 @@ def run_scenario(
             )
             if math.isfinite(_sf):
                 stop_line_forward_ref = _sf
+        # GREEN STOP approach candidate: verify the GENERATED scene against the
+        # protocol before the clock starts; any mismatch aborts the episode
+        # (no fallback to another spawn or to a timed onset).
+        approach = config.get("approach_protocol")
+        approach_state: dict = {}
+        if approach:
+            approach_state = _verify_approach_scene(
+                approach, ctx, stop_line_location, stop_line_forward_ref,
+                route_origin, route_fwd, route_right, bool(officer_raw))
+            logger.log_event("approach_protocol_applied", **approach_state)
+            from marshal_bench.scenarios.green_stop_protocol import PositionTrigger
+            approach_trigger = PositionTrigger(approach["trigger_threshold_m"])
+            result["approach_protocol"] = dict(approach_state)
         with SyncModeContext(world, fps=fps) as sync:
             if controller is None:
                 # Enable autopilot only AFTER the world is in synchronous mode.
@@ -2268,6 +2363,37 @@ def run_scenario(
                     )
                     if _near_tl is not None:
                         ctx.traffic_light = _near_tl
+
+                # GREEN STOP approach candidate: position trigger. Evaluated on
+                # this tick's pose before the officer animates, latched, and
+                # "<=" so a tick that jumps over the reference still fires.
+                # The officer-absent condition records the same crossing as a
+                # comparison time only (no directive exists).
+                if approach and not approach_state.get("crossed"):
+                    gap = _front_gap_m(ctx.ego, stop_line_forward_ref, route_origin, route_fwd, route_right)
+                    approach_state["last_gap_m"] = gap
+                    if approach_trigger.update(gap, sim_time):
+                        approach_state.update({
+                            "crossed": True, "reference_crossed_s": round(sim_time, 4),
+                            "front_gap_at_crossing_m": round(gap, 4),
+                            "speed_at_crossing_kmh": ego_speed_kmh(ctx.ego),
+                            "end_time_s": round(sim_time + approach["post_signal_observation_s"], 4)})
+                        logger.log_event("approach_reference_crossed", sim_time=sim_time, front_gap_m=gap,
+                                         threshold_m=approach["trigger_threshold_m"],
+                                         speed_kmh=approach_state["speed_at_crossing_kmh"])
+                        if officer_raw and ctx.officer is not None:
+                            ctx.officer.set_gesture(
+                                GestureID[str(approach["signal_gesture"]).upper()]
+                                if not officer_cfg.get("gesture") else GestureID[str(officer_cfg["gesture"]).upper()],
+                                onset_time=sim_time,
+                                duration=approach["signal_duration_s"],
+                                target_relation=officer_cfg.get("target_relation", "ego"),
+                                target_lane_id=officer_cfg.get("target_lane_id"),
+                            )
+                            approach_state["signal_onset_s"] = round(sim_time, 4)
+                            logger.log_event("officer_signal_onset", sim_time=sim_time,
+                                             gesture=ctx.officer.get_metadata().get("gesture_id"),
+                                             duration_s=approach["signal_duration_s"], front_gap_m=gap)
 
                 # Gesture validation is fail-closed and deliberately separate
                 # from the best-effort animation tick below.
@@ -2451,6 +2577,11 @@ def run_scenario(
                 officer_active = sim_time >= onset_now and (
                     duration_now is None or sim_time <= onset_now + duration_now
                 )
+                if approach:
+                    # no directive before the position trigger fired (pre-trigger
+                    # metadata reads IDLE with no onset; never a default time)
+                    officer_active = (approach_state.get("signal_onset_s") is not None
+                                      and officer_active)
                 officer_facing_now = None
                 if officer_raw:
                     try:
@@ -2592,6 +2723,13 @@ def run_scenario(
                     "officer_facing_ego_deg": officer_facing_now,
                     "control_finite": control_finite_this_tick,
                 }
+                if approach:
+                    telemetry_row.update({
+                        "approach_reference_crossed": bool(approach_state.get("crossed")),
+                        "signal_onset_s": approach_state.get("signal_onset_s"),
+                        "trigger_gap_m": approach_state.get("last_gap_m") if not approach_state.get("crossed")
+                        else approach_state.get("front_gap_at_crossing_m"),
+                    })
                 telemetry_rows.append(telemetry_row)
                 logger.log_metric_row(
                     t=sim_time,
@@ -2618,6 +2756,16 @@ def run_scenario(
                     officer_facing_ego_deg=officer_facing_now,
                     control_finite=control_finite_this_tick,
                 )
+
+                if approach:
+                    if approach_state.get("crossed"):
+                        if sim_time >= approach_state["end_time_s"] - 1e-9:
+                            terminated = "approach_post_signal_observation_complete"
+                            break
+                    elif sim_time >= approach["approach_time_limit_s"] - 1e-9:
+                        terminated = "approach_time_limit_reference_not_reached"
+                        break
+                    continue
 
                 # Termination: ego stopped within intersection / conflict zone
                 # *after* gesture onset, for STOP scenarios.
@@ -2688,18 +2836,44 @@ def run_scenario(
             log.warning("latency.to_json failed: %s", e)
             result["latency"] = {"error": str(e)}
 
+        if approach:
+            from marshal_bench.scenarios.green_stop_protocol import classify_normal_approach
+            t_ref = approach_state.get("reference_crossed_s")
+            approach_state["normal_approach"] = (
+                classify_normal_approach(telemetry_rows, t_ref, approach["target_speed_kmh"],
+                                         approach["normal_approach"])
+                if t_ref is not None else None)
+            approach_state["terminated_reason"] = terminated
+            result["approach_protocol"] = dict(approach_state)
+            result["protocol_version"] = approach["result_label"]
+            logger.log_event("approach_protocol_outcome", **approach_state)
         try:
-            strict_score = score_episode_from_telemetry(
-                result,
-                telemetry_rows,
-                scenario=name,
-                expected_action=expected_action_effective,
-                max_reaction_time=max_reaction_time,
-                controller_errors=controller_errors,
-                setup_errors=scene_setup_errors,
-                protocol=protocol,
-                decision_times=getattr(controller, "decision_times", None),
-            )
+            if approach:
+                strict_score = score_green_stop_candidate(
+                    result,
+                    telemetry_rows,
+                    scenario=name,
+                    expected_action=expected_action_effective,
+                    max_reaction_time=max_reaction_time,
+                    controller_errors=controller_errors,
+                    setup_errors=scene_setup_errors,
+                    decision_times=getattr(controller, "decision_times", None),
+                    signal_onset_s=approach_state.get("signal_onset_s"),
+                    post_signal_observation_s=approach["post_signal_observation_s"],
+                    result_label=approach["result_label"],
+                )
+            else:
+                strict_score = score_episode_from_telemetry(
+                    result,
+                    telemetry_rows,
+                    scenario=name,
+                    expected_action=expected_action_effective,
+                    max_reaction_time=max_reaction_time,
+                    controller_errors=controller_errors,
+                    setup_errors=scene_setup_errors,
+                    protocol=protocol,
+                    decision_times=getattr(controller, "decision_times", None),
+                )
             result["officer_metadata"] = ctx.officer.get_metadata()
             result["officer_metadata"]["facing_ego_deg"] = dict(director_facing)
             second_authorities = [

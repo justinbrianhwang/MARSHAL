@@ -1,0 +1,57 @@
+condition,model,seed,reference_fixture,strict_verdict,episode,marshal_score,binding_rule,R,B,T,P,collision_partners,min_front_m,v_enforcement_max_kmh,held_stop_start_s,hold_share
+absent,aim,s0,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/aim/s0/aim_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,baseline,s0,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/baseline/s0/reference_baseline_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,cilrs,s0,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/cilrs/s0/cilrs_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,glm-4.5v,s0,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/glm-4.5v/s0/vlm_zai-org_GLM-4.5V_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,glm-4.5v,s1,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/glm-4.5v/s1/vlm_zai-org_GLM-4.5V_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,glm-4.5v,s2,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/glm-4.5v/s2/vlm_zai-org_GLM-4.5V_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,glm-4.5v,s3,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/glm-4.5v/s3/vlm_zai-org_GLM-4.5V_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,glm-4.5v,s4,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/glm-4.5v/s4/vlm_zai-org_GLM-4.5V_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,interfuser,s0,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/interfuser/s0/interfuser_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,interfuser,s1,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/interfuser/s1/interfuser_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,interfuser,s2,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/interfuser/s2/interfuser_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,mpc,s0,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/mpc/s0/mpc_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,neat,s0,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/neat/s0/neat_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,openemma,s0,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/openemma/s0/openemma_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,pid,s0,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/pid/s0/pid_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,qwen2.5-vl,s0,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/qwen2.5-vl/s0/vlm_Qwen_Qwen2.5-VL-72B-Instruct_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,qwen2.5-vl,s1,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/qwen2.5-vl/s1/vlm_Qwen_Qwen2.5-VL-72B-Instruct_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,qwen2.5-vl,s2,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/qwen2.5-vl/s2/vlm_Qwen_Qwen2.5-VL-72B-Instruct_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,qwen2.5-vl,s3,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/qwen2.5-vl/s3/vlm_Qwen_Qwen2.5-VL-72B-Instruct_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,qwen2.5-vl,s4,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/qwen2.5-vl/s4/vlm_Qwen_Qwen2.5-VL-72B-Instruct_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,qwen3-vl,s0,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/qwen3-vl/s0/vlm_Qwen_Qwen3-VL-235B-A22B-Instruct_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,qwen3-vl,s1,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/qwen3-vl/s1/vlm_Qwen_Qwen3-VL-235B-A22B-Instruct_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,qwen3-vl,s2,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/qwen3-vl/s2/vlm_Qwen_Qwen3-VL-235B-A22B-Instruct_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,qwen3-vl,s3,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/qwen3-vl/s3/vlm_Qwen_Qwen3-VL-235B-A22B-Instruct_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,qwen3-vl,s4,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/qwen3-vl/s4/vlm_Qwen_Qwen3-VL-235B-A22B-Instruct_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,scripted_reference_approach_d3p5,s0,True,NOT_SCORED,tmp/_greenstop_cand/full/absent/scripted_reference_approach_d3p5/s0/reference_scripted_reference_approach_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,tcp,s0,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/tcp/s0/tcp_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+absent,transfuser,s0,False,NOT_SCORED,tmp/_greenstop_cand/full/absent/transfuser/s0/transfuser_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+stop,aim,s0,False,NOT_SCORED,tmp/_greenstop_cand/full/stop/aim/s0/aim_green_stop,,not scored (no Strict verdict; not replaced by 0),,,,,,,,,
+stop,baseline,s0,False,FAIL,tmp/_greenstop_cand/full/stop/baseline/s0/reference_baseline_green_stop,3.9,raw,0.0,0.0,0.0,0.1989,1,-49.78192686947309,24.613947817716397,,0.199
+stop,cilrs,s0,False,FAIL,tmp/_greenstop_cand/full/stop/cilrs/s0/cilrs_green_stop,0.0,raw,0.0,0.0,0.0,0.0,0,-65.32744125452919,26.567960777650043,,0.0
+stop,glm-4.5v,s0,False,FAIL,tmp/_greenstop_cand/full/stop/glm-4.5v/s0/vlm_zai-org_GLM-4.5V_green_stop,61.3,boundary,1.0,0.4843,1.0,1.0,0,-0.547112882939004,0.001405273625774027,11.35,1.0
+stop,glm-4.5v,s1,False,FAIL,tmp/_greenstop_cand/full/stop/glm-4.5v/s1/vlm_zai-org_GLM-4.5V_green_stop,0.0,raw,0.0,0.0,0.0,0.0,0,-56.74825862157876,25.787535454607326,,0.0
+stop,glm-4.5v,s2,False,FAIL,tmp/_greenstop_cand/full/stop/glm-4.5v/s2/vlm_zai-org_GLM-4.5V_green_stop,0.0,raw,0.0,0.0,0.0,0.0,0,-65.22455823265716,25.62453867908226,,0.0
+stop,glm-4.5v,s3,False,FAIL,tmp/_greenstop_cand/full/stop/glm-4.5v/s3/vlm_zai-org_GLM-4.5V_green_stop,0.0,raw,0.0,0.0,0.0,0.0,0,-56.809374100796724,25.602821458821005,,0.0
+stop,glm-4.5v,s4,False,FAIL,tmp/_greenstop_cand/full/stop/glm-4.5v/s4/vlm_zai-org_GLM-4.5V_green_stop,74.5,boundary,1.0,0.6601,1.0,1.0,0,-0.019580422454474444,0.00101049846152006,9.8,1.0
+stop,interfuser,s0,False,FAIL,tmp/_greenstop_cand/full/stop/interfuser/s0/interfuser_green_stop,0.0,raw,0.0,0.0,0.0,0.0,0,-39.8189286600747,18.983497769381714,,0.0
+stop,interfuser,s1,False,FAIL,tmp/_greenstop_cand/full/stop/interfuser/s1/interfuser_green_stop,0.4,raw,0.0,0.0,0.0,0.0221,0,-37.019275567878104,18.9634470589266,,0.022
+stop,interfuser,s2,False,FAIL,tmp/_greenstop_cand/full/stop/interfuser/s2/interfuser_green_stop,0.0,raw,0.0,0.0,0.0,0.0,0,-39.90575714173951,19.009381900829514,,0.0
+stop,mpc,s0,False,FAIL,tmp/_greenstop_cand/full/stop/mpc/s0/mpc_green_stop,0.0,raw,0.0,0.0,0.0,0.0,0,-20.11534434461199,22.727354642852642,,0.0
+stop,neat,s0,False,FAIL,tmp/_greenstop_cand/full/stop/neat/s0/neat_green_stop,41.5,core,0.2203,1.0,0.68,0.8564,0,1.2184670140566354,9.577069760946488,11.65,0.856
+stop,openemma,s0,False,FAIL,tmp/_greenstop_cand/full/stop/openemma/s0/openemma_green_stop,0.0,raw,0.0,0.0,0.0,0.0,0,-40.66397283299367,21.584140937032004,,0.0
+stop,pid,s0,False,FAIL,tmp/_greenstop_cand/full/stop/pid/s0/pid_green_stop,0.0,raw,0.0,0.0,0.0,0.0,0,-60.353193868842375,23.563286452623863,,0.0
+stop,qwen2.5-vl,s0,False,FAIL,tmp/_greenstop_cand/full/stop/qwen2.5-vl/s0/vlm_Qwen_Qwen2.5-VL-72B-Instruct_green_stop,61.3,boundary,1.0,0.4841,1.0,1.0,0,-0.5476488446463321,0.0014046856100539023,9.85,1.0
+stop,qwen2.5-vl,s1,False,FAIL,tmp/_greenstop_cand/full/stop/qwen2.5-vl/s1/vlm_Qwen_Qwen2.5-VL-72B-Instruct_green_stop,61.0,boundary,1.0,0.481,1.0,1.0,0,-0.5571113034728299,0.0014041440035344498,9.85,1.0
+stop,qwen2.5-vl,s2,False,FAIL,tmp/_greenstop_cand/full/stop/qwen2.5-vl/s2/vlm_Qwen_Qwen2.5-VL-72B-Instruct_green_stop,25.0,core,0.0,0.0,1.0,0.2652,0,-39.61826223697398,25.693992217590925,9.75,0.265
+stop,qwen2.5-vl,s3,False,FAIL,tmp/_greenstop_cand/full/stop/qwen2.5-vl/s3/vlm_Qwen_Qwen2.5-VL-72B-Instruct_green_stop,0.0,raw,0.0,0.0,0.0,0.0,0,-64.86400385490873,25.56252954128908,,0.0
+stop,qwen2.5-vl,s4,False,FAIL,tmp/_greenstop_cand/full/stop/qwen2.5-vl/s4/vlm_Qwen_Qwen2.5-VL-72B-Instruct_green_stop,61.2,boundary,1.0,0.4836,1.0,1.0,0,-0.5492243849322733,0.0014038913335692306,9.85,1.0
+stop,qwen3-vl,s0,False,FAIL,tmp/_greenstop_cand/full/stop/qwen3-vl/s0/vlm_Qwen_Qwen3-VL-235B-A22B-Instruct_green_stop,25.0,core,0.0,0.0,1.0,0.2707,0,-39.99166403209811,25.834076054806058,9.85,0.271
+stop,qwen3-vl,s1,False,FAIL,tmp/_greenstop_cand/full/stop/qwen3-vl/s1/vlm_Qwen_Qwen3-VL-235B-A22B-Instruct_green_stop,0.0,raw,0.0,0.0,0.0,0.0,0,-64.86194390427784,25.56253476631303,,0.0
+stop,qwen3-vl,s2,False,FAIL,tmp/_greenstop_cand/full/stop/qwen3-vl/s2/vlm_Qwen_Qwen3-VL-235B-A22B-Instruct_green_stop,2.0,raw,0.0,0.0,0.0,0.105,0,-50.28645404013208,25.836187581518963,,0.105
+stop,qwen3-vl,s3,False,FAIL,tmp/_greenstop_cand/full/stop/qwen3-vl/s3/vlm_Qwen_Qwen3-VL-235B-A22B-Instruct_green_stop,37.7,core,0.1702,0.4837,1.0,0.9282,0,-0.5489255385606455,10.127657834531844,9.7,0.928
+stop,qwen3-vl,s4,False,FAIL,tmp/_greenstop_cand/full/stop/qwen3-vl/s4/vlm_Qwen_Qwen3-VL-235B-A22B-Instruct_green_stop,0.0,raw,0.0,0.0,0.0,0.0,0,-64.85900279056716,25.5625139951598,,0.0
+stop,scripted_reference_approach_d3p5,s0,True,PASS,tmp/_greenstop_cand/full/stop/scripted_reference_approach_d3p5/s0/reference_scripted_reference_approach_green_stop,100.0,strict PASS,1.0,1.0,1.0,1.0,0,4.661356616081278,0.00041204145219442745,10.1,1.0
+stop,tcp,s0,False,FAIL,tmp/_greenstop_cand/full/stop/tcp/s0/tcp_green_stop,36.9,raw,0.4849,0.8494,0.0,0.0276,0,0.5483161684699027,6.66584739033801,,0.028
+stop,transfuser,s0,False,FAIL,tmp/_greenstop_cand/full/stop/transfuser/s0/transfuser_green_stop,0.0,raw,0.0,0.0,0.0,0.0,0,-21.113917781113493,12.642870922115195,,0.0

@@ -394,9 +394,9 @@ InterFuser's **38.4** is 100 × 16.316 / 42.5 = 38.39:
 - 9 FAIL cells contribute partial credit (0.09–0.85);
 - 10 cells contribute 0, green_stop and rule_hierarchy (never moved) among them.
 
-It is a weighted mean of continuous credits, not a success rate or a distance. The **MARSHAL Score** (R1–R9)
+It is a weighted mean of continuous credits, not a success rate or a distance. The **Requirement Score** (R1–R9)
 is a different object: it averages the binary strict-derived metrics with comfort, lane and pedestrian terms
-that a stationary car also scores well on. For example, Qwen3-VL scores graded 16.5 but MARSHAL Score 43.6.
+that a stationary car also scores well on. For example, Qwen3-VL scores graded 16.5 but Requirement Score 43.6.
 
 **Ideal, worst acceptable, oracle.**
 

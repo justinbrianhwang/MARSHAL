@@ -1,0 +1,95 @@
+{
+ "leaderboard_episodes": 700,
+ "telemetry_found": 700,
+ "pass": 116,
+ "pass_credit_lt_1": [],
+ "pass_credit_le_0p5": 0,
+ "fail_credit_ge_0p9": [
+  [
+   "interfuser",
+   "1",
+   "dual_authority_handoff",
+   "0.983632",
+   "ego blasted through the near-zone SLOW authority instead of transiting it at a slow speed"
+  ],
+  [
+   "qwen3-vl",
+   "2",
+   "stale_directive_residue",
+   "0.9405",
+   "ego did not start proceeding (forward, >= 2 km/h) within 3 s of the safe-to-proceed time"
+  ],
+  [
+   "qwen3-vl",
+   "3",
+   "stale_directive_residue",
+   "0.9405",
+   "ego did not start proceeding (forward, >= 2 km/h) within 3 s of the safe-to-proceed time"
+  ],
+  [
+   "transfuser",
+   "0",
+   "ambulance_yield",
+   "0.928689",
+   "ego did not laterally clear the lane while yielding"
+  ]
+ ],
+ "fail_max_credit": 0.983632,
+ "pass_min_credit": 1.0,
+ "credit_eq_1_all_pass": true,
+ "fail_credit_eq_0": 416,
+ "fail_total": 584,
+ "band_counts": {
+  "20": {
+   "FAIL": 23
+  },
+  "50": {
+   "FAIL": 6
+  },
+  "80": {
+   "FAIL": 3
+  }
+ },
+ "band_scenarios": {
+  "20": {
+   "red_proceed": 1,
+   "emergency_scene_blocking": 7,
+   "two_civilians_disagree": 1,
+   "fake_vest_director": 1,
+   "out_of_jurisdiction_director": 1,
+   "ambulance_yield": 2,
+   "signal_off": 3,
+   "fallen_person": 3,
+   "civilian_warning_accident": 1,
+   "conflicting_authorities": 1,
+   "stale_directive_residue": 2
+  },
+  "50": {
+   "two_civilians_disagree": 1,
+   "rule_hierarchy": 3,
+   "ambiguous_gesture": 1,
+   "ambulance_yield": 1
+  },
+  "80": {
+   "ambulance_yield": 3
+  }
+ },
+ "band_outcomes": {
+  "20": {
+   "PROCEED_FAIL": 4,
+   "DETOUR_FAIL": 8,
+   "STOP_INSIDE_1M_MARGIN": 2,
+   "YIELD_FAIL": 2,
+   "STOP_BEFORE_MARGIN_NOT_HELD_THROUGH_ENFORCEMENT": 4,
+   "STOP_PAST_LINE_LE_3M": 3
+  },
+  "50": {
+   "STOP_BEFORE_MARGIN_NOT_HELD_THROUGH_ENFORCEMENT": 2,
+   "PROCEED_FAIL": 3,
+   "YIELD_FAIL": 1
+  },
+  "80": {
+   "YIELD_FAIL": 3
+  }
+ }
+}

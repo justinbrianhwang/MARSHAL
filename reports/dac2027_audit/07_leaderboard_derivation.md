@@ -22,7 +22,7 @@ The README tables are parsed from the file itself, not typed in.
 | scenarios passed | number of cells with strict verdict PASS (graded credit plays no part) | `strict_episode_scoring.score_episode_from_telemetry` |
 | override cells (12) | strict PASS count over the 6 *override* scenarios (green_stop, red_proceed, signal_off, flagger_control, school_crossing_guard, crash_detour) and the 6 *stressed-override* scenarios (occluded_officer, ambiguous_gesture, adjacent_lane, sequential_directive, flagger_slow_then_stop, night_signal_officer_conflict) | `marshal_metrics.CONFLICT_TYPE` |
 | failure profile | strict PASS count per family: override 6, stressed-override 6, validity 5, conflict 3, scene 2, safety 3 | same |
-| MARSHAL Score (partial) | 100 · Σ w_r R_r / Σ w_r over the measured requirement subscores r; weights R1 .10, R2 .12, R3 .28, R4 .05, R5 .03, R6 .02, R7 .22, R8 .13, R9 .05 | `marshal_metrics.aggregate` |
+| Requirement Score (partial) | 100 · Σ w_r R_r / Σ w_r over the measured requirement subscores r; weights R1 .10, R2 .12, R3 .28, R4 .05, R5 .03, R6 .02, R7 .22, R8 .13, R9 .05 | `marshal_metrics.aggregate` |
 
 ## 2. Worked chain: InterFuser (README 38.4, 6/25, 5/12)
 
@@ -52,7 +52,7 @@ From `tables.md` T8 (all 14 models are listed there in the same form):
 - **Override cells:** PASS on red_proceed and flagger_control (override) plus ambiguous_gesture,
   flagger_slow_then_stop and night_signal_officer_conflict (stressed-override) = **5 / 12**. The failure profile
   is 2/6, 3/6, 1/5 (out_of_jurisdiction_director), 0/3, 0/2, 0/3.
-- **MARSHAL Score 41.29.** Measured R's are R1 0, R2 0.5, R3 0.2606, R4 1, R5 0.5917, R7 0.25 and R8 0.9868;
+- **Requirement Score 41.29.** Measured R's are R1 0, R2 0.5, R3 0.2606, R4 1, R5 0.5917, R7 0.25 and R8 0.9868;
   R6 and R9 are unmeasured, which leaves Σw = 0.93. The score is (0.12·0.5 + 0.28·0.2606 + 0.05·1 +
   0.03·0.5917 + 0.22·0.25 + 0.13·0.9868) / 0.93 = 41.29.
 
@@ -94,6 +94,6 @@ threshold** for it, not that the value is missing; the measured values are alway
 |---|---|---|
 | lane-boundary margin | measured for every green_stop leaderboard episode (min 0.30 m) | a rule; the natural bound "margin ≥ 0 (body inside its lane)" is proposed and met by all 14 episodes, so adopting it would change no green_stop score |
 | traffic-light pole distance | measured | nothing: the light's stop waypoint is the scored stop line, so the pole distance is context only |
-| MARSHAL Score R6 (robustness) | not measured in the leaderboard sweep | runs under the weather/time grid (`scripts/report_robustness.py`) |
-| MARSHAL Score R9 (audit) | not instrumented | a defined metric; listed in `r_unmeasured` and excluded from the denominator |
+| Requirement Score R6 (robustness) | not measured in the leaderboard sweep | runs under the weather/time grid (`scripts/report_robustness.py`) |
+| Requirement Score R9 (audit) | not instrumented | a defined metric; listed in `r_unmeasured` and excluded from the denominator |
 | OpenEMMA-C (Track C) | not run | a Track-C run of OpenEMMA (README marks it "planned") |

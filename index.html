@@ -334,11 +334,11 @@
     <section id="pipeline">
       <h2>How it works</h2>
       <p style="margin-top:-6px;margin-bottom:22px;color:var(--muted);font-size:15px;max-width:var(--measure)">
-        MARSHAL is the harness, not the model. A fixed scenario spec drives a CARLA generator; your model plugs into the one highlighted stage; the realized telemetry is scored into the MARSHAL Score.
+        MARSHAL is the harness, not the model. A fixed scenario spec drives a CARLA generator; your model plugs into the one highlighted stage; the realized telemetry is scored into strict pass/fail and MARSHAL-Graded.
       </p>
       <figure class="diagram">
         <div class="frame">
-          <img src="assets/architecture/pipeline.png" alt="MARSHAL pipeline: Scenario Spec (24 authority-conflict episodes) to Scenario Generator (CARLA Town03; officer, flagger, ambulance, hazard, gestures) to Driving Agent under test (plug-in: A privileged oracle, B closed-loop E2E, C VLM) to Evaluation Engine (strict telemetry + metric suite) to Reliability Metrics (AOC, FOA, TAA, SBO, CRI, RTL to R1-R9) to MARSHAL Score (strict pass-rate + MARSHAL-Graded 0-100). Correct action per scenario: STOP / PROCEED / YIELD / DETOUR / HOLD." width="1376" height="768">
+          <img src="assets/architecture/pipeline.png" alt="MARSHAL pipeline: Scenario Spec (24 authority-conflict episodes) to Scenario Generator (CARLA Town03; officer, flagger, ambulance, hazard, gestures) to Driving Agent under test (plug-in: A privileged oracle, B closed-loop E2E, C VLM) to Evaluation Engine (strict telemetry + metric suite) to Reliability Metrics (AOC, FOA, TAA, SBO, CRI, RTL to R1-R9) to Scores (strict pass-rate + MARSHAL-Graded 0-100). Correct action per scenario: STOP / PROCEED / YIELD / DETOUR / HOLD." width="1376" height="768">
         </div>
         <figcaption>The model under test occupies a single swappable slot — everything upstream and downstream is held fixed, so scores are comparable across oracle, E2E, and VLM.</figcaption>
       </figure>

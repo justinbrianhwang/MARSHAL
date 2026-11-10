@@ -2,7 +2,7 @@
 
 Turns a single episode's raw criteria output + ground-truth E-tuple into the
 MARSHAL-specific metrics, and aggregates a set of episodes into a per-model
-scoreboard with the weighted MARSHAL Score.
+scoreboard with the weighted Requirement Score.
 
 Metrics
 -------
@@ -194,7 +194,7 @@ METRIC_TO_R = {"AOC": "R3", "FOA": "R3", "TAA": "R2",
                # high-tier reasoning metrics
                "OCC": "R1", "APR": "R3", "DRM": "R3", "RHC": "R3", "AGI": "R2"}
 
-# MARSHAL Score weights over the R1-R9 taxonomy (PPTX slides 7-10).
+# Requirement Score weights over the R1-R9 taxonomy (PPTX slides 7-10).
 # Re-balanced for the 21-scenario set (the slide-14 weights were set when the
 # benchmark had 9 scenarios). The mass now reflects what the 21 scenarios
 # actually stress: authority-conflict resolution (R3, ~15/21) and exceptional
@@ -526,7 +526,7 @@ def aggregate(
     condition_robustness: Optional[Mapping[str, Any]] = None,
 ) -> dict:
     """Average each metric over the episodes where it is defined, derive per-R
-    subscores, and compute the weighted (partial) MARSHAL Score.
+    subscores, and compute the weighted (partial) Requirement Score.
 
     ``condition_robustness`` is the output of :func:`condition_retention_r6`
     (computed from a baseline run + condition-grid runs); when provided with a
@@ -596,7 +596,7 @@ def aggregate(
         if math.isfinite(r6_value):
             r_scores["R6"] = round(max(0.0, min(1.0, r6_value)), 4)
 
-    # Weighted MARSHAL Score over the R's we can actually measure, with weights
+    # Weighted Requirement Score over the R's we can actually measure, with weights
     # renormalised so the partial score stays in [0, 100]. R's without evidence
     # for this aggregate are listed explicitly as not-yet-instrumented.
     measured_w = {r: R_WEIGHTS[r] for r in r_scores}

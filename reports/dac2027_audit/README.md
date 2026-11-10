@@ -12,12 +12,12 @@ scenarios.
 | File | Content |
 |---|---|
 | `01_requirements_status.md` | requirement × code × logs × status × missing evidence × work type (A/B/C/D) × priority |
-| `02_evaluation_spec_green_stop.md` | variables, Ideal / Worst acceptable / Oracle, Strict vs Graded vs MARSHAL Score, formulas, per-command functions, worked examples, open design issues |
+| `02_evaluation_spec_green_stop.md` | variables, Ideal / Worst acceptable / Oracle, Strict vs Graded vs Requirement Score, formulas, per-command functions, worked examples, open design issues |
 | `03_timing_audit.md` | simulator clock, sensor and input frames, decision cadence, decision → control, latency, what lock-step results do and do not show |
 | `04_green_stop_results.md` | reference vs model behaviour, raw → component → score tables, hold/release, timelines |
 | `05_benchmark_extension.md` | common vs command-specific items, aggregation, re-scoring feasibility |
 | `06_reproduction.md` | commands, environments, original vs re-analysed data, code changes |
-| `07_leaderboard_derivation.md` | every README leaderboard number (graded, scenarios passed, override cells, failure profile, MARSHAL Score) derived from the 350 cells and checked against README.md; what "not scored" means |
+| `07_leaderboard_derivation.md` | every README leaderboard number (graded, scenarios passed, override cells, failure profile, Requirement Score) derived from the 350 cells and checked against README.md; what "not scored" means |
 | `08_experiment_inventory_and_open_items.md` | every recorded experiment mapped to the report (included / excluded and why); evidence on the open items: stop reference, hold duration, movement window, VLM cadence, repeat stability, oracle initial condition, stale inputs |
 | `tables.md` | generated tables: T1 behaviour, T2 graded decomposition, T3 suite aggregation, T6 leaderboard re-derivation vs README, T7 25 × 14 cell matrix, T8 per-model score chains, T9 experiment inventory, T10 authority experiment by condition, T11 query cap, T12 repeat stability, T13 hold verification, T14 movement window, T15 stale inputs, T16 oracle from rest, T4 ego vs. environment per model, T5 per-second distances per model |
 | `data/` | per-episode CSVs (score trace, strict gates, timing, suite cells, variants, synthetic cases) |

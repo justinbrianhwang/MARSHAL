@@ -1,0 +1,92 @@
+{
+  "name": "MARSHAL Score",
+  "version": "candidate",
+  "status": "candidate; not adopted; the official scores are Strict and MARSHAL-Graded",
+  "range": [
+    0,
+    100
+  ],
+  "pass_score": 100.0,
+  "fail_ceiling": 99.0,
+  "display_decimals": 1,
+  "element_weights": {
+    "R": 0.4,
+    "B": 0.2,
+    "T": 0.2,
+    "P": 0.2
+  },
+  "common_full_loss_scales": {
+    "position_m": 3.0,
+    "speed_kmh": 11.0,
+    "time_s": 5.0
+  },
+  "caps": {
+    "core": {
+      "base": 25.0,
+      "slope": 75.0,
+      "rule": "score <= 25 + 75 * R"
+    },
+    "boundary": {
+      "base": 25.0,
+      "slope": 75.0,
+      "rule": "score <= 25 + 75 * B (only when B applies)"
+    },
+    "contacts": {
+      "one_partner": 50.0,
+      "two_or_more_partners": 25.0
+    }
+  },
+  "strict_tolerances_used": {
+    "stop_speed_kmh": 1.0,
+    "stopline_front_margin_m": 1.0,
+    "hazard_centre_margin_m": 1.0,
+    "engagement_speed_kmh": 5.0,
+    "engagement_progress_m": 1.0,
+    "proceed_start_speed_kmh": 2.0,
+    "proceed_start_deadline_s": 3.0,
+    "yield_slow_speed_kmh": 3.0,
+    "yield_pre_speed_kmh": 5.0,
+    "yield_lateral_m": 1.0,
+    "yield_resume_speed_kmh": 5.0,
+    "detour_lateral_m": 1.5,
+    "detour_pass_margin_m": 4.0,
+    "detour_response_lateral_m": 0.5,
+    "proceed_care_yield_speed_kmh": 3.0,
+    "dwell_speed_kmh": 3.0,
+    "dwell_min_s": 2.0,
+    "dwell_max_drift_m": 0.5,
+    "held_stop_min_s": 2.0,
+    "held_stop_max_drift_m": 0.5,
+    "reaction_budget_floor_s": 3.0,
+    "stopline_engagement_m": 16.59,
+    "hazard_engagement_m": 16.59
+  },
+  "levels": {
+    "100": "Complete: every required condition met (Strict PASS).",
+    "75": "Near-complete: the core result of the required behaviour was achieved; the accompanying conditions (boundary, timing, persistence) fell short by about a quarter of the common loss scale in total; no contact.",
+    "50": "Half of the required behaviour content was delivered on the common scale: the core result was only partly achieved with its conditions kept, or it was achieved while one condition was clearly violated, or it was achieved with one safety contact.",
+    "25": "The core result was mostly not achieved, or it was achieved with a deep boundary breach or repeated contacts; only some conditions were kept.",
+    "0": "The required behaviour was not performed and its conditions were violated (e.g. drove through a STOP line at speed, never started a required PROCEED)."
+  },
+  "common_rules": [
+    "Each element is 1 inside the Strict tolerance and loses linearly to 0 over the common scale (3 m position, 11 km/h speed, 5 s time; ratios for lateral offset and required speeds).",
+    "Only elements that the scenario's requirement contains are averaged; absent elements are never set to 1.",
+    "Required stages are sequence-gated: a later stage, and its timing, is credited at most as far as the stage it presupposes.",
+    "A discrete stage (moving junction entry, settled dwell) that was not achieved earns at most 0.5 of its weight.",
+    "Approach required before a STOP/HOLD/YIELD (motion: 5 km/h and 1 m; distance: within the Strict 16.59 m engagement band of the stop line, officer or hazard, 3 m loss beyond it) gates R, T and P; it never gates B.",
+    "Caps: 25 + 75 R; 25 + 75 B; one collision partner 50, two or more 25.",
+    "Strict PASS = 100; Strict FAIL = min(raw, caps, 99.0), floored to one decimal; INVALID / NOT_SCORED = no score."
+  ],
+  "handoff_strict_requirement": {
+    "hazard_pass_m": 4.0,
+    "zone_radius_m": 6.0,
+    "zone_speed_cap_kmh": 18.0,
+    "officer_pass_m": 7.0,
+    "stop_band_past_hazard_min_m": 1.5,
+    "stop_band_past_hazard_max_m": 9.0,
+    "overshoot_grace_m": 0.5,
+    "hold_displacement_max_m": 0.3,
+    "hold_lateral_max_m": 2.5,
+    "source": "Strict STOP_APPROACH_REQUIREMENTS['dual_authority_handoff'] (read, not changed)"
+  }
+}

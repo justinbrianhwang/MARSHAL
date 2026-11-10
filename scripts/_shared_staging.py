@@ -187,8 +187,10 @@ def apply_staging_overrides(cfg: dict, scenario_key: str) -> dict:
     # D / v_cruise seconds of lawful travel before the ego can reach the
     # scene, so the reaction budget scales by the same amount at RUN time
     # (window, early-termination, and recording length all follow it).
+    # MARSHAL_SPAWN_BACK_FIXED_TIMING=1 keeps the scenario's own reaction
+    # budget and the protocol horizon (geometry-only shift).
     back = os.environ.get("MARSHAL_SPAWN_BACK_M")
-    if back:
+    if back and os.environ.get("MARSHAL_SPAWN_BACK_FIXED_TIMING") != "1":
         eb = cfg.setdefault("expected_behavior", {})
         base_rt = float(eb.get("max_reaction_time_sec", 3.0) or 3.0)
         cruise = float((cfg.get("ego") or {}).get("target_speed", 25.0) or 25.0) / 3.6
@@ -228,7 +230,7 @@ def load_staged_config(
     # the recording window must cover it or the episode ends before the
     # scene is reached (round-8 review fix).
     _back = os.environ.get("MARSHAL_SPAWN_BACK_M")
-    if _back:
+    if _back and os.environ.get("MARSHAL_SPAWN_BACK_FIXED_TIMING") != "1":
         _cruise = float((cfg.get("ego") or {}).get("target_speed", 25.0) or 25.0) / 3.6
         cfg["timeout_sec"] = cfg["timeout_sec"] + float(_back) / max(_cruise, 1.0)
     _timeout = os.environ.get("MARSHAL_TIMEOUT_S")

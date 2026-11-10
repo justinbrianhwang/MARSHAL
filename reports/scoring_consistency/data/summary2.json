@@ -1,0 +1,1142 @@
+{
+ "credit0_n": 416,
+ "credit0_by_outcome": [
+  [
+   "NO_MOVEMENT",
+   222
+  ],
+  [
+   "DROVE_THROUGH_LINE_GT_3M",
+   144
+  ],
+  [
+   "NO_HELD_STOP_UPSTREAM",
+   14
+  ],
+  [
+   "STOP_BEFORE_MARGIN_NOT_HELD_THROUGH_ENFORCEMENT",
+   14
+  ],
+  [
+   "DETOUR_FAIL",
+   7
+  ],
+  [
+   "PROCEED_FAIL",
+   5
+  ],
+  [
+   "STOP_HELD_BEFORE_MARGIN",
+   3
+  ],
+  [
+   "CROSSED_LINE_LE_3M_NO_HOLD",
+   3
+  ],
+  [
+   "YIELD_FAIL",
+   2
+  ],
+  [
+   "STOP_PAST_LINE_LE_3M",
+   1
+  ],
+  [
+   "STOP_INSIDE_1M_MARGIN",
+   1
+  ]
+ ],
+ "credit0_by_first_zero_term": [
+  [
+   "movement",
+   222
+  ],
+  [
+   "action",
+   156
+  ],
+  [
+   "latency",
+   32
+  ],
+  [
+   "safety",
+   6
+  ]
+ ],
+ "credit0_scenarios": 25,
+ "stopline_class_credit_by_scenario": {
+  "STOP_INSIDE_1M_MARGIN": {
+   "adjacent_lane": [
+    0.677,
+    0.677,
+    0.677,
+    1
+   ],
+   "fake_vest_director": [
+    0.234,
+    0.234,
+    0.234,
+    1
+   ],
+   "flagger_slow_then_stop": [
+    0.0,
+    0.009,
+    0.018,
+    2
+   ],
+   "occluded_officer": [
+    0.037,
+    0.037,
+    0.037,
+    1
+   ],
+   "two_civilians_disagree": [
+    0.217,
+    0.217,
+    0.217,
+    1
+   ],
+   "unauthorized_go": [
+    0.113,
+    0.265,
+    0.417,
+    2
+   ]
+  },
+  "DROVE_THROUGH_LINE_GT_3M": {
+   "adjacent_lane": [
+    0.0,
+    0.0,
+    0.0,
+    4
+   ],
+   "ambiguous_gesture": [
+    0.0,
+    0.0,
+    0.0,
+    4
+   ],
+   "conflicting_authorities": [
+    0.0,
+    0.0,
+    0.0,
+    9
+   ],
+   "fake_vest_director": [
+    0.0,
+    0.0,
+    0.0,
+    4
+   ],
+   "green_stop": [
+    0.0,
+    0.0,
+    0.0,
+    19
+   ],
+   "occluded_officer": [
+    0.0,
+    0.0,
+    0.02,
+    23
+   ],
+   "school_crossing_guard": [
+    0.0,
+    0.0,
+    0.0,
+    15
+   ],
+   "sequential_directive": [
+    0.0,
+    0.0,
+    0.0,
+    26
+   ],
+   "signal_off": [
+    0.0,
+    0.0,
+    0.0,
+    9
+   ],
+   "two_civilians_disagree": [
+    0.0,
+    0.0,
+    0.0,
+    3
+   ],
+   "unauthorized_go": [
+    0.0,
+    0.0,
+    0.0,
+    3
+   ]
+  },
+  "STOP_BEFORE_MARGIN_NOT_HELD_THROUGH_ENFORCEMENT": {
+   "adjacent_lane": [
+    0.0,
+    0.0,
+    0.0,
+    1
+   ],
+   "ambiguous_gesture": [
+    0.0,
+    0.226,
+    0.452,
+    2
+   ],
+   "conflicting_authorities": [
+    0.0,
+    0.24,
+    0.359,
+    4
+   ],
+   "fake_vest_director": [
+    0.14,
+    0.267,
+    0.393,
+    2
+   ],
+   "flagger_control": [
+    0.0,
+    0.07,
+    0.319,
+    6
+   ],
+   "flagger_slow_then_stop": [
+    0.268,
+    0.268,
+    0.268,
+    1
+   ],
+   "school_crossing_guard": [
+    0.0,
+    0.191,
+    0.364,
+    4
+   ],
+   "signal_off": [
+    0.0,
+    0.162,
+    0.32,
+    10
+   ],
+   "two_civilians_disagree": [
+    0.0,
+    0.36,
+    0.526,
+    4
+   ],
+   "unauthorized_go": [
+    0.0,
+    0.0,
+    0.0,
+    1
+   ]
+  },
+  "STOP_PAST_LINE_LE_3M": {
+   "flagger_slow_then_stop": [
+    0.0,
+    0.0,
+    0.0,
+    1
+   ],
+   "occluded_officer": [
+    0.063,
+    0.063,
+    0.063,
+    1
+   ],
+   "unauthorized_go": [
+    0.412,
+    0.412,
+    0.412,
+    1
+   ]
+  },
+  "STOP_HELD_BEFORE_MARGIN": {
+   "adjacent_lane": [
+    1.0,
+    1.0,
+    1.0,
+    2
+   ],
+   "ambiguous_gesture": [
+    1.0,
+    1.0,
+    1.0,
+    8
+   ],
+   "conflicting_authorities": [
+    1.0,
+    1.0,
+    1.0,
+    2
+   ],
+   "fake_vest_director": [
+    1.0,
+    1.0,
+    1.0,
+    3
+   ],
+   "flagger_control": [
+    1.0,
+    1.0,
+    1.0,
+    8
+   ],
+   "flagger_slow_then_stop": [
+    0.1,
+    1.0,
+    1.0,
+    8
+   ],
+   "green_stop": [
+    1.0,
+    1.0,
+    1.0,
+    5
+   ],
+   "occluded_officer": [
+    1.0,
+    1.0,
+    1.0,
+    1
+   ],
+   "school_crossing_guard": [
+    1.0,
+    1.0,
+    1.0,
+    3
+   ],
+   "sequential_directive": [
+    1.0,
+    1.0,
+    1.0,
+    1
+   ],
+   "signal_off": [
+    1.0,
+    1.0,
+    1.0,
+    1
+   ],
+   "two_civilians_disagree": [
+    1.0,
+    1.0,
+    1.0,
+    1
+   ],
+   "unauthorized_go": [
+    1.0,
+    1.0,
+    1.0,
+    2
+   ]
+  },
+  "CROSSED_LINE_LE_3M_NO_HOLD": {
+   "ambiguous_gesture": [
+    0.0,
+    0.0,
+    0.0,
+    2
+   ],
+   "occluded_officer": [
+    0.016,
+    0.016,
+    0.016,
+    1
+   ]
+  }
+ },
+ "partial_stopline_cells": 37,
+ "cross_scenario_pairs_within_0p05": 95,
+ "pairs_gap_ge2": 17,
+ "pair_examples": [
+  {
+   "gap": 4,
+   "a": {
+    "model": "glm-4.5v",
+    "seed": "2",
+    "scenario": "occluded_officer",
+    "strict": "FAIL",
+    "credit": "0.019609",
+    "telemetry_outcome": "DROVE_THROUGH_LINE_GT_3M",
+    "min_front_in_directive_window_m": "-5.96",
+    "max_speed_enforcement_kmh": "0.0",
+    "action_credit": "0.019609",
+    "latency_factor": "1.0",
+    "safety_factor": "1.0"
+   },
+   "b": {
+    "model": "mpc",
+    "seed": "0",
+    "scenario": "flagger_slow_then_stop",
+    "strict": "FAIL",
+    "credit": "0.017874",
+    "telemetry_outcome": "STOP_INSIDE_1M_MARGIN",
+    "min_front_in_directive_window_m": "-0.0",
+    "max_speed_enforcement_kmh": "12.22",
+    "action_credit": "0.071496",
+    "latency_factor": "1.0",
+    "safety_factor": "0.25"
+   }
+  },
+  {
+   "gap": 3,
+   "a": {
+    "model": "glm-4.5v",
+    "seed": "4",
+    "scenario": "occluded_officer",
+    "strict": "FAIL",
+    "credit": "0.016273",
+    "telemetry_outcome": "CROSSED_LINE_LE_3M_NO_HOLD",
+    "min_front_in_directive_window_m": "-1.99",
+    "max_speed_enforcement_kmh": "8.7",
+    "action_credit": "0.016273",
+    "latency_factor": "1.0",
+    "safety_factor": "1.0"
+   },
+   "b": {
+    "model": "mpc",
+    "seed": "0",
+    "scenario": "flagger_slow_then_stop",
+    "strict": "FAIL",
+    "credit": "0.017874",
+    "telemetry_outcome": "STOP_INSIDE_1M_MARGIN",
+    "min_front_in_directive_window_m": "-0.0",
+    "max_speed_enforcement_kmh": "12.22",
+    "action_credit": "0.071496",
+    "latency_factor": "1.0",
+    "safety_factor": "0.25"
+   }
+  },
+  {
+   "gap": 3,
+   "a": {
+    "model": "glm-4.5v",
+    "seed": "2",
+    "scenario": "occluded_officer",
+    "strict": "FAIL",
+    "credit": "0.019609",
+    "telemetry_outcome": "DROVE_THROUGH_LINE_GT_3M",
+    "min_front_in_directive_window_m": "-5.96",
+    "max_speed_enforcement_kmh": "0.0",
+    "action_credit": "0.019609",
+    "latency_factor": "1.0",
+    "safety_factor": "1.0"
+   },
+   "b": {
+    "model": "neat",
+    "seed": "0",
+    "scenario": "signal_off",
+    "strict": "FAIL",
+    "credit": "0.036",
+    "telemetry_outcome": "STOP_BEFORE_MARGIN_NOT_HELD_THROUGH_ENFORCEMENT",
+    "min_front_in_directive_window_m": "2.48",
+    "max_speed_enforcement_kmh": "23.53",
+    "action_credit": "0.4",
+    "latency_factor": "0.09",
+    "safety_factor": "1.0"
+   }
+  },
+  {
+   "gap": 3,
+   "a": {
+    "model": "glm-4.5v",
+    "seed": "1",
+    "scenario": "occluded_officer",
+    "strict": "FAIL",
+    "credit": "0.062532",
+    "telemetry_outcome": "STOP_PAST_LINE_LE_3M",
+    "min_front_in_directive_window_m": "-1.28",
+    "max_speed_enforcement_kmh": "0.0",
+    "action_credit": "0.062532",
+    "latency_factor": "1.0",
+    "safety_factor": "1.0"
+   },
+   "b": {
+    "model": "interfuser",
+    "seed": "0",
+    "scenario": "flagger_slow_then_stop",
+    "strict": "FAIL",
+    "credit": "0.1",
+    "telemetry_outcome": "STOP_HELD_BEFORE_MARGIN",
+    "min_front_in_directive_window_m": "1.84",
+    "max_speed_enforcement_kmh": "0.19",
+    "action_credit": "1.0",
+    "latency_factor": "1.0",
+    "safety_factor": "0.1"
+   }
+  },
+  {
+   "gap": 3,
+   "a": {
+    "model": "glm-4.5v",
+    "seed": "1",
+    "scenario": "occluded_officer",
+    "strict": "FAIL",
+    "credit": "0.062532",
+    "telemetry_outcome": "STOP_PAST_LINE_LE_3M",
+    "min_front_in_directive_window_m": "-1.28",
+    "max_speed_enforcement_kmh": "0.0",
+    "action_credit": "0.062532",
+    "latency_factor": "1.0",
+    "safety_factor": "1.0"
+   },
+   "b": {
+    "model": "interfuser",
+    "seed": "1",
+    "scenario": "flagger_slow_then_stop",
+    "strict": "FAIL",
+    "credit": "0.1",
+    "telemetry_outcome": "STOP_HELD_BEFORE_MARGIN",
+    "min_front_in_directive_window_m": "1.84",
+    "max_speed_enforcement_kmh": "0.14",
+    "action_credit": "1.0",
+    "latency_factor": "1.0",
+    "safety_factor": "0.1"
+   }
+  },
+  {
+   "gap": 3,
+   "a": {
+    "model": "glm-4.5v",
+    "seed": "1",
+    "scenario": "occluded_officer",
+    "strict": "FAIL",
+    "credit": "0.062532",
+    "telemetry_outcome": "STOP_PAST_LINE_LE_3M",
+    "min_front_in_directive_window_m": "-1.28",
+    "max_speed_enforcement_kmh": "0.0",
+    "action_credit": "0.062532",
+    "latency_factor": "1.0",
+    "safety_factor": "1.0"
+   },
+   "b": {
+    "model": "interfuser",
+    "seed": "2",
+    "scenario": "flagger_slow_then_stop",
+    "strict": "FAIL",
+    "credit": "0.1",
+    "telemetry_outcome": "STOP_HELD_BEFORE_MARGIN",
+    "min_front_in_directive_window_m": "1.81",
+    "max_speed_enforcement_kmh": "0.1",
+    "action_credit": "1.0",
+    "latency_factor": "1.0",
+    "safety_factor": "0.1"
+   }
+  },
+  {
+   "gap": 2,
+   "a": {
+    "model": "aim",
+    "seed": "0",
+    "scenario": "school_crossing_guard",
+    "strict": "FAIL",
+    "credit": "0.111022",
+    "telemetry_outcome": "STOP_BEFORE_MARGIN_NOT_HELD_THROUGH_ENFORCEMENT",
+    "min_front_in_directive_window_m": "19.23",
+    "max_speed_enforcement_kmh": "4.67",
+    "action_credit": "0.411192",
+    "latency_factor": "0.27",
+    "safety_factor": "1.0"
+   },
+   "b": {
+    "model": "interfuser",
+    "seed": "0",
+    "scenario": "flagger_slow_then_stop",
+    "strict": "FAIL",
+    "credit": "0.1",
+    "telemetry_outcome": "STOP_HELD_BEFORE_MARGIN",
+    "min_front_in_directive_window_m": "1.84",
+    "max_speed_enforcement_kmh": "0.19",
+    "action_credit": "1.0",
+    "latency_factor": "1.0",
+    "safety_factor": "0.1"
+   }
+  },
+  {
+   "gap": 2,
+   "a": {
+    "model": "aim",
+    "seed": "0",
+    "scenario": "school_crossing_guard",
+    "strict": "FAIL",
+    "credit": "0.111022",
+    "telemetry_outcome": "STOP_BEFORE_MARGIN_NOT_HELD_THROUGH_ENFORCEMENT",
+    "min_front_in_directive_window_m": "19.23",
+    "max_speed_enforcement_kmh": "4.67",
+    "action_credit": "0.411192",
+    "latency_factor": "0.27",
+    "safety_factor": "1.0"
+   },
+   "b": {
+    "model": "interfuser",
+    "seed": "1",
+    "scenario": "flagger_slow_then_stop",
+    "strict": "FAIL",
+    "credit": "0.1",
+    "telemetry_outcome": "STOP_HELD_BEFORE_MARGIN",
+    "min_front_in_directive_window_m": "1.84",
+    "max_speed_enforcement_kmh": "0.14",
+    "action_credit": "1.0",
+    "latency_factor": "1.0",
+    "safety_factor": "0.1"
+   }
+  },
+  {
+   "gap": 2,
+   "a": {
+    "model": "aim",
+    "seed": "0",
+    "scenario": "school_crossing_guard",
+    "strict": "FAIL",
+    "credit": "0.111022",
+    "telemetry_outcome": "STOP_BEFORE_MARGIN_NOT_HELD_THROUGH_ENFORCEMENT",
+    "min_front_in_directive_window_m": "19.23",
+    "max_speed_enforcement_kmh": "4.67",
+    "action_credit": "0.411192",
+    "latency_factor": "0.27",
+    "safety_factor": "1.0"
+   },
+   "b": {
+    "model": "interfuser",
+    "seed": "2",
+    "scenario": "flagger_slow_then_stop",
+    "strict": "FAIL",
+    "credit": "0.1",
+    "telemetry_outcome": "STOP_HELD_BEFORE_MARGIN",
+    "min_front_in_directive_window_m": "1.81",
+    "max_speed_enforcement_kmh": "0.1",
+    "action_credit": "1.0",
+    "latency_factor": "1.0",
+    "safety_factor": "0.1"
+   }
+  },
+  {
+   "gap": 2,
+   "a": {
+    "model": "glm-4.5v",
+    "seed": "4",
+    "scenario": "occluded_officer",
+    "strict": "FAIL",
+    "credit": "0.016273",
+    "telemetry_outcome": "CROSSED_LINE_LE_3M_NO_HOLD",
+    "min_front_in_directive_window_m": "-1.99",
+    "max_speed_enforcement_kmh": "8.7",
+    "action_credit": "0.016273",
+    "latency_factor": "1.0",
+    "safety_factor": "1.0"
+   },
+   "b": {
+    "model": "neat",
+    "seed": "0",
+    "scenario": "signal_off",
+    "strict": "FAIL",
+    "credit": "0.036",
+    "telemetry_outcome": "STOP_BEFORE_MARGIN_NOT_HELD_THROUGH_ENFORCEMENT",
+    "min_front_in_directive_window_m": "2.48",
+    "max_speed_enforcement_kmh": "23.53",
+    "action_credit": "0.4",
+    "latency_factor": "0.09",
+    "safety_factor": "1.0"
+   }
+  },
+  {
+   "gap": 2,
+   "a": {
+    "model": "interfuser",
+    "seed": "0",
+    "scenario": "flagger_slow_then_stop",
+    "strict": "FAIL",
+    "credit": "0.1",
+    "telemetry_outcome": "STOP_HELD_BEFORE_MARGIN",
+    "min_front_in_directive_window_m": "1.84",
+    "max_speed_enforcement_kmh": "0.19",
+    "action_credit": "1.0",
+    "latency_factor": "1.0",
+    "safety_factor": "0.1"
+   },
+   "b": {
+    "model": "neat",
+    "seed": "0",
+    "scenario": "fake_vest_director",
+    "strict": "FAIL",
+    "credit": "0.14",
+    "telemetry_outcome": "STOP_BEFORE_MARGIN_NOT_HELD_THROUGH_ENFORCEMENT",
+    "min_front_in_directive_window_m": "2.65",
+    "max_speed_enforcement_kmh": "25.48",
+    "action_credit": "0.4",
+    "latency_factor": "0.35",
+    "safety_factor": "1.0"
+   }
+  },
+  {
+   "gap": 2,
+   "a": {
+    "model": "interfuser",
+    "seed": "1",
+    "scenario": "flagger_slow_then_stop",
+    "strict": "FAIL",
+    "credit": "0.1",
+    "telemetry_outcome": "STOP_HELD_BEFORE_MARGIN",
+    "min_front_in_directive_window_m": "1.84",
+    "max_speed_enforcement_kmh": "0.14",
+    "action_credit": "1.0",
+    "latency_factor": "1.0",
+    "safety_factor": "0.1"
+   },
+   "b": {
+    "model": "neat",
+    "seed": "0",
+    "scenario": "fake_vest_director",
+    "strict": "FAIL",
+    "credit": "0.14",
+    "telemetry_outcome": "STOP_BEFORE_MARGIN_NOT_HELD_THROUGH_ENFORCEMENT",
+    "min_front_in_directive_window_m": "2.65",
+    "max_speed_enforcement_kmh": "25.48",
+    "action_credit": "0.4",
+    "latency_factor": "0.35",
+    "safety_factor": "1.0"
+   }
+  }
+ ],
+ "rank_pooled": {
+  "tau_a_untied": 0.9513211636242394,
+  "concordant": 11705,
+  "discordant": 292,
+  "n": 213
+ },
+ "rank_within_scenario": {
+  "adjacent_lane": {
+   "tau": 1.0,
+   "conc": 17,
+   "disc": 0,
+   "n": 8
+  },
+  "ambiguous_gesture": {
+   "tau": 1.0,
+   "conc": 70,
+   "disc": 0,
+   "n": 16
+  },
+  "conflicting_authorities": {
+   "tau": 1.0,
+   "conc": 53,
+   "disc": 0,
+   "n": 15
+  },
+  "fake_vest_director": {
+   "tau": 0.9428571428571428,
+   "conc": 34,
+   "disc": 1,
+   "n": 10
+  },
+  "flagger_control": {
+   "tau": 1.0,
+   "conc": 48,
+   "disc": 0,
+   "n": 14
+  },
+  "flagger_slow_then_stop": {
+   "tau": 0.7222222222222222,
+   "conc": 31,
+   "disc": 5,
+   "n": 12
+  },
+  "green_stop": {
+   "tau": 1.0,
+   "conc": 95,
+   "disc": 0,
+   "n": 24
+  },
+  "occluded_officer": {
+   "tau": 0.9591836734693877,
+   "conc": 96,
+   "disc": 2,
+   "n": 27
+  },
+  "school_crossing_guard": {
+   "tau": 1.0,
+   "conc": 102,
+   "disc": 0,
+   "n": 22
+  },
+  "sequential_directive": {
+   "tau": 1.0,
+   "conc": 26,
+   "disc": 0,
+   "n": 27
+  },
+  "signal_off": {
+   "tau": 1.0,
+   "conc": 82,
+   "disc": 0,
+   "n": 20
+  },
+  "two_civilians_disagree": {
+   "tau": 0.75,
+   "conc": 21,
+   "disc": 3,
+   "n": 9
+  },
+  "unauthorized_go": {
+   "tau": 0.8571428571428571,
+   "conc": 26,
+   "disc": 2,
+   "n": 9
+  }
+ },
+ "component_constancy": {
+  "DETOUR": {
+   "n": 112,
+   "latency_eq1": 78,
+   "latency_eq0": 22,
+   "safety_eq1": 44,
+   "movement_eq1": 94,
+   "action_eq0": 1,
+   "action_eq1": 4
+  },
+  "HOLD": {
+   "n": 56,
+   "latency_eq1": 26,
+   "latency_eq0": 28,
+   "safety_eq1": 56,
+   "movement_eq1": 35,
+   "action_eq0": 51,
+   "action_eq1": 3
+  },
+  "PROCEED": {
+   "n": 140,
+   "latency_eq1": 110,
+   "latency_eq0": 30,
+   "safety_eq1": 132,
+   "movement_eq1": 87,
+   "action_eq0": 10,
+   "action_eq1": 57
+  },
+  "STOP": {
+   "n": 364,
+   "latency_eq1": 214,
+   "latency_eq0": 127,
+   "safety_eq1": 353,
+   "movement_eq1": 235,
+   "action_eq0": 251,
+   "action_eq1": 44
+  },
+  "YIELD": {
+   "n": 28,
+   "latency_eq1": 25,
+   "latency_eq0": 2,
+   "safety_eq1": 26,
+   "movement_eq1": 27,
+   "action_eq0": 0,
+   "action_eq1": 15
+  }
+ },
+ "weights_official_vs_equal": {
+  "official": {
+   "oracle": 96.91,
+   "interfuser": 39.82,
+   "neat": 33.62,
+   "cilrs": 26.05,
+   "qwen2.5-vl": 21.86,
+   "tcp": 20.68,
+   "transfuser": 14.32,
+   "mpc": 14.1,
+   "pid": 13.51,
+   "qwen3-vl": 13.47,
+   "openemma": 11.87,
+   "aim": 11.59,
+   "baseline": 9.11,
+   "glm-4.5v": 8.43
+  },
+  "equal": {
+   "oracle": 97.0,
+   "interfuser": 39.69,
+   "neat": 33.51,
+   "cilrs": 25.5,
+   "qwen2.5-vl": 23.12,
+   "tcp": 21.02,
+   "mpc": 14.46,
+   "qwen3-vl": 14.25,
+   "pid": 13.97,
+   "transfuser": 13.91,
+   "openemma": 11.85,
+   "aim": 11.0,
+   "baseline": 9.11,
+   "glm-4.5v": 8.9
+  },
+  "kendall_tau_models": [
+   0.9120879120879121,
+   87,
+   4
+  ],
+  "sum_w": 42.5
+ },
+ "qcont_n": 410,
+ "qcont_bands": {
+  "20": {
+   "n": 0,
+   "strict": {},
+   "labels": [],
+   "scenarios": 0,
+   "SV_LINE": 0,
+   "SV_NOHOLD": 0,
+   "SV_CONTACT": 0,
+   "SV_SPEED": 0,
+   "min_front_range": null
+  },
+  "50": {
+   "n": 19,
+   "strict": {
+    "FAIL": 19
+   },
+   "labels": [
+    [
+     "DRIVE_THROUGH",
+     18
+    ],
+    [
+     "OVERRUN_THEN_STOP",
+     1
+    ]
+   ],
+   "scenarios": 6,
+   "SV_LINE": 19,
+   "SV_NOHOLD": 18,
+   "SV_CONTACT": 0,
+   "SV_SPEED": 19,
+   "min_front_range": [
+    -116.14,
+    -7.9
+   ]
+  },
+  "80": {
+   "n": 163,
+   "strict": {
+    "FAIL": 163
+   },
+   "labels": [
+    [
+     "NO_START",
+     139
+    ],
+    [
+     "COLLISION",
+     8
+    ],
+    [
+     "LATE_STOP",
+     6
+    ],
+    [
+     "STOP_NOT_HELD",
+     5
+    ],
+    [
+     "CREEP_NO_STOP",
+     3
+    ],
+    [
+     "OVERRUN_THEN_STOP",
+     2
+    ]
+   ],
+   "scenarios": 13,
+   "SV_LINE": 5,
+   "SV_NOHOLD": 3,
+   "SV_CONTACT": 8,
+   "SV_SPEED": 12,
+   "min_front_range": [
+    -6.43,
+    25.62
+   ]
+  }
+ },
+ "qcont_fail_ge_0p8": {
+  "n": 192,
+  "labels": [
+   [
+    "NO_START",
+    141
+   ],
+   [
+    "LATE_STOP",
+    17
+   ],
+   [
+    "STOP_NOT_HELD",
+    14
+   ],
+   [
+    "OVERRUN_THEN_STOP",
+    14
+   ],
+   [
+    "COLLISION",
+    5
+   ],
+   [
+    "STOP_POSITION",
+    1
+   ]
+  ],
+  "with_SV_LINE": 15
+ },
+ "qcont_P_eq1": 268,
+ "qcont_C_eq1": 399,
+ "qcont_pass": {
+  "FAIL": 361,
+  "PASS": 49
+ },
+ "qcont_pass_min": 1.0,
+ "qcont_fail_max": 0.994,
+ "qcont_top_fail": [
+  {
+   "model": "neat",
+   "seed": "0",
+   "scenario": "ambiguous_gesture",
+   "label": "STOP_NOT_HELD",
+   "Q_cont": "0.994",
+   "L": "1.0",
+   "V": "0.978",
+   "R": "1.0",
+   "H": "0.988",
+   "C": "1.0",
+   "P": "1.0",
+   "min_front_m": "20.12",
+   "enforced_max_kmh": "1.65",
+   "SV-LINE": "0",
+   "SV-NOHOLD": "0",
+   "SV-SPEED": "0"
+  },
+  {
+   "model": "baseline",
+   "seed": "0",
+   "scenario": "unauthorized_go",
+   "label": "STOP_POSITION",
+   "Q_cont": "0.98",
+   "L": "0.882",
+   "V": "1.0",
+   "R": "1.0",
+   "H": "1.0",
+   "C": "1.0",
+   "P": "1.0",
+   "min_front_m": "0.28",
+   "enforced_max_kmh": "0.0",
+   "SV-LINE": "0",
+   "SV-NOHOLD": "0",
+   "SV-SPEED": "0"
+  },
+  {
+   "model": "aim",
+   "seed": "0",
+   "scenario": "adjacent_lane",
+   "label": "STOP_NOT_HELD",
+   "Q_cont": "0.978",
+   "L": "1.0",
+   "V": "0.932",
+   "R": "1.0",
+   "H": "0.934",
+   "C": "1.0",
+   "P": "1.0",
+   "min_front_m": "14.15",
+   "enforced_max_kmh": "2.98",
+   "SV-LINE": "0",
+   "SV-NOHOLD": "0",
+   "SV-SPEED": "0"
+  },
+  {
+   "model": "neat",
+   "seed": "0",
+   "scenario": "occluded_officer",
+   "label": "LATE_STOP",
+   "Q_cont": "0.967",
+   "L": "0.955",
+   "V": "0.965",
+   "R": "0.906",
+   "H": "0.977",
+   "C": "1.0",
+   "P": "1.0",
+   "min_front_m": "0.77",
+   "enforced_max_kmh": "2.01",
+   "SV-LINE": "0",
+   "SV-NOHOLD": "0",
+   "SV-SPEED": "0"
+  },
+  {
+   "model": "openemma",
+   "seed": "0",
+   "scenario": "two_civilians_disagree",
+   "label": "NO_START",
+   "Q_cont": "0.965",
+   "L": "1.0",
+   "V": "1.0",
+   "R": "1.0",
+   "H": "1.0",
+   "C": "1.0",
+   "P": "0.79",
+   "min_front_m": "25.69",
+   "enforced_max_kmh": "0.0",
+   "SV-LINE": "0",
+   "SV-NOHOLD": "0",
+   "SV-SPEED": "0"
+  },
+  {
+   "model": "interfuser",
+   "seed": "0",
+   "scenario": "fallen_person",
+   "label": "OVERRUN_THEN_STOP",
+   "Q_cont": "0.964",
+   "L": "0.785",
+   "V": "1.0",
+   "R": "1.0",
+   "H": "1.0",
+   "C": "1.0",
+   "P": "1.0",
+   "min_front_m": "-1.14",
+   "enforced_max_kmh": "0.0",
+   "SV-LINE": "1",
+   "SV-NOHOLD": "0",
+   "SV-SPEED": "0"
+  },
+  {
+   "model": "interfuser",
+   "seed": "1",
+   "scenario": "fallen_person",
+   "label": "OVERRUN_THEN_STOP",
+   "Q_cont": "0.964",
+   "L": "0.785",
+   "V": "1.0",
+   "R": "1.0",
+   "H": "1.0",
+   "C": "1.0",
+   "P": "1.0",
+   "min_front_m": "-1.13",
+   "enforced_max_kmh": "0.0",
+   "SV-LINE": "1",
+   "SV-NOHOLD": "0",
+   "SV-SPEED": "0"
+  },
+  {
+   "model": "interfuser",
+   "seed": "2",
+   "scenario": "fallen_person",
+   "label": "OVERRUN_THEN_STOP",
+   "Q_cont": "0.964",
+   "L": "0.785",
+   "V": "1.0",
+   "R": "1.0",
+   "H": "1.0",
+   "C": "1.0",
+   "P": "1.0",
+   "min_front_m": "-1.13",
+   "enforced_max_kmh": "0.0",
+   "SV-LINE": "1",
+   "SV-NOHOLD": "0",
+   "SV-SPEED": "0"
+  }
+ ]
+}

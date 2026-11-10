@@ -41,7 +41,7 @@ REPORT_MD = os.path.join(ROOT, "tmp", "_reference_sweep_report.md")
 CONTROLLERS = ("baseline", "oracle")
 # Privileged scorer-validation fixtures (marshal_bench/controllers/scripted_behaviors.py).
 SCRIPTED = ("scripted_normal_stop", "scripted_late_stop", "scripted_overshoot", "scripted_no_start",
-            "scripted_lurch_then_stop", "scripted_constant_go")
+            "scripted_lurch_then_stop", "scripted_constant_go", "scripted_reference_approach")
 
 
 def _safe_rmtree(path: str, root: str) -> None:

@@ -104,13 +104,14 @@ def _rows_until(rows: List[Dict[str, Any]], t_end: float) -> List[Dict[str, Any]
     return [r for r in rows if float(r["sim_time"]) <= t_end + 1e-9]
 
 
-def v2_windows(rows: List[Dict[str, Any]], action: str):
+def v2_windows(rows: List[Dict[str, Any]], action: str, horizon_s: Optional[float] = None):
     """Protocol v2 row windows: (horizon_rows, scored_rows, (onset, duration, active_end)), or None if empty.
 
-    The 25 s horizon is applied before any phase detection; STOP/HOLD are
-    scored (and validated) on the rows up to the end of the directive only.
+    The 25 s horizon (``horizon_s`` overrides it for the GREEN STOP approach
+    candidate) is applied before any phase detection; STOP/HOLD are scored
+    (and validated) on the rows up to the end of the directive only.
     """
-    horizon = _rows_until(rows, PROTOCOL_V2["horizon_s"])
+    horizon = _rows_until(rows, PROTOCOL_V2["horizon_s"] if horizon_s is None else float(horizon_s))
     if not horizon:
         return None
     window = _stop_hold_window(horizon) if action in ("STOP", "HOLD") else _first_meta(horizon)
@@ -118,12 +119,13 @@ def v2_windows(rows: List[Dict[str, Any]], action: str):
     return horizon, scored or horizon[:1], window
 
 
-def _horizon_raw(rows: Iterable[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def _horizon_raw(rows: Iterable[Dict[str, Any]], horizon_s: Optional[float] = None) -> List[Dict[str, Any]]:
     """Drop rows whose sim_time is past the v2 horizon before validation (unparseable times are kept)."""
+    limit = PROTOCOL_V2["horizon_s"] if horizon_s is None else float(horizon_s)
     out = []
     for r in rows:
         t = _finite_float(r.get("sim_time")) if isinstance(r, dict) else None
-        if t is None or t <= PROTOCOL_V2["horizon_s"] + 1e-9:
+        if t is None or t <= limit + 1e-9:
             out.append(r)
     return out
 
@@ -1310,6 +1312,7 @@ def score_episode_from_telemetry(
     setup_errors: Iterable[Any] = (),
     protocol: str = "v1",
     decision_times: Optional[Iterable[float]] = None,
+    horizon_s: Optional[float] = None,
 ) -> Dict[str, Any]:
     """Return the strict PASS/FAIL/INVALID verdict for one episode.
 
@@ -1319,8 +1322,10 @@ def score_episode_from_telemetry(
     """
     if protocol not in PROTOCOLS:
         raise ValueError(f"unknown protocol {protocol!r}")
+    if horizon_s is not None and protocol != "v2":
+        raise ValueError("horizon_s applies to protocol v2 rules only")
     if protocol == "v2":
-        telemetry_rows = _horizon_raw(telemetry_rows)
+        telemetry_rows = _horizon_raw(telemetry_rows, horizon_s)
     rows, invalid = _normalise_rows(telemetry_rows)
     if invalid is not None:
         invalid.update({"scenario": scenario or result.get("scenario"), "expected_action": expected_action or result.get("expected_action")})
@@ -1331,7 +1336,7 @@ def score_episode_from_telemetry(
     full_rows = rows
     v2_window = None
     if protocol == "v2":
-        win = v2_windows(rows, action)
+        win = v2_windows(rows, action, horizon_s)
         if win is None:
             return _invalid("no telemetry inside the protocol v2 horizon", evidence={"scenario": scen})
         full_rows, rows, v2_window = win
@@ -1391,6 +1396,35 @@ def score_episode_from_telemetry(
     if protocol == "v2" and action in ("STOP", "HOLD"):
         verdict["release_followup"] = release_followup(full_rows, active_end, decision_times)
         verdict["collision_count"] = _collision_count(rows)
+    return verdict
+
+
+def score_green_stop_candidate(
+    result: Dict[str, Any],
+    telemetry_rows: Iterable[Dict[str, Any]],
+    *,
+    signal_onset_s: Optional[float],
+    post_signal_observation_s: float,
+    result_label: str,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """GREEN STOP approach candidate: protocol-v2 rules anchored on the ACTUAL
+    position-triggered onset, horizon = onset + post_signal_observation_s.
+
+    No onset (reference never reached, or the officer-absent condition) is
+    NOT_SCORED: no default onset time is ever substituted.
+    """
+    if signal_onset_s is None:
+        return {"passed": False, "invalid": False, "verdict": "NOT_SCORED",
+                "reason": "no STOP signal was issued in this episode (approach reference not reached, "
+                          "or no officer in this condition); nothing to score",
+                "protocol_version": result_label, "rules": "v2", "signal_onset_s": None}
+    horizon = float(signal_onset_s) + float(post_signal_observation_s)
+    verdict = score_episode_from_telemetry(result, telemetry_rows, protocol="v2", horizon_s=horizon, **kwargs)
+    verdict["protocol_version"] = result_label
+    verdict["rules"] = "v2"
+    verdict["signal_onset_s"] = float(signal_onset_s)
+    verdict["horizon_s"] = horizon
     return verdict
 
 

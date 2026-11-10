@@ -1,0 +1,450 @@
+{
+ "episodes": 700,
+ "scored": 700,
+ "strict": {
+  "FAIL": 584,
+  "PASS": 116
+ },
+ "pass_scores": [
+  100.0
+ ],
+ "pass_raw_min": 100.0,
+ "fail_max": 98.8,
+ "fail_ge_90": [
+  [
+   "interfuser",
+   "1",
+   "dual_authority_handoff",
+   "98.8",
+   "ego blasted through the near-zone SLOW authority instead of transiting it at a slow speed"
+  ],
+  [
+   "interfuser",
+   "2",
+   "dual_authority_handoff",
+   "94.4",
+   "ego blasted through the near-zone SLOW authority instead of transiting it at a slow speed"
+  ],
+  [
+   "neat",
+   "0",
+   "adjacent_lane",
+   "90.0",
+   "ego did not remain stopped through the enforced STOP/HOLD window"
+  ],
+  [
+   "neat",
+   "0",
+   "occluded_officer",
+   "92.9",
+   "the vehicle front came within 1.0 m of the stop line (or crossed it) while commanded to stop"
+  ],
+  [
+   "neat",
+   "0",
+   "ambiguous_gesture",
+   "95.5",
+   "ego did not remain stopped through the enforced STOP/HOLD window"
+  ],
+  [
+   "qwen3-vl",
+   "2",
+   "stale_directive_residue",
+   "95.7",
+   "ego did not start proceeding (forward, >= 2 km/h) within 3 s of the safe-to-proceed time"
+  ],
+  [
+   "qwen3-vl",
+   "3",
+   "stale_directive_residue",
+   "95.7",
+   "ego did not start proceeding (forward, >= 2 km/h) within 3 s of the safe-to-proceed time"
+  ],
+  [
+   "transfuser",
+   "0",
+   "ambulance_yield",
+   "94.6",
+   "ego did not laterally clear the lane while yielding"
+  ]
+ ],
+ "fail_distinct_values": 150,
+ "previous_graded_fail_distinct_values": 147,
+ "fail_zero": 114,
+ "previous_graded_fail_zero": 416,
+ "binding_rule_fail": {
+  "raw": 489,
+  "core": 68,
+  "boundary": 14,
+  "contacts": 13
+ },
+ "by_requirement": {
+  "detour": {
+   "n": 112,
+   "pass": 3,
+   "fail_min_med_max": [
+    0.0,
+    1.1,
+    50.0
+   ]
+  },
+  "handoff": {
+   "n": 28,
+   "pass": 1,
+   "fail_min_med_max": [
+    13.3,
+    20.0,
+    98.8
+   ]
+  },
+  "proceed": {
+   "n": 84,
+   "pass": 49,
+   "fail_min_med_max": [
+    0.0,
+    12.9,
+    66.6
+   ]
+  },
+  "proceed_after_release": {
+   "n": 28,
+   "pass": 3,
+   "fail_min_med_max": [
+    0.0,
+    50.0,
+    95.7
+   ]
+  },
+  "proceed_with_care": {
+   "n": 28,
+   "pass": 2,
+   "fail_min_med_max": [
+    44.6,
+    50.0,
+    76.4
+   ]
+  },
+  "stop_hazard": {
+   "n": 28,
+   "pass": 1,
+   "fail_min_med_max": [
+    0.0,
+    7.5,
+    46.8
+   ]
+  },
+  "stop_line": {
+   "n": 364,
+   "pass": 42,
+   "fail_min_med_max": [
+    0.0,
+    20.0,
+    95.5
+   ]
+  },
+  "yield": {
+   "n": 28,
+   "pass": 15,
+   "fail_min_med_max": [
+    2.9,
+    46.2,
+    94.6
+   ]
+  }
+ },
+ "previous_zero_now": {
+  "n": 416,
+  "now_distinct": 75,
+  "now_hist": [
+   [
+    0,
+    150
+   ],
+   [
+    10,
+    35
+   ],
+   [
+    20,
+    175
+   ],
+   [
+    30,
+    6
+   ],
+   [
+    40,
+    13
+   ],
+   [
+    50,
+    31
+   ],
+   [
+    60,
+    4
+   ],
+   [
+    70,
+    1
+   ],
+   [
+    90,
+    1
+   ]
+  ]
+ },
+ "qcont_subset": 392,
+ "qcont_vs_new_no_approach": [
+  130,
+  20.0,
+  20.0,
+  20.0
+ ],
+ "qcont_no_approach_previous_qcont": [
+  83.3,
+  83.7
+ ],
+ "dominance_pairs_checked_by_requirement": {
+  "stop_line": 103362,
+  "proceed": 1190,
+  "detour": 11772,
+  "stop_hazard": 702,
+  "yield": 156,
+  "proceed_with_care": 650,
+  "proceed_after_release": 600,
+  "handoff": 702
+ },
+ "dominance_violations": 0,
+ "bands": {
+  "25": {
+   "n": 203,
+   "scenarios": 17,
+   "requirement_types": {
+    "stop_line": 178,
+    "proceed": 3,
+    "detour": 2,
+    "stop_hazard": 10,
+    "handoff": 10
+   },
+   "binding": {
+    "raw": 156,
+    "core": 37,
+    "contacts": 4,
+    "boundary": 6
+   }
+  },
+  "50": {
+   "n": 56,
+   "scenarios": 13,
+   "requirement_types": {
+    "stop_line": 12,
+    "yield": 2,
+    "proceed_with_care": 21,
+    "proceed": 3,
+    "proceed_after_release": 13,
+    "stop_hazard": 3,
+    "handoff": 1,
+    "detour": 1
+   },
+   "binding": {
+    "raw": 36,
+    "core": 7,
+    "contacts": 9,
+    "boundary": 4
+   }
+  },
+  "75": {
+   "n": 3,
+   "scenarios": 3,
+   "requirement_types": {
+    "stop_line": 2,
+    "proceed_with_care": 1
+   },
+   "binding": {
+    "raw": 2,
+    "core": 1
+   }
+  }
+ },
+ "approach_c1": {
+  "runs": 56,
+  "scored": 27,
+  "not_scored": 29,
+  "scores": [
+   [
+    "baseline",
+    "s0",
+    "FAIL",
+    3.9
+   ],
+   [
+    "cilrs",
+    "s0",
+    "FAIL",
+    0.0
+   ],
+   [
+    "glm-4.5v",
+    "s0",
+    "FAIL",
+    61.3
+   ],
+   [
+    "glm-4.5v",
+    "s1",
+    "FAIL",
+    0.0
+   ],
+   [
+    "glm-4.5v",
+    "s2",
+    "FAIL",
+    0.0
+   ],
+   [
+    "glm-4.5v",
+    "s3",
+    "FAIL",
+    0.0
+   ],
+   [
+    "glm-4.5v",
+    "s4",
+    "FAIL",
+    74.5
+   ],
+   [
+    "interfuser",
+    "s0",
+    "FAIL",
+    0.0
+   ],
+   [
+    "interfuser",
+    "s1",
+    "FAIL",
+    0.4
+   ],
+   [
+    "interfuser",
+    "s2",
+    "FAIL",
+    0.0
+   ],
+   [
+    "mpc",
+    "s0",
+    "FAIL",
+    0.0
+   ],
+   [
+    "neat",
+    "s0",
+    "FAIL",
+    41.5
+   ],
+   [
+    "openemma",
+    "s0",
+    "FAIL",
+    0.0
+   ],
+   [
+    "pid",
+    "s0",
+    "FAIL",
+    0.0
+   ],
+   [
+    "qwen2.5-vl",
+    "s0",
+    "FAIL",
+    61.3
+   ],
+   [
+    "qwen2.5-vl",
+    "s1",
+    "FAIL",
+    61.0
+   ],
+   [
+    "qwen2.5-vl",
+    "s2",
+    "FAIL",
+    25.0
+   ],
+   [
+    "qwen2.5-vl",
+    "s3",
+    "FAIL",
+    0.0
+   ],
+   [
+    "qwen2.5-vl",
+    "s4",
+    "FAIL",
+    61.2
+   ],
+   [
+    "qwen3-vl",
+    "s0",
+    "FAIL",
+    25.0
+   ],
+   [
+    "qwen3-vl",
+    "s1",
+    "FAIL",
+    0.0
+   ],
+   [
+    "qwen3-vl",
+    "s2",
+    "FAIL",
+    2.0
+   ],
+   [
+    "qwen3-vl",
+    "s3",
+    "FAIL",
+    37.7
+   ],
+   [
+    "qwen3-vl",
+    "s4",
+    "FAIL",
+    0.0
+   ],
+   [
+    "scripted_reference_approach_d3p5",
+    "s0",
+    "PASS",
+    100.0
+   ],
+   [
+    "tcp",
+    "s0",
+    "FAIL",
+    36.9
+   ],
+   [
+    "transfuser",
+    "s0",
+    "FAIL",
+    0.0
+   ]
+  ]
+ },
+ "fail_vs_previous_graded": {
+  "higher": 389,
+  "equal_within_0.05": 114,
+  "lower": 81,
+  "median_change": 13.3,
+  "mean_change": 13.925650684931506
+ },
+ "mean_score_all_700": {
+  "marshal_score": 33.108428571428576,
+  "previous_graded": 21.490457142857142
+ }
+}

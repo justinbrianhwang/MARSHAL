@@ -14,6 +14,7 @@ NEW_ENV_VARS = (
     "MARSHAL_OFFICER_DISTANCE_M",
     "MARSHAL_OFFICER_CONDITION",
     "MARSHAL_SPAWN_BACK_M",
+    "MARSHAL_SPAWN_BACK_FIXED_TIMING",
 )
 
 
@@ -140,3 +141,15 @@ def test_civilian_proceed_preserves_staging_and_uses_unauthorized_walker(
         "authorized": False,
         "blueprint_id": "walker.pedestrian.0001",
     }
+
+
+def test_spawn_back_fixed_timing_keeps_reaction_budget(monkeypatch: pytest.MonkeyPatch) -> None:
+    _clear_new_env(monkeypatch)
+    monkeypatch.setenv("MARSHAL_SPAWN_BACK_M", "18")
+    scaled = {"ego": {"target_speed": 25}, "expected_behavior": {"max_reaction_time_sec": 3.0}}
+    staging.apply_staging_overrides(scaled, "green_stop")
+    assert scaled["expected_behavior"]["max_reaction_time_sec"] > 3.0
+    monkeypatch.setenv("MARSHAL_SPAWN_BACK_FIXED_TIMING", "1")
+    fixed = {"ego": {"target_speed": 25}, "expected_behavior": {"max_reaction_time_sec": 3.0}}
+    staging.apply_staging_overrides(fixed, "green_stop")
+    assert fixed["expected_behavior"]["max_reaction_time_sec"] == 3.0

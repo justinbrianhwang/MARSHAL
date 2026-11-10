@@ -79,6 +79,13 @@ def run(client: Any, config: dict, logger: EpisodeLogger) -> dict:
     # install (for unit / syntax tests).
     import_carla()
 
+    # Every green_stop run names its protocol (no default; see
+    # configs/green_stop_protocols.yaml). Raises before any actor is spawned.
+    from marshal_bench.scenarios.green_stop_protocol import apply_protocol
+    applied = apply_protocol(config)
+    log.info("GREEN STOP protocol %s (%s) selected by %s", applied["protocol"], applied["mode"], applied["selected_by"])
+    logger.log_event("green_stop_protocol", **applied)
+
     log.info("=== Starting %s ===", _SCENARIO_NAME)
     logger.log_event(
         "scenario_intent",

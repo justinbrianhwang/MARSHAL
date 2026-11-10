@@ -46,7 +46,7 @@ flowchart LR
     B --> C["Driving Agent under test<br/>Track A: oracle · Track B: E2E · Track C: VLM<br/>(plug-in controller)"]
     C --> D["Evaluation Engine<br/>strict telemetry scoring +<br/>contextual metric suite"]
     D --> E["Reliability Metrics<br/>AOC · FOA · TAA · SBO · CRI · RTL · ...<br/>→ R1–R9 requirement breakdown"]
-    E --> F["MARSHAL Score<br/>strict pass-rate + MARSHAL-Graded (0–100)"]
+    E --> F["Scores<br/>strict pass-rate + MARSHAL-Graded (0–100)"]
 ```
 
 **Reading the pipeline:** the left half is *fixed by MARSHAL* (the same scenes and
@@ -111,7 +111,7 @@ limitations we keep visible:** results come from a **single primary run per
 (model, scenario)** on a **single map** — though the benchmark is **effectively
 deterministic** (a seed-variance probe found identical spawns, stable verdicts, and
 < 0.01 graded jitter — see [reproducibility.md](reproducibility.md)), so this is a
-coverage bound, not measurement noise; the weighted **MARSHAL Score is partial**
+coverage bound, not measurement noise; the weighted **Requirement Score is partial**
 (the requirements **R4–R6 and R8–R9** are reserved by weight but **not yet defined or
 instrumented**); and the strongest agents share a **conservative stop-bias** that the
 graded score is designed to account for. These are documented rather than hidden, and

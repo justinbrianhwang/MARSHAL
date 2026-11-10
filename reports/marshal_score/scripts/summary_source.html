@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>MARSHAL Scoring Review Summary</title>
+<style>
+@page { size: Letter; margin: 0.55in 0.6in; }
+body { font-family: "Segoe UI", Arial, sans-serif; font-size: 8.9pt; line-height: 1.32; color: #111; background: #fff; margin: 0; }
+h1 { font-size: 13.5pt; margin: 0 0 2px; }
+.sub { color: #444; font-size: 8.4pt; margin-bottom: 6px; }
+h2 { font-size: 10pt; margin: 9px 0 3px; padding-bottom: 1px; border-bottom: 1px solid #999; }
+p { margin: 3px 0; }
+ul { margin: 2px 0 3px 15px; padding: 0; } li { margin: 1px 0; }
+table { border-collapse: collapse; width: 100%; margin: 3px 0; font-size: 8.1pt; }
+th, td { border: 1px solid #bbb; padding: 1.5px 4px; text-align: left; vertical-align: top; }
+th { background: #e8ecf3; }
+td.n { text-align: right; white-space: nowrap; }
+.box { border: 1px solid #888; background: #f6f6f6; padding: 4px 7px; margin: 4px 0; }
+.q { font-style: italic; }
+code { font-family: Consolas, monospace; font-size: 8pt; }
+</style></head><body>
+<h1>MARSHAL Scoring Review: MARSHAL-Graded vs. MARSHAL Score (candidate)</h1>
+<div class="sub">Status as of 2026-11-10. MARSHAL Score is a <b>candidate</b>; it has not been adopted. The official Strict verdicts and the published MARSHAL-Graded scores are unchanged. Data: the 700 protocol-v2 leaderboard episodes (the 15 query-cap episodes are excluded), re-scored offline from stored telemetry; no new simulation or model inference.</div>
+
+<h2>1. Problems found in the previous scores</h2>
+<ul>
+<li><b>Zero compression (Graded).</b> Graded multiplies factors (action &times; latency &times; safety &times; movement), so one zero factor erases the episode: 416 of 584 Strict FAILs score 0. A vehicle that never crossed the line while creeping (TCP <code>flagger_control</code>) and one that drove 46 m past it (GLM-4.5V <code>occluded_officer</code>) both receive 0.</li>
+<li><b>High scores for not starting (Q_cont diagnostic).</b> The continuous diagnostic gives a parked ego 83.3&ndash;83.7 in 130 STOP/HOLD episodes, because most of its terms are satisfied by not moving.</li>
+<li><b>Forward-only DETOUR credit.</b> Driving straight toward a crash without any lateral move earned progress credit (baseline <code>crash_detour</code>: 8.0).</li>
+<li><b>Constant-term inflation.</b> Terms that do not apply to a scenario sit at full marks and lift failed episodes.</li>
+<li><b>Contact counting.</b> Collision sensor callbacks were counted, so touching one cone counted as many contacts.</li>
+<li><b>Unclear meaning across scenarios.</b> A given number did not describe the same level of fulfilment in different scenarios.</li>
+
+</ul>
+
+<h2>2. MARSHAL Score: evaluation axes and formula</h2>
+<p>Each scenario's required behaviour is decomposed into at most four elements. Each element is 1 inside the Strict tolerance and loses linearly to 0 over one <b>common</b> scale: 3 m for positions, 11 km/h for speeds, 5 s for timing, and a ratio for required offsets or speeds.</p>
+<table>
+<tr><th>Element</th><th>Weight</th><th>Meaning</th></tr>
+<tr><td>R &ndash; core result</td><td class="n">0.4</td><td>Was the core of the requirement achieved (stopped; started and entered; cleared laterally and passed; slowed, cleared and resumed)? Stages are sequence-gated: a later stage counts at most as much as the stage before it.</td></tr>
+<tr><td>B &ndash; boundary</td><td class="n">0.2</td><td>Was the forbidden boundary respected (stop line, hazard, handoff band, junction entry while a directive is live)?</td></tr>
+<tr><td>T &ndash; timing</td><td class="n">0.2</td><td>Response time against max(3 s, budget); 5 s full-loss window.</td></tr>
+<tr><td>P &ndash; persistence</td><td class="n">0.2</td><td>Share of the required hold actually kept.</td></tr>
+</table>
+<div class="box">raw = 100 &middot; &Sigma; w<sub>i</sub>e<sub>i</sub> / &Sigma; w<sub>i</sub> over the <b>applicable</b> elements only (a missing element is never set to 1).<br>
+Approach required before a STOP/HOLD/YIELD (motion: &ge; 5 km/h and &ge; 1 m; distance: within the Strict 16.59 m band, 3 m loss beyond it) multiplies R, T and P, never B.<br>
+A discrete stage not achieved (junction entry, settled dwell) earns at most 0.5.<br>
+Caps: 25 + 75R; 25 + 75B; one collision partner 50, two or more 25.<br>
+<b>Strict PASS = 100. Strict FAIL = min(raw, caps, 99.0).</b> NOT_SCORED / INVALID = no score (never 0).</div>
+
+<h2>3. Representative cases that changed</h2>
+<table>
+<tr><th>Episode</th><th>Observed behaviour</th><th>Graded</th><th>MARSHAL Score</th><th>Why</th></tr>
+<tr><td>TCP <code>flagger_control</code></td><td>never crossed the line; crept &le; 6.6 km/h; no held stop</td><td class="n">0</td><td class="n">41.2</td><td>boundary kept; half the speed requirement met</td></tr>
+<tr><td>GLM-4.5V s0 <code>occluded_officer</code></td><td>drove 45.8 m past the line at 25.6 km/h</td><td class="n">0</td><td class="n">3.3</td><td>stop not delivered</td></tr>
+<tr><td>TransFuser <code>green_stop</code></td><td>never approached; stayed 7.4 m before the line</td><td class="n">0 (Q_cont 83.5)</td><td class="n">20.1</td><td>required approach not done; only the boundary is kept</td></tr>
+<tr><td>InterFuser <code>flagger_slow_then_stop</code></td><td>held 1.84 m before the line; touched one cone</td><td class="n">10.0</td><td class="n">50.0</td><td>requirement met; one collision partner caps at 50</td></tr>
+<tr><td>AIM <code>red_proceed</code></td><td>started on time; farthest point 0.47 m short of the junction entry</td><td class="n">21.4</td><td class="n">56.5</td><td>entry stage not completed (&le; 0.5)</td></tr>
+<tr><td>baseline <code>crash_detour</code></td><td>drove 23 m toward the crash, no lateral move</td><td class="n">8.0</td><td class="n">0.9</td><td>forward travel is not detour progress</td></tr>
+<tr><td>Qwen3-VL s3 <code>ambulance_yield</code></td><td>was at rest when the yield was due</td><td class="n">47.9</td><td class="n">5.3</td><td>a yield presupposes a moving vehicle</td></tr>
+<tr><td>InterFuser s1 <code>dual_authority_handoff</code></td><td>correct handoff; zone speed 18.16 vs 18 km/h</td><td class="n">98.4</td><td class="n">98.8</td><td>near-threshold miss; FAIL stays below 99</td></tr>
+</table>
+
+<h2>4. Similar MARSHAL Score in different scenarios (the &ldquo;50 means 50&rdquo; question)</h2>
+<p class="q">&ldquo;Even if the scenarios differ, a 50 should mean a similar 50.&rdquo;</p>
+<p>The candidate defines <b>50</b> as &ldquo;half of the required content delivered&rdquo;: the core result partly achieved with its conditions kept, or achieved with one clear violation, or achieved with one contact. Episodes near 50 in different scenarios:</p>
+<table>
+<tr><th>Episode</th><th>Score</th><th>What half was delivered</th></tr>
+<tr><td>GLM-4.5V s0 <code>rule_hierarchy</code> / <code>stale_directive_residue</code></td><td class="n">50.0 / 50.0</td><td>waiting stage complete; proceeding stage not done; no early entry</td></tr>
+<tr><td>InterFuser <code>flagger_slow_then_stop</code> / oracle <code>civilian_warning_accident</code></td><td class="n">50.0 / 50.0</td><td>requirement achieved (stop / detour) with one contact</td></tr>
+<tr><td>CILRS <code>unauthorized_go</code> / InterFuser <code>fallen_person</code></td><td class="n">51.8 / 46.5</td><td>held stop, but 0.93 m / 1.14 m past the required margin</td></tr>
+<tr><td>AIM <code>green_stop</code> / InterFuser <code>two_civilians_disagree</code></td><td class="n">52.8 / 47.7</td><td>speed requirement partly met without a proper held stop</td></tr>
+</table>
+<p>Across the 700 episodes, 56 episodes from 13 scenarios fall in 50 &plusmn; 5, 203 from 17 scenarios in 25 &plusmn; 5, and only 3 in 75 &plusmn; 5.</p>
+
+<h2>5. What is established, and the limits</h2>
+<p><b>Computational consistency (checked):</b></p>
+<ul>
+<li>700/700 episodes scored, 0 data errors; re-scoring with the benchmark scorers reproduces the leaderboard verdicts and Graded scores in 700/700.</li>
+<li>Strict preserved: PASS = 100 in 116/116 (the raw value is also 100); FAIL 0&ndash;98.8. All 8 FAILs at &ge; 90 are near-threshold misses.</li>
+<li>Zeros among FAILs 416 &rarr; 114 (92 STOP drive-throughs, 17 DETOURs without lateral move, 4 drive-throughs of a live STOP, 1 PROCEED that never started).</li>
+<li>No dominance violation in 119,134 same-requirement pairs (better in every element, not worse in contacts, yet a lower score: 0 cases). 11/11 unit and monotonicity tests pass.</li>
+</ul>
+<p><b>Limits:</b> the weights (0.4/0.2/0.2/0.2), the common scales and the level meanings are design choices; contacts are counted by partner, not severity; very slow creeps receive partial approach credit (1.4 km/h max &rarr; 42.9); a no-start scores 20 in STOP scenarios but 50 where waiting is the first required stage; the 75 band holds only 3 episodes; one junction entry point rests on 4 episodes.</p>
+
+<h2>6. Ground truth: how could validity be checked?</h2>
+<p class="q">&ldquo;How do we verify that a score is appropriate from a human point of view?&rdquo;</p>
+<p>The checks above show that the score is <b>consistent with its own definition</b>. They do not show that the definition is <b>valid</b>. <b>No human rating and no external standard has been collected or applied so far.</b> Options under discussion:</p>
+<ul>
+<li><b>Human judgement study (not yet run).</b> Raters (e.g. experienced drivers or driving instructors) view replays of selected episodes from several scenarios and judge how much of the required behaviour was performed, or which of two episodes complied better. What to measure: rater agreement first; then the rank correlation between MARSHAL Score and the mean rating; and whether episodes with similar MARSHAL Score in different scenarios receive similar ratings. A pre-registered episode selection that spans the score range and the scenarios would be needed.</li>
+<li><b>External normative ordering (candidate only).</b> Traffic penalty schedules (fines or demerit points) are being discussed as an outside reference for the relative severity of violations. No schedule has been obtained, no amount is used, and a jurisdiction has not been chosen. Such schedules rank legal violations; they do not grade partial compliance, timing or a failure to start, so they could at most check the ordering of violation types.</li>
+<li><b>Anchor episodes.</b> Before looking at scores, reviewers could fix example episodes for 25 / 50 / 75 in each requirement type; the score definition would then be checked against these anchors.</li>
+</ul>
+<p>Until one of these exists, MARSHAL Score should be described as a consistent, transparent candidate measure of requirement fulfilment, not as a validated human-aligned score.</p>
+</body></html>

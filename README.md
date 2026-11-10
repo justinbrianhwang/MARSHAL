@@ -16,7 +16,7 @@ runs the closed-loop episode, and returns authority-aware reliability metrics.
 
 <p align="center">
   <img src="assets/architecture/pipeline.png" width="900"
-       alt="MARSHAL pipeline — Scenario Spec (25 authority-conflict episodes) → Scenario Generator (CARLA Town03; officer, flagger, ambulance, hazard, gestures) → Driving Agent under test (plug-in / swappable: A privileged oracle, B closed-loop E2E, C VLM) → Evaluation Engine (strict telemetry + metric suite) → Reliability Metrics (AOC · FOA · TAA · SBO · CRI · RTL → R1–R9) → MARSHAL Score (strict pass-rate + MARSHAL-Graded 0–100). Correct action per scenario: STOP / PROCEED / YIELD / DETOUR / HOLD.">
+       alt="MARSHAL pipeline — Scenario Spec (25 authority-conflict episodes) → Scenario Generator (CARLA Town03; officer, flagger, ambulance, hazard, gestures) → Driving Agent under test (plug-in / swappable: A privileged oracle, B closed-loop E2E, C VLM) → Evaluation Engine (strict telemetry + metric suite) → Reliability Metrics (AOC · FOA · TAA · SBO · CRI · RTL → R1–R9) → Scores (strict pass-rate + MARSHAL-Graded 0–100). Correct action per scenario: STOP / PROCEED / YIELD / DETOUR / HOLD.">
 </p>
 
 **What one episode looks like.** The model under test reads the front camera at its own decision cadence
@@ -95,7 +95,7 @@ it. Built and verified on **CARLA 0.9.16**. Results follow evaluation protocol v
 ([docs/evaluation_protocol_v2.md](docs/evaluation_protocol_v2.md)): a fixed 25 s observation per episode, every
 model from rest at the same pose, front-bumper stop-line clearance, a PROCEED start deadline, five runs
 (seeds 0–4) per VLM-based controller and three (seeds 0–2) for InterFuser. It is an **initial implementation** with
-caveats kept visible (one run per other driving stack; a partial weighted MARSHAL Score; requirement R9 not yet instrumented — R6 is measured
+caveats kept visible (one run per other driving stack; a partial weighted Requirement Score; requirement R9 not yet instrumented — R6 is measured
 via the condition-retention protocol below).
 
 ---
@@ -171,7 +171,7 @@ bring your own model via the plug-in API (`--controller module:Class`).
   it); a rear/surround-aware setup is future work (e.g. `ambulance_yield`).
 - A few maneuver verdicts (DETOUR / YIELD) are scored with simplified
   longitudinal logic, and some scene actors are stock CARLA meshes; the metric
-  suite reports a **partial** MARSHAL Score until every R is instrumented.
+  suite reports a **partial** Requirement Score until every R is instrumented.
 
 ---
 
@@ -475,7 +475,7 @@ class MyController(EpisodeController):
 
 ---
 
-## Metrics & the MARSHAL Score
+## Metrics & the Requirement Score
 
 Each episode is scored by the contextual metric suite plus the
 authority-reasoning metrics:
@@ -573,7 +573,7 @@ The pipeline goes **per-tick → per-episode → per-model**:
    **measured** requirement set $M \subseteq \{\mathrm{R1},\dots,\mathrm{R9}\}$:
 
 ```math
-\text{MARSHAL Score} \;=\; 100 \cdot \frac{\sum_{r \in M} w_r\, R_r}{\sum_{r \in M} w_r},
+\text{Requirement Score} \;=\; 100 \cdot \frac{\sum_{r \in M} w_r\, R_r}{\sum_{r \in M} w_r},
 \qquad
 w = \begin{pmatrix} R1 & R2 & R3 & R4 & R5 & R6 & R7 & R8 & R9 \\ .10 & .12 & .28 & .05 & .03 & .02 & .22 & .13 & .05 \end{pmatrix}
 ```
@@ -582,7 +582,7 @@ w = \begin{pmatrix} R1 & R2 & R3 & R4 & R5 & R6 & R7 & R8 & R9 \\ .10 & .12 & .2
    resolution **R3** and exceptional handling **R7**). It is reported as a
    **partial** score: R's that aren't yet instrumented are listed under
    `r_unmeasured` and excluded from the denominator — the renormalization keeps
-   the number in $[0, 100]$.
+   the number in $[0, 100]$. In result files it is the field `marshal_score_partial`.
 
 4. **The headline — the authority gap.** The headline result is the gap between
    the officer-blind baseline (obeys the light, ignores the human: graded 9.1)
@@ -1349,12 +1349,53 @@ crossed, line weight 3) lowers the median no-start (139 episodes) to 0.571, the 
 issue remains. Definitions, sensitivity and per-episode values:
 [reports/scoring_validity_audit/credit_quality/](reports/scoring_validity_audit/credit_quality/q_cont_stability.md).
 
+### Candidate: MARSHAL Score (requirement fulfilment, not adopted)
+
+MARSHAL-Graded multiplies factors, so one zero factor erases an episode (416 of 584 strict FAILs score 0), and a
+given credit does not describe the same level of fulfilment in different scenarios. The **MARSHAL Score** is a
+**candidate** 0–100 measure of how much of each scenario's required behaviour was delivered, with one implementation
+and one set of scales for all 25 scenarios. It never replaces the strict verdict or MARSHAL-Graded.
+
+```math
+\text{raw} = 100\cdot\frac{\sum_{i \in A} w_i e_i}{\sum_{i \in A} w_i},\qquad
+w_R = 0.4,\; w_B = w_T = w_P = 0.2,\qquad
+\text{score} = \begin{cases} 100 & \text{strict PASS} \\ \min(\text{raw},\; 25 + 75R,\; 25 + 75B,\; \text{contact cap},\; 99) & \text{strict FAIL} \end{cases}
+```
+
+R = core result, B = forbidden boundary, T = response timing, P = persistence of the required hold, over the
+applicable elements $A$ only. Each element is 1 inside the strict tolerance and falls linearly to 0 over a common
+scale (3 m, 11 km/h, 5 s); the approach required before a STOP/HOLD/YIELD gates R, T and P; one collision partner
+caps the score at 50, two or more at 25.
+
+| 700 protocol-v2 episodes | MARSHAL-Graded | MARSHAL Score |
+|---|---:|---:|
+| strict PASS | 100 (116/116) | 100 (116/116) |
+| strict FAIL range | 0–98.4 | 0–98.8 |
+| FAILs at 0 | 416 | 114 |
+| mean over 700 | 21.5 | 33.1 |
+| dominance violations (better in every element, lower score) | — | 0 of 119,134 pairs |
+
+The checks show consistency with its own definition, not validity: no human rating or external standard has been
+collected, and the weights and level meanings are design choices. Formula, per-episode scores, a two-page summary and
+26 worked cases: [reports/marshal_score/](reports/marshal_score/README.md). The cross-scenario consistency analysis
+of the official scores is in [reports/scoring_consistency/](reports/scoring_consistency/README.md).
+
+### Candidate protocol: GREEN STOP with a normal approach
+
+In the leaderboard GREEN STOP cell the ego starts 7.41 m before the line and the STOP begins at 1.0 s. A candidate
+protocol (`approach_c1`, results labelled `gs_approach_c1` and never pooled with the leaderboard) spawns the ego
+60 m back and issues the STOP when the front is 17.6 m from the line, so the signal arrives at cruise speed. Over
+27 model runs and an officer-absent pair for each, no evaluated model passed (26 FAIL, 1 not scored); the scripted
+reference passed. Every VLM answered GO at its first query after the signal (15/15). The STOP paddle was not
+rendered in these runs (arm pose only). Details, data and the failure analysis:
+[reports/green_stop_approach/](reports/green_stop_approach/README.md).
+
 **Reproduce every number in this section and in *Results*.**
 
 ```bash
 # live runs (CARLA 0.9.16; run from the workspace root that holds scripts/ and CARLA_0.9.16/)
-python scripts/run_protocol_v2.py --all                  # 25 scenarios; VLMs seeds 0-4, InterFuser 0-2, others seed 0
-python scripts/run_protocol_v2.py --vlm-cap-comparison   # green_stop, 3-query cap, seeds 0-4
+python scripts/run_protocol_v2.py --all --green-stop-protocol legacy_v2_7m                  # 25 scenarios; VLMs seeds 0-4, InterFuser 0-2, others seed 0
+python scripts/run_protocol_v2.py --vlm-cap-comparison --green-stop-protocol legacy_v2_7m   # green_stop, 3-query cap, seeds 0-4
 # offline: score, aggregate, tables, figure
 python scripts/collect_protocol_v2.py --runs tmp/_protocol_v2 --out outputs/protocol_v2
 python scripts/protocol_v2_report.py --cells outputs/protocol_v2 --check-readme README.md
@@ -1689,6 +1730,9 @@ tools/                       # scenario-location map figure, station verify
 docs/                        # evaluation protocol v2, design principles, scenario taxonomy, tracks,
                              #   grounding, graded score, model selection, oracle spec, protocol-v1 results
 reports/protocol_v2/         # generated v2 tables + per-episode data (cells_v2.csv)
+reports/marshal_score/       # MARSHAL Score candidate: scorer, tests, per-episode scores, review summary
+reports/green_stop_approach/ # GREEN STOP approach-protocol candidate: runs, failure analysis
+reports/scoring_consistency/ # cross-scenario consistency of the official scores
 results/                     # committed scoreboards
 ```
 

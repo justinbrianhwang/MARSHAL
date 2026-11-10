@@ -185,7 +185,7 @@ makes them meaningful.
 
 ---
 
-## From metrics to the MARSHAL Score (aggregation)
+## From metrics to the Requirement Score (aggregation)
 
 The aggregator (`aggregate` in `marshal_metrics.py`) averages each metric over the
 episodes where it is defined, then rolls the goodness metrics up into per-requirement
@@ -216,14 +216,14 @@ resolution (R3) and exceptional handling (R7) are the two pillars (~15/21 and
 the numeric R3 subscore** and reported separately. `LNC`, `CMF`, and `PSI` enter
 R4, R5, and R8 directly when their required telemetry is available.
 
-**The weighted MARSHAL Score (partial).** Only the measured requirements contribute;
+**The weighted Requirement Score (partial).** Only the measured requirements contribute;
 their weights are **renormalized** so the partial score stays in `[0, 100]`. With
 stored lane, speed, and pedestrian-distance telemetry, R4/R5/R8 are measured through
 LNC/CMF/PSI; without that telemetry, the corresponding requirements remain in
 `r_unmeasured`:
 
 ```
-MARSHAL Score (partial) = 100 · Σ_r (R_score[r] · weight[r]) / Σ_r weight[r]
+Requirement Score (partial) = 100 · Σ_r (R_score[r] · weight[r]) / Σ_r weight[r]
                           for r ∈ {measured R's}
 ```
 
@@ -233,7 +233,7 @@ honesty caveat of the score and is repeated in
 [what_is_marshal.md](what_is_marshal.md#current-status-honest-scope).
 
 The 14x21 sweep collector (`scripts/_collect_sweep.py`) emits this per-model
-MARSHAL Score alongside strict pass-rate and MARSHAL-Graded, including each model's
+Requirement Score alongside strict pass-rate and MARSHAL-Graded, including each model's
 `marshal_score`, `r_scores`, and metric `suite`.
 
 **Authority-conflict profile.** Alongside the score, the aggregator reports strict
@@ -314,7 +314,7 @@ scenarios); no learned or subjective model is used anywhere in the curve.
   and DRM are binary until finer traces are logged; SBO has no near-miss signal yet;
   deterministic driving stacks are run once, VLM-based controllers five times (seeds 0–4). These are surfaced in the output, not hidden.
 - **Two scores, one telemetry.** The strict pass-rate, MARSHAL-Graded, and per-model
-  MARSHAL Score are computed from the *same* recorded telemetry, so they can be
+  Requirement Score are computed from the *same* recorded telemetry, so they can be
   re-derived offline without re-running CARLA.
 
 ---

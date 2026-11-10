@@ -129,18 +129,18 @@ All runners take scenario keys as positional arguments. `green_stop` is the repr
 
 ```bash
 # oracle / baseline (env: marshal). Output root via env var; summary JSON is fixed to tmp/_reference_sweep.json
-MARSHAL_OUT_ROOT=runs/oracle python scripts/_run_reference_staging_sweep.py green_stop --controller oracle
+MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m MARSHAL_OUT_ROOT=runs/oracle python scripts/_run_reference_staging_sweep.py green_stop --controller oracle
 
 # VLM agent (env: marshal)
-MARSHAL_OUT_ROOT=runs/qwen3 python scripts/_run_vlm_test.py green_stop \
+MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m MARSHAL_OUT_ROOT=runs/qwen3 python scripts/_run_vlm_test.py green_stop \
     --model Qwen/Qwen3-VL-235B-A22B-Instruct --results-json runs/qwen3.json --report runs/qwen3.md
 
 # TCP / AIM / CILRS / NEAT / PID / MPC (env: transfuser_ui; InterFuser: env interfuser_fl)
-MARSHAL_OUT_ROOT=runs/tcp python scripts/_run_more_e2e_sweep.py green_stop --models tcp \
+MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m MARSHAL_OUT_ROOT=runs/tcp python scripts/_run_more_e2e_sweep.py green_stop --models tcp \
     --results-json runs/tcp.json --report runs/tcp.md
 
 # TransFuser (env: transfuser_ui)
-MARSHAL_OUT_ROOT=runs/transfuser python scripts/_run_transfuser_sweep.py green_stop \n    --results-json runs/transfuser.json --report runs/transfuser.md
+MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m MARSHAL_OUT_ROOT=runs/transfuser python scripts/_run_transfuser_sweep.py green_stop \n    --results-json runs/transfuser.json --report runs/transfuser.md
 
 # OpenEMMA (env: openemma)
 python scripts/_run_fullplanner_sweep.py green_stop --controller openemma --backend qwen2vl \
@@ -158,6 +158,7 @@ All of these are unset by default; unset = leaderboard behaviour.
 
 | Variable / flag | Effect |
 |---|---|
+| `MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m \| approach_c1` | **Required for every `green_stop` run** (no default): `legacy_v2_7m` = the leaderboard cell (front 7.41 m, STOP at 1.0 s); `approach_c1` = the approach candidate (60 m spawn, position-triggered STOP; see `reports/green_stop_approach/`). `start.py` sets `legacy_v2_7m` unless the variable is already set |
 | `MARSHAL_SEED=<n>` | Override the episode seed (repeatability runs) |
 | `MARSHAL_OFFICER_CONDITION=absent \| proceed \| civilian_stop \| civilian_proceed` | Paired controls: no officer / PROCEED gesture / civilian STOP / civilian PROCEED in the same pose |
 | `MARSHAL_OFFICER_DISTANCE_M=<m>` | Override the officer's forward distance (leaderboard staging: 13 m; see `docs/authority_staging_and_appearance.md`) |
