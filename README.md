@@ -151,7 +151,7 @@ bring your own model via the plug-in API (`--controller module:Class`).
   *Benchmark your model* below.
 - **Run / inspect a single scenario** with
   `python scripts/run_marshal_officer_demo.py --scenario <name>` (dumps chase-cam
-  + ego-dashcam frames + per-tick metrics).
+  + ego-dashcam frames + per-tick metrics; `green_stop` also needs `MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m`).
 - **Read the oracle's behaviour** from the demo gallery / `Oracle_demo/` as the
   ground-truth "correct answer" for each scenario.
 

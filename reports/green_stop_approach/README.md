@@ -147,7 +147,7 @@ The MARSHAL Score candidate for these runs is in `reports/marshal_score/data/mar
 | `data/failure_cause_analysis.csv`, `data/signal_review_numbers.json`, `data/qcont_episodes.csv`, `data/model_input_architecture_matrix.csv` | failure-analysis tables |
 | `failure_analysis.md`, `failure_analysis.xlsx`, `model_inputs.md` | failure analysis, workbook, model input matrix |
 | `figures/` | VLM input crops at the first and second post-signal query; frames of the four GO reversals |
-| `scripts/c1_analysis.py` (+ `telemetry_check.py`) | builds `runs.csv` and `vlm_queries.csv` from the raw episodes |
+| `scripts/c1_analysis.py` (+ `scripts/telemetry_check.py`) | builds `data/runs.csv` and `data/vlm_queries.csv` (written as `runs_corrected.csv`, `vlm_queries_corrected.csv`) from the raw episodes |
 | `scripts/rescore_check.py` | re-scores every stored telemetry with `score_green_stop_candidate` |
 
 ## Reproduce (from the repository root; raw episodes under `tmp/_greenstop_cand/full`)

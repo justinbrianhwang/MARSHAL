@@ -90,7 +90,7 @@ else:
 ## How to run
 
 ```bash
-python scripts/run_marshal_officer_demo.py \
+MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m python scripts/run_marshal_officer_demo.py \
   --port 2000 \
   --scenario green_stop \
   --config marshal_bench/configs/demo_green_stop.yaml \

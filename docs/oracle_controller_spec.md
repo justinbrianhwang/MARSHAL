@@ -74,7 +74,7 @@ tl_state, in_junction (bool), ground_truth (same dict as above)
 
 ## How to test (CARLA must be running on Town03, port 2000)
 ```
-python scripts/run_marshal_officer_demo.py \
+MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m python scripts/run_marshal_officer_demo.py \
     --scenario green_stop --town Town03 --controller oracle
 ```
 Then inspect `outputs/marshal_runs/<episode_id>/result.json` → `marshal_metrics`.

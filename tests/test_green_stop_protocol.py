@@ -97,6 +97,19 @@ def test_candidate_refuses_conflicting_env(var):
         G.apply_protocol(staged(), env={G.ENV_KEY: "approach_c1", var: "1"})
 
 
+@pytest.mark.parametrize("cond", ["proceed", "civilian_stop", "civilian_proceed"])
+def test_candidate_refuses_other_instruction_or_authority(cond):
+    with pytest.raises(G.GreenStopProtocolError, match="officer-absent"):
+        G.apply_protocol(staged(), env={G.ENV_KEY: "approach_c1", "MARSHAL_OFFICER_CONDITION": cond})
+
+
+def test_candidate_refuses_non_stop_gesture():
+    cfg = staged()
+    cfg["officer"]["gesture"] = "PROCEED"
+    with pytest.raises(G.GreenStopProtocolError, match="gesture"):
+        G.apply_protocol(cfg, env={G.ENV_KEY: "approach_c1"})
+
+
 def test_candidate_refuses_foreign_spawn():
     cfg = staged()
     cfg["ego"]["spawn_transform"]["y"] += 5.0

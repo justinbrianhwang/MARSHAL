@@ -73,9 +73,9 @@
  "fail_zero": 114,
  "previous_graded_fail_zero": 416,
  "binding_rule_fail": {
-  "raw": 489,
+  "raw": 492,
   "core": 68,
-  "boundary": 14,
+  "boundary": 11,
   "contacts": 13
  },
  "by_requirement": {
@@ -162,11 +162,11 @@
    ],
    [
     10,
-    35
+    38
    ],
    [
     20,
-    175
+    172
    ],
    [
     30,
@@ -218,20 +218,20 @@
  "dominance_violations": 0,
  "bands": {
   "25": {
-   "n": 203,
+   "n": 200,
    "scenarios": 17,
    "requirement_types": {
     "stop_line": 178,
     "proceed": 3,
     "detour": 2,
     "stop_hazard": 10,
-    "handoff": 10
+    "handoff": 7
    },
    "binding": {
     "raw": 156,
     "core": 37,
     "contacts": 4,
-    "boundary": 6
+    "boundary": 3
    }
   },
   "50": {
@@ -441,10 +441,10 @@
   "equal_within_0.05": 114,
   "lower": 81,
   "median_change": 13.3,
-  "mean_change": 13.925650684931506
+  "mean_change": 13.86554794520548
  },
  "mean_score_all_700": {
-  "marshal_score": 33.108428571428576,
+  "marshal_score": 33.05828571428572,
   "previous_graded": 21.490457142857142
  }
 }

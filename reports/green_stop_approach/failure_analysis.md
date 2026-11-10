@@ -29,7 +29,7 @@
    - These are mismatches between the **outputs** and the scenario. Which internal stage produced them is not separable from these logs (§2).
 
 4. **The decision → brake path did what the code says.**
-   - Every STOP/HOLD output became brake 1.0 on the same tick, and the client read-back showed it one tick later.
+   - In each of the 9 runs that produced STOP/HOLD, the first such output commanded brake 1.0 on the same tick and was read back one tick later; later outputs below 0.25 m/s commanded the documented 0.85 hold brake.
    - No mismatch was found in the checked brake-command path. This does not cover target speed, controller tuning or physical braking capability.
    - The first STOP/HOLD came about 2.2 s after onset, at front ≈ 2.5 m and ≈ 25 km/h; constant deceleration of about 9–10 m/s² was needed from there.
    - Evidence: sheets 03 and 04; each episode's `vlm_trace.csv` vs `strict_telemetry.json`.

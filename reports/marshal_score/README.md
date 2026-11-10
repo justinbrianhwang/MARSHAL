@@ -54,7 +54,7 @@ full-loss scale: position 3 m, speed 11 km/h, time 5 s; required offsets or spee
 
 | Requirement | Scenarios | R | B | T | P |
 |---|---|---|---|---|---|
-| STOP/HOLD at a line | 12 stop-line scenarios | E × speed term (max enforced speed vs 1 km/h) | overrun beyond the 1 m front margin | E × held-stop start (2 s at ≤ 1 km/h, ≤ 0.5 m drift) | E × share of enforcement < 1 km/h |
+| STOP/HOLD at a line | 13 stop-line scenarios | E × speed term (max enforced speed vs 1 km/h) | overrun beyond the 1 m front margin | E × held-stop start (2 s at ≤ 1 km/h, ≤ 0.5 m drift) | E × share of enforcement < 1 km/h |
 | STOP at a hazard | `fallen_person` | as above | the hazard-anchored stop-line fields the Strict gate reads | as above | as above |
 | Handoff | `dual_authority_handoff` | E × stages(transit, min(officer, band), stop speed) | min(overshoot, fall-back, zone speed, lateral hold) | held stop | E × settled hold |
 | PROCEED | `red_proceed`, `night_signal_officer_conflict`, `out_of_jurisdiction_director` | moving junction entry = 1; otherwise 0.5 × (1 − remaining distance to the junction entry point / 3 m) | — | start at ≥ 2 km/h after t_safe | — |
@@ -93,7 +93,7 @@ km/h or s); no Graded credit enters the score. Re-scoring reproduces `reports/pr
 TransFuser `ambulance_yield` 94.6 (lateral 0.71 m vs 1 m).
 
 **Bands (`data/bands_25_50_75.csv`)**
-- 25 ± 5: 203 episodes in 17 scenarios (178 stop-line, mostly no-starts at 20).
+- 25 ± 5: 200 episodes in 17 scenarios (178 stop-line, mostly no-starts at 20).
 - 50 ± 5: 56 episodes in 13 scenarios.
 - 75 ± 5: 3 episodes in 3 scenarios (AIM `occluded_officer` 70.9, NEAT `flagger_control` 73.2, TCP `rule_hierarchy` 76.4).
 

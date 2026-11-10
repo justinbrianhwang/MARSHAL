@@ -141,7 +141,7 @@ its mistake, in the earlier version, was generalizing that to the learned models
   `python scripts/collect_protocol_v2.py --runs tmp/_protocol_v2 --out outputs/protocol_v2` and
   `python scripts/protocol_v2_report.py --cells outputs/protocol_v2`.
 - **Protocol v1 full multi-run (in-sim):** `bash scripts/multirun.sh`-style loop — for each run,
-  `python scripts/_run_full_sweep.py --no-resume --only <models>` then
+  `MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m python scripts/_run_full_sweep.py --no-resume --only <models>` then
   `python scripts/_collect_sweep.py`, snapshotting `outputs/full_sweep_results.json`
   to `outputs/multirun/run_N.json`. Aggregate with
   `python scripts/_aggregate_multirun.py` to regenerate the mean ± std table and
@@ -151,7 +151,7 @@ its mistake, in the earlier version, was generalizing that to the learned models
   re-scoring of the *same* telemetry is exactly reproducible (zero variance) — the
   run-to-run variance above comes from re-driving the episodes in CARLA, not from
   scoring.
-- **Single episode:** `python scripts/_run_reference_staging_sweep.py green_stop
+- **Single episode:** `MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m python scripts/_run_reference_staging_sweep.py green_stop
   --controller oracle --seed 7`.
 
 ## Scope and honesty

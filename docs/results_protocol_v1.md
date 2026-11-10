@@ -22,7 +22,7 @@ and [docs/evaluation_protocol_v2.md](evaluation_protocol_v2.md).
 # offline: re-score the recorded v1 episodes and check every number in this document
 python scripts/dac2027_audit.py all          # leaderboard check reads this file
 # live re-run under v1 (the sweep sets MARSHAL_PROTOCOL=v1 for its children)
-python scripts/_run_full_sweep.py
+MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m python scripts/_run_full_sweep.py
 python scripts/_collect_sweep.py             # writes outputs/full_sweep_results.json; refuses v2 episodes
 ```
 

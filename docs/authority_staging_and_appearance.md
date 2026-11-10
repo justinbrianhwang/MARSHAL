@@ -169,11 +169,11 @@ Run from the repository root with CARLA running. Restart CARLA before each episo
 
 ```bash
 # officer at 7 m instead of 13 m
-MARSHAL_OFFICER_DISTANCE_M=7 MARSHAL_NO_STOP_EARLY_TERMINATION=1 MARSHAL_TIMEOUT_S=25 \
+MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m MARSHAL_OFFICER_DISTANCE_M=7 MARSHAL_NO_STOP_EARLY_TERMINATION=1 MARSHAL_TIMEOUT_S=25 \
   python scripts/_run_more_e2e_sweep.py green_stop --models tcp
 
 # oracle on all scenarios
-python scripts/_run_reference_staging_sweep.py --controller oracle
+MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m python scripts/_run_reference_staging_sweep.py --controller oracle
 ```
 
 All switches are unset by default. Unset means the published leaderboard behaviour.

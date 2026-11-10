@@ -90,7 +90,7 @@ def main() -> int:
     for controller in CONTROLLERS:
         b = board.get(controller, {})
         print(f"\n[{controller}]  n={b.get('n_episodes')}  "
-              f"MARSHAL(partial)={b.get('marshal_score_partial')}")
+              f"Requirement Score (partial)={b.get('marshal_score_partial')}")
         print("  conflict-type profile:", b.get("conflict_type_profile"))
         print("  tier pass-rate (legacy):", b.get("tier_pass_rate"))
         print("  suite:", {k: v for k, v in (b.get("suite") or {}).items()

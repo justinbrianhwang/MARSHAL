@@ -7,6 +7,7 @@ import csv, json
 from pathlib import Path
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill, Border, Side
+from openpyxl.worksheet.table import Table, TableStyleInfo
 
 ROOT = Path.cwd(); W = ROOT / "reports" / "marshal_score"
 rows = {(r["model"], r["seed"], r["scenario"]): r for r in csv.DictReader(open(W / "data" / "marshal_score_700.csv", encoding="utf-8"))}
@@ -56,7 +57,7 @@ CASES = [  # (case type, key, observed behaviour, reason)
      "Entry not completed: a discrete stage not achieved earns at most 0.5, scaled by the 0.47 m still missing on the 3 m scale (R = 0.42); start timing met (T = 1)."),
     ("Partial PROCEED", ("tcp", "0", "rule_hierarchy"),
      "Yielded to the pedestrian, started at 4.8 s, was 0.77 m short of the junction at 25 s",
-     "Wait stage 1.0; entry not completed (0.5 x position loss); late start; no early entry (B = 1). Core cap binds."),
+     "Wait stage 1.0; entry not completed (0.5 x position loss); start timing met; no early entry (B = 1). Core cap binds."),
     ("Partial PROCEED", ("glm-4.5v", "0", "rule_hierarchy"),
      "Waited for the pedestrian; never started; 31.7 m short of the junction at 25 s",
      "Previous Graded 0 (no-start latency factor erased the completed wait). Wait stage 1.0, entry stage 0, no early entry (B = 1), start timing 0."),
@@ -133,5 +134,7 @@ for col in "GHI":
     for c in ws[col][1:]:
         c.number_format = "0.0"
 ws.freeze_panes = "D2"
-ws.auto_filter.ref = ws.dimensions
+tab = Table(displayName="ScoringComparison", ref=ws.dimensions)
+tab.tableStyleInfo = TableStyleInfo(name="TableStyleLight1", showRowStripes=False)
+ws.add_table(tab)
 out = W / "MARSHAL_Score_Review_Cases.xlsx"; wb.save(out); print(out, len(CASES))

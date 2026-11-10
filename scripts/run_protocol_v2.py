@@ -3,8 +3,8 @@
     python scripts/run_protocol_v2.py --models oracle tcp qwen3-vl --scenarios green_stop red_proceed --seeds 0 --green-stop-protocol legacy_v2_7m
     python scripts/run_protocol_v2.py --all --green-stop-protocol legacy_v2_7m                      # full v2 suite (VLMs seeds 0-4, InterFuser 0-2, others 0)
     python scripts/run_protocol_v2.py --vlm-cap-comparison --green-stop-protocol legacy_v2_7m       # green_stop, VLMs, 3-query cap, seeds 0-4
-    python scripts/run_protocol_v2.py --ablation-study           # oracle-assist ladder + controls, seed 0
-    python scripts/run_protocol_v2.py --factorial-study          # GLM-4.5V, role x gesture GT, seeds 0-4
+    python scripts/run_protocol_v2.py --ablation-study --green-stop-protocol legacy_v2_7m           # oracle-assist ladder + controls, seed 0
+    python scripts/run_protocol_v2.py --factorial-study --green-stop-protocol legacy_v2_7m          # GLM-4.5V, role x gesture GT, seeds 0-4
     python scripts/run_protocol_v2.py --models tcp --scenarios green_stop --green-stop-protocol legacy_v2_7m --env MARSHAL_OFFICER_CONDITION=absent --tag _noofficer
 
 GREEN STOP has no default protocol: any job set containing green_stop needs --green-stop-protocol

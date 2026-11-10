@@ -340,11 +340,11 @@ that cell.
 ```bash
 # one rung (25 scenarios, staged Town03, CARLA running). --ablation switches
 # to the diagnostic wiring (unbounded queries, separate episode ids/results):
-python scripts/_run_vlm_test.py --model zai-org/GLM-4.5V --ablation policy \
+MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m python scripts/_run_vlm_test.py --model zai-org/GLM-4.5V --ablation policy \
     --results-json tmp/_ablation_v2_policy.json --report tmp/_ablation_v2_policy.md
 
 # same rung on the planner wiring (openemma conda env):
-python scripts/_run_fullplanner_sweep.py --controller openemma --ablation policy \
+MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m python scripts/_run_fullplanner_sweep.py --controller openemma --ablation policy \
     --results-json tmp/_openemma_ablation_policy.json --report tmp/_openemma_ablation_policy.md
 
 # control cells: --ablation neutral / --ablation policy_only on either runner.

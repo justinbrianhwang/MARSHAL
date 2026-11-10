@@ -36,15 +36,15 @@
 |---|---:|---:|
 | 0 | 0 | 416 |
 | (0, 0.1) | 0 | 60 |
-| (0.1, 0.2) | 0 | 49 |
-| (0.2, 0.3) | 0 | 20 |
-| (0.3, 0.4) | 0 | 20 |
-| (0.4, 0.5) | 0 | 5 |
-| (0.5, 0.6) | 0 | 4 |
-| (0.6, 0.7) | 0 | 2 |
-| (0.7, 0.8) | 0 | 1 |
-| (0.8, 0.9) | 0 | 3 |
-| (0.9, 1.0) | 0 | 4 |
+| [0.1, 0.2) | 0 | 49 |
+| [0.2, 0.3) | 0 | 20 |
+| [0.3, 0.4) | 0 | 20 |
+| [0.4, 0.5) | 0 | 5 |
+| [0.5, 0.6) | 0 | 4 |
+| [0.6, 0.7) | 0 | 2 |
+| [0.7, 0.8) | 0 | 1 |
+| [0.8, 0.9) | 0 | 3 |
+| [0.9, 1.0) | 0 | 4 |
 | 1 | 116 | 0 |
 
 - PASS minimum is 1.0 and FAIL maximum is 0.9836. No bin mixes PASS and FAIL.
@@ -132,13 +132,13 @@ The 0.80 band cannot be compared across scenarios.
 - **Q_cont:**
   - NEAT `ambiguous_gesture` 0.994: stopped 20 m upstream, crept at 1.65 km/h.
   - baseline `unauthorized_go` 0.98: 0.28 m before the line.
-  - InterFuser `fallen_person` 0.964 (all 3 seeds): 1.13 m past the hazard margin, SV-LINE = 1.
+  - InterFuser `fallen_person` 0.964 (all 3 seeds): 1.14 / 1.13 / 1.13 m past the hazard margin, SV-LINE = 1.
   - `NO_START` scores 0.696–0.965 (n = 139); `DRIVE_THROUGH` scores 0.361–0.594 (n = 114).
   - P = 1 in 253 of 392 and C = 1 in 381 of 392.
 
 ## Files
 
-- Reproduce from the repository root: `python -I reports/scoring_consistency/scripts/consistency.py`, then `consistency2.py`, then `qcont_bands.py` (raw episodes under `tmp/_protocol_v2` and `tmp/_remeasure_interfuser/final_forward`).
+- Reproduce from the repository root: `python -I reports/scoring_consistency/scripts/consistency.py`, then `reports/scoring_consistency/scripts/consistency2.py`, then `reports/scoring_consistency/scripts/qcont_bands.py` (raw episodes under `tmp/_protocol_v2` and `tmp/_remeasure_interfuser/final_forward`).
 - `scripts/consistency.py`: per-episode descriptors, bands, per-scenario table and verdict bins.
 - `scripts/consistency2.py`: zero breakdown, class-by-scenario table, pairs, rank, components and weights.
 - `scripts/qcont_bands.py`: Q_cont bands, using the stored values.

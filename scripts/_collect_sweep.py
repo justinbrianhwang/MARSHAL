@@ -206,7 +206,7 @@ def main():
             "missing": nmissing, "scored": scored,
             "pass_rate": round(100.0 * npass / scored, 1) if scored else None,
             "graded": graded,
-            "marshal_score": marshal_agg["marshal_score_partial"],
+            "marshal_score": marshal_agg["marshal_score_partial"],  # Requirement Score (R1-R9, partial); key kept for the stored schema
             "r_scores": marshal_agg["r_scores"],
             "suite": marshal_agg["suite"],
             "conflict_profile": conflict_profile,
@@ -218,7 +218,7 @@ def main():
         }
 
     # print
-    print(f"{'model':14s} {'track':5s} {'pass':>4s}/{'tot':<3s} {'rate%':>6s} {'graded':>7s} {'mscore':>7s} {'miss':>4s}")
+    print(f"{'model':14s} {'track':5s} {'pass':>4s}/{'tot':<3s} {'rate%':>6s} {'graded':>7s} {'req':>7s} {'miss':>4s}")
     for label, _, _, _ in MODELS:
         s = summary[label]
         print(f"{label:14s} {s['track']:5s} {s['strict_pass']:>4d}/{s['scored']:<3d} "

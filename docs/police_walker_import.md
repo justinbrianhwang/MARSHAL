@@ -51,7 +51,7 @@ This finds the new walker blueprint, spawns it, checks `get_bones()` returns the
 Mixamo bones our engine needs, and applies a STOP pose to confirm `set_bones`
 animates it. Then point any scenario at it:
 ```
-... run_marshal_officer_demo.py --scenario green_stop --town Town03 \
+MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m ... run_marshal_officer_demo.py --scenario green_stop --town Town03 \
     --officer-blueprint walker.pedestrian.<index>
 ```
 (or set `officer.blueprint_id` in the scenario config.)

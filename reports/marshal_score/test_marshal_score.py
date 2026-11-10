@@ -176,6 +176,45 @@ def test_handoff_uses_common_scales():
     assert abs(h2["band"] - (1 - 2.5 / 3.0)) < 1e-9, h2["band"]  # common 3 m position scale
 
 
+def test_empty_enforcement_window_is_not_credited():
+    rows = approach_then_stop(3.0, 2.0)
+    el, obs = MS.stop_hold(rows, 1.0, 3.0, 5.0)  # directive ends before the reaction deadline: no enforced rows
+    assert obs["v_enforcement_max_kmh"] is None and el["R"] == 0.0 and el["P"] == 0.0, el
+    assert MS.combine(el, 0, "FAIL")["score"] <= 25.0
+
+
+def test_rocking_beyond_drift_limit_is_not_a_held_stop():
+    xs = [0.0] * 10 + [0.25] * 10 + [-0.35] * 30  # span 0.60 m > 0.5 m, every tick at rest
+    rows = [{"sim_time": round((i + 1) * 0.05, 2), "ego_speed_kmh": 0.0, "ego_forward_m": x} for i, x in enumerate(xs)]
+    assert MS.held_stop_start(rows, 0.0, 2.5) is None
+    steady = [dict(r, ego_forward_m=0.1) for r in rows]
+    assert MS.held_stop_start(steady, 0.0, 2.5) == 0.05
+
+
+def test_handoff_timing_gated_by_preceding_stages():
+    req = MS.CFG["handoff_strict_requirement"]
+    rows = []
+    for i in range(500):
+        t = (i + 1) * 0.05
+        x = min(t, 1.5) * 3.0                     # stops at 4.5 m: no transit, no officer approach, short of the band
+        rows.append({"sim_time": round(t, 2), "ego_speed_kmh": 10.8 if t < 1.5 else 0.0, "ego_forward_m": x,
+                     "ego_lateral_m": 0.0, "hazard_forward_m": 20.0, "distance_to_hazard_m": abs(20.0 - x) + 3.0,
+                     "distance_to_officer_m": abs(29.0 - x) + 3.0})
+    el, obs = MS.handoff(rows, 1.0, 13.0, 3.0, req)
+    h = obs["handoff_elements"]
+    assert h["transit"] == 0.0 and el["R"] == 0.0 and el["T"] == 0.0, (h, el)
+
+
+def test_combine_rejects_invalid_elements():
+    for bad in ({"R": float("nan"), "B": 1, "T": 1, "P": 1}, {"R": None, "B": 1, "T": 1, "P": 1},
+                {"R": -0.5, "B": 1, "T": 1, "P": 1}, {"R": 1, "B": 1.5, "T": None, "P": None}):
+        try:
+            MS.combine(bad, 0, "FAIL")
+        except ValueError:
+            continue
+        raise AssertionError(bad)
+
+
 if __name__ == "__main__":
     n = 0
     for name, fn in sorted(globals().items()):

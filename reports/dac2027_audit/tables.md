@@ -117,7 +117,7 @@
 
 ## T6. Leaderboard numbers re-derived from the 350 episode cells
 
-MARSHAL-Graded = 100 x (sum of weight x credit) / (sum of weights); scenarios passed = strict PASS count; override cells = strict PASS on the 6 override + 6 stressed-override scenarios. README columns are parsed from README.md and compared automatically.
+MARSHAL-Graded = 100 x (sum of weight x credit) / (sum of weights); scenarios passed = strict PASS count; override cells = strict PASS on the 6 override + 6 stressed-override scenarios. Published columns are parsed from docs/results_protocol_v1.md (protocol v1) and compared automatically.
 
 | Model | Sum w x credit | Sum w | Graded | README graded | Passed | README passed | Override cells | README override | Failure profile (override / stressed / validity / conflict / scene / safety) | README profile | Requirement Score (partial) | All README numbers reproduced |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|

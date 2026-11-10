@@ -61,6 +61,11 @@ def combine(el: Dict[str, Optional[float]], contacts: int, strict: str) -> Dict[
     """el: R, B, T, P in [0, 1] or None (not applicable). Returns score and its parts."""
     if strict not in ("PASS", "FAIL"):
         return {"score": None, "raw": None, "cap": None, "binding": "not scored"}
+    for k, v in el.items():
+        if v is not None and not (isinstance(v, (int, float)) and math.isfinite(v) and 0.0 <= v <= 1.0):
+            raise ValueError(f"element {k}={v!r} is not a finite value in [0, 1]")
+    if el.get("R") is None:
+        raise ValueError("the core element R is required")
     app = {k: v for k, v in el.items() if v is not None}
     raw = 100.0 * sum(WT[k] * v for k, v in app.items()) / sum(WT[k] for k in app)
     caps = {"core": CFG["caps"]["core"]["base"] + CFG["caps"]["core"]["slope"] * el["R"]}
@@ -90,9 +95,11 @@ def held_stop_start(rows: Sequence[dict], t0: float, t1: float) -> Optional[floa
     for i, r in enumerate(w):
         if r["ego_speed_kmh"] > TOL["stop_speed_kmh"]:
             continue
-        x0 = r.get("ego_forward_m") or 0.0
+        lo = hi = r.get("ego_forward_m") or 0.0
         for q in w[i:]:
-            if q["ego_speed_kmh"] > TOL["stop_speed_kmh"] or (q.get("ego_forward_m") or 0.0) - x0 > TOL["held_stop_max_drift_m"]:
+            x = q.get("ego_forward_m") or 0.0
+            lo, hi = min(lo, x), max(hi, x)
+            if q["ego_speed_kmh"] > TOL["stop_speed_kmh"] or hi - lo > TOL["held_stop_max_drift_m"]:
                 break
             if q["sim_time"] - r["sim_time"] >= TOL["held_stop_min_s"] - 1e-9:
                 return r["sim_time"]
@@ -142,7 +149,7 @@ def stop_hold(rows, onset, end, budget, boundary="stopline", hazard_key="hazard_
     E_motion = engagement(rows, end)
     A_dist, gap = approach_distance(rows, onset, end) if boundary is not None else (1.0, None)
     E = E_motion * A_dist
-    enf = window(rows, onset + budget, end) or window(rows, onset, end)
+    enf = window(rows, onset + budget, end)  # no rows after the reaction deadline -> no enforced stop shown
     v_enf = max((r["ego_speed_kmh"] for r in enf), default=None)
     f_speed = loss(None if v_enf is None else v_enf - TOL["stop_speed_kmh"], SC["speed_kmh"])
     act = window(rows, onset, end)
@@ -212,9 +219,11 @@ def proceed_after_release(rows, onset, release, budget, x_entry):
     for i, r in enumerate(live):  # settled dwell: <= 3 km/h for >= 2 s with <= 0.5 m drift
         if r["ego_speed_kmh"] > TOL["dwell_speed_kmh"]:
             continue
-        x0 = r.get("ego_forward_m") or 0.0
+        lo = hi = r.get("ego_forward_m") or 0.0
         for q in live[i:]:
-            if q["ego_speed_kmh"] > TOL["dwell_speed_kmh"] or (q.get("ego_forward_m") or 0.0) - x0 > TOL["dwell_max_drift_m"]:
+            x = q.get("ego_forward_m") or 0.0
+            lo, hi = min(lo, x), max(hi, x)
+            if q["ego_speed_kmh"] > TOL["dwell_speed_kmh"] or hi - lo > TOL["dwell_max_drift_m"]:
                 break
             if q["sim_time"] - r["sim_time"] >= TOL["dwell_min_s"] - 1e-9:
                 dwell = 1.0
@@ -259,7 +268,7 @@ def handoff(rows, onset, end, budget, req: dict):
     Every element is recomputed from telemetry against the Strict handoff requirement on the common scales."""
     rows = window(rows, 0.0, end)  # protocol v2: a STOP/HOLD is scored on the rows up to the end of the directive only
     base, obs = stop_hold(rows, onset, end, budget, boundary=None)
-    act, enf = window(rows, onset, end), (window(rows, onset + budget, end) or window(rows, onset, end))
+    act, enf = window(rows, onset, end), window(rows, onset + budget, end)
     pos, spd = SC["position_m"], SC["speed_kmh"]
     hz = [r["distance_to_hazard_m"] for r in rows if r.get("distance_to_hazard_m") is not None]
     off = [r["distance_to_officer_m"] for r in act if r.get("distance_to_officer_m") is not None]
@@ -288,4 +297,5 @@ def handoff(rows, onset, end, budget, req: dict):
     B = min(over, yoyo, zone, lateral)
     parts = {"transit": transit, "officer": officer, "band": band, "hold_settled": hold, "overshoot": over, "yoyo": yoyo,
              "zone_speed": zone, "lateral_hold": lateral, "max_zone_speed_kmh": max(zs) if zs else None}
-    return {"R": R, "B": B, "T": base["T"], "P": E * hold}, {**obs, "handoff_elements": parts}
+    # the held-stop timing presupposes the transit and officer/band stages
+    return {"R": R, "B": B, "T": min(transit, officer, band) * base["T"], "P": E * hold}, {**obs, "handoff_elements": parts}

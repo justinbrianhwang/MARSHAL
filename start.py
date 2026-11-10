@@ -83,8 +83,9 @@ ALL_SCENARIOS = [
 def _run_episode(controller: str, scenario: str, args, out_root: str) -> dict | None:
     """Run one scenario in an isolated subprocess and return its result dict."""
     env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8")
-    # GREEN STOP has no default protocol; the quick start runs the leaderboard (protocol-v2) cell.
-    env.setdefault("MARSHAL_GREEN_STOP_PROTOCOL", "legacy_v2_7m")
+    # GREEN STOP has no default protocol; the quick-start scoreboard always runs the leaderboard (protocol-v2) cell,
+    # so an inherited MARSHAL_GREEN_STOP_PROTOCOL can never mix the approach candidate into it.
+    env["MARSHAL_GREEN_STOP_PROTOCOL"] = "legacy_v2_7m"
     cmd = [PY, RUNNER,
            "--scenario", scenario,
            "--town", args.town,

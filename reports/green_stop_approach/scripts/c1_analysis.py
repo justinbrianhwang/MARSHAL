@@ -28,7 +28,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from telemetry_check import REQUIRED_FIELDS, check_telemetry, num, telemetry_rows  # noqa: E402,F401
 
-ANALYSIS_VERSION = "c1-analysis-fix-v1.2 (2026-11-06)"
+ANALYSIS_VERSION = "gs_approach_c1 analysis (2026-11-06)"
 
 # ---- definitions (all explicit; none of these change the protocol or Strict scoring) -------------------
 MOVE_MIN_PROGRESS_M = 0.5        # "moved": net forward progress f0 - min(front) >= 0.5 m (front = vehicle front

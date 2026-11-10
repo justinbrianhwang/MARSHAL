@@ -143,13 +143,13 @@ MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m MARSHAL_OUT_ROOT=runs/tcp python script
 MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m MARSHAL_OUT_ROOT=runs/transfuser python scripts/_run_transfuser_sweep.py green_stop \n    --results-json runs/transfuser.json --report runs/transfuser.md
 
 # OpenEMMA (env: openemma)
-python scripts/_run_fullplanner_sweep.py green_stop --controller openemma --backend qwen2vl \
+MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m python scripts/_run_fullplanner_sweep.py green_stop --controller openemma --backend qwen2vl \
     --out-root runs/openemma --results-json runs/openemma.json --report runs/openemma.md
 ```
 
 On Windows PowerShell, set environment variables with `$env:MARSHAL_OUT_ROOT = "runs/tcp"` before the command.
 
-- **Full suite:** omit the scenario key to run all 25 scenarios. `python scripts/_run_full_sweep.py` runs every model × scenario with automatic CARLA restarts. It writes into the shared `tmp/` result roots, so use it on a fresh clone only.
+- **Full suite:** omit the scenario key to run all 25 scenarios. `MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m python scripts/_run_full_sweep.py` runs every model × scenario with automatic CARLA restarts. It writes into the shared `tmp/` result roots, so use it on a fresh clone only.
 - **Built-in quick start:** `python start.py --controller oracle --tag oracle` runs and scores the oracle on all scenarios and writes `outputs/benchmark/<tag>/scoreboard.json`.
 
 ### 5.3 Optional diagnostic switches
@@ -158,7 +158,7 @@ All of these are unset by default; unset = leaderboard behaviour.
 
 | Variable / flag | Effect |
 |---|---|
-| `MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m \| approach_c1` | **Required for every `green_stop` run** (no default): `legacy_v2_7m` = the leaderboard cell (front 7.41 m, STOP at 1.0 s); `approach_c1` = the approach candidate (60 m spawn, position-triggered STOP; see `reports/green_stop_approach/`). `start.py` sets `legacy_v2_7m` unless the variable is already set |
+| `MARSHAL_GREEN_STOP_PROTOCOL=legacy_v2_7m \| approach_c1` | **Required for every `green_stop` run** (no default): `legacy_v2_7m` = the leaderboard cell (front 7.41 m, STOP at 1.0 s); `approach_c1` = the approach candidate (60 m spawn, position-triggered STOP; see `reports/green_stop_approach/`). `start.py` always runs `legacy_v2_7m` |
 | `MARSHAL_SEED=<n>` | Override the episode seed (repeatability runs) |
 | `MARSHAL_OFFICER_CONDITION=absent \| proceed \| civilian_stop \| civilian_proceed` | Paired controls: no officer / PROCEED gesture / civilian STOP / civilian PROCEED in the same pose |
 | `MARSHAL_OFFICER_DISTANCE_M=<m>` | Override the officer's forward distance (leaderboard staging: 13 m; see `docs/authority_staging_and_appearance.md`) |

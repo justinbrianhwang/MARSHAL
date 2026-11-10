@@ -1,5 +1,5 @@
 {
- "analysis_version": "c1-analysis-fix-v1.2 (2026-11-06)",
+ "analysis_version": "gs_approach_c1 analysis (2026-11-06)",
  "runs_total": 56,
  "duplicates": [],
  "stop": {
@@ -282,7 +282,7 @@
    }
   }
  },
- "aggregation_version": "aggregation-v1.5 (2026-11-06)",
+ "aggregation_version": "gs_approach_c1 aggregation (2026-11-06)",
  "aggregation_overall": {
   "runs_total": 56,
   "runs_included": 56,

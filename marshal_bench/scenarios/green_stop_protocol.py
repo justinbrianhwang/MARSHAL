@@ -73,6 +73,10 @@ def apply_protocol(config: dict, env: Optional[dict] = None) -> Dict[str, Any]:
     bad_env = [k for k in CONFLICTING_ENV if env.get(k)]
     if bad_env:
         raise GreenStopProtocolError(f"{name}: environment overrides conflict with the protocol: {bad_env}")
+    cond = (env.get("MARSHAL_OFFICER_CONDITION") or "").strip().lower()
+    if cond not in ("", "absent"):  # the candidate is a STOP by an authorized officer, or its officer-absent pair
+        raise GreenStopProtocolError(f"{name}: MARSHAL_OFFICER_CONDITION={cond!r} changes the instruction or the authority; "
+                                     f"only the officer-absent control is defined for this protocol")
     sp, trig, timing, off = proto["spawn"], proto["signal_trigger"], proto["timing"], proto["officer"]
 
     station = _station()
@@ -99,6 +103,9 @@ def apply_protocol(config: dict, env: Optional[dict] = None) -> Dict[str, Any]:
     if officer:
         if officer.get("duration") is not None and abs(float(officer["duration"]) - float(trig["duration_s"])) > 1e-9:
             raise GreenStopProtocolError(f"{name}: officer duration {officer['duration']} != {trig['duration_s']}")
+        gesture = str(officer.get("gesture") or "").upper()
+        if gesture and gesture != str(trig["gesture"]).upper():
+            raise GreenStopProtocolError(f"{name}: officer gesture {officer.get('gesture')!r} != protocol {trig['gesture']!r}")
         removed_onset = officer.pop("onset_time", None)
         officer["distance"] = float(off["station_along_lane_m"]) + shift
         officer["lateral_offset"] = float(off["lateral_offset_m"])
