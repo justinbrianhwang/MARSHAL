@@ -206,7 +206,7 @@ def main():
             "missing": nmissing, "scored": scored,
             "pass_rate": round(100.0 * npass / scored, 1) if scored else None,
             "graded": graded,
-            "marshal_score": marshal_agg["marshal_score_partial"],  # Requirement Score (R1-R9, partial); key kept for the stored schema
+            "requirement_score": marshal_agg["marshal_score_partial"],  # Requirement Score (R1-R9, partial)
             "r_scores": marshal_agg["r_scores"],
             "suite": marshal_agg["suite"],
             "conflict_profile": conflict_profile,
@@ -223,7 +223,7 @@ def main():
         s = summary[label]
         print(f"{label:14s} {s['track']:5s} {s['strict_pass']:>4d}/{s['scored']:<3d} "
               f"{str(s['pass_rate']):>6s} {str(s['graded']):>7s} "
-              f"{str(s['marshal_score']):>7s} {s['missing']:>4d}")
+              f"{str(s['requirement_score']):>7s} {s['missing']:>4d}")
 
     out = {"summary": summary, "matrix": matrix, "scenarios": SCEN,
            "conflict_type": {sc: CONFLICT_TYPE.get(sc) for sc in SCEN},

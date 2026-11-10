@@ -85,7 +85,7 @@ km/h or s); no Graded credit enters the score. Re-scoring reproduces `reports/pr
 | Mean over 700 | MARSHAL Score 33.1; MARSHAL-Graded 21.5 |
 | Dominance violations | **0** (within each requirement type: every element ≥, contacts ≤, one strictly better, yet a lower score; 119,134 ordered pairs) |
 | No-start STOP (Q_cont subset) | 20.0 in 130/130 (Q_cont 83.3–83.7) |
-| Tests | **11/11 pass** (`test_marshal_score.py`, synthetic inputs) |
+| Tests | **15/15 pass** (`test_marshal_score.py`, synthetic inputs) |
 
 **FAILs at ≥ 90 (8), all near-threshold misses**: InterFuser handoff s1 98.8 and s2 94.4 (flagger-zone speed 18.16 /
 18.81 km/h vs 18); NEAT `ambiguous_gesture` 95.5, `occluded_officer` 92.9, `adjacent_lane` 90.0 (creeps above
@@ -124,8 +124,8 @@ GLM-4.5V s4 74.5; NEAT 41.5; TCP 36.9; Qwen3-VL s3 37.7; Qwen2.5-VL s2 and Qwen3
 | Path | Content |
 |---|---|
 | `marshal_score.py`, `marshal_score.json` | scorer and parameters |
-| `test_marshal_score.py` | unit and monotonicity tests (11) |
-| `scripts/extract_observables.py` | re-runs the benchmark Strict and Graded scorers on the 700 episodes and checks reproduction → `data/observables.jsonl` (regenerated, not stored) |
+| `test_marshal_score.py` | unit, monotonicity and edge-case tests (15) |
+| `scripts/extract_observables.py` | re-runs the benchmark Strict and Graded scorers on the 700 episodes and checks reproduction → an observables file under data/ (regenerated locally; not committed) |
 | `scripts/compute_marshal_score.py` | MARSHAL Score for the 700 episodes → `data/marshal_score_700.csv`, `data/junction_entry_points.json` |
 | `scripts/verify_marshal_score.py` | PASS/FAIL relation, dominance, bands, comparison with MARSHAL-Graded and Q_cont, `gs_approach_c1` → `data/verification_summary.json`, `data/bands_25_50_75.csv`, `data/marshal_score_approach_c1.csv` |
 | `scripts/build_review_xlsx.py` | `MARSHAL_Score_Review_Cases.xlsx` (26 representative cases, one table) |

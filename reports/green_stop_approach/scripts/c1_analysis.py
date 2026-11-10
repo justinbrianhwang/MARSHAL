@@ -1,6 +1,6 @@
 """GREEN STOP approach protocol (gs_approach_c1) -- per-run analysis (analysis_version below). Read-only on episodes.
 
-    python -I reports/green_stop_approach/scripts/c1_analysis.py <runs_root> --out <dir> [--old-csv <earlier runs csv>]
+    python -I reports/green_stop_approach/scripts/c1_analysis.py <runs_root> --out <dir> [--old-csv <runs csv to compare columns with>]
 
 Writes runs_corrected.csv and vlm_queries_corrected.csv (published as data/runs.csv and data/vlm_queries.csv).
 ANALYSIS only: no protocol, scoring rule, config or raw log is
@@ -196,7 +196,7 @@ def held_window(rows, t0, t1, *, dt=None):
 
 
 def held_legacy(rows, t0, t1):
-    """The earlier run-summary _held helper (kept verbatim for comparison).  Guard (v1.2): it is only
+    """Alternative held-stop rule (first qualifying start), reported as held_stop_start_s_legacy_fn.  It is only
     evaluated on telemetry that passes check_telemetry(); on defective data it returns (None, None) and computes
     nothing, instead of computing on (or crashing over) bad values."""
     if not check_telemetry(rows)["ok"]:

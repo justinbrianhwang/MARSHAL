@@ -1,7 +1,7 @@
 """Aggregate N full-sweep runs into mean +/- std, with per-cell pass probability.
 
 Reads outputs/multirun/run_*.json (each the output of _collect_sweep.py) and
-reports, per model: mean/std of pass_rate, graded, and marshal_score across runs,
+reports, per model: mean/std of pass_rate, graded, and the Requirement Score across runs,
 plus per (model, scenario) strict-PASS probability so borderline cells surface as
 fractional. Writes outputs/multirun_aggregate.json.
 
@@ -43,7 +43,7 @@ def main():
     for m in models:
         prm, prs = _mean_std([r["summary"][m].get("pass_rate") for r in runs])
         grm, grs = _mean_std([r["summary"][m].get("graded") for r in runs])
-        msm, mss = _mean_std([r["summary"][m].get("marshal_score") for r in runs])
+        msm, mss = _mean_std([r["summary"][m].get("requirement_score", r["summary"][m].get("marshal_score")) for r in runs])
         # per-cell PASS probability
         cell_pass = {}
         for sc in scenarios:
@@ -54,7 +54,7 @@ def main():
         out["models"][m] = {
             "pass_rate": {"mean": prm, "std": prs},
             "graded": {"mean": grm, "std": grs},
-            "marshal_score": {"mean": msm, "std": mss},
+            "requirement_score": {"mean": msm, "std": mss},
             "cell_pass_prob": cell_pass,
             "borderline_cells": borderline,
         }
